@@ -78,9 +78,14 @@ fun PreviewScreen(
         Spacer(modifier = Modifier.height(16.dp))
         
         val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val repository = remember { com.example.pokequery.data.repository.UserPreferencesRepository(context.com.example.pokequery.data.repository.dataStore) }
+        val scope = rememberCoroutineScope()
+
         Button(
             onClick = { 
                 clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(generatedString.rawSyntax))
+                android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
                 onCopy() 
             },
             colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
@@ -88,6 +93,20 @@ fun PreviewScreen(
             shape = RoundedCornerShape(12.dp)
         ) {
             Text("Copy", color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedButton(
+            onClick = { 
+                scope.launch { repository.addFavorite(generatedString.rawSyntax) }
+                android.widget.Toast.makeText(context, "Saved to favorites", android.widget.Toast.LENGTH_SHORT).show()
+            },
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = TealPrimary)
+        ) {
+            Text("Save as Favorite")
         }
 
         Spacer(modifier = Modifier.height(24.dp))
