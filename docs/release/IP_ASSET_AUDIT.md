@@ -2,6 +2,12 @@
 
 **Status**: ALL CLEAR (with recommendations)
 
+## v0.3.2 update
+- Runtime UI now uses IP-safe Compose/vector mascot silhouettes, map lines, shield, magnifier, cards, and glow effects.
+- The approved visual reference in `docs/design/reference_target_pokequery.png` remains documentation-only.
+- No official Pokémon character art, Poké Ball art, Niantic/Nintendo/Game Freak logos, or screenshot crops are loaded at runtime.
+- User-supplied official/lookalike character art would be prototype-only unless separately licensed and accepted for release risk.
+
 ## Audit Checklist
 - [x] **No official Pokémon character assets**: Verified. All icons are abstract generic shapes (stars, candies, tags, cleanup brushes).
 - [x] **No Poké Ball assets**: Verified. No branded spheres exist in `drawable-nodpi`.

@@ -19,7 +19,8 @@ def create_contact_sheet():
         "12_knowledge_search.png",
         "13_knowledge_expanded.png",
         "14_favorites.png",
-        "15_settings.png"
+        "15_history.png",
+        "16_settings.png"
     ]
     
     files = []

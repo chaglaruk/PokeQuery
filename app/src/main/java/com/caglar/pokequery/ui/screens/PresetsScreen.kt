@@ -1,6 +1,5 @@
 package com.caglar.pokequery.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,9 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,6 +19,7 @@ import com.caglar.pokequery.data.model.GeneratedString
 import com.caglar.pokequery.data.model.RiskLevel
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
 import com.caglar.pokequery.theme.*
+import com.caglar.pokequery.ui.components.ScreenTitleBar
 import com.caglar.pokequery.ui.components.RiskBadge
 import androidx.compose.ui.graphics.Color
 
@@ -61,17 +58,13 @@ val POPULAR_PRESETS = listOf(
 )
 
 @Composable
-fun PresetsScreen(onBack: () -> Unit, onNavigateRisk: (GeneratedString) -> Unit) {
-    val context = LocalContext.current
-    val clipboard = LocalClipboardManager.current
-
+fun PresetsScreen(
+    onBack: () -> Unit,
+    onCopy: (GeneratedString) -> Unit,
+    onNavigateRisk: (GeneratedString) -> Unit
+) {
     Column(modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp)) {
-        Row(modifier = Modifier.padding(bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
-                Icon(painterResource(id = android.R.drawable.ic_media_previous), contentDescription = "Back", tint = TextSecondary)
-            }
-            Text("Popular Presets", color = TextPrimary, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        }
+        ScreenTitleBar("Popular Presets", onBack, Modifier.padding(bottom = 16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             val grouped = POPULAR_PRESETS.groupBy { it.category }
@@ -115,8 +108,7 @@ fun PresetsScreen(onBack: () -> Unit, onNavigateRisk: (GeneratedString) -> Unit)
                                     if (preset.risk == RiskLevel.High || preset.risk == RiskLevel.Medium) {
                                         onNavigateRisk(generated)
                                     } else {
-                                        clipboard.setText(AnnotatedString(preset.syntax))
-                                        Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
+                                        onCopy(generated)
                                     }
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),

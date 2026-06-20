@@ -1,5 +1,9 @@
 package com.caglar.pokequery
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -11,6 +15,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import com.caglar.pokequery.data.model.GeneratedString
+import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
@@ -26,34 +32,17 @@ fun MainNavigation(startRoute: String? = null) {
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val initialEntry = remember(startRoute, userPrefs) {
-        when (startRoute) {
-            "onboarding" -> Onboarding(0)
-            "onboarding_step_2" -> Onboarding(1)
-            "onboarding_step_3" -> Onboarding(2)
-            "home" -> Home
-            "detail_safe_cleanup" -> GoalDetail("safe_cleanup")
-            "detail_candy_prep" -> GoalDetail("candy_prep")
-            "detail_trade_fodder" -> GoalDetail("trade_fodder")
-            "detail_pvp_candidates" -> GoalDetail("pvp_candidates")
-            "detail_nundo_finder" -> GoalDetail("nundo_finder")
-            "detail_lucky_trade" -> GoalDetail("lucky_trade")
-            "knowledge" -> KnowledgeBase(false)
-            "knowledge_expanded" -> KnowledgeBase(true)
-            "presets" -> Presets
-            "expert" -> ExpertBuilder
-            "favorites" -> Favorites
-            "settings" -> Settings
-            null -> when {
-                userPrefs == null -> null
-                userPrefs!!.firstUseSeen -> Home
-                else -> Onboarding(0)
-            }
-            else -> Home // Default to Home. Specific goals are handled inside Home -> GoalDetail
-        }
+        startDestination(startRoute, userPrefs?.firstUseSeen)
     } ?: return
 
     val backStack = rememberNavBackStack(initialEntry)
-    var currentTab by remember { mutableStateOf("home") }
+    var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
+
+    fun copyGenerated(generated: GeneratedString) {
+        clipboard.setText(AnnotatedString(generated.rawSyntax))
+        scope.launch { repository.addHistory(SavedTemplate.from(generated)) }
+        android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+    }
 
     Scaffold(
         bottomBar = {
@@ -73,6 +62,9 @@ fun MainNavigation(startRoute: String? = null) {
             NavDisplay(
                 backStack = backStack,
                 onBack = { backStack.removeLastOrNull() },
+                transitionSpec = { fadeIn(tween(140)) togetherWith fadeOut(tween(100)) },
+                popTransitionSpec = { fadeIn(tween(140)) togetherWith fadeOut(tween(100)) },
+                predictivePopTransitionSpec = { _ -> fadeIn(tween(140)) togetherWith fadeOut(tween(100)) },
                 entryProvider = entryProvider {
                     entry<Onboarding> { route ->
                         val scope = rememberCoroutineScope()
@@ -84,13 +76,7 @@ fun MainNavigation(startRoute: String? = null) {
                     }
                     entry<Home> {
                         HomeScreen { goalId -> 
-                            if (goalId == "expert") {
-                                backStack.add(ExpertBuilder)
-                            } else if (goalId == "presets") {
-                                backStack.add(Presets)
-                            } else {
-                                backStack.add(GoalDetail(goalId)) 
-                            }
+                            backStack.add(homeGoalDestination(goalId))
                         }
                     }
                     entry<GoalDetail> { route ->
@@ -105,11 +91,8 @@ fun MainNavigation(startRoute: String? = null) {
                     entry<ExpertBuilder> {
                         ExpertBuilderScreen(
                             onGenerate = { query ->
-                                // Custom queries might need risk warning checks directly or through a unified preview.
-                                // For now, we can show a toast or bypass to a warning.
                                 val generated = StringBuilderEngine.buildGoal("expert", customQuery = query)
-                                clipboard.setText(AnnotatedString(generated.rawSyntax))
-                                android.widget.Toast.makeText(context, "Copied custom string", android.widget.Toast.LENGTH_SHORT).show()
+                                if (requiresRiskWarning(generated.riskLevel)) backStack.add(RiskWarning(generated)) else copyGenerated(generated)
                             },
                             onBack = { backStack.removeLastOrNull() }
                         )
@@ -117,6 +100,7 @@ fun MainNavigation(startRoute: String? = null) {
                     entry<Presets> {
                         PresetsScreen(
                             onBack = { backStack.removeLastOrNull() },
+                            onCopy = ::copyGenerated,
                             onNavigateRisk = { generatedString ->
                                 backStack.add(RiskWarning(generatedString))
                             }
@@ -128,8 +112,19 @@ fun MainNavigation(startRoute: String? = null) {
                                 if (requiresRiskWarning(favorite.riskLevel)) {
                                     backStack.add(RiskWarning(favorite.asGeneratedString()))
                                 } else {
-                                    clipboard.setText(AnnotatedString(favorite.rawSyntax))
-                                    android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                                    copyGenerated(favorite.asGeneratedString())
+                                }
+                            },
+                            onBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<History> {
+                        HistoryScreen(
+                            onCopy = { history ->
+                                if (requiresRiskWarning(history.riskLevel)) {
+                                    backStack.add(RiskWarning(history.asGeneratedString()))
+                                } else {
+                                    copyGenerated(history.asGeneratedString())
                                 }
                             },
                             onBack = { backStack.removeLastOrNull() }
@@ -141,8 +136,7 @@ fun MainNavigation(startRoute: String? = null) {
                         RiskWarningScreen(
                             generatedString = route.generatedString,
                             onConfirmCopy = {
-                                clipboard.setText(AnnotatedString(route.generatedString.rawSyntax))
-                                android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                                copyGenerated(route.generatedString)
                                 backStack.removeLastOrNull()
                             },
                             onBack = { backStack.removeLastOrNull() }

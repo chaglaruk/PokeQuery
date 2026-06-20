@@ -22,6 +22,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val FIRST_USE_SEEN = booleanPreferencesKey("first_use_seen")
         val LEGACY_FAVORITES = stringSetPreferencesKey("favorites_set")
         val SAVED_TEMPLATES = stringSetPreferencesKey("saved_templates_v1")
+        val RECENT_HISTORY = stringSetPreferencesKey("recent_history_v1")
         val WARNING_BEHAVIOR = stringPreferencesKey("warning_behavior")
         val DUPLICATE_THRESHOLD = stringPreferencesKey("duplicate_threshold")
         val SAFETY_STYLE = stringPreferencesKey("safety_style")
@@ -35,7 +36,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             duplicateThreshold = preferences[DUPLICATE_THRESHOLD] ?: "Count 3 (Safe)",
             safetyStyle = preferences[SAFETY_STYLE] ?: "Conservative",
             copyBehavior = preferences[COPY_BEHAVIOR] ?: "Confirm Risky Copy",
-            favorites = readFavorites(preferences).sortedByDescending { it.createdAt }
+            favorites = readFavorites(preferences).sortedByDescending { it.createdAt },
+            history = readHistory(preferences).sortedByDescending { it.createdAt }
         )
     }
 
@@ -65,12 +67,22 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    suspend fun addHistory(template: SavedTemplate) {
+        dataStore.edit { preferences ->
+            val recent = (listOf(template) + readHistory(preferences).filterNot { it.rawSyntax == template.rawSyntax })
+                .take(25)
+            preferences[RECENT_HISTORY] = recent.map(SavedTemplateCodec::encode).toSet()
+        }
+    }
+
     suspend fun resetSettings() {
         dataStore.edit { preferences ->
             val favs = preferences[SAVED_TEMPLATES]
+            val history = preferences[RECENT_HISTORY]
             val firstUse = preferences[FIRST_USE_SEEN]
             preferences.clear()
             if (favs != null) preferences[SAVED_TEMPLATES] = favs
+            if (history != null) preferences[RECENT_HISTORY] = history
             if (firstUse != null) preferences[FIRST_USE_SEEN] = firstUse
         }
     }
@@ -89,6 +101,9 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         }
         return (saved + legacy).distinctBy { it.id }
     }
+
+    private fun readHistory(preferences: Preferences): List<SavedTemplate> =
+        preferences[RECENT_HISTORY].orEmpty().mapNotNull(SavedTemplateCodec::decode)
 }
 
 data class UserPreferences(
@@ -97,7 +112,8 @@ data class UserPreferences(
     val duplicateThreshold: String = "Count 3 (Safe)",
     val safetyStyle: String = "Conservative",
     val copyBehavior: String = "Confirm Risky Copy",
-    val favorites: List<SavedTemplate>
+    val favorites: List<SavedTemplate>,
+    val history: List<SavedTemplate> = emptyList()
 )
 
 object SavedTemplateCodec {

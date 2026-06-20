@@ -1,7 +1,6 @@
 package com.caglar.pokequery.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -19,14 +18,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.caglar.pokequery.R
 import com.caglar.pokequery.theme.*
+import com.caglar.pokequery.ui.components.GoalArt
+import com.caglar.pokequery.ui.components.HeroSearchShield
+import com.caglar.pokequery.ui.components.MapBackdrop
+import com.caglar.pokequery.ui.components.PremiumPanel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -35,83 +36,68 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
 
-    Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
+    Box(Modifier.fillMaxSize()) {
+        MapBackdrop(Modifier.matchParentSize(), imageAlpha = 0.48f)
+
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 14.dp)
         ) {
-            // Top Bar with Skip
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = onStart) {
-                    Text("Skip", color = TextSecondary, fontWeight = FontWeight.Bold)
-                }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onStart) { Text("Skip", color = TextSecondary, fontWeight = FontWeight.Bold) }
             }
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.weight(1f)
-            ) { page ->
+            HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
                 when (page) {
-                    0 -> OnboardingPage(
-                        title = "Clean storage without losing rare Pokémon",
-                        description = "Safe Cleanup generates search strings that find low-value junk while strictly excluding shinies, legendaries, 4★, and favorites.",
-                        imageRes = R.drawable.onboarding_hero
+                    0 -> OnboardingHeroPage()
+                    1 -> OnboardingLargeCardPage(
+                        title = "Build the right search in seconds",
+                        description = "Use safe defaults for cleanup, candy prep, trading, PvP checks, Hundos and Nundos.",
+                        goalId = "candy_prep",
+                        accent = AmberWarning
                     )
-                    1 -> OnboardingPage(
-                        title = "Prepare for events, candy, trades and PvP",
-                        description = "Quickly isolate duplicates for 2x transfer candy, identify untraded fodder, check for PvP candidates, and hunt for Hundos.",
-                        imageRes = R.drawable.goal_expert_icon // Fallback image since we don't have a specific illustration
+                    else -> OnboardingLargeCardPage(
+                        title = "Copy-only and offline-first",
+                        description = "PokeQuery creates text only. No account login, no scraping, no connection to the game.",
+                        goalId = "safe_cleanup",
+                        accent = TealPrimary,
+                        showTrustRows = true
                     )
-                    2 -> OnboardingPageFinal()
                 }
             }
 
-            // Bottom Navigation Area
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Page Indicators
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     repeat(3) { index ->
-                        val isSelected = pagerState.currentPage == index
                         Box(
                             modifier = Modifier
-                                .size(if (isSelected) 10.dp else 8.dp)
+                                .size(if (pagerState.currentPage == index) 10.dp else 8.dp)
                                 .clip(CircleShape)
-                                .background(if (isSelected) TealPrimary else TextSecondary.copy(alpha = 0.5f))
+                                .background(if (pagerState.currentPage == index) BlueCTA else TextSecondary.copy(alpha = 0.45f))
                         )
                     }
                 }
 
-                // Next / Start Button
-                if (pagerState.currentPage == 2) {
-                    Button(
-                        onClick = onStart,
-                        colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.height(50.dp)
-                    ) {
-                        Text("Start using PokeQuery", fontWeight = FontWeight.Bold)
-                    }
-                } else {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = CardPremium),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.height(50.dp)
-                    ) {
-                        Text("Next", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
+                Button(
+                    onClick = {
+                        if (pagerState.currentPage == 2) {
+                            onStart()
+                        } else {
+                            coroutineScope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
+                    shape = RoundedCornerShape(18.dp),
+                    modifier = Modifier.height(58.dp).widthIn(min = 152.dp)
+                ) {
+                    Text(if (pagerState.currentPage == 2) "Start building" else "Next", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -119,102 +105,76 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
 }
 
 @Composable
-private fun OnboardingPage(title: String, description: String, imageRes: Int) {
+private fun OnboardingHeroPage() {
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(Modifier.height(10.dp))
+        Text("PokeQuery", color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 50.sp)
+        Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 18.sp, textAlign = TextAlign.Center)
+        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            HeroSearchShield(Modifier.fillMaxWidth(0.86f).aspectRatio(1f))
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            TrustFeature(Icons.Default.Lock, "Private", "No login", Modifier.weight(1f))
+            TrustFeature(Icons.Default.CheckCircle, "Offline-first", "Works anywhere", Modifier.weight(1f))
+            TrustFeature(Icons.Default.Share, "Copy-only", "You control", Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun OnboardingLargeCardPage(
+    title: String,
+    description: String,
+    goalId: String,
+    accent: Color,
+    showTrustRows: Boolean = false
+) {
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        PremiumPanel(borderColor = accent, modifier = Modifier.fillMaxWidth()) {
+            GoalArt(goalId, accent, Modifier.fillMaxWidth().height(250.dp))
+            Spacer(Modifier.height(12.dp))
+            Text(title, color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, textAlign = TextAlign.Center, lineHeight = 34.sp)
+            Spacer(Modifier.height(10.dp))
+            Text(description, color = TextSecondary, fontSize = 16.sp, textAlign = TextAlign.Center, lineHeight = 22.sp)
+        }
+        if (showTrustRows) {
+            Spacer(Modifier.height(16.dp))
+            TrustStrip("Private", "Offline-first", "Copy-only")
+        }
+    }
+}
+
+@Composable
+private fun TrustFeature(icon: ImageVector, title: String, subtitle: String, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        modifier = modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(CardPremium.copy(alpha = 0.86f))
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(32.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
+        Icon(icon, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(26.dp))
+        Spacer(Modifier.height(8.dp))
+        Text(title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp, textAlign = TextAlign.Center)
+        Text(subtitle, color = TextSecondary, fontSize = 11.sp, textAlign = TextAlign.Center)
+    }
+}
+
+@Composable
+private fun TrustStrip(vararg labels: String) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        labels.forEach {
+            Text(
+                it,
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(CardPremium.copy(alpha = 0.92f))
+                    .padding(vertical = 12.dp)
             )
         }
-        
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center,
-            lineHeight = 34.sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = description,
-            color = TextSecondary,
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 24.sp
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-@Composable
-private fun OnboardingPageFinal() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                TrustRow(Icons.Default.Lock, "No account access required")
-                TrustRow(Icons.Default.CheckCircle, "Works completely offline")
-                TrustRow(Icons.Default.Share, "Copy strings into Pokémon GO manually")
-            }
-        }
-        
-        Text(
-            text = "Copy safe search strings into Pokémon GO",
-            color = Color.White,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center,
-            lineHeight = 34.sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "PokeQuery does not log in to your account. It generates pure text that you paste into the in-game search bar.",
-            color = TextSecondary,
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 24.sp
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-@Composable
-private fun TrustRow(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(CardPremium, RoundedCornerShape(16.dp))
-            .padding(20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(32.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(text, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
     }
 }

@@ -1,44 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    
-    <!-- Outer Glow -->
-    <path
-        android:pathData="M54,54m-30,0a30,30 0,1 1,60,0a30,30 0,1 1,-60,0"
-        android:fillColor="#1A03DAC5" />
 
-    <!-- Shield outline -->
+    <path android:fillColor="#3300E5FF" android:pathData="M54,55m-38,0a38,38 0,1 1,76 0a38,38 0,1 1,-76 0" />
+    <path android:fillColor="#221E88FF" android:pathData="M54,55m-48,0a48,48 0,1 1,96 0a48,48 0,1 1,-96 0" />
+
     <path
-        android:pathData="M54,20 L30,30 L30,50 C30,70 54,86 54,86 C54,86 78,70 78,50 L78,30 Z"
-        android:strokeWidth="4"
-        android:strokeColor="#03DAC5"
+        android:fillColor="#0D6EFD"
+        android:strokeColor="#99FFFFFF"
+        android:strokeWidth="2.4"
         android:strokeLineJoin="round"
-        android:fillColor="#0A03DAC5"/>
-        
-    <!-- Creature Grid inside shield -->
+        android:pathData="M54,18 L29,29 L29,49 C29,69 54,86 54,86 C54,86 79,69 79,49 L79,29 Z" />
     <path
-        android:pathData="M40,38h12v12h-12z M56,38h12v12h-12z M40,54h12v12h-12z"
-        android:fillColor="#FFFFFF"/>
+        android:fillColor="#1DE9B6"
+        android:pathData="M54,24 L36,32 L36,48 C36,61 49,72 54,76 C59,72 72,61 72,48 L72,32 Z" />
 
-    <!-- Glowing Magnifier -->
     <path
-        android:pathData="M66,66 m-12,0 a12,12 0,1 1,24,0 a12,12 0,1 1,-24,0"
-        android:strokeWidth="4"
-        android:strokeColor="#2196F3"
-        android:fillColor="#00000000"/>
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M50,52m-13,0a13,13 0,1 1,26 0a13,13 0,1 1,-26 0" />
     <path
-        android:pathData="M74,74 L86,86"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="6"
-        android:strokeColor="#2196F3"
-        android:strokeLineCap="round"/>
-        
-    <!-- Sparkle -->
-    <path
-        android:pathData="M54,26 L56,34 L64,36 L56,38 L54,46 L52,38 L44,36 L52,34 Z"
-        android:fillColor="#FFC107"/>
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M60,62 L75,77" />
 
+    <path android:fillColor="#FFC928" android:pathData="M78,19 L81,30 L92,33 L81,36 L78,47 L75,36 L64,33 L75,30 Z" />
+    <path android:fillColor="#00E5FF" android:pathData="M27,71 L29,78 L36,80 L29,82 L27,89 L25,82 L18,80 L25,78 Z" />
+
+    <path android:fillColor="#AA02101F" android:pathData="M25,88 C45,80 65,80 83,89 L83,98 L25,98 Z" />
 </vector>

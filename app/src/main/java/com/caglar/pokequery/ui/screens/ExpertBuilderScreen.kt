@@ -59,7 +59,7 @@ fun ExpertBuilderScreen(
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Review Custom String", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Copy Custom String", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
     }
 }
