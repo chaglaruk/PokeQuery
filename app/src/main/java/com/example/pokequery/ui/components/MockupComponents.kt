@@ -12,9 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pokequery.R
@@ -27,13 +29,17 @@ fun RiskHeaderCardCompose(riskLevel: String, subtitle: String, color: Color, bac
         modifier = Modifier.fillMaxWidth().height(120.dp).background(CardPremium, RoundedCornerShape(16.dp)).border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
     ) {
         if (backgroundDrawableResId != null) {
-            Image(
-                painter = painterResource(id = backgroundDrawableResId),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize().padding(start = 64.dp),
-                alpha = 0.6f
-            )
+            Box(modifier = Modifier.matchParentSize().padding(start = 100.dp)) {
+                Image(
+                    painter = painterResource(id = backgroundDrawableResId),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                    alpha = 0.7f
+                )
+                // Gradient to fade the left edge smoothly into the solid background color
+                Box(modifier = Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(CardPremium, Color.Transparent))))
+            }
         }
         
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -42,7 +48,7 @@ fun RiskHeaderCardCompose(riskLevel: String, subtitle: String, color: Color, bac
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(text = riskLevel, color = color, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, fontSize = 18.sp)
+                Text(text = riskLevel, color = color, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                 Text(text = subtitle, color = TextSecondary, fontSize = 14.sp)
             }
         }
@@ -60,18 +66,26 @@ fun GoalCardGrid(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(140.dp),
-        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth().height(150.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardPremium)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier.fillMaxSize().border(1.dp, Brush.verticalGradient(listOf(iconTint.copy(alpha = 0.5f), Color.Transparent)), RoundedCornerShape(20.dp))
+            )
+            Box(
+                modifier = Modifier.fillMaxWidth().height(60.dp).background(Brush.verticalGradient(listOf(iconTint.copy(alpha = 0.15f), Color.Transparent))).align(Alignment.TopCenter)
+            )
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Image(
                     painter = painterResource(id = iconResId),
                     contentDescription = null,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(42.dp),
+                    contentScale = ContentScale.Fit
                 )
-                Text(text = title, color = TextPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 15.sp)
+                Spacer(modifier = Modifier.weight(1f))
+                Text(text = title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Text(text = subtitle, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
             }
         }
@@ -90,7 +104,7 @@ fun ProtectedChipGrid(protections: List<String>) {
             ) {
                 Box(modifier = Modifier.size(10.dp).background(TealPrimary, RoundedCornerShape(50)))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = protection, color = TextPrimary, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
+                Text(text = protection, color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -113,7 +127,7 @@ fun WarningInfoPanel(title: String, message: String) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Warning, contentDescription = null, tint = AmberWarning, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(title, color = AmberWarning, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 15.sp)
+            Text(title, color = AmberWarning, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = message, color = Color.White.copy(alpha=0.9f), fontSize = 14.sp)
@@ -129,7 +143,7 @@ fun CopyCTA(color: Color, onClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth().height(56.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Text("Copy to Clipboard", color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 16.sp)
+        Text("Copy to Clipboard", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
     }
 }
 
@@ -137,7 +151,7 @@ fun CopyCTA(color: Color, onClick: () -> Unit) {
 @Composable
 fun ExplanationCard(explanation: String) {
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, BorderDark, RoundedCornerShape(12.dp)).padding(16.dp)) {
-        Text("What does this do?", color = TextPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 15.sp)
+        Text("What does this do?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = explanation, color = TextSecondary, fontSize = 14.sp)
     }
@@ -157,9 +171,9 @@ fun KnowledgeTermCard(
     val riskColor = if (risk == "High") CoralDanger else if (risk == "Medium") AmberWarning else TealPrimary
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, BorderDark, RoundedCornerShape(12.dp)).padding(16.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(syntax, color = riskColor, fontSize = 16.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Text(syntax, color = riskColor, fontSize = 16.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontWeight = FontWeight.Bold)
             Box(modifier = Modifier.background(riskColor.copy(alpha=0.1f), RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Text("$tier · $risk", color = riskColor, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Text("$tier · $risk", color = riskColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -196,7 +210,8 @@ fun EmptyFavoritesPanel() {
             Image(
                 painter = painterResource(id = R.drawable.empty_favorites),
                 contentDescription = null,
-                modifier = Modifier.size(120.dp)
+                modifier = Modifier.size(160.dp),
+                contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text("No saved search strings.", color = TextSecondary)

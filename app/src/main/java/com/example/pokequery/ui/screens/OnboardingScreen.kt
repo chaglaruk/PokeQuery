@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -26,23 +27,31 @@ import com.example.pokequery.theme.*
 fun OnboardingScreen(onStart: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(48.dp))
             
-            Text("PokeQuery", color = Color.White, fontSize = 40.sp, fontWeight = FontWeight.ExtraBold)
+            Text("PokeQuery", color = Color.White, fontSize = 42.sp, fontWeight = FontWeight.ExtraBold)
             Spacer(modifier = Modifier.height(8.dp))
             Text("Safe search strings for Pokémon GO", color = Color.White.copy(alpha=0.8f), fontSize = 16.sp)
             
             Spacer(modifier = Modifier.weight(1f))
             
-            Image(
-                painter = painterResource(id = R.drawable.onboarding_hero),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxWidth().height(250.dp)
-            )
+            Box(
+                modifier = Modifier.fillMaxWidth().height(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // Subtle glow behind the hero
+                Box(modifier = Modifier.size(250.dp).background(Brush.radialGradient(listOf(TealPrimary.copy(alpha = 0.15f), Color.Transparent))))
+                
+                Image(
+                    painter = painterResource(id = R.drawable.onboarding_hero),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
             
             Spacer(modifier = Modifier.weight(1f))
             
@@ -58,12 +67,12 @@ fun OnboardingScreen(onStart: () -> Unit) {
             Button(
                 onClick = onStart,
                 colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
-                modifier = Modifier.fillMaxWidth().height(60.dp),
-                shape = RoundedCornerShape(16.dp)
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                shape = RoundedCornerShape(20.dp)
             ) {
-                Text("Start building", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Start building", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

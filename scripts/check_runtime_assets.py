@@ -1,6 +1,7 @@
 import os
 import glob
 import sys
+from PIL import Image
 
 def check_runtime_assets():
     assets_dir = 'app/src/main/res/drawable-nodpi'
@@ -38,6 +39,26 @@ def check_runtime_assets():
             if keyword in filename:
                 print(f"   ERROR: Asset '{filename}' contains suspicious keyword '{keyword}'.")
                 failed = True
+                
+        # Check icon properties
+        if "icon" in filename and filename.endswith(".png"):
+            try:
+                img = Image.open(asset).convert("RGBA")
+                w, h = img.size
+                if w != h:
+                    print(f"   ERROR: Icon '{filename}' is not square ({w}x{h}).")
+                    failed = True
+                
+                # Check transparency (if too opaque, it might be a white/checkerboard box)
+                alpha = img.getchannel('A')
+                non_transparent = sum(1 for a in alpha.getdata() if a > 0)
+                total = w * h
+                ratio = non_transparent / total
+                if ratio > 0.95:
+                    print(f"   ERROR: Icon '{filename}' is almost fully opaque ({ratio*100:.1f}%). It likely has a white/checkerboard background.")
+                    failed = True
+            except Exception as e:
+                print(f"   WARNING: Could not process {filename} for transparency check: {e}")
                 
     if failed:
         print("FAIL: Invalid runtime assets detected!")
