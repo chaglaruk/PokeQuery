@@ -136,24 +136,6 @@ fun SettingsScreen(onBack: () -> Unit) {
         
         SettingsCard {
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Aggressive Mode", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Switch(
-                    checked = userPrefs?.aggressiveMode ?: false,
-                    onCheckedChange = { scope.launch { repository.setAggressiveMode(it) } },
-                    colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
-                )
-            }
-            HorizontalDivider(color = BorderDark)
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Expert Mode", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Switch(
-                    checked = userPrefs?.expertMode ?: false,
-                    onCheckedChange = { scope.launch { repository.setExpertMode(it) } },
-                    colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
-                )
-            }
-            HorizontalDivider(color = BorderDark)
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text("First-use Guide Seen", color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Switch(
                     checked = userPrefs?.firstUseSeen ?: false,

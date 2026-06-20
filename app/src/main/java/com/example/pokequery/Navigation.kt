@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -19,6 +21,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainNavigation(startRoute: String? = null) {
     val context = LocalContext.current
+    val clipboard = LocalClipboardManager.current
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val initialEntry = remember(startRoute, userPrefs) {
@@ -49,13 +52,10 @@ fun MainNavigation(startRoute: String? = null) {
         bottomBar = {
             if (backStack.lastOrNull() !is Onboarding) {
                 BottomNavBar(currentRoute = currentTab) { route ->
-                    currentTab = route
-                    backStack.clear()
-                    when (route) {
-                        "home" -> backStack.add(Home)
-                        "builder" -> backStack.add(ExpertBuilder)
-                        "favorites" -> backStack.add(Favorites)
-                        "settings" -> backStack.add(Settings)
+                    bottomTabDestination(route)?.let { destination ->
+                        currentTab = route
+                        backStack.clear()
+                        backStack.add(destination)
                     }
                 }
             }
@@ -75,7 +75,7 @@ fun MainNavigation(startRoute: String? = null) {
                         }
                     }
                     entry<Home> {
-                        HomeScreen { goalId -> backStack.add(GuidedQuestions(goalId)) }
+                        HomeScreen { goalId -> backStack.add(homeGoalDestination(goalId)) }
                     }
                     entry<GuidedQuestions> { route ->
                         GuidedQuestionsScreen(
@@ -89,7 +89,14 @@ fun MainNavigation(startRoute: String? = null) {
                     entry<Preview> { route ->
                         PreviewScreen(
                             generatedString = route.generatedString,
-                            onCopy = {},
+                            onCopy = {
+                                if (requiresRiskWarning(route.generatedString.riskLevel)) {
+                                    backStack.add(RiskWarning(route.generatedString))
+                                } else {
+                                    clipboard.setText(AnnotatedString(route.generatedString.rawSyntax))
+                                    android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            },
                             onBack = { backStack.removeLastOrNull() }
                         )
                     }
@@ -104,9 +111,14 @@ fun MainNavigation(startRoute: String? = null) {
                     entry<Favorites> { FavoritesScreen { backStack.removeLastOrNull() } }
                     entry<Settings> { SettingsScreen { backStack.removeLastOrNull() } }
                     entry<KnowledgeBase> { KnowledgeBaseScreen { backStack.removeLastOrNull() } }
-                    entry<RiskWarning> {
+                    entry<RiskWarning> { route ->
                         RiskWarningScreen(
-                            onAcknowledge = { backStack.removeLastOrNull() },
+                            generatedString = route.generatedString,
+                            onConfirmCopy = {
+                                clipboard.setText(AnnotatedString(route.generatedString.rawSyntax))
+                                android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                                backStack.removeLastOrNull()
+                            },
                             onBack = { backStack.removeLastOrNull() }
                         )
                     }

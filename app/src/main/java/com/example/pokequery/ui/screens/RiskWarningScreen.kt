@@ -12,10 +12,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pokequery.theme.AmberWarning
 import com.example.pokequery.theme.BackgroundDark
+import com.example.pokequery.data.model.GeneratedString
 
 @Composable
 fun RiskWarningScreen(
-    onAcknowledge: () -> Unit,
+    generatedString: GeneratedString,
+    onConfirmCopy: () -> Unit,
     onBack: () -> Unit
 ) {
     Column(
@@ -28,16 +30,16 @@ fun RiskWarningScreen(
     ) {
         Icon(Icons.Default.Warning, contentDescription = "Warning", tint = AmberWarning, modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(16.dp))
-        Text("High Risk Action", color = Color.White, style = MaterialTheme.typography.titleLarge)
+        Text("${generatedString.riskLevel} Risk Copy", color = Color.White, style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "The search string you are about to view contains potentially unsafe conditions or misses standard protections.",
+            "Review the search and its warnings before copying. The app only creates text; always inspect matches before acting.",
             color = Color.Gray,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onAcknowledge, modifier = Modifier.fillMaxWidth()) {
-            Text("I Understand, Show Me")
+        Button(onClick = onConfirmCopy, modifier = Modifier.fillMaxWidth()) {
+            Text("Confirm and Copy")
         }
         Spacer(modifier = Modifier.height(8.dp))
         TextButton(onClick = onBack) {
