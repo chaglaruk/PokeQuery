@@ -1,166 +1,129 @@
 package com.example.pokequery.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.pokequery.data.model.GeneratedString
-import com.example.pokequery.data.model.RiskLevel
-import com.example.pokequery.data.repository.UserPreferencesRepository
-import com.example.pokequery.data.repository.dataStore
 import com.example.pokequery.theme.*
-import com.example.pokequery.ui.components.ProtectedCategoryChip
-import com.example.pokequery.ui.components.RiskHeroHeader
-import kotlinx.coroutines.launch
+import com.example.pokequery.ui.components.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreviewScreen(
-    generatedString: GeneratedString,
+    generatedString: String,
     onCopy: () -> Unit,
     onBack: () -> Unit
 ) {
-    val riskColor = when (generatedString.riskLevel) {
-        RiskLevel.Low -> TealPrimary
-        RiskLevel.Medium -> AmberWarning
-        RiskLevel.High -> CoralDanger
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    
+    // Attempting to deduce the type from the context/string for the UI display
+    val isSafeCleanup = generatedString.contains("!shiny") && !generatedString.contains("traded") && !generatedString.contains("count2-")
+    val isCandyPrep = generatedString.contains("count2-") && !generatedString.contains("traded")
+    val isTradeFodder = generatedString.contains("count2-") && generatedString.contains("traded")
+    val isHundoCheck = generatedString == "4*"
+    val isUntagged = generatedString == "!#"
+    
+    val title = when {
+        isSafeCleanup -> "Safe Cleanup"
+        isCandyPrep -> "2x Candy Prep"
+        isTradeFodder -> "Trade Fodder"
+        isHundoCheck -> "Hundo Check"
+        isUntagged -> "Untagged Cleanup"
+        else -> "Custom Search"
     }
 
-    val riskSubtitle = when (generatedString.riskLevel) {
-        RiskLevel.Low -> "Safe to use"
-        RiskLevel.Medium -> "Review before using"
-        RiskLevel.High -> "High risk of transferring valuables"
+    val riskLevel = when {
+        isSafeCleanup -> "Low Risk"
+        isCandyPrep -> "Medium Risk"
+        isTradeFodder -> "Medium Risk"
+        isHundoCheck -> "Low Risk"
+        isUntagged -> "Low Risk"
+        else -> "Low Risk"
     }
+    
+    val riskColor = if (riskLevel == "Medium Risk") AmberWarning else TealPrimary
+    val riskSubtitle = if (riskLevel == "Medium Risk") "Requires manual review of results" else "Protects important categories"
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundDark)
-            .padding(horizontal = 20.dp, vertical = 24.dp)
-    ) {
-        // Top Bar
-        Row(modifier = Modifier.padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) {
-                Text(text = "<- Back", color = TextSecondary, fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text = "Preview", color = TextPrimary, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.width(64.dp))
-        }
-
-        // Risk Hero Header
-        RiskHeroHeader(
-            riskLevel = "${generatedString.riskLevel} Risk",
-            subtitle = riskSubtitle,
-            color = riskColor
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(text = "Your search string", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(bottom = 12.dp))
-
-        // String Box
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(CardDark, RoundedCornerShape(16.dp))
-                .border(1.dp, BorderDark, RoundedCornerShape(16.dp))
-                .padding(20.dp)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(title, color = Color.White, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    TextButton(onClick = onBack) { Text("<- Back", color = TextSecondary) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark)
+            )
+        },
+        containerColor = BackgroundDark
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = generatedString.rawSyntax,
-                color = riskColor,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 16.sp,
-                lineHeight = 24.sp,
-                modifier = Modifier.padding(end = 32.dp)
-            )
-            Icon(
-                Icons.Default.ContentCopy,
-                contentDescription = null,
-                tint = TextSecondary,
-                modifier = Modifier.align(Alignment.TopEnd)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
-        val context = androidx.compose.ui.platform.LocalContext.current
-        val repository = remember { UserPreferencesRepository(context.dataStore) }
-        val scope = rememberCoroutineScope()
-
-        val copyButtonColor = if (generatedString.riskLevel == RiskLevel.Low) BlueCTA else AmberWarning
-        val copyTextColor = if (generatedString.riskLevel == RiskLevel.Low) Color.White else Color.Black
-
-        Button(
-            onClick = { 
-                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(generatedString.rawSyntax))
+            RiskHeaderCard(riskLevel = riskLevel, subtitle = riskSubtitle, color = riskColor)
+            
+            Text("Your search string", color = TextPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+            
+            SearchStringPanel(query = generatedString)
+            
+            CopyCTA(color = if (riskLevel == "Medium Risk") AmberWarning else BlueCTA) {
+                clipboard?.setText(AnnotatedString(generatedString))
                 android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
-                onCopy() 
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = copyButtonColor, contentColor = copyTextColor),
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(20.dp).padding(end = 8.dp))
-            Text("Copy", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        // Explanation
-        Row(modifier = Modifier.padding(bottom = 12.dp)) {
-            Icon(Icons.Default.Info, contentDescription = null, tint = BlueCTA, modifier = Modifier.size(20.dp).padding(end = 8.dp))
-            Text(text = "What does this do?", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-        }
-        Text(text = generatedString.plainLanguageExplanation, color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(bottom = 24.dp))
-        
-        if (generatedString.warnings.isNotEmpty()) {
-            Row(modifier = Modifier.padding(bottom = 12.dp)) {
-                Icon(Icons.Default.Warning, contentDescription = null, tint = AmberWarning, modifier = Modifier.size(20.dp).padding(end = 8.dp))
-                Text(text = "About count (important)", color = AmberWarning, fontWeight = FontWeight.SemiBold)
+                onCopy()
             }
-            generatedString.warnings.forEach { warning ->
-                Text(text = "• $warning", color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(bottom = 4.dp))
+            
+            if (isCandyPrep || isTradeFodder) {
+                WarningInfoPanel(
+                    title = if (isCandyPrep) "Count Limitation" else "Trade Warning",
+                    message = if (isCandyPrep) "Count is based on Pokédex species number and may not distinguish shiny, form, or costume differences." else "Real trade eligibility depends on friendship level and cannot be guaranteed by search strings alone."
+                )
             }
+            
+            val explanation = when {
+                isSafeCleanup -> "This is a REVIEW string targeting low-value candidates. It is not an automatic transfer command."
+                isCandyPrep -> "Finds extras. Use during 2x transfer candy spotlight hours."
+                isTradeFodder -> "Finds candidates for trading. Excludes previously traded Pokémon."
+                isHundoCheck -> "Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15."
+                isUntagged -> "Finds Pokemon without any tags."
+                else -> "Custom or generated search string."
+            }
+            ExplanationCard(explanation = explanation)
+            
+            if (!isHundoCheck && !isUntagged && generatedString.isNotEmpty()) {
+                Text("Protected Categories", color = TextPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+                val protections = mutableListOf<String>()
+                if (generatedString.contains("!shiny")) protections.add("Shiny")
+                if (generatedString.contains("!legendary")) protections.add("Legendary")
+                if (generatedString.contains("!mythical")) protections.add("Mythical")
+                if (generatedString.contains("!lucky")) protections.add("Lucky")
+                if (generatedString.contains("!shadow")) protections.add("Shadow")
+                if (generatedString.contains("!purified")) protections.add("Purified")
+                if (generatedString.contains("!favorite")) protections.add("Favorite")
+                if (generatedString.contains("!4*")) protections.add("4★ (Hundo)")
+                if (generatedString.contains("!costume")) protections.add("Costume")
+                if (generatedString.contains("!#")) protections.add("Tagged")
+                if (generatedString.contains("!traded")) protections.add("Traded")
+                if (generatedString.contains("!background")) protections.add("Backgrounds")
+                if (generatedString.contains("!ultrabeast")) protections.add("Ultra Beasts")
+                
+                if (protections.isNotEmpty()) {
+                    ProtectedChipGrid(protections = protections)
+                }
+            }
+            
             Spacer(modifier = Modifier.height(24.dp))
-        }
-        
-        // Tip
-        Row(modifier = Modifier.padding(bottom = 12.dp)) {
-            Icon(Icons.Default.Lightbulb, contentDescription = null, tint = AmberWarning, modifier = Modifier.size(20.dp).padding(end = 8.dp))
-            Text(text = "Tip", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-        }
-        Text(text = "Spot-check a few results before mass transferring to be extra safe.", color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(bottom = 32.dp))
-
-        // Protections
-        Text(text = "Protected categories", color = TextPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 16.dp))
-        
-        @OptIn(ExperimentalLayoutApi::class)
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            generatedString.excludedCategories.forEach { cat ->
-                ProtectedCategoryChip(text = cat, color = TealPrimary)
-            }
         }
     }
 }

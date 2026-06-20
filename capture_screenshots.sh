@@ -3,7 +3,7 @@ mkdir -p docs/screenshots
 
 # Wait for activity to be completely ready
 function capture() {
-    adb shell am start -n com.example.pokequery/.MainActivity --es start_route $1
+    adb shell am start -S -n com.example.pokequery/.MainActivity --es start_route $1
     sleep 2
     adb shell screencap -p /sdcard/$2.png
     adb pull /sdcard/$2.png docs/screenshots/$2.png

@@ -156,7 +156,7 @@ fun MainNavigation(startRoute: String? = null) {
                     )
                     
                     PreviewScreen(
-                        generatedString = generated,
+                        generatedString = generated.rawSyntax,
                         onCopy = { /* TODO implement clipboard copy feedback */ },
                         onBack = { backStack.removeLastOrNull() }
                     )

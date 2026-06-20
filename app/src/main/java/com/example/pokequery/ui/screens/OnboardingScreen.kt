@@ -4,9 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,74 +17,57 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pokequery.theme.*
-import com.example.pokequery.ui.components.HeroIllustrationPlaceholder
-import com.example.pokequery.ui.components.NightMapBackground
+import com.example.pokequery.ui.components.OnboardingHero
 
 @Composable
 fun OnboardingScreen(onStart: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        NightMapBackground()
-
+    Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 40.dp),
+            modifier = Modifier.fillMaxSize().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
-            Text(
-                text = "PokeQuery ✨",
-                style = MaterialTheme.typography.displaySmall,
-                color = TextPrimary,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
-            )
-            Text(
-                text = "Safe search strings for Pokémon GO",
-                style = MaterialTheme.typography.titleMedium,
-                color = TextSecondary,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
+            Spacer(modifier = Modifier.height(24.dp))
             
-            // Hero Illustration
-            HeroIllustrationPlaceholder(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            )
+            Text("PokeQuery", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 16.sp)
             
-            // Trust Indicators Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 32.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                TrustColumn(Icons.Default.Security, "Private", "No login")
-                TrustColumn(Icons.Default.CloudOff, "Offline-first", "Anywhere")
-                TrustColumn(Icons.Default.Lock, "Copy-only", "Safe")
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Hero illustration (only used here)
+            OnboardingHero(modifier = Modifier.fillMaxWidth().height(250.dp))
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // 3 Trust indicators
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                TrustIcon(Icons.Default.Lock, "No login")
+                TrustIcon(Icons.Default.CheckCircle, "Offline-first")
+                TrustIcon(Icons.Default.Share, "Copy-only")
             }
             
-            // CTA
+            Spacer(modifier = Modifier.height(48.dp))
+            
             Button(
                 onClick = onStart,
                 colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text("Start building  →", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Start building", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun TrustColumn(icon: ImageVector, title: String, subtitle: String) {
+private fun TrustIcon(icon: ImageVector, text: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(icon, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(32.dp).padding(bottom = 8.dp))
-        Text(text = title, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-        Text(text = subtitle, color = TextSecondary, fontSize = 12.sp)
+        Box(modifier = Modifier.size(48.dp).background(CardPremium, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, tint = TealPrimary)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text, color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }

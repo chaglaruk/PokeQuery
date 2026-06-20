@@ -9,11 +9,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pokequery.theme.*
+import com.example.pokequery.ui.components.ExpertEditorPanel
 
 @Composable
 fun ExpertBuilderScreen(
@@ -23,32 +23,18 @@ fun ExpertBuilderScreen(
     var rawQuery by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundDark)
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp)
     ) {
         Row(modifier = Modifier.padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) {
-                Text("<- Back", color = TextSecondary, fontWeight = FontWeight.Bold)
-            }
+            TextButton(onClick = onBack) { Text("<- Back", color = TextSecondary, fontWeight = FontWeight.Bold) }
             Text("Expert Builder", color = TextPrimary, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
         }
 
         Text("Raw Search String", color = TextPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
 
-        OutlinedTextField(
-            value = rawQuery,
-            onValueChange = { rawQuery = it },
-            modifier = Modifier.fillMaxWidth().weight(1f).background(CardDark, RoundedCornerShape(16.dp)),
-            textStyle = androidx.compose.ui.text.TextStyle(fontFamily = FontFamily.Monospace, fontSize = 16.sp, color = TealPrimary),
-            shape = RoundedCornerShape(16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = TealPrimary,
-                unfocusedBorderColor = BorderDark
-            ),
-            placeholder = { Text("e.g. 4*&!shiny", color = TextSecondary) }
-        )
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            ExpertEditorPanel(query = rawQuery, onQueryChange = { rawQuery = it })
+        }
         
         val linterWarnings = com.example.pokequery.domain.lint.Linter.lint(rawQuery)
         if (linterWarnings.isNotEmpty()) {
