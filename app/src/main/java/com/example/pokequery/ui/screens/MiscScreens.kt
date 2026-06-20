@@ -2,7 +2,6 @@ package com.example.pokequery.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,9 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,12 +66,14 @@ fun KnowledgeBaseScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun FavoritesScreen(onBack: () -> Unit) {
+fun FavoritesScreen(
+    onCopy: (com.example.pokequery.data.model.SavedTemplate) -> Unit,
+    onBack: () -> Unit
+) {
     val context = LocalContext.current
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
-    val clipboard = LocalClipboardManager.current
 
     Column(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp)
@@ -106,8 +105,7 @@ fun FavoritesScreen(onBack: () -> Unit) {
                         Text(favorite.rawSyntax, color = TealPrimary, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                             TextButton(onClick = {
-                                clipboard?.setText(AnnotatedString(favorite.rawSyntax))
-                                android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                                onCopy(favorite)
                             }) { Text("Copy") }
                             IconButton(onClick = { scope.launch { repository.removeFavorite(favorite.id) } }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = TextSecondary)

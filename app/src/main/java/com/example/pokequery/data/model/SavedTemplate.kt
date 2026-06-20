@@ -10,6 +10,16 @@ data class SavedTemplate(
     val riskLevel: RiskLevel,
     val createdAt: Long
 ) {
+    fun asGeneratedString() = GeneratedString(
+        rawSyntax = rawSyntax,
+        plainLanguageExplanation = "Saved search template. Review all matches in the game before acting.",
+        protectedCategories = emptyList(),
+        includedHighRiskCategories = emptyList(),
+        riskLevel = riskLevel,
+        goalId = goalId,
+        title = name
+    )
+
     companion object {
         fun from(generated: GeneratedString) = SavedTemplate(
             id = UUID.randomUUID().toString(),

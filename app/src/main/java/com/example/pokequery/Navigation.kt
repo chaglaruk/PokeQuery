@@ -114,7 +114,19 @@ fun MainNavigation(startRoute: String? = null) {
                             onBack = { backStack.removeLastOrNull() }
                         )
                     }
-                    entry<Favorites> { FavoritesScreen { backStack.removeLastOrNull() } }
+                    entry<Favorites> {
+                        FavoritesScreen(
+                            onCopy = { favorite ->
+                                if (requiresRiskWarning(favorite.riskLevel)) {
+                                    backStack.add(RiskWarning(favorite.asGeneratedString()))
+                                } else {
+                                    clipboard.setText(AnnotatedString(favorite.rawSyntax))
+                                    android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onBack = { backStack.removeLastOrNull() }
+                        )
+                    }
                     entry<Settings> { SettingsScreen { backStack.removeLastOrNull() } }
                     entry<KnowledgeBase> { KnowledgeBaseScreen { backStack.removeLastOrNull() } }
                     entry<RiskWarning> { route ->
