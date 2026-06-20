@@ -16,9 +16,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.pokequery.data.repository.UserPreferencesRepository
 import com.example.pokequery.data.repository.dataStore
-import com.example.pokequery.theme.BackgroundDark
-import com.example.pokequery.theme.CardDark
-import com.example.pokequery.theme.TealPrimary
+import androidx.compose.foundation.border
+import androidx.compose.ui.unit.sp
+import com.example.pokequery.theme.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -50,34 +50,38 @@ fun KnowledgeBaseScreen(onBack: () -> Unit) {
             .background(BackgroundDark)
             .padding(16.dp)
     ) {
-        Row(modifier = Modifier.padding(bottom = 24.dp)) {
+        Row(modifier = Modifier.padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = onBack) {
-                Text("<- Back", color = Color.White)
+                Text("<- Back", color = TextSecondary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
             }
-            Text("Knowledge Base", color = Color.White, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp, start = 8.dp))
+            Text("Knowledge Base", color = TextPrimary, style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
         }
         
         if (terms.isEmpty()) {
-            Text("Loading...", color = Color.Gray)
+            Text("Loading...", color = TextSecondary)
         } else {
             LazyColumn {
                 items(terms) { term ->
+                    val riskColor = if (term["risk"] == "High") CoralDanger else if (term["risk"] == "Medium") AmberWarning else TealPrimary
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
-                            .background(CardDark, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                            .padding(16.dp)
+                            .background(CardDark, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                            .border(1.dp, BorderDark, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                            .padding(20.dp)
                     ) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(term["syntax"] ?: "", color = TealPrimary, style = MaterialTheme.typography.bodyLarge)
-                            Text(term["risk"] ?: "", color = if (term["risk"] == "High") Color(0xFFE57373) else if (term["risk"] == "Medium") Color(0xFFFFC107) else TealPrimary)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text(term["syntax"] ?: "", color = riskColor, style = MaterialTheme.typography.titleMedium, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                            Box(modifier = Modifier.background(riskColor.copy(alpha=0.1f), androidx.compose.foundation.shape.RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                                Text(term["risk"] ?: "", color = riskColor, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            }
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(term["description"] ?: "", color = Color.White)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(term["description"] ?: "", color = TextSecondary, fontSize = 14.sp)
                         if (term["quirks"] != "null" && !term["quirks"].isNullOrEmpty()) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text("Note: ${term["quirks"]}", color = Color(0xFFFFC107), style = MaterialTheme.typography.bodySmall)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Note: ${term["quirks"]}", color = AmberWarning, style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
@@ -100,15 +104,20 @@ fun FavoritesScreen(onBack: () -> Unit) {
             .background(BackgroundDark)
             .padding(16.dp)
     ) {
-        Row(modifier = Modifier.padding(bottom = 24.dp)) {
+        Row(modifier = Modifier.padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = onBack) {
-                Text("<- Back", color = Color.White)
+                Text("<- Back", color = TextSecondary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
             }
-            Text("Favorites", color = Color.White, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp, start = 8.dp))
+            Text("Favorites", color = TextPrimary, style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
         }
         
         if (userPrefs?.favorites?.isEmpty() == true) {
-            Text("No saved search strings.", color = Color.Gray)
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(androidx.compose.material.icons.Icons.Default.Delete, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(48.dp).padding(bottom = 16.dp))
+                    Text("No saved search strings.", color = TextSecondary)
+                }
+            }
         } else {
             LazyColumn {
                 items(userPrefs?.favorites?.toList() ?: emptyList()) { fav ->
@@ -116,7 +125,8 @@ fun FavoritesScreen(onBack: () -> Unit) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
-                            .background(CardDark, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                            .background(CardDark, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                            .border(1.dp, BorderDark, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
                             .clickable {
                                 clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(fav))
                                 android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
@@ -125,9 +135,9 @@ fun FavoritesScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(fav, color = TealPrimary, modifier = Modifier.weight(1f))
+                        Text(fav, color = TealPrimary, modifier = Modifier.weight(1f), fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
                         IconButton(onClick = { scope.launch { repository.removeFavorite(fav) } }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Gray)
+                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = TextSecondary)
                         }
                     }
                 }
@@ -149,36 +159,40 @@ fun SettingsScreen(onBack: () -> Unit) {
             .background(BackgroundDark)
             .padding(16.dp)
     ) {
-        Row(modifier = Modifier.padding(bottom = 24.dp)) {
+        Row(modifier = Modifier.padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = onBack) {
-                Text("<- Back", color = Color.White)
+                Text("<- Back", color = TextSecondary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
             }
-            Text("Settings", color = Color.White, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp, start = 8.dp))
+            Text("Settings", color = TextPrimary, style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
         }
         
-        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Aggressive Mode", color = Color.White)
-            Switch(
-                checked = userPrefs?.aggressiveMode ?: false,
-                onCheckedChange = { scope.launch { repository.setAggressiveMode(it) } },
-                colors = SwitchDefaults.colors(checkedThumbColor = TealPrimary)
-            )
-        }
-        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Expert Mode", color = Color.White)
-            Switch(
-                checked = userPrefs?.expertMode ?: false,
-                onCheckedChange = { scope.launch { repository.setExpertMode(it) } },
-                colors = SwitchDefaults.colors(checkedThumbColor = TealPrimary)
-            )
-        }
-        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("First-use Guide Seen", color = Color.White)
-            Switch(
-                checked = userPrefs?.firstUseSeen ?: false,
-                onCheckedChange = { scope.launch { repository.setFirstUseSeen(it) } },
-                colors = SwitchDefaults.colors(checkedThumbColor = TealPrimary)
-            )
+        Column(modifier = Modifier.background(CardDark, androidx.compose.foundation.shape.RoundedCornerShape(16.dp)).border(1.dp, BorderDark, androidx.compose.foundation.shape.RoundedCornerShape(16.dp)).padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Aggressive Mode", color = TextPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                Switch(
+                    checked = userPrefs?.aggressiveMode ?: false,
+                    onCheckedChange = { scope.launch { repository.setAggressiveMode(it) } },
+                    colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
+                )
+            }
+            Divider(color = BorderDark)
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Expert Mode", color = TextPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                Switch(
+                    checked = userPrefs?.expertMode ?: false,
+                    onCheckedChange = { scope.launch { repository.setExpertMode(it) } },
+                    colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
+                )
+            }
+            Divider(color = BorderDark)
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("First-use Guide Seen", color = TextPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                Switch(
+                    checked = userPrefs?.firstUseSeen ?: false,
+                    onCheckedChange = { scope.launch { repository.setFirstUseSeen(it) } },
+                    colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
+                )
+            }
         }
     }
 }

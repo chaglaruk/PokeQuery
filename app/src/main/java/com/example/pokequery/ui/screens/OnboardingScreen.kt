@@ -3,88 +3,88 @@ package com.example.pokequery.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.pokequery.theme.BackgroundDark
-import com.example.pokequery.theme.CardDark
-import com.example.pokequery.theme.TealPrimary
+import androidx.compose.ui.unit.sp
+import com.example.pokequery.theme.*
+import com.example.pokequery.ui.components.HeroIllustrationPlaceholder
+import com.example.pokequery.ui.components.NightMapBackground
 
 @Composable
 fun OnboardingScreen(onStart: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0F172A)) // Dark navy night-map background
-    ) {
-        // Decorative Hero Map Area
-        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-            val w = size.width
-            val h = size.height
-            drawCircle(color = TealPrimary.copy(alpha = 0.15f), radius = 250f, center = androidx.compose.ui.geometry.Offset(w * 0.8f, h * 0.1f))
-            drawCircle(color = TealPrimary.copy(alpha = 0.05f), radius = 400f, center = androidx.compose.ui.geometry.Offset(w * 0.2f, h * 0.3f))
-            drawLine(color = TealPrimary.copy(alpha = 0.3f), start = androidx.compose.ui.geometry.Offset(w * 0.2f, h * 0.3f), end = androidx.compose.ui.geometry.Offset(w * 0.8f, h * 0.1f), strokeWidth = 10f)
-        }
+    Box(modifier = Modifier.fillMaxSize()) {
+        NightMapBackground()
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(horizontal = 24.dp, vertical = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.weight(1f))
+            // Header
             Text(
-                text = "PokeQuery",
-                style = MaterialTheme.typography.displayMedium,
-                color = TealPrimary,
+                text = "PokeQuery ✨",
+                style = MaterialTheme.typography.displaySmall,
+                color = TextPrimary,
                 fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
             )
             Text(
                 text = "Safe search strings for Pokémon GO",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 48.dp)
+                color = TextSecondary,
+                modifier = Modifier.padding(bottom = 32.dp)
             )
             
-            Column(
+            // Hero Illustration
+            HeroIllustrationPlaceholder(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(CardDark.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .weight(1f)
+            )
+            
+            // Trust Indicators Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 32.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                OnboardingItem("No login", "We never ask for your account details.")
-                OnboardingItem("Offline-first", "All strings are generated instantly on your device.")
-                OnboardingItem("Copy-only", "We generate text. You paste it in the game.")
+                TrustColumn(Icons.Default.Security, "Private", "No login")
+                TrustColumn(Icons.Default.CloudOff, "Offline-first", "Anywhere")
+                TrustColumn(Icons.Default.Lock, "Copy-only", "Safe")
             }
             
-            Spacer(modifier = Modifier.weight(1f))
-            
+            // CTA
             Button(
                 onClick = onStart,
-                colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Text("Start building", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text("Start building  →", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun OnboardingItem(title: String, description: String) {
-    Column {
-        Text(text = title, color = TealPrimary, fontWeight = FontWeight.SemiBold)
-        Text(text = description, color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
+fun TrustColumn(icon: ImageVector, title: String, subtitle: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(32.dp).padding(bottom = 8.dp))
+        Text(text = title, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+        Text(text = subtitle, color = TextSecondary, fontSize = 12.sp)
     }
 }

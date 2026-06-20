@@ -2,14 +2,16 @@ package com.example.pokequery.theme
 
 import androidx.compose.ui.graphics.Color
 
-val BackgroundDark = Color(0xFF0D1117)
-val CardDark = Color(0xFF161B22)
-val TealPrimary = Color(0xFF2B83C5) // Updated to Pokemon GO-like blue
-val AmberWarning = Color(0xFFFFC107)
-val CoralDanger = Color(0xFFE57373)
-val PurpleIV = Color(0xFF8B5CF6)
-val TextPrimary = Color(0xFFF3F4F6)
-val TextSecondary = Color(0xFF9CA3AF)
-val BorderDark = Color(0x14FFFFFF) // 8% white
-val BottomNavBackground = Color(0xFF13151A)
-val BottomNavSelected = Color(0xFF3B82F6) // Pokémon GO blue inspiration
+val BackgroundDark = Color(0xFF030D1B) // Deep navy from the mockup
+val CardDark = Color(0xFF0C192E)     // Premium dark card
+val CardPremium = Color(0xFF0E1E38)  // Lighter premium card for goals
+val TealPrimary = Color(0xFF00E5FF)  // Glowing teal checkmarks/low risk
+val BlueCTA = Color(0xFF0D6EFD)      // The bright blue primary button
+val AmberWarning = Color(0xFFFFB300) // Medium risk / Candy prep
+val CoralDanger = Color(0xFFFF5252)  // High risk
+val PurpleIV = Color(0xFFA020F0)     // Hundo
+val TextPrimary = Color(0xFFFFFFFF)
+val TextSecondary = Color(0xFFA0ABBA)
+val BorderDark = Color(0xFF1C315A)   // Glow border
+val BottomNavBackground = Color(0xFF060F1E)
+val BottomNavSelected = Color(0xFF0D6EFD) // Blue selection
