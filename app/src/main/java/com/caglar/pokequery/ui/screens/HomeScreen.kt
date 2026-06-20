@@ -1,5 +1,6 @@
 package com.caglar.pokequery.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,14 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.theme.*
-import com.caglar.pokequery.ui.components.GoalArt
-import com.caglar.pokequery.ui.components.HeroSearchShield
 import com.caglar.pokequery.ui.components.MapBackdrop
+import com.caglar.pokequery.ui.components.goalHeaderRes
 
 private data class HomeGoal(
     val id: String,
@@ -85,25 +87,24 @@ private fun HomeHero() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(310.dp)
+            .height(284.dp)
             .clip(RoundedCornerShape(bottomStart = 34.dp, bottomEnd = 34.dp))
     ) {
-        MapBackdrop(Modifier.matchParentSize(), imageAlpha = 0.58f)
+        MapBackdrop(Modifier.matchParentSize(), imageAlpha = 0.95f)
         Column(
             Modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 22.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("PokeQuery", color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.weight(1f))
+            Text("PokeQuery", color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 25.sp)
+            Spacer(Modifier.height(6.dp))
             Text(
                 "Safe search strings for Pokémon GO",
                 color = TextSecondary,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center
             )
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                HeroSearchShield(Modifier.size(190.dp))
-            }
+            Spacer(Modifier.height(34.dp))
         }
     }
 }
@@ -128,7 +129,15 @@ private fun RichGoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClick:
             )
         )
         Column(Modifier.fillMaxSize()) {
-            GoalArt(goal.id, goal.accent, Modifier.fillMaxWidth().height(104.dp))
+            Box(Modifier.fillMaxWidth().height(104.dp).clip(RoundedCornerShape(18.dp))) {
+                Image(
+                    painter = painterResource(goalHeaderRes(goal.id)),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize()
+                )
+                Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, CardDark.copy(alpha = 0.74f)))))
+            }
             Spacer(Modifier.weight(1f))
             Text(goal.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1)
             Text(goal.subtitle, color = TextSecondary, fontSize = 12.sp, lineHeight = 15.sp, maxLines = 2)

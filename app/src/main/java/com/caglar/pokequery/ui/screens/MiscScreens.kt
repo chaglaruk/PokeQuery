@@ -217,7 +217,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             PremiumPanel {
                 Text("About", color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
-                Text("PokeQuery v0.3.2", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text("PokeQuery v0.3.3", color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 12.sp)
             }
         }

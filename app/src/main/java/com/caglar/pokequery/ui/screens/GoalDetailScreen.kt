@@ -1,6 +1,7 @@
 package com.caglar.pokequery.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -131,14 +134,20 @@ fun GoalDetailScreen(
 
             RiskHeader(
                 riskLevel = generatedString.riskLevel,
-                subtitle = if (generatedString.riskLevel == RiskLevel.Info) "No cleanup action implied" else "Review before acting"
+                subtitle = if (generatedString.riskLevel == RiskLevel.Info) "No cleanup action implied" else "Review before acting",
+                imageRes = goalHeaderRes(goalId)
             )
 
             Spacer(Modifier.height(14.dp))
             PremiumPanel(borderColor = accent) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Your search string", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                    GoalArt(goalId, accent, Modifier.size(70.dp))
+                    Image(
+                        painter = painterResource(goalHeaderRes(goalId)),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(70.dp).clip(RoundedCornerShape(16.dp))
+                    )
                 }
                 Spacer(Modifier.height(8.dp))
                 Box(
@@ -217,7 +226,12 @@ fun GoalDetailScreen(
 private fun WarningPanel(warnings: List<String>) {
     PremiumPanel(borderColor = AmberWarning) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            GoalArt("candy_prep", AmberWarning, Modifier.size(88.dp))
+            Image(
+                painter = painterResource(goalHeaderRes("candy_prep")),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(88.dp).clip(RoundedCornerShape(18.dp))
+            )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text("About count (important)", color = AmberWarning, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)

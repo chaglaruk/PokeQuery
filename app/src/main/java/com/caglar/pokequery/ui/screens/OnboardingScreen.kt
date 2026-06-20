@@ -1,6 +1,7 @@
 package com.caglar.pokequery.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -10,7 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -19,13 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.R
 import com.caglar.pokequery.theme.*
-import com.caglar.pokequery.ui.components.GoalArt
-import com.caglar.pokequery.ui.components.HeroSearchShield
 import com.caglar.pokequery.ui.components.MapBackdrop
 import com.caglar.pokequery.ui.components.PremiumPanel
 import kotlinx.coroutines.launch
@@ -57,13 +59,15 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
                         title = "Build the right search in seconds",
                         description = "Use safe defaults for cleanup, candy prep, trading, PvP checks, Hundos and Nundos.",
                         goalId = "candy_prep",
-                        accent = AmberWarning
+                        accent = AmberWarning,
+                        imageRes = R.drawable.v033_candy_prep_header
                     )
                     else -> OnboardingLargeCardPage(
                         title = "Copy-only and offline-first",
                         description = "PokeQuery creates text only. No account login, no scraping, no connection to the game.",
                         goalId = "safe_cleanup",
                         accent = TealPrimary,
+                        imageRes = R.drawable.v033_safe_cleanup_header,
                         showTrustRows = true
                     )
                 }
@@ -110,13 +114,19 @@ private fun OnboardingHeroPage() {
         Spacer(Modifier.height(10.dp))
         Text("PokeQuery", color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 50.sp)
         Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 18.sp, textAlign = TextAlign.Center)
-        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-            HeroSearchShield(Modifier.fillMaxWidth(0.86f).aspectRatio(1f))
+        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 14.dp).clip(RoundedCornerShape(30.dp))) {
+            Image(
+                painter = painterResource(R.drawable.v033_onboarding_hero),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+            Box(Modifier.matchParentSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, BackgroundDark.copy(alpha = 0.76f)))))
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            TrustFeature(Icons.Default.Lock, "Private", "No login", Modifier.weight(1f))
-            TrustFeature(Icons.Default.CheckCircle, "Offline-first", "Works anywhere", Modifier.weight(1f))
-            TrustFeature(Icons.Default.Share, "Copy-only", "You control", Modifier.weight(1f))
+            TrustFeature(Icons.Default.Search, "Powerful", "Searches", Modifier.weight(1f))
+            TrustFeature(Icons.Default.Lock, "Protected", "Safe defaults", Modifier.weight(1f))
+            TrustFeature(Icons.Default.CheckCircle, "Collectors", "Keep value", Modifier.weight(1f))
         }
     }
 }
@@ -127,11 +137,17 @@ private fun OnboardingLargeCardPage(
     description: String,
     goalId: String,
     accent: Color,
+    imageRes: Int,
     showTrustRows: Boolean = false
 ) {
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         PremiumPanel(borderColor = accent, modifier = Modifier.fillMaxWidth()) {
-            GoalArt(goalId, accent, Modifier.fillMaxWidth().height(250.dp))
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth().height(250.dp).clip(RoundedCornerShape(22.dp))
+            )
             Spacer(Modifier.height(12.dp))
             Text(title, color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, textAlign = TextAlign.Center, lineHeight = 34.sp)
             Spacer(Modifier.height(10.dp))

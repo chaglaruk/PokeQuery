@@ -8,6 +8,12 @@
 - No official Pokémon character art, Poké Ball art, Niantic/Nintendo/Game Freak logos, or screenshot crops are loaded at runtime.
 - User-supplied official/lookalike character art would be prototype-only unless separately licensed and accepted for release risk.
 
+## v0.3.3 art pack update
+- Added user-provided v033 runtime art under `app/src/main/res/drawable-nodpi/`.
+- Added approved/reference/contact-sheet images under `docs/design/`; these are documentation-only and not runtime resources.
+- The runtime asset guard allowlists only the named v033 art files and still blocks screenshot/mockup/contact/full-phone assets.
+- Codex did not add official Pokémon/Niantic/Nintendo/Game Freak assets. Final Play Store release still depends on the user having rights to the supplied v033 art pack.
+
 ## Audit Checklist
 - [x] **No official Pokémon character assets**: Verified. All icons are abstract generic shapes (stars, candies, tags, cleanup brushes).
 - [x] **No Poké Ball assets**: Verified. No branded spheres exist in `drawable-nodpi`.

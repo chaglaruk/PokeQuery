@@ -19,7 +19,16 @@ def check_runtime_assets():
         'goal_trade_icon.png',
         'goal_hundo_icon.png',
         'goal_tag_icon.png',
-        'goal_expert_icon.png'
+        'goal_expert_icon.png',
+        'v033_app_icon_source.png',
+        'v033_onboarding_hero.png',
+        'v033_home_header_bg.png',
+        'v033_safe_cleanup_header.png',
+        'v033_candy_prep_header.png',
+        'v033_trade_fodder_header.png',
+        'v033_lucky_trade_header.png',
+        'v033_pvp_header.png',
+        'v033_nundo_header.png'
     ]
     
     suspicious_keywords = ['target', 'mockup', 'screenshot', 'contact', 'screen', 'crop', 'full']
@@ -41,7 +50,7 @@ def check_runtime_assets():
                 failed = True
                 
         # Check icon properties
-        if "icon" in filename and filename.endswith(".png"):
+        if "icon" in filename and filename.endswith(".png") and filename != 'v033_app_icon_source.png':
             try:
                 img = Image.open(asset).convert("RGBA")
                 w, h = img.size

@@ -38,7 +38,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun MapBackdrop(modifier: Modifier = Modifier, imageAlpha: Float = 0.34f) {
+fun MapBackdrop(modifier: Modifier = Modifier, imageAlpha: Float = 0.34f, imageRes: Int = R.drawable.v033_home_header_bg) {
     Box(
         modifier = modifier.background(
             Brush.verticalGradient(
@@ -47,7 +47,7 @@ fun MapBackdrop(modifier: Modifier = Modifier, imageAlpha: Float = 0.34f) {
         )
     ) {
         Image(
-            painter = painterResource(R.drawable.home_header_bg),
+            painter = painterResource(imageRes),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             alpha = imageAlpha,
@@ -206,11 +206,29 @@ fun GoalArt(goalId: String, accent: Color, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RiskHeader(riskLevel: RiskLevel, subtitle: String, modifier: Modifier = Modifier) {
+fun RiskHeader(riskLevel: RiskLevel, subtitle: String, modifier: Modifier = Modifier, imageRes: Int? = null) {
     val tone = riskLevel.toneColor()
-    PremiumPanel(modifier = modifier, borderColor = tone) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HeroSearchShield(Modifier.size(76.dp))
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(118.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(CardPremium)
+            .border(1.dp, tone.copy(alpha = 0.82f), RoundedCornerShape(22.dp))
+    ) {
+        if (imageRes != null) {
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                alpha = 0.78f,
+                modifier = Modifier.matchParentSize()
+            )
+            Box(Modifier.matchParentSize().background(Brush.horizontalGradient(listOf(CardPremium, CardPremium.copy(alpha = 0.78f), Color.Transparent))))
+            Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Transparent, BackgroundDark.copy(alpha = 0.42f)))))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            HeroSearchShield(Modifier.size(66.dp))
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -230,6 +248,16 @@ fun RiskLevel.toneColor(): Color = when (this) {
     RiskLevel.Low -> TealPrimary
     RiskLevel.Medium -> AmberWarning
     RiskLevel.High -> CoralDanger
+}
+
+fun goalHeaderRes(goalId: String): Int = when (goalId) {
+    "safe_cleanup", "untagged" -> R.drawable.v033_safe_cleanup_header
+    "candy_prep" -> R.drawable.v033_candy_prep_header
+    "trade_fodder" -> R.drawable.v033_trade_fodder_header
+    "lucky_trade" -> R.drawable.v033_lucky_trade_header
+    "pvp_candidates" -> R.drawable.v033_pvp_header
+    "hundo_check", "nundo_finder" -> R.drawable.v033_nundo_header
+    else -> R.drawable.v033_safe_cleanup_header
 }
 
 private fun starPath(center: Offset, outer: Float, inner: Float): Path {

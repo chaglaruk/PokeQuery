@@ -1,9 +1,9 @@
 # Visual target contract
 
 ## Runtime visual slots
-- App icon foreground/background: adaptive vector resources in `res/drawable`.
-- Onboarding full hero: Compose/vector art backed by `onboarding_hero.png` where useful.
-- Home full map background/header: `home_header_bg.png` plus Compose map overlays.
+- App icon foreground/background: adaptive resources; v0.3.3 uses `v033_app_icon_source.png` as the launcher foreground.
+- Onboarding full hero: v0.3.3 uses `v033_onboarding_hero.png`.
+- Home full map background/header: v0.3.3 uses `v033_home_header_bg.png` plus Compose overlays.
 - Goal card art slots:
   - safe cleanup
   - 2x candy
@@ -27,5 +27,5 @@
 - Search-string generation remains text-only and copy-only.
 
 ## Replacement contract
-- Final commissioned art can replace the Compose/vector slots by matching slot purpose and size.
+- Final commissioned art can replace the v033 slots by matching slot purpose and size.
 - New bitmap runtime assets must be added to `scripts/check_runtime_assets.py` allowlist before use.
