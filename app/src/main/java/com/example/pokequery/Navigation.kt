@@ -26,18 +26,34 @@ fun MainNavigation() {
           HomeScreen(onGoalSelected = { goalId -> backStack.add(Preview(goalId)) })
         }
         entry<Preview> { preview ->
-            // Mock MVP string generation for now based on goalId
-            val explanation = if (preview.goalId == "candy_prep") "Finds regular, non-special creatures you can transfer safely." else "Safe search string"
-            val query = if (preview.goalId == "candy_prep") "count2-" else ""
+            // Phase B MVP String generation
+            val baseQuery = when (preview.goalId) {
+                "safe_cleanup" -> "1*"
+                "candy_prep" -> "count2-"
+                "trade_fodder" -> "traded" // Example placeholder
+                else -> ""
+            }
+            val explanation = when (preview.goalId) {
+                "safe_cleanup" -> "This is a REVIEW string targeting 1-star low-value candidates. It is not an automatic transfer command."
+                "candy_prep" -> "Finds extras. Count is based on Pokédex species number and may not distinguish shiny/form/costume differences."
+                "trade_fodder" -> "Finds candidates for trading. Real trade eligibility depends on friendship level and cannot be guaranteed by search strings."
+                else -> "Safe search string"
+            }
+            val risk = when (preview.goalId) {
+                "safe_cleanup" -> RiskLevel.Low
+                "candy_prep" -> RiskLevel.Medium
+                "trade_fodder" -> RiskLevel.Low
+                else -> RiskLevel.Low
+            }
+
             val generated = StringBuilderEngine.buildString(
-                baseQuery = query,
-                includeProtections = true,
+                baseQuery = baseQuery,
                 explanation = explanation,
-                riskLevel = if (preview.goalId == "candy_prep") RiskLevel.Medium else RiskLevel.Low
+                riskLevel = risk
             )
             PreviewScreen(
                 generatedString = generated,
-                onCopy = { /* TODO implement clipboard copy */ },
+                onCopy = { /* TODO implement clipboard copy feedback */ },
                 onBack = { backStack.removeLastOrNull() }
             )
         }
