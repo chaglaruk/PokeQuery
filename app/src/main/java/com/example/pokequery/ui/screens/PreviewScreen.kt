@@ -16,6 +16,11 @@ import androidx.compose.ui.unit.sp
 import com.example.pokequery.data.model.GeneratedString
 import com.example.pokequery.data.model.RiskLevel
 import com.example.pokequery.theme.*
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.pokequery.data.repository.UserPreferencesRepository
+import com.example.pokequery.data.repository.dataStore
+import kotlinx.coroutines.launch
 
 @Composable
 fun PreviewScreen(
@@ -79,7 +84,7 @@ fun PreviewScreen(
         
         val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
         val context = androidx.compose.ui.platform.LocalContext.current
-        val repository = remember { com.example.pokequery.data.repository.UserPreferencesRepository(context.com.example.pokequery.data.repository.dataStore) }
+        val repository = remember { UserPreferencesRepository(context.dataStore) }
         val scope = rememberCoroutineScope()
 
         Button(
