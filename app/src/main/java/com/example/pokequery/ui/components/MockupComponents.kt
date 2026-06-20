@@ -264,13 +264,21 @@ fun ExplanationCard(explanation: String) {
 
 // 11. KnowledgeTermCard
 @Composable
-fun KnowledgeTermCard(syntax: String, risk: String, description: String, quirks: String) {
+fun KnowledgeTermCard(
+    syntax: String,
+    tier: String,
+    risk: String,
+    description: String,
+    quirks: String,
+    source: String,
+    lastVerified: String
+) {
     val riskColor = if (risk == "High") CoralDanger else if (risk == "Medium") AmberWarning else TealPrimary
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, BorderDark, RoundedCornerShape(12.dp)).padding(16.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(syntax, color = riskColor, fontSize = 16.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
             Box(modifier = Modifier.background(riskColor.copy(alpha=0.1f), RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Text(risk, color = riskColor, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Text("$tier · $risk", color = riskColor, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -279,6 +287,9 @@ fun KnowledgeTermCard(syntax: String, risk: String, description: String, quirks:
             Spacer(modifier = Modifier.height(8.dp))
             Text("Note: $quirks", color = AmberWarning, fontSize = 12.sp)
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Source: $source", color = TextSecondary, fontSize = 11.sp)
+        Text("Last verified: $lastVerified", color = TextSecondary, fontSize = 11.sp)
     }
 }
 

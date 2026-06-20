@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pokequery.data.repository.UserPreferencesRepository
+import com.example.pokequery.data.repository.KnowledgeBaseRepository
 import com.example.pokequery.data.repository.dataStore
 import com.example.pokequery.theme.*
 import com.example.pokequery.ui.components.*
@@ -29,24 +30,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun KnowledgeBaseScreen(onBack: () -> Unit) {
     val context = LocalContext.current
-    var terms by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
+    val repository = remember { KnowledgeBaseRepository(context) }
+    var result by remember { mutableStateOf<Result<List<com.example.pokequery.data.model.Term>>?>(null) }
 
     LaunchedEffect(Unit) {
-        val jsonString = context.assets.open("knowledgebase.json").bufferedReader().use { it.readText() }
-        val jsonArray = org.json.JSONArray(jsonString)
-        val parsedList = mutableListOf<Map<String, String>>()
-        for (i in 0 until jsonArray.length()) {
-            val obj = jsonArray.getJSONObject(i)
-            parsedList.add(
-                mapOf(
-                    "syntax" to obj.optString("syntax"),
-                    "description" to obj.optString("description_en"),
-                    "risk" to obj.optString("riskLevel"),
-                    "quirks" to obj.optString("knownQuirks")
-                )
-            )
-        }
-        terms = parsedList
+        result = repository.load()
     }
 
     Column(
@@ -57,16 +45,22 @@ fun KnowledgeBaseScreen(onBack: () -> Unit) {
             Text("Knowledge Base", color = TextPrimary, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
         }
         
-        if (terms.isEmpty()) {
+        val terms = result?.getOrNull()
+        if (result == null) {
             Text("Loading...", color = TextSecondary)
+        } else if (terms == null) {
+            Text("Knowledge base could not be loaded. The local data may be damaged.", color = CoralDanger)
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(terms) { term ->
                     KnowledgeTermCard(
-                        syntax = term["syntax"] ?: "",
-                        risk = term["risk"] ?: "",
-                        description = term["description"] ?: "",
-                        quirks = term["quirks"] ?: ""
+                        syntax = term.syntax,
+                        tier = term.tier,
+                        risk = term.riskLevel.name,
+                        description = term.descriptionEn,
+                        quirks = term.knownQuirks.orEmpty(),
+                        source = term.sourceUrl,
+                        lastVerified = term.lastVerified
                     )
                 }
             }

@@ -63,6 +63,15 @@ class StringBuilderEngineTest {
     fun `linter catches unsafe count`() {
         val warnings = Linter.lint("count3-")
         assertTrue(warnings.any { it.message.contains("Unsafe count usage") })
+        assertTrue(warnings.any { it.message.contains("!costume") })
+    }
+
+    @Test
+    fun `linter catches count shortcut risky inclusion and reserved tag collision`() {
+        val warnings = Linter.lint("count&shiny&#shiny")
+        assertTrue(warnings.any { it.message.contains("count2-") })
+        assertTrue(warnings.any { it.message.contains("Risky inclusion of shiny") })
+        assertTrue(warnings.any { it.message.contains("collides") })
     }
 
     @Test
