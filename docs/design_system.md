@@ -1,0 +1,17 @@
+- **Theme**: Dark-mode-first (#101114 background).
+- **Cards**: #1b1d22 with 1px low-opacity white border, 14px radius.
+- **Accents**: 
+  - Teal (#1D9E75) for CTA/primary e.g. "Safe Cleanup"
+  - Amber for "2x Candy Prep" and medium risk
+  - Coral for "Trade Fodder"
+  - Purple for "IV Check"
+- **Typography**: 
+  - Titles: 14px/500
+  - Body: 12px
+  - Small text: 11px
+  - Monospace + teal for the generated string box
+- **Protections**:
+  - Show a lock icon for default protected categories (cannot be easily toggled off).
+- **Risk Badges**:
+  - Low Risk: Soft green + check
+  - Medium/High: Amber/Red
