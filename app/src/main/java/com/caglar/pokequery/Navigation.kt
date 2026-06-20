@@ -27,7 +27,9 @@ fun MainNavigation(startRoute: String? = null) {
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val initialEntry = remember(startRoute, userPrefs) {
         when (startRoute) {
-            "onboarding" -> Onboarding
+            "onboarding" -> Onboarding(0)
+            "onboarding_step_2" -> Onboarding(1)
+            "onboarding_step_3" -> Onboarding(2)
             "home" -> Home
             "detail_safe_cleanup" -> GoalDetail("safe_cleanup")
             "detail_candy_prep" -> GoalDetail("candy_prep")
@@ -35,7 +37,8 @@ fun MainNavigation(startRoute: String? = null) {
             "detail_pvp_candidates" -> GoalDetail("pvp_candidates")
             "detail_nundo_finder" -> GoalDetail("nundo_finder")
             "detail_lucky_trade" -> GoalDetail("lucky_trade")
-            "knowledge" -> KnowledgeBase
+            "knowledge" -> KnowledgeBase(false)
+            "knowledge_expanded" -> KnowledgeBase(true)
             "presets" -> Presets
             "expert" -> ExpertBuilder
             "favorites" -> Favorites
@@ -43,7 +46,7 @@ fun MainNavigation(startRoute: String? = null) {
             null -> when {
                 userPrefs == null -> null
                 userPrefs!!.firstUseSeen -> Home
-                else -> Onboarding
+                else -> Onboarding(0)
             }
             else -> Home // Default to Home. Specific goals are handled inside Home -> GoalDetail
         }
@@ -71,9 +74,9 @@ fun MainNavigation(startRoute: String? = null) {
                 backStack = backStack,
                 onBack = { backStack.removeLastOrNull() },
                 entryProvider = entryProvider {
-                    entry<Onboarding> {
+                    entry<Onboarding> { route ->
                         val scope = rememberCoroutineScope()
-                        OnboardingScreen {
+                        OnboardingScreen(initialPage = route.initialPage) {
                             scope.launch { repository.setFirstUseSeen(true) }
                             backStack.clear()
                             backStack.add(Home)
@@ -133,7 +136,7 @@ fun MainNavigation(startRoute: String? = null) {
                         )
                     }
                     entry<Settings> { SettingsScreen { backStack.removeLastOrNull() } }
-                    entry<KnowledgeBase> { KnowledgeBaseScreen { backStack.removeLastOrNull() } }
+                    entry<KnowledgeBase> { route -> KnowledgeBaseScreen(startExpanded = route.startExpanded) { backStack.removeLastOrNull() } }
                     entry<RiskWarning> { route ->
                         RiskWarningScreen(
                             generatedString = route.generatedString,

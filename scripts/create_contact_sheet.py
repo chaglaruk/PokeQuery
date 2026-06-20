@@ -4,12 +4,31 @@ from PIL import Image
 
 def create_contact_sheet():
     screenshot_dir = os.path.join("docs", "screenshots")
-    files = sorted(glob.glob(os.path.join(screenshot_dir, "*.png")))
-    files = [f for f in files if "contact_sheet" not in f and "design_vs_actual" not in f]
+    allowed_list = [
+        "1_onboarding_step_1.png",
+        "2_onboarding_step_2.png",
+        "3_onboarding_step_3.png",
+        "4_home.png",
+        "5_safe_cleanup_detail.png",
+        "6_candy_prep_detail.png",
+        "7_trade_fodder_detail.png",
+        "8_nundo_detail.png",
+        "9_pvp_detail.png",
+        "10_lucky_trade_detail.png",
+        "11_popular_presets.png",
+        "12_knowledge_search.png",
+        "13_knowledge_expanded.png",
+        "14_favorites.png",
+        "15_settings.png"
+    ]
     
-    if not files:
-        print("No screenshots found.")
-        return
+    files = []
+    for filename in allowed_list:
+        path = os.path.join(screenshot_dir, filename)
+        if not os.path.exists(path):
+            print(f"ERROR: Missing required screenshot: {filename}")
+            exit(1)
+        files.append(path)
         
     images = [Image.open(f) for f in files]
     

@@ -9,5 +9,4 @@
 - **Components**:
   - `BottomNavBar`: Dark navy background, teal selection indicators, inactive gray icons.
   - `GoalCard`: Dark card, centered icon with specific accent color, bold title, subtitle.
-  - `PreviewScreen`: High-contrast presentation of raw search string (monospace font, teal color), distinct risk badge (Teal/Amber/Coral), and pill-shaped chips for protected categories.
-  - `GuidedQuestionsScreen`: Clear toggle switches (Teal when active), descriptive warning text (Amber).
+  - `GoalDetailScreen`: High-contrast presentation of raw search string (monospace font, teal color), distinct risk badge (Teal/Amber/Coral), and clear toggle switches (Teal when active).

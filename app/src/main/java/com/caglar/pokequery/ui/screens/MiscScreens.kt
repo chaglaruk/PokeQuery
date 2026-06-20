@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KnowledgeBaseScreen(onBack: () -> Unit) {
+fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
     val context = LocalContext.current
     val repository = remember { KnowledgeBaseRepository(context) }
     var result by remember { mutableStateOf<Result<List<com.caglar.pokequery.data.model.Term>>?>(null) }
@@ -84,7 +84,7 @@ fun KnowledgeBaseScreen(onBack: () -> Unit) {
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(filteredTerms) { term ->
-                        var expanded by remember { mutableStateOf(false) }
+                        var expanded by remember { mutableStateOf(startExpanded && term == filteredTerms.firstOrNull()) }
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = CardDark),

@@ -13,7 +13,7 @@ class NavigationTest {
             .map(::bottomTabDestination)
         assertTrue(destinations.all { it != null })
         assertEquals(destinations.size, destinations.distinct().size)
-        assertEquals(KnowledgeBase, bottomTabDestination("knowledge"))
+        assertEquals(KnowledgeBase(), bottomTabDestination("knowledge"))
     }
 
     @Test

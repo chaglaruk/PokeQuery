@@ -31,8 +31,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OnboardingScreen(onStart: () -> Unit) {
-    val pagerState = rememberPagerState(pageCount = { 3 })
+fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
+    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
