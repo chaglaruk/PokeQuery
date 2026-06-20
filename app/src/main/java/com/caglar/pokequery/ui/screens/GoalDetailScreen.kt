@@ -61,7 +61,7 @@ fun GoalDetailScreen(
 
     val generatedString = remember(
         goalId, excludeShiny, excludeLegendary, excludeCostume, excludeShadow,
-        excludeFavorite, excludeTraded, excludeHundos, include0Star, pvpLeague, luckyMode
+        excludeFavorite, excludeTraded, excludeHundos, include0Star, pvpLeague, luckyMode, userPrefs?.gameLanguage
     ) {
         val protections = mutableListOf<String>()
         if (excludeShiny) protections.add("shiny")
@@ -79,7 +79,8 @@ fun GoalDetailScreen(
             else -> ""
         }
 
-        val baseGoal = StringBuilderEngine.buildGoal(goalId, config)
+        val language = userPrefs?.gameLanguage ?: "English"
+        val baseGoal = StringBuilderEngine.buildGoal(goalId, config, language = language)
         if (goalId in listOf("hundo_check", "nundo_finder", "pvp_candidates")) {
             baseGoal
         } else {
@@ -89,7 +90,8 @@ fun GoalDetailScreen(
                 explanation = baseGoal.plainLanguageExplanation,
                 riskLevel = baseGoal.riskLevel,
                 goalId = goalId,
-                title = baseGoal.title
+                title = baseGoal.title,
+                language = language
             )
         }
     }
@@ -140,57 +142,31 @@ fun GoalDetailScreen(
 
             Spacer(Modifier.height(14.dp))
             PremiumPanel(borderColor = accent) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     Text("Your search string", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                    Image(
-                        painter = painterResource(goalHeaderRes(goalId)),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(70.dp).clip(RoundedCornerShape(16.dp))
-                    )
+                    IconButton(
+                        onClick = {
+                            if (favorite == null) {
+                                scope.launch { repository.addFavorite(SavedTemplate.from(generatedString)) }
+                                Toast.makeText(context, "Saved to favorites", Toast.LENGTH_SHORT).show()
+                            } else {
+                                scope.launch { repository.removeFavorite(favorite.id) }
+                            }
+                        },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(if (favorite == null) android.R.drawable.star_off else android.R.drawable.star_on),
+                            contentDescription = "Favorite",
+                            tint = if (favorite == null) TextSecondary else TealPrimary
+                        )
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
                 Box(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.Black.copy(alpha = 0.82f)).padding(14.dp)
                 ) {
                     Text(generatedString.rawSyntax, color = TealPrimary, fontFamily = FontFamily.Monospace, fontSize = 15.sp, lineHeight = 21.sp)
-                }
-                Spacer(Modifier.height(12.dp))
-                OutlinedButton(
-                    onClick = {
-                        if (favorite == null) {
-                            scope.launch { repository.addFavorite(SavedTemplate.from(generatedString)) }
-                            Toast.makeText(context, "Saved to favorites", Toast.LENGTH_SHORT).show()
-                        } else {
-                            scope.launch { repository.removeFavorite(favorite.id) }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TealPrimary)
-                ) {
-                    Text(if (favorite == null) "Save Favorite" else "Remove Favorite", fontWeight = FontWeight.Bold)
-                }
-            }
-
-            if (generatedString.warnings.isNotEmpty()) {
-                Spacer(Modifier.height(14.dp))
-                WarningPanel(generatedString.warnings)
-            }
-
-            Spacer(Modifier.height(14.dp))
-            PremiumPanel {
-                Text("What does this do?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Spacer(Modifier.height(8.dp))
-                Text(generatedString.plainLanguageExplanation, color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp)
-            }
-
-            if (generatedString.protectedCategories.isNotEmpty()) {
-                Spacer(Modifier.height(14.dp))
-                PremiumPanel {
-                    Text("Protected categories", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                    Spacer(Modifier.height(10.dp))
-                    ProtectedChipGrid(generatedString.protectedCategories)
                 }
             }
 
@@ -218,6 +194,29 @@ fun GoalDetailScreen(
                 luckyMode = luckyMode,
                 onLuckyMode = { luckyMode = it }
             )
+
+            if (generatedString.warnings.isNotEmpty()) {
+                Spacer(Modifier.height(14.dp))
+                WarningPanel(generatedString.warnings)
+            }
+
+            Spacer(Modifier.height(14.dp))
+            PremiumPanel {
+                Text("What does this do?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Spacer(Modifier.height(8.dp))
+                Text(generatedString.plainLanguageExplanation, color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp)
+            }
+
+            if (generatedString.protectedCategories.isNotEmpty()) {
+                Spacer(Modifier.height(14.dp))
+                PremiumPanel {
+                    Text("Protected categories", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                    Spacer(Modifier.height(10.dp))
+                    ProtectedChipGrid(generatedString.protectedCategories)
+                }
+            }
+
+            // OptionsPanel moved up
         }
     }
 }

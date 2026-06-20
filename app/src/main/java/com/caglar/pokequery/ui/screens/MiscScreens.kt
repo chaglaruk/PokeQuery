@@ -174,6 +174,13 @@ fun SettingsScreen(onBack: () -> Unit) {
             PremiumPanel {
                 Text("General", color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
+                Text("Visual Density", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(4.dp))
+                Row(Modifier.fillMaxWidth()) {
+                    Box(Modifier.weight(1f)) { RadioRow("Comfortable", userPrefs?.visualDensity == "Comfortable") { scope.launch { repository.setSetting(UserPreferencesRepository.VISUAL_DENSITY, "Comfortable") } } }
+                    Box(Modifier.weight(1f)) { RadioRow("Compact", userPrefs?.visualDensity == "Compact") { scope.launch { repository.setSetting(UserPreferencesRepository.VISUAL_DENSITY, "Compact") } } }
+                }
+                Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).padding(end = 16.dp)) {
                         Text("First-use guide seen", color = TextPrimary, fontWeight = FontWeight.SemiBold)
@@ -190,9 +197,30 @@ fun SettingsScreen(onBack: () -> Unit) {
 
         item {
             PremiumPanel(borderColor = TealPrimary) {
-                Text("Safety", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Text("Search & Language", color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
-                Text("Medium and High risk copies always show confirmation first.", color = TextPrimary)
+                Text("Search Term Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text("Applies language translations to generated strings.", color = TextSecondary, fontSize = 12.sp)
+                Spacer(Modifier.height(4.dp))
+                RadioRow("English", userPrefs?.gameLanguage == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "English") } }
+                RadioRow("Turkish", userPrefs?.gameLanguage == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Turkish") } }
+                
+                Spacer(Modifier.height(14.dp))
+                Text("Copy Behavior", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(4.dp))
+                RadioRow("Always Warn", userPrefs?.copyBehavior == "Always Warn") { scope.launch { repository.setSetting(UserPreferencesRepository.COPY_BEHAVIOR, "Always Warn") } }
+                RadioRow("Confirm Risky Copy", userPrefs?.copyBehavior == "Confirm Risky Copy") { scope.launch { repository.setSetting(UserPreferencesRepository.COPY_BEHAVIOR, "Confirm Risky Copy") } }
+
+                Spacer(Modifier.height(14.dp))
+                Text("Default Duplicate Threshold", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(4.dp))
+                RadioRow("Count 2 (Strict)", userPrefs?.duplicateThreshold == "Count 2 (Strict)") { scope.launch { repository.setSetting(UserPreferencesRepository.DUPLICATE_THRESHOLD, "Count 2 (Strict)") } }
+                RadioRow("Count 3 (Safe)", userPrefs?.duplicateThreshold == "Count 3 (Safe)") { scope.launch { repository.setSetting(UserPreferencesRepository.DUPLICATE_THRESHOLD, "Count 3 (Safe)") } }
+                
+                Spacer(Modifier.height(14.dp))
+                Text("Safety", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(4.dp))
+                Text("Medium and High risk copies always show confirmation first.", color = TextSecondary, fontSize = 13.sp)
                 Text("The app generates text only. It never connects to Pokémon GO.", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
             }
         }
@@ -203,13 +231,10 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 Text("No account access. No scraping. Local favorites and history only.", color = TextPrimary)
                 Text("Privacy notes and third-party notices are in docs/release.", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    "Reset settings",
-                    color = CoralDanger,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().clickable { scope.launch { repository.resetSettings() } }.padding(vertical = 8.dp)
-                )
+                Spacer(Modifier.height(16.dp))
+                Text("Clear favorites", color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { scope.launch { repository.clearFavorites() } }.padding(vertical = 8.dp))
+                Text("Clear history", color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { scope.launch { repository.clearHistory() } }.padding(vertical = 8.dp))
+                Text("Reset all settings", color = CoralDanger, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().clickable { scope.launch { repository.resetSettings() } }.padding(vertical = 8.dp))
             }
         }
 
@@ -217,7 +242,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             PremiumPanel {
                 Text("About", color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
-                Text("PokeQuery v0.3.3", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text("PokeQuery v0.3.4", color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 12.sp)
             }
         }
@@ -315,5 +340,16 @@ private fun EmptyState(title: String, subtitle: String) {
             Text(title, color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Text(subtitle, color = TextSecondary, fontSize = 14.sp)
         }
+    }
+}
+
+@Composable
+private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick).padding(vertical = 10.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = TealPrimary, unselectedColor = TextSecondary))
+        Text(label, color = TextPrimary, modifier = Modifier.padding(start = 8.dp))
     }
 }

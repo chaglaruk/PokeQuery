@@ -89,9 +89,10 @@ fun MainNavigation(startRoute: String? = null) {
                         )
                     }
                     entry<ExpertBuilder> {
+                        val language = userPrefs?.gameLanguage ?: "English"
                         ExpertBuilderScreen(
                             onGenerate = { query ->
-                                val generated = StringBuilderEngine.buildGoal("expert", customQuery = query)
+                                val generated = StringBuilderEngine.buildGoal("expert", customQuery = query, language = language)
                                 if (requiresRiskWarning(generated.riskLevel)) backStack.add(RiskWarning(generated)) else copyGenerated(generated)
                             },
                             onBack = { backStack.removeLastOrNull() }

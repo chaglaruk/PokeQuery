@@ -22,6 +22,9 @@ import com.caglar.pokequery.theme.*
 import com.caglar.pokequery.ui.components.ScreenTitleBar
 import com.caglar.pokequery.ui.components.RiskBadge
 import androidx.compose.ui.graphics.Color
+import com.caglar.pokequery.data.repository.dataStore
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 data class Preset(
     val title: String,
@@ -63,6 +66,10 @@ fun PresetsScreen(
     onCopy: (GeneratedString) -> Unit,
     onNavigateRisk: (GeneratedString) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val repository = androidx.compose.runtime.remember { com.caglar.pokequery.data.repository.UserPreferencesRepository(context.dataStore) }
+    val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
+
     Column(modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp)) {
         ScreenTitleBar("Popular Presets", onBack, Modifier.padding(bottom = 16.dp))
 
@@ -97,13 +104,15 @@ fun PresetsScreen(
                             
                             Button(
                                 onClick = {
+                                    val language = userPrefs?.gameLanguage ?: "English"
                                     val generated = StringBuilderEngine.buildString(
                                         baseQuery = preset.syntax,
                                         protections = emptyList(), // Built-in
                                         explanation = preset.description,
                                         riskLevel = preset.risk,
                                         goalId = "preset",
-                                        title = preset.title
+                                        title = preset.title,
+                                        language = language
                                     )
                                     if (preset.risk == RiskLevel.High || preset.risk == RiskLevel.Medium) {
                                         onNavigateRisk(generated)

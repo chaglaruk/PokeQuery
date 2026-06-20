@@ -20,7 +20,8 @@ object StringBuilderEngine {
         explanation: String,
         riskLevel: RiskLevel = RiskLevel.Low,
         goalId: String = "custom",
-        title: String = "Custom Search"
+        title: String = "Custom Search",
+        language: String = "English"
     ): GeneratedString {
         
         var query = baseQuery
@@ -57,8 +58,10 @@ object StringBuilderEngine {
             .distinct()
             .filter { query.contains("!$it") }
 
+        val rawSyntax = SearchTermMapper.translateSyntax(query, language)
+
         return GeneratedString(
-            rawSyntax = query,
+            rawSyntax = rawSyntax,
             plainLanguageExplanation = explanation,
             protectedCategories = protectedCategories,
             includedHighRiskCategories = DEFAULT_PROTECTIONS.filterNot { query.contains("!$it") },
@@ -82,7 +85,7 @@ object StringBuilderEngine {
         return "Moderate"
     }
 
-    fun buildGoal(goalId: String, config: String = "", customQuery: String = ""): GeneratedString {
+    fun buildGoal(goalId: String, config: String = "", customQuery: String = "", language: String = "English"): GeneratedString {
         val (query, explanation, risk, title, customProtections) = when (goalId) {
             "safe_cleanup" -> GoalSpec(
                 if (config == "include0Star") "0*,1*" else "1*",
@@ -149,7 +152,8 @@ object StringBuilderEngine {
             explanation = explanation,
             riskLevel = risk,
             goalId = goalId,
-            title = title
+            title = title,
+            language = language
         )
     }
 

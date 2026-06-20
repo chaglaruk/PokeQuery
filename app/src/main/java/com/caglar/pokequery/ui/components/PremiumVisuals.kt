@@ -38,7 +38,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun MapBackdrop(modifier: Modifier = Modifier, imageAlpha: Float = 0.34f, imageRes: Int = R.drawable.v033_home_header_bg) {
+fun MapBackdrop(modifier: Modifier = Modifier, imageAlpha: Float = 0.34f, imageRes: Int = R.drawable.home_header_bg) {
     Box(
         modifier = modifier.background(
             Brush.verticalGradient(
@@ -251,13 +251,13 @@ fun RiskLevel.toneColor(): Color = when (this) {
 }
 
 fun goalHeaderRes(goalId: String): Int = when (goalId) {
-    "safe_cleanup", "untagged" -> R.drawable.v033_safe_cleanup_header
-    "candy_prep" -> R.drawable.v033_candy_prep_header
-    "trade_fodder" -> R.drawable.v033_trade_fodder_header
-    "lucky_trade" -> R.drawable.v033_lucky_trade_header
-    "pvp_candidates" -> R.drawable.v033_pvp_header
-    "hundo_check", "nundo_finder" -> R.drawable.v033_nundo_header
-    else -> R.drawable.v033_safe_cleanup_header
+    "safe_cleanup", "untagged" -> R.drawable.safe_cleanup_header
+    "candy_prep" -> R.drawable.candy_prep_header
+    "trade_fodder" -> R.drawable.trade_fodder_header
+    "lucky_trade" -> R.drawable.lucky_trade_header
+    "pvp_candidates" -> R.drawable.pvp_header
+    "hundo_check", "nundo_finder" -> R.drawable.nundo_header
+    else -> R.drawable.safe_cleanup_header
 }
 
 private fun starPath(center: Offset, outer: Float, inner: Float): Path {

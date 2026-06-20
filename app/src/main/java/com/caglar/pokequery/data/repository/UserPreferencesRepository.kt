@@ -27,6 +27,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val DUPLICATE_THRESHOLD = stringPreferencesKey("duplicate_threshold")
         val SAFETY_STYLE = stringPreferencesKey("safety_style")
         val COPY_BEHAVIOR = stringPreferencesKey("copy_behavior")
+        val GAME_LANGUAGE = stringPreferencesKey("game_language")
+        val VISUAL_DENSITY = stringPreferencesKey("visual_density")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data.map { preferences ->
@@ -36,6 +38,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             duplicateThreshold = preferences[DUPLICATE_THRESHOLD] ?: "Count 3 (Safe)",
             safetyStyle = preferences[SAFETY_STYLE] ?: "Conservative",
             copyBehavior = preferences[COPY_BEHAVIOR] ?: "Confirm Risky Copy",
+            gameLanguage = preferences[GAME_LANGUAGE] ?: "English",
+            visualDensity = preferences[VISUAL_DENSITY] ?: "Comfortable",
             favorites = readFavorites(preferences).sortedByDescending { it.createdAt },
             history = readHistory(preferences).sortedByDescending { it.createdAt }
         )
@@ -67,11 +71,24 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    suspend fun clearFavorites() {
+        dataStore.edit { preferences ->
+            preferences.remove(SAVED_TEMPLATES)
+            preferences.remove(LEGACY_FAVORITES)
+        }
+    }
+
     suspend fun addHistory(template: SavedTemplate) {
         dataStore.edit { preferences ->
             val recent = (listOf(template) + readHistory(preferences).filterNot { it.rawSyntax == template.rawSyntax })
                 .take(25)
             preferences[RECENT_HISTORY] = recent.map(SavedTemplateCodec::encode).toSet()
+        }
+    }
+
+    suspend fun clearHistory() {
+        dataStore.edit { preferences ->
+            preferences.remove(RECENT_HISTORY)
         }
     }
 
@@ -112,6 +129,8 @@ data class UserPreferences(
     val duplicateThreshold: String = "Count 3 (Safe)",
     val safetyStyle: String = "Conservative",
     val copyBehavior: String = "Confirm Risky Copy",
+    val gameLanguage: String = "English",
+    val visualDensity: String = "Comfortable",
     val favorites: List<SavedTemplate>,
     val history: List<SavedTemplate> = emptyList()
 )

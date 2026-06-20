@@ -60,14 +60,14 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
                         description = "Use safe defaults for cleanup, candy prep, trading, PvP checks, Hundos and Nundos.",
                         goalId = "candy_prep",
                         accent = AmberWarning,
-                        imageRes = R.drawable.v033_candy_prep_header
+                        imageRes = R.drawable.candy_prep_header
                     )
                     else -> OnboardingLargeCardPage(
                         title = "Copy-only and offline-first",
                         description = "PokeQuery creates text only. No account login, no scraping, no connection to the game.",
                         goalId = "safe_cleanup",
                         accent = TealPrimary,
-                        imageRes = R.drawable.v033_safe_cleanup_header,
+                        imageRes = R.drawable.safe_cleanup_header,
                         showTrustRows = true
                     )
                 }
@@ -116,7 +116,7 @@ private fun OnboardingHeroPage() {
         Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 18.sp, textAlign = TextAlign.Center)
         Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 14.dp).clip(RoundedCornerShape(30.dp))) {
             Image(
-                painter = painterResource(R.drawable.v033_onboarding_hero),
+                painter = painterResource(R.drawable.onboarding_hero),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize()
