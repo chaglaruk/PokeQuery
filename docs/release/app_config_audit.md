@@ -2,7 +2,7 @@
 
 **App Name**: PokeQuery
 
-**Package ID**: `com.example.pokequery`
+**Package ID**: `com.caglar.pokequery`
 *⚠️ BLOCKER: This is a placeholder package name. It must be changed before any Play Store upload.*
 *Recommendation: Rename to `com.caglar.pokequery` or `com.pokequery.app` prior to release.*
 

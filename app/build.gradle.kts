@@ -5,14 +5,14 @@ plugins {
 }
 
 android {
-    namespace = "com.example.pokequery"
+    namespace = "com.caglar.pokequery"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.example.pokequery"
+        applicationId = "com.caglar.pokequery"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.1.3"
+        versionCode = 4
+        versionName = "0.2.1"
     }
 
     buildTypes {

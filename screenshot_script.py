@@ -60,8 +60,8 @@ def main():
     os.system("adb install -r app/build/outputs/apk/debug/app-debug.apk")
     
     # Force clear data so we see Onboarding
-    os.system("adb shell pm clear com.example.pokequery")
-    os.system("adb shell monkey -p com.example.pokequery 1")
+    os.system("adb shell pm clear com.caglar.pokequery")
+    os.system("adb shell monkey -p com.caglar.pokequery 1")
     time.sleep(3)
     
     # 1. Onboarding

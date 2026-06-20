@@ -1,0 +1,89 @@
+package com.caglar.pokequery.ui.screens
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.R
+import com.caglar.pokequery.theme.*
+
+@Composable
+fun OnboardingScreen(onStart: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            Text("PokeQuery", color = Color.White, fontSize = 42.sp, fontWeight = FontWeight.ExtraBold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Safe search strings for Pokémon GO", color = Color.White.copy(alpha=0.8f), fontSize = 16.sp)
+            
+            Spacer(modifier = Modifier.weight(0.5f))
+            
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(3f),
+                contentAlignment = Alignment.Center
+            ) {
+                // Stronger glow behind the hero
+                Box(modifier = Modifier.fillMaxSize(0.8f).background(Brush.radialGradient(listOf(TealPrimary.copy(alpha = 0.25f), Color.Transparent))))
+                
+                Image(
+                    painter = painterResource(id = R.drawable.onboarding_hero),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxSize(1.2f).offset(y = 20.dp) // Make it much larger and slightly pushed down
+                )
+            }
+            
+            Spacer(modifier = Modifier.weight(0.5f))
+            
+            // Compose trust indicators
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                TrustIcon(Icons.Default.Lock, "No login")
+                TrustIcon(Icons.Default.CheckCircle, "Offline-first")
+                TrustIcon(Icons.Default.Share, "Copy-only")
+            }
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            Button(
+                onClick = onStart,
+                colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text("Start building", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+private fun TrustIcon(icon: ImageVector, text: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.size(56.dp).background(CardPremium, RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(28.dp))
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(text, color = Color.White.copy(alpha=0.9f), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+    }
+}
