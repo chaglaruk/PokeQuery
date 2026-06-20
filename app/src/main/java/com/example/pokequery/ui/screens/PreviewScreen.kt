@@ -77,8 +77,12 @@ fun PreviewScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
         
+        val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
         Button(
-            onClick = onCopy,
+            onClick = { 
+                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(generatedString.rawSyntax))
+                onCopy() 
+            },
             colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
             modifier = Modifier.fillMaxWidth().height(48.dp),
             shape = RoundedCornerShape(12.dp)
