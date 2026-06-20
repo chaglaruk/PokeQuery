@@ -10,7 +10,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.pokequery.data.model.RiskLevel
 import com.example.pokequery.data.model.SavedTemplate
 import java.nio.charset.StandardCharsets
-import java.util.Base64
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -75,9 +74,6 @@ data class UserPreferences(
 )
 
 object SavedTemplateCodec {
-    private val encoder = Base64.getUrlEncoder().withoutPadding()
-    private val decoder = Base64.getUrlDecoder()
-
     fun encode(template: SavedTemplate): String = listOf(
         template.id,
         template.name,
@@ -85,11 +81,21 @@ object SavedTemplateCodec {
         template.goalId,
         template.riskLevel.name,
         template.createdAt.toString()
-    ).joinToString("|") { encoder.encodeToString(it.toByteArray(StandardCharsets.UTF_8)) }
+    ).joinToString("") { "${it.length}:$it" }
 
     fun decode(value: String): SavedTemplate? = runCatching {
-        val fields = value.split('|').map { String(decoder.decode(it), StandardCharsets.UTF_8) }
-        require(fields.size == 6)
+        var offset = 0
+        val fields = List(6) {
+            val separator = value.indexOf(':', offset)
+            require(separator >= offset)
+            val length = value.substring(offset, separator).toInt()
+            val start = separator + 1
+            val end = start + length
+            require(end <= value.length)
+            offset = end
+            value.substring(start, end)
+        }
+        require(offset == value.length)
         SavedTemplate(
             id = fields[0],
             name = fields[1],
