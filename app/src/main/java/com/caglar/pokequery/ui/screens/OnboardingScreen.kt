@@ -111,22 +111,28 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
 @Composable
 private fun OnboardingHeroPage() {
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(Modifier.height(10.dp))
-        Text("PokeQuery", color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 50.sp)
-        Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 18.sp, textAlign = TextAlign.Center)
-        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 14.dp).clip(RoundedCornerShape(30.dp))) {
+        Spacer(Modifier.height(18.dp))
+        Image(
+            painter = painterResource(R.drawable.logo_wordmark_source),
+            contentDescription = "PokeQuery",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxWidth(0.6f).height(48.dp)
+        )
+        Spacer(Modifier.height(8.dp))
+        Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 16.sp, textAlign = TextAlign.Center)
+        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp)) {
             Image(
-                painter = painterResource(R.drawable.onboarding_hero),
+                painter = painterResource(R.drawable.onboarding_hero_scene),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize()
             )
-            Box(Modifier.matchParentSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, BackgroundDark.copy(alpha = 0.76f)))))
+            Box(Modifier.matchParentSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, BackgroundDark))))
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             TrustFeature(Icons.Default.Search, "Powerful", "Searches", Modifier.weight(1f))
-            TrustFeature(Icons.Default.Lock, "Protected", "Safe defaults", Modifier.weight(1f))
-            TrustFeature(Icons.Default.CheckCircle, "Collectors", "Keep value", Modifier.weight(1f))
+            TrustFeature(Icons.Default.Lock, "Protected", "Defaults", Modifier.weight(1f))
+            TrustFeature(Icons.Default.CheckCircle, "Keep", "Value", Modifier.weight(1f))
         }
     }
 }

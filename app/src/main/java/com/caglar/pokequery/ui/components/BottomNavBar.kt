@@ -1,6 +1,7 @@
 package com.caglar.pokequery.ui.components
 
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
@@ -21,6 +22,8 @@ import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.theme.BottomNavBackground
 import com.caglar.pokequery.theme.BottomNavSelected
 import com.caglar.pokequery.theme.TextSecondary
+import com.caglar.pokequery.theme.TealPrimary
+import com.caglar.pokequery.theme.CardPremium
 
 private data class NavTab(val route: String, val label: String, val icon: ImageVector)
 
@@ -37,18 +40,18 @@ fun BottomNavBar(
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
-    NavigationBar(containerColor = BottomNavBackground, contentColor = Color.White, modifier = Modifier.height(80.dp)) {
+    NavigationBar(containerColor = BottomNavBackground, contentColor = Color.White, modifier = Modifier.height(86.dp)) {
         tabs.forEach { tab ->
             NavigationBarItem(
                 selected = currentRoute == tab.route,
                 onClick = { onNavigate(tab.route) },
-                icon = { Icon(tab.icon, contentDescription = tab.label) },
-                label = { Text(tab.label, fontSize = 10.sp) },
+                icon = { Icon(tab.icon, contentDescription = tab.label, modifier = Modifier.size(26.dp)) },
+                label = { Text(tab.label, fontSize = 11.sp, fontWeight = if (currentRoute == tab.route) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = BottomNavSelected,
+                    selectedIconColor = TealPrimary,
                     unselectedIconColor = TextSecondary,
-                    indicatorColor = Color.Transparent,
-                    selectedTextColor = BottomNavSelected,
+                    indicatorColor = TealPrimary.copy(alpha = 0.15f),
+                    selectedTextColor = TealPrimary,
                     unselectedTextColor = TextSecondary
                 )
             )

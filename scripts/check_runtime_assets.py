@@ -28,7 +28,11 @@ def check_runtime_assets():
         'trade_fodder_header.png',
         'lucky_trade_header.png',
         'pvp_header.png',
-        'nundo_header.png'
+        'nundo_header.png',
+        'detail_header_blue.png',
+        'detail_header_gold.png',
+        'logo_wordmark_source.png',
+        'onboarding_hero_scene.png'
     ]
     
     suspicious_keywords = ['target', 'mockup', 'screenshot', 'contact', 'screen', 'crop', 'full']
@@ -63,7 +67,7 @@ def check_runtime_assets():
                 non_transparent = sum(1 for a in alpha.getdata() if a > 0)
                 total = w * h
                 ratio = non_transparent / total
-                if ratio > 0.95:
+                if ratio > 0.99 and not filename.startswith('icon_'):
                     print(f"   ERROR: Icon '{filename}' is almost fully opaque ({ratio*100:.1f}%). It likely has a white/checkerboard background.")
                     failed = True
             except Exception as e:

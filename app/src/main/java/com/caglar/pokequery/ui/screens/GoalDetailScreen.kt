@@ -9,8 +9,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
+import com.caglar.pokequery.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,27 +104,7 @@ fun GoalDetailScreen(
     val accent = goalAccent(goalId, generatedString.riskLevel)
 
     Scaffold(
-        containerColor = BackgroundDark,
-        bottomBar = {
-            Button(
-                onClick = {
-                    if (requiresRiskWarning(generatedString.riskLevel)) {
-                        onNavigateRisk(generatedString)
-                    } else {
-                        clipboard.setText(AnnotatedString(generatedString.rawSyntax))
-                        scope.launch { repository.addHistory(SavedTemplate.from(generatedString)) }
-                        Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = accent),
-                modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp).height(60.dp),
-                shape = RoundedCornerShape(18.dp)
-            ) {
-                Icon(Icons.Default.ContentCopy, contentDescription = null, tint = Color.White)
-                Spacer(Modifier.width(10.dp))
-                Text("Copy Search String", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-            }
-        }
+        containerColor = BackgroundDark
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -131,42 +113,64 @@ fun GoalDetailScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            ScreenTitleBar(generatedString.title, onBack)
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                }
+                Text(generatedString.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp, modifier = Modifier.weight(1f))
+                IconButton(
+                    onClick = {
+                        if (favorite == null) {
+                            scope.launch { repository.addFavorite(SavedTemplate.from(generatedString)) }
+                            Toast.makeText(context, "Saved to favorites", Toast.LENGTH_SHORT).show()
+                        } else {
+                            scope.launch { repository.removeFavorite(favorite.id) }
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(if (favorite == null) android.R.drawable.star_off else android.R.drawable.star_on),
+                        contentDescription = "Favorite",
+                        tint = if (favorite == null) TextSecondary else TealPrimary
+                    )
+                }
+            }
             Spacer(Modifier.height(14.dp))
 
             RiskHeader(
                 riskLevel = generatedString.riskLevel,
                 subtitle = if (generatedString.riskLevel == RiskLevel.Info) "No cleanup action implied" else "Review before acting",
-                imageRes = goalHeaderRes(goalId)
+                imageRes = if (generatedString.riskLevel == RiskLevel.Medium || generatedString.riskLevel == RiskLevel.High) R.drawable.detail_header_gold else R.drawable.detail_header_blue
             )
 
             Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(14.dp))
             PremiumPanel(borderColor = accent) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text("Your search string", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                    IconButton(
-                        onClick = {
-                            if (favorite == null) {
-                                scope.launch { repository.addFavorite(SavedTemplate.from(generatedString)) }
-                                Toast.makeText(context, "Saved to favorites", Toast.LENGTH_SHORT).show()
-                            } else {
-                                scope.launch { repository.removeFavorite(favorite.id) }
-                            }
-                        },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(if (favorite == null) android.R.drawable.star_off else android.R.drawable.star_on),
-                            contentDescription = "Favorite",
-                            tint = if (favorite == null) TextSecondary else TealPrimary
-                        )
-                    }
-                }
+                Text("Search String", color = TextSecondary, fontSize = 13.sp)
                 Spacer(Modifier.height(8.dp))
                 Box(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.Black.copy(alpha = 0.82f)).padding(14.dp)
                 ) {
                     Text(generatedString.rawSyntax, color = TealPrimary, fontFamily = FontFamily.Monospace, fontSize = 15.sp, lineHeight = 21.sp)
+                }
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = {
+                        if (requiresRiskWarning(generatedString.riskLevel)) {
+                            onNavigateRisk(generatedString)
+                        } else {
+                            clipboard.setText(AnnotatedString(generatedString.rawSyntax))
+                            scope.launch { repository.addHistory(SavedTemplate.from(generatedString)) }
+                            Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = accent),
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Icon(Icons.Default.ContentCopy, contentDescription = null, tint = Color.White)
+                    Spacer(Modifier.width(10.dp))
+                    Text("Copy Search String", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
 
@@ -200,23 +204,17 @@ fun GoalDetailScreen(
                 WarningPanel(generatedString.warnings)
             }
 
+            if (generatedString.protectedCategories.isNotEmpty()) {
+                Spacer(Modifier.height(14.dp))
+                ProtectedChipGrid(generatedString.protectedCategories)
+            }
+
             Spacer(Modifier.height(14.dp))
             PremiumPanel {
                 Text("What does this do?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(generatedString.plainLanguageExplanation, color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp)
             }
-
-            if (generatedString.protectedCategories.isNotEmpty()) {
-                Spacer(Modifier.height(14.dp))
-                PremiumPanel {
-                    Text("Protected categories", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                    Spacer(Modifier.height(10.dp))
-                    ProtectedChipGrid(generatedString.protectedCategories)
-                }
-            }
-
-            // OptionsPanel moved up
         }
     }
 }

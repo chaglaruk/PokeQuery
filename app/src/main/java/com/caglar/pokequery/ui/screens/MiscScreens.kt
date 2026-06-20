@@ -202,6 +202,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Text("Search Term Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Text("Applies language translations to generated strings.", color = TextSecondary, fontSize = 12.sp)
                 Spacer(Modifier.height(4.dp))
+                RadioRow("Auto (System Default)", userPrefs?.gameLanguage == "Auto" || userPrefs?.gameLanguage == null) { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Auto") } }
                 RadioRow("English", userPrefs?.gameLanguage == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "English") } }
                 RadioRow("Turkish", userPrefs?.gameLanguage == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Turkish") } }
                 

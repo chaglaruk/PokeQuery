@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -104,11 +105,14 @@ fun ProtectedChipGrid(protections: List<String>) {
         protections.forEach { protection ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.background(CardDark, RoundedCornerShape(50)).border(1.dp, BorderDark, RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier
+                    .background(CardPremium, RoundedCornerShape(50))
+                    .border(1.dp, TealPrimary.copy(alpha = 0.4f), RoundedCornerShape(50))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Box(modifier = Modifier.size(10.dp).background(TealPrimary, RoundedCornerShape(50)))
+                Icon(Icons.Default.Shield, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(12.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = protection, color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                Text(text = protection.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
         }
     }

@@ -30,7 +30,13 @@ object SearchTermMapper {
     )
 
     fun translateSyntax(rawSyntax: String, language: String): String {
-        if (language != "Turkish" || rawSyntax.isBlank()) return rawSyntax
+        val resolvedLanguage = if (language == "Auto" || language.isBlank()) {
+            if (java.util.Locale.getDefault().language == "tr") "Turkish" else "English"
+        } else {
+            language
+        }
+        
+        if (resolvedLanguage != "Turkish" || rawSyntax.isBlank()) return rawSyntax
         
         // We need to replace words safely. 
         // Example: "count2-&!traded" -> "count2-&!takas edilmiş"
