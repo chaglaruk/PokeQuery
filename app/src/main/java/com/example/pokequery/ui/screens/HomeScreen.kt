@@ -36,21 +36,7 @@ data class GoalItem(val id: String, val title: String, val description: String, 
 
 @Composable
 fun HomeScreen(onGoalSelected: (String) -> Unit) {
-    val context = LocalContext.current
-    val repository = remember { UserPreferencesRepository(context.dataStore) }
-    val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
-    val scope = rememberCoroutineScope()
-
-    if (userPrefs == null) {
-        return // Loading state
-    }
-
-    if (!userPrefs!!.firstUseSeen) {
-        OnboardingScreen(onStart = {
-            scope.launch { repository.setFirstUseSeen(true) }
-        })
-        return
-    }
+    // Repository and onboarding logic moved to Navigation.kt
 
     val goals = listOf(
         GoalItem("safe_cleanup", "Safe Cleanup", "Remove clutter safely", Icons.Default.CheckCircle, TealPrimary),
@@ -71,28 +57,29 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp)
+                .height(140.dp)
                 .padding(bottom = 16.dp)
-                .background(com.example.pokequery.theme.CardDark, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                .background(com.example.pokequery.theme.CardDark, shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
         ) {
             androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
                 val canvasWidth = size.width
                 val canvasHeight = size.height
-                drawCircle(color = TealPrimary.copy(alpha = 0.2f), radius = 40f, center = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.2f, y = canvasHeight * 0.5f))
-                drawCircle(color = AmberWarning.copy(alpha = 0.2f), radius = 60f, center = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.8f, y = canvasHeight * 0.3f))
-                drawLine(color = Color.Gray.copy(alpha = 0.3f), start = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.2f, y = canvasHeight * 0.5f), end = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.8f, y = canvasHeight * 0.3f), strokeWidth = 5f)
+                drawCircle(color = TealPrimary.copy(alpha = 0.3f), radius = 60f, center = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.15f, y = canvasHeight * 0.6f))
+                drawCircle(color = AmberWarning.copy(alpha = 0.3f), radius = 80f, center = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.85f, y = canvasHeight * 0.2f))
+                drawLine(color = TealPrimary.copy(alpha = 0.5f), start = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.15f, y = canvasHeight * 0.6f), end = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.85f, y = canvasHeight * 0.2f), strokeWidth = 8f)
             }
-            Column(modifier = Modifier.padding(16.dp).align(Alignment.BottomStart)) {
+            Column(modifier = Modifier.padding(20.dp).align(Alignment.BottomStart)) {
                 Text(
                     text = "PokeQuery",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = TealPrimary,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "Select a goal to generate a safe search string.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    text = "What do you want to find?",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = Color.White
                 )
             }
         }

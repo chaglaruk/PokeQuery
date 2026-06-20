@@ -16,51 +16,67 @@ import com.example.pokequery.theme.TealPrimary
 
 @Composable
 fun OnboardingScreen(onStart: () -> Unit) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(Color(0xFF0F172A)) // Dark navy night-map background
     ) {
-        Text(
-            text = "PokeQuery",
-            style = MaterialTheme.typography.displaySmall,
-            color = TealPrimary,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        Text(
-            text = "Safe search strings for Pokémon GO",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-        
+        // Decorative Hero Map Area
+        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            drawCircle(color = TealPrimary.copy(alpha = 0.15f), radius = 250f, center = androidx.compose.ui.geometry.Offset(w * 0.8f, h * 0.1f))
+            drawCircle(color = TealPrimary.copy(alpha = 0.05f), radius = 400f, center = androidx.compose.ui.geometry.Offset(w * 0.2f, h * 0.3f))
+            drawLine(color = TealPrimary.copy(alpha = 0.3f), start = androidx.compose.ui.geometry.Offset(w * 0.2f, h * 0.3f), end = androidx.compose.ui.geometry.Offset(w * 0.8f, h * 0.1f), strokeWidth = 10f)
+        }
+
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(CardDark, RoundedCornerShape(16.dp))
+                .fillMaxSize()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            OnboardingItem("No login", "We never ask for your account details.")
-            OnboardingItem("Offline-first", "All strings are generated instantly on your device.")
-            OnboardingItem("Copy-only", "We generate text. You paste it in the game.")
-        }
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        Button(
-            onClick = onStart,
-            colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text("Start building", color = Color.White, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "PokeQuery",
+                style = MaterialTheme.typography.displayMedium,
+                color = TealPrimary,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "Safe search strings for Pokémon GO",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 48.dp)
+            )
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(CardDark.copy(alpha = 0.8f), RoundedCornerShape(24.dp))
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                OnboardingItem("No login", "We never ask for your account details.")
+                OnboardingItem("Offline-first", "All strings are generated instantly on your device.")
+                OnboardingItem("Copy-only", "We generate text. You paste it in the game.")
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            Button(
+                onClick = onStart,
+                colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text("Start building", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

@@ -3,6 +3,7 @@ package com.example.pokequery
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
+@Serializable data object Onboarding : NavKey
 @Serializable data object Home : NavKey
 @Serializable data class GuidedQuestions(val goalId: String) : NavKey
 @Serializable data class Preview(val baseQuery: String, val goalId: String, val include0Star: Boolean = false) : NavKey

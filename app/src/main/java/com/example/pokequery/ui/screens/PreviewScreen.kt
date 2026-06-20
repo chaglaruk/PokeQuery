@@ -38,49 +38,55 @@ fun PreviewScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDark)
-            .padding(16.dp)
+            .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
-        // Top Bar Mock
+        // Top Bar
         Row(modifier = Modifier.padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "<- Back", color = Color.White, modifier = Modifier.padding(end = 16.dp))
-            Text(text = "Preview", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            TextButton(onClick = onBack) {
+                Text(text = "<- Back", color = TealPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Text(text = "Preview", color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.width(64.dp))
         }
 
         // Risk Badge
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(CardDark, RoundedCornerShape(12.dp))
+                .background(riskColor.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Warning, contentDescription = null, tint = riskColor)
+            Icon(Icons.Default.Warning, contentDescription = null, tint = riskColor, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(text = "${generatedString.riskLevel} Risk", color = riskColor, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                Text(text = if (generatedString.riskLevel == RiskLevel.Low) "Safe to use" else "Review before using", color = Color.Gray, fontSize = 12.sp)
+                Text(text = "${generatedString.riskLevel} Risk", color = riskColor, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, fontSize = 18.sp)
+                Text(text = if (generatedString.riskLevel == RiskLevel.Low) "Safe to use" else "Review before using", color = Color.Gray, fontSize = 14.sp)
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Your search string", color = Color.White, modifier = Modifier.padding(bottom = 8.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(text = "Your search string", color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
 
         // String Box
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(CardDark, RoundedCornerShape(12.dp))
-                .padding(16.dp)
+                .background(Color(0xFF1E293B), RoundedCornerShape(16.dp))
+                .padding(20.dp)
         ) {
             Text(
                 text = generatedString.rawSyntax,
-                color = TealPrimary,
+                color = riskColor, // Colors match risk level!
                 fontFamily = FontFamily.Monospace,
+                fontSize = 16.sp,
                 lineHeight = 24.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         
         val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
         val context = androidx.compose.ui.platform.LocalContext.current
@@ -93,11 +99,11 @@ fun PreviewScreen(
                 android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
                 onCopy() 
             },
-            colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            shape = RoundedCornerShape(12.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = riskColor, contentColor = if (riskColor == AmberWarning) Color.Black else Color.White),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Copy", color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Text("Copy String", fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, fontSize = 16.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

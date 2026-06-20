@@ -21,26 +21,70 @@ import com.example.pokequery.data.model.RiskLevel
 import com.example.pokequery.ui.screens.*
 import com.example.pokequery.ui.components.BottomNavBar
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import com.example.pokequery.data.repository.UserPreferencesRepository
+import com.example.pokequery.data.repository.dataStore
+
+import kotlinx.coroutines.launch
+
 @Composable
-fun MainNavigation() {
-  val backStack = rememberNavBackStack(Home)
+fun MainNavigation(startRoute: String? = null) {
+  val context = LocalContext.current
+  val repository = remember { UserPreferencesRepository(context.dataStore) }
+  val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
+  
+  // Decide the initial route
+  val initialEntry = remember(startRoute, userPrefs) {
+      if (startRoute != null) {
+          when (startRoute) {
+              "onboarding" -> Onboarding
+              "home" -> Home
+              "guided_safe_cleanup" -> GuidedQuestions("safe_cleanup")
+              "preview_safe_cleanup" -> Preview("1*", "safe_cleanup", false)
+              "preview_candy_prep" -> Preview("count2-", "candy_prep", false)
+              "preview_trade_fodder" -> Preview("count2-&!traded", "trade_fodder", false)
+              "knowledge" -> KnowledgeBase
+              "expert" -> ExpertBuilder
+              "favorites" -> Favorites
+              "settings" -> Settings
+              else -> Home
+          }
+      } else {
+          if (userPrefs == null) null // Still loading
+          else if (!userPrefs!!.firstUseSeen) Onboarding
+          else Home
+      }
+  }
+
+  if (initialEntry == null) {
+      // Loading screen or just empty box
+      return
+  }
+
+  val backStack = rememberNavBackStack(initialEntry)
   var currentTab by remember { mutableStateOf("home") }
+
+  // Check if current screen is Onboarding
+  val isCurrentOnboarding = backStack.lastOrNull() is Onboarding
 
   Scaffold(
       bottomBar = {
-          BottomNavBar(
-              currentRoute = currentTab,
-              onNavigate = { route ->
-                  currentTab = route
-                  backStack.clear()
-                  when (route) {
-                      "home" -> backStack.add(Home)
-                      "builder" -> backStack.add(ExpertBuilder)
-                      "favorites" -> backStack.add(Favorites)
-                      "settings" -> backStack.add(Settings)
+          if (!isCurrentOnboarding) {
+              BottomNavBar(
+                  currentRoute = currentTab,
+                  onNavigate = { route ->
+                      currentTab = route
+                      backStack.clear()
+                      when (route) {
+                          "home" -> backStack.add(Home)
+                          "builder" -> backStack.add(ExpertBuilder)
+                          "favorites" -> backStack.add(Favorites)
+                          "settings" -> backStack.add(Settings)
+                      }
                   }
-              }
-          )
+              )
+          }
       }
   ) { paddingValues ->
       Box(modifier = Modifier.padding(paddingValues)) {
@@ -48,6 +92,14 @@ fun MainNavigation() {
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
             entryProvider = entryProvider {
+                entry<Onboarding> {
+                    val scope = androidx.compose.runtime.rememberCoroutineScope()
+                    OnboardingScreen(onStart = {
+                        scope.launch { repository.setFirstUseSeen(true) }
+                        backStack.clear()
+                        backStack.add(Home)
+                    })
+                }
                 entry<Home> {
                   HomeScreen(onGoalSelected = { goalId -> backStack.add(GuidedQuestions(goalId)) })
                 }
