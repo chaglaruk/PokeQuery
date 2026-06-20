@@ -64,6 +64,7 @@ fun PreviewScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             RiskHeaderCardCompose(riskLevel = riskLabel, subtitle = riskSubtitle, color = riskColor, backgroundDrawableResId = backgroundResId)
+            ScopeMeterPanel(scopeBreadth = generatedString.scopeBreadth)
             Text("Your search string", color = TextPrimary, fontWeight = FontWeight.SemiBold)
             SearchStringPanel(query = generatedString.rawSyntax)
             CopyCTA(color = riskColor, onClick = onCopy)

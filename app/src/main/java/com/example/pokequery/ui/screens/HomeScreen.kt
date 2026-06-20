@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
@@ -47,12 +48,21 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
                 }
             }
             
-            val goals = listOf(
+            val cleanupGoals = listOf(
                 GoalData("Safe Cleanup", "Find junk without deleting shinies", R.drawable.goal_safe_cleanup_icon, TealPrimary, "safe_cleanup"),
                 GoalData("2x Candy Prep", "Find duplicates to transfer", R.drawable.goal_candy_prep_icon, AmberWarning, "candy_prep"),
+                GoalData("Untagged Cleanup", "Find Pokémon missing tags", R.drawable.goal_tag_icon, TealPrimary, "untagged")
+            )
+            val tradingGoals = listOf(
                 GoalData("Trade Fodder", "Find non-shiny trade candidates", R.drawable.goal_trade_icon, BlueCTA, "trade_fodder"),
+                GoalData("Lucky Trade Prep", "Find old or distance trades", R.drawable.goal_trade_icon, AmberWarning, "lucky_trade")
+            )
+            val battleIvGoals = listOf(
                 GoalData("Hundo Check", "Find perfect 4★ Pokémon", R.drawable.goal_hundo_icon, Color(0xFF9C27B0), "hundo_check"),
-                GoalData("Untagged Cleanup", "Find Pokémon missing tags", R.drawable.goal_tag_icon, TealPrimary, "untagged"),
+                GoalData("Nundo Finder", "Find exact 0% IV Pokémon", R.drawable.goal_hundo_icon, Color(0xFF607D8B), "nundo_finder"),
+                GoalData("PvP Candidates", "Find Great/Ultra League IVs", R.drawable.goal_expert_icon, BlueCTA, "pvp_candidates")
+            )
+            val expertGoals = listOf(
                 GoalData("Expert Builder", "Write your own raw strings", R.drawable.goal_expert_icon, BlueCTA, "expert")
             )
 
@@ -63,18 +73,31 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(goals) { goal ->
-                    GoalCardGrid(
-                        title = goal.title,
-                        subtitle = goal.subtitle,
-                        iconResId = goal.icon,
-                        iconTint = goal.color,
-                        onClick = { onGoalSelected(goal.id) }
-                    )
-                }
+                item(span = { GridItemSpan(2) }) { SectionHeader("Cleanup") }
+                items(cleanupGoals) { goal -> GoalCardGrid(goal.title, goal.subtitle, goal.icon, goal.color, { onGoalSelected(goal.id) }) }
+
+                item(span = { GridItemSpan(2) }) { SectionHeader("Trading") }
+                items(tradingGoals) { goal -> GoalCardGrid(goal.title, goal.subtitle, goal.icon, goal.color, { onGoalSelected(goal.id) }) }
+
+                item(span = { GridItemSpan(2) }) { SectionHeader("Battle & IV Checks") }
+                items(battleIvGoals) { goal -> GoalCardGrid(goal.title, goal.subtitle, goal.icon, goal.color, { onGoalSelected(goal.id) }) }
+
+                item(span = { GridItemSpan(2) }) { SectionHeader("Expert") }
+                items(expertGoals) { goal -> GoalCardGrid(goal.title, goal.subtitle, goal.icon, goal.color, { onGoalSelected(goal.id) }) }
             }
         }
     }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        color = TextPrimary,
+        fontSize = 18.sp,
+        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+    )
 }
 
 private data class GoalData(

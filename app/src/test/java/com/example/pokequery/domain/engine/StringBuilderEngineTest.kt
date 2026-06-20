@@ -132,4 +132,53 @@ class StringBuilderEngineTest {
             assertTrue("$goal must exclude costume", StringBuilderEngine.buildGoal(goal).rawSyntax.contains("!costume"))
         }
     }
+
+    @Test
+    fun `nundo finder generates exact string without protections`() {
+        val result = StringBuilderEngine.buildGoal("nundo_finder")
+        assertEquals("0attack&0defense&0hp", result.rawSyntax)
+        assertFalse(result.rawSyntax.contains("!shiny"))
+        assertEquals(RiskLevel.Info, result.riskLevel)
+        assertEquals("Very Narrow", result.scopeBreadth)
+    }
+
+    @Test
+    fun `pvp candidates generate correctly without cleanup protections`() {
+        val greatLeague = StringBuilderEngine.buildGoal("pvp_candidates", config = "great")
+        val ultraLeague = StringBuilderEngine.buildGoal("pvp_candidates", config = "ultra")
+        
+        assertEquals("0-1attack&3-4defense&3-4hp&cp-1500", greatLeague.rawSyntax)
+        assertEquals("0-1attack&3-4defense&3-4hp&cp-2500", ultraLeague.rawSyntax)
+        assertFalse(greatLeague.rawSyntax.contains("!shiny"))
+        assertEquals("Narrow", greatLeague.scopeBreadth)
+    }
+
+    @Test
+    fun `lucky trade prep generates age or distance modes with warnings`() {
+        val ageMode = StringBuilderEngine.buildGoal("lucky_trade", config = "age")
+        val distMode = StringBuilderEngine.buildGoal("lucky_trade", config = "distance")
+        
+        assertEquals("age365-&!traded", ageMode.rawSyntax)
+        assertEquals("distance100-&!traded", distMode.rawSyntax)
+        assertFalse(ageMode.rawSyntax.contains("!shiny")) // valuable pokemon can be traded
+        assertEquals("Moderate", ageMode.scopeBreadth)
+    }
+
+    @Test
+    fun `linter ignores exact nundo pattern for 0 star warning`() {
+        val warnings = Linter.lint("0attack&0defense&0hp")
+        assertFalse(warnings.any { it.message.contains("0* is an IV band") })
+        
+        val warningsWith0Star = Linter.lint("0*")
+        assertTrue(warningsWith0Star.any { it.message.contains("0* is an IV band") })
+    }
+
+    @Test
+    fun `linter bypasses transfer warnings for pvp and trade prep`() {
+        val pvpWarnings = Linter.lint("0-1attack&3-4defense&3-4hp&cp-1500&shiny") // User typed shiny in pvp search
+        assertFalse(pvpWarnings.any { it.message.contains("Risky inclusion") })
+
+        val tradePrepWarnings = Linter.lint("age365-&!traded")
+        assertTrue(tradePrepWarnings.any { it.message.contains("Trade prep search") })
+    }
 }

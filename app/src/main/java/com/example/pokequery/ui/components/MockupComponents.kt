@@ -231,3 +231,27 @@ fun EmptyFavoritesPanel() {
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, BorderDark, RoundedCornerShape(12.dp)).padding(16.dp), content = content)
 }
+
+// 12. ScopeMeterPanel
+@Composable
+fun ScopeMeterPanel(scopeBreadth: String) {
+    val meterColor = when (scopeBreadth) {
+        "Very Narrow" -> Color(0xFF607D8B) // Grey-blue
+        "Narrow" -> TealPrimary
+        "Moderate" -> BlueCTA
+        "Broad" -> AmberWarning
+        "Very Broad" -> CoralDanger
+        else -> BlueCTA
+    }
+    
+    Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, meterColor.copy(alpha=0.3f), RoundedCornerShape(12.dp)).padding(16.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("Result Breadth", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Box(modifier = Modifier.background(meterColor.copy(alpha=0.15f), RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                Text(scopeBreadth, color = meterColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text("This is a query breadth hint, not a live Pokémon count.", color = TextSecondary, fontSize = 12.sp)
+    }
+}

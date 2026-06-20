@@ -82,8 +82,8 @@ fun MainNavigation(startRoute: String? = null) {
                     entry<GuidedQuestions> { route ->
                         GuidedQuestionsScreen(
                             goalId = route.goalId,
-                            onGenerate = { include0Star ->
-                                backStack.add(Preview(StringBuilderEngine.buildGoal(route.goalId, include0Star)))
+                            onGenerate = { configString ->
+                                backStack.add(Preview(StringBuilderEngine.buildGoal(route.goalId, configString)))
                             },
                             onBack = { backStack.removeLastOrNull() }
                         )

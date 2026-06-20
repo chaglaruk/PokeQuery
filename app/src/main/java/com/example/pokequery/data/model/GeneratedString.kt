@@ -11,5 +11,6 @@ data class GeneratedString(
     val riskLevel: RiskLevel,
     val warnings: List<String> = emptyList(),
     val goalId: String = "custom",
-    val title: String = "Custom Search"
+    val title: String = "Custom Search",
+    val scopeBreadth: String = "Moderate"
 )

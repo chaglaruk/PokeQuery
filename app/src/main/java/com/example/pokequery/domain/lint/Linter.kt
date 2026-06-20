@@ -33,15 +33,24 @@ object Linter {
             warnings += LintWarning("Count uses Pokédex number and does not distinguish shiny, form, gender, or costume.", false)
         }
 
-        if (tokens.any { it == "0*" }) {
+        if (tokens.any { it == "0*" } && lower != "0attack&0defense&0hp") {
             warnings += LintWarning("0* is an IV band, not exact 0% IV.", false)
         }
 
-        val cleanupOrCountOrTrade = "count" in lower || "trade" in lower || tokens.any { it in setOf("0*", "1*", "2*") }
+        // PvP candidate strings should not be treated as cleanup strings
+        val isPvP = lower.contains("0-1attack") || lower.contains("3-4defense")
+        val isTradePrep = lower.contains("age365-") || lower.contains("distance100-")
+
+        val cleanupOrCountOrTrade = ("count" in lower || "trade" in lower || tokens.any { it in setOf("0*", "1*", "2*") }) && !isPvP && !isTradePrep
+        
         if (cleanupOrCountOrTrade) {
             riskyCategories.filter { it in tokens }.forEach {
                 warnings += LintWarning("Risky inclusion of $it in a cleanup/count/trade search.", true)
             }
+        }
+
+        if (isTradePrep) {
+            warnings += LintWarning("Trade prep search. Review manually. Valuable Pokémon may appear.", false)
         }
 
         Regex("#([a-z0-9]+)").findAll(lower).map { it.groupValues[1] }.filter { it in reservedTerms }.forEach {

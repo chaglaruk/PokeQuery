@@ -65,43 +65,87 @@ object StringBuilderEngine {
             riskLevel = if (query.contains("count") && riskLevel == RiskLevel.Low) RiskLevel.Medium else riskLevel,
             warnings = generatedWarnings,
             goalId = goalId,
-            title = title
+            title = title,
+            scopeBreadth = calculateScopeBreadth(query)
         )
     }
 
-    fun buildGoal(goalId: String, include0Star: Boolean = false, customQuery: String = ""): GeneratedString {
-        val (query, explanation, risk, title) = when (goalId) {
+    private fun calculateScopeBreadth(query: String): String {
+        val lower = query.lowercase()
+        if (lower == "4*" || lower == "0attack&0defense&0hp") return "Very Narrow"
+        if (lower.contains("0-1attack") || lower.contains("3-4defense") || lower.contains("cp-1500") || lower.contains("cp-2500")) return "Narrow"
+        if (lower.contains("count2-") && lower.contains("!traded")) return "Broad"
+        if (lower.contains("count2-")) return "Broad"
+        if (lower.contains("age365-") || lower.contains("distance100-")) return "Moderate"
+        if (lower.contains("!shiny") && lower.contains("!legendary")) return "Moderate"
+        if (lower.isEmpty() || (lower.split("&").size == 1 && !lower.contains("!"))) return "Very Broad"
+        return "Moderate"
+    }
+
+    fun buildGoal(goalId: String, config: String = "", customQuery: String = ""): GeneratedString {
+        val (query, explanation, risk, title, customProtections) = when (goalId) {
             "safe_cleanup" -> GoalSpec(
-                if (include0Star) "0*,1*" else "1*",
+                if (config == "include0Star") "0*,1*" else "1*",
                 "This is a REVIEW string targeting low-value candidates. It is not an automatic transfer command.",
-                if (include0Star) RiskLevel.Medium else RiskLevel.Low,
-                "Safe Cleanup"
+                if (config == "include0Star") RiskLevel.Medium else RiskLevel.Low,
+                "Safe Cleanup",
+                DEFAULT_PROTECTIONS
             )
             "candy_prep" -> GoalSpec(
                 "count2-",
                 "Finds extras. Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.",
                 RiskLevel.Medium,
-                "2x Candy Prep"
+                "2x Candy Prep",
+                DEFAULT_PROTECTIONS
             )
             "trade_fodder" -> GoalSpec(
                 "count2-&!traded",
                 "Finds candidates for trading. Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.",
                 RiskLevel.Medium,
-                "Trade Fodder"
+                "Trade Fodder",
+                DEFAULT_PROTECTIONS
             )
             "hundo_check" -> GoalSpec(
                 "4*",
                 "Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15.",
                 RiskLevel.Info,
-                "Hundo Check"
+                "Hundo Check",
+                emptyList()
             )
-            "untagged" -> GoalSpec("!#", "Finds Pokémon without any tags.", RiskLevel.Low, "Untagged Cleanup")
-            "expert" -> GoalSpec(customQuery, "Custom search string. Review all matches in the game before acting.", RiskLevel.Medium, "Custom Search")
-            else -> GoalSpec(customQuery, "Custom search string.", RiskLevel.Medium, "Custom Search")
+            "untagged" -> GoalSpec("!#", "Finds Pokémon without any tags.", RiskLevel.Low, "Untagged Cleanup", DEFAULT_PROTECTIONS)
+            "nundo_finder" -> GoalSpec(
+                "0attack&0defense&0hp",
+                "Finds exact 0/0/0 IV Pokémon (Nundos).",
+                RiskLevel.Info,
+                "Nundo Finder",
+                emptyList()
+            )
+            "pvp_candidates" -> {
+                val pvpQuery = if (config == "ultra") "0-1attack&3-4defense&3-4hp&cp-2500" else "0-1attack&3-4defense&3-4hp&cp-1500"
+                GoalSpec(
+                    pvpQuery,
+                    "Candidate search only. Final PvP rank depends on species, level, and IV spread.",
+                    RiskLevel.Info,
+                    "PvP IV Candidates",
+                    emptyList()
+                )
+            }
+            "lucky_trade" -> {
+                val tradeQuery = if (config == "distance") "distance100-&!traded" else "age365-&!traded"
+                GoalSpec(
+                    tradeQuery,
+                    "Finds older or distance-relevant Pokémon to review for trades. Review manually. Valuable Pokémon may appear. Trade eligibility and Lucky chance are not guaranteed by search strings.",
+                    RiskLevel.Medium,
+                    "Lucky Trade Prep",
+                    emptyList() // We do not exclude shiny/legendary by default
+                )
+            }
+            "expert" -> GoalSpec(customQuery, "Custom search string. Review all matches in the game before acting.", RiskLevel.Medium, "Custom Search", DEFAULT_PROTECTIONS)
+            else -> GoalSpec(customQuery, "Custom search string.", RiskLevel.Medium, "Custom Search", DEFAULT_PROTECTIONS)
         }
         return buildString(
             baseQuery = query,
-            protections = if (goalId == "hundo_check") emptyList() else DEFAULT_PROTECTIONS,
+            protections = customProtections,
             explanation = explanation,
             riskLevel = risk,
             goalId = goalId,
@@ -113,6 +157,7 @@ object StringBuilderEngine {
         val query: String,
         val explanation: String,
         val risk: RiskLevel,
-        val title: String
+        val title: String,
+        val protections: List<String>
     )
 }
