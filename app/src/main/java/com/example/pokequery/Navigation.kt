@@ -13,6 +13,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.pokequery.data.repository.UserPreferencesRepository
 import com.example.pokequery.data.repository.dataStore
+import com.example.pokequery.data.model.SavedTemplate
 import com.example.pokequery.domain.engine.StringBuilderEngine
 import com.example.pokequery.ui.components.BottomNavBar
 import com.example.pokequery.ui.screens.*
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 fun MainNavigation(startRoute: String? = null) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val initialEntry = remember(startRoute, userPrefs) {
@@ -96,6 +98,10 @@ fun MainNavigation(startRoute: String? = null) {
                                     clipboard.setText(AnnotatedString(route.generatedString.rawSyntax))
                                     android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
                                 }
+                            },
+                            onSaveFavorite = {
+                                scope.launch { repository.addFavorite(SavedTemplate.from(route.generatedString)) }
+                                android.widget.Toast.makeText(context, "Saved to favorites", android.widget.Toast.LENGTH_SHORT).show()
                             },
                             onBack = { backStack.removeLastOrNull() }
                         )

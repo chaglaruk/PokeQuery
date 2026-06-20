@@ -4,62 +4,99 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.pokequery.data.model.RiskLevel
+import com.example.pokequery.data.model.SavedTemplate
+import java.nio.charset.StandardCharsets
+import java.util.Base64
+import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
 
 class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
-
     companion object {
-        val AGGRESSIVE_MODE = booleanPreferencesKey("aggressive_mode")
-        val EXPERT_MODE = booleanPreferencesKey("expert_mode")
         val FIRST_USE_SEEN = booleanPreferencesKey("first_use_seen")
-        val FAVORITES = stringSetPreferencesKey("favorites_set") // stored as JSON strings or raw strings for MVP
+        val LEGACY_FAVORITES = stringSetPreferencesKey("favorites_set")
+        val SAVED_TEMPLATES = stringSetPreferencesKey("saved_templates_v1")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data.map { preferences ->
         UserPreferences(
-            aggressiveMode = preferences[AGGRESSIVE_MODE] ?: false,
-            expertMode = preferences[EXPERT_MODE] ?: false,
             firstUseSeen = preferences[FIRST_USE_SEEN] ?: false,
-            favorites = preferences[FAVORITES] ?: emptySet()
+            favorites = readFavorites(preferences).sortedByDescending { it.createdAt }
         )
     }
 
-    suspend fun setAggressiveMode(enabled: Boolean) {
-        dataStore.edit { prefs -> prefs[AGGRESSIVE_MODE] = enabled }
-    }
-
-    suspend fun setExpertMode(enabled: Boolean) {
-        dataStore.edit { prefs -> prefs[EXPERT_MODE] = enabled }
-    }
-
     suspend fun setFirstUseSeen(seen: Boolean) {
-        dataStore.edit { prefs -> prefs[FIRST_USE_SEEN] = seen }
+        dataStore.edit { it[FIRST_USE_SEEN] = seen }
     }
 
-    suspend fun addFavorite(query: String) {
-        dataStore.edit { prefs ->
-            val current = prefs[FAVORITES] ?: emptySet()
-            prefs[FAVORITES] = current + query
+    suspend fun addFavorite(template: SavedTemplate) {
+        dataStore.edit { preferences ->
+            val favorites = readFavorites(preferences).filterNot { it.rawSyntax == template.rawSyntax } + template
+            preferences[SAVED_TEMPLATES] = favorites.map(SavedTemplateCodec::encode).toSet()
+            preferences.remove(LEGACY_FAVORITES)
         }
     }
 
-    suspend fun removeFavorite(query: String) {
-        dataStore.edit { prefs ->
-            val current = prefs[FAVORITES] ?: emptySet()
-            prefs[FAVORITES] = current - query
+    suspend fun removeFavorite(id: String) {
+        dataStore.edit { preferences ->
+            preferences[SAVED_TEMPLATES] = readFavorites(preferences)
+                .filterNot { it.id == id }
+                .map(SavedTemplateCodec::encode)
+                .toSet()
+            preferences.remove(LEGACY_FAVORITES)
         }
+    }
+
+    private fun readFavorites(preferences: Preferences): List<SavedTemplate> {
+        val saved = preferences[SAVED_TEMPLATES].orEmpty().mapNotNull(SavedTemplateCodec::decode)
+        val legacy = preferences[LEGACY_FAVORITES].orEmpty().map { raw ->
+            SavedTemplate(
+                id = UUID.nameUUIDFromBytes(raw.toByteArray(StandardCharsets.UTF_8)).toString(),
+                name = "Imported favorite",
+                rawSyntax = raw,
+                goalId = "legacy",
+                riskLevel = RiskLevel.Medium,
+                createdAt = 0L
+            )
+        }
+        return (saved + legacy).distinctBy { it.id }
     }
 }
 
 data class UserPreferences(
-    val aggressiveMode: Boolean,
-    val expertMode: Boolean,
     val firstUseSeen: Boolean,
-    val favorites: Set<String>
+    val favorites: List<SavedTemplate>
 )
+
+object SavedTemplateCodec {
+    private val encoder = Base64.getUrlEncoder().withoutPadding()
+    private val decoder = Base64.getUrlDecoder()
+
+    fun encode(template: SavedTemplate): String = listOf(
+        template.id,
+        template.name,
+        template.rawSyntax,
+        template.goalId,
+        template.riskLevel.name,
+        template.createdAt.toString()
+    ).joinToString("|") { encoder.encodeToString(it.toByteArray(StandardCharsets.UTF_8)) }
+
+    fun decode(value: String): SavedTemplate? = runCatching {
+        val fields = value.split('|').map { String(decoder.decode(it), StandardCharsets.UTF_8) }
+        require(fields.size == 6)
+        SavedTemplate(
+            id = fields[0],
+            name = fields[1],
+            rawSyntax = fields[2],
+            goalId = fields[3],
+            riskLevel = RiskLevel.valueOf(fields[4]),
+            createdAt = fields[5].toLong()
+        )
+    }.getOrNull()
+}

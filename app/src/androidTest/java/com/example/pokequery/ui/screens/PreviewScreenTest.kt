@@ -24,7 +24,7 @@ class PreviewScreenTest {
             title = "Engine Title"
         )
 
-        composeRule.setContent { PreviewScreen(generated, onCopy = {}, onBack = {}) }
+        composeRule.setContent { PreviewScreen(generated, onCopy = {}, onSaveFavorite = {}, onBack = {}) }
 
         listOf(
             "unique-query", "engine-owned explanation", "engine-protection",

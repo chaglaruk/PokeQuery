@@ -90,27 +90,34 @@ fun FavoritesScreen(onBack: () -> Unit) {
             Text("Favorites", color = TextPrimary, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
         }
         
-        if (userPrefs?.favorites?.isEmpty() == true) {
+        if (userPrefs == null) {
+            CircularProgressIndicator(color = TealPrimary)
+        } else if (userPrefs!!.favorites.isEmpty()) {
             EmptyFavoritesPanel()
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(userPrefs?.favorites?.toList() ?: emptyList()) { fav ->
-                    Row(
+                items(userPrefs!!.favorites, key = { it.id }) { favorite ->
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(CardDark, RoundedCornerShape(16.dp))
                             .border(1.dp, BorderDark, RoundedCornerShape(16.dp))
-                            .clickable {
-                                clipboard?.setText(AnnotatedString(fav))
-                                android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
-                            }
                             .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(fav, color = TealPrimary, modifier = Modifier.weight(1f), fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
-                        IconButton(onClick = { scope.launch { repository.removeFavorite(fav) } }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = TextSecondary)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(favorite.name, color = TextPrimary, fontWeight = FontWeight.Bold)
+                            Text(favorite.riskLevel.name, color = AmberWarning, fontSize = 12.sp)
+                        }
+                        Text(favorite.rawSyntax, color = TealPrimary, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = {
+                                clipboard?.setText(AnnotatedString(favorite.rawSyntax))
+                                android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                            }) { Text("Copy") }
+                            IconButton(onClick = { scope.launch { repository.removeFavorite(favorite.id) } }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = TextSecondary)
+                            }
                         }
                     }
                 }

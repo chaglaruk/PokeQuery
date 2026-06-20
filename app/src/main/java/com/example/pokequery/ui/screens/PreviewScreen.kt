@@ -19,6 +19,7 @@ import com.example.pokequery.ui.components.*
 fun PreviewScreen(
     generatedString: GeneratedString,
     onCopy: () -> Unit,
+    onSaveFavorite: () -> Unit,
     onBack: () -> Unit
 ) {
     val riskLabel = when (generatedString.riskLevel) {
@@ -58,6 +59,9 @@ fun PreviewScreen(
             Text("Your search string", color = TextPrimary, fontWeight = FontWeight.SemiBold)
             SearchStringPanel(query = generatedString.rawSyntax)
             CopyCTA(color = riskColor, onClick = onCopy)
+            OutlinedButton(onClick = onSaveFavorite, modifier = Modifier.fillMaxWidth()) {
+                Text("Save Favorite")
+            }
             generatedString.warnings.forEach { WarningInfoPanel(title = "Warning", message = it) }
             ExplanationCard(explanation = generatedString.plainLanguageExplanation)
 
