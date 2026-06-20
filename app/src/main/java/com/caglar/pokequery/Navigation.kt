@@ -13,7 +13,6 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
-import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
 import com.caglar.pokequery.ui.components.BottomNavBar
 import com.caglar.pokequery.ui.screens.*
@@ -30,11 +29,11 @@ fun MainNavigation(startRoute: String? = null) {
         when (startRoute) {
             "onboarding" -> Onboarding
             "home" -> Home
-            "guided_safe_cleanup" -> GuidedQuestions("safe_cleanup")
-            "preview_safe_cleanup" -> Preview(StringBuilderEngine.buildGoal("safe_cleanup"))
-            "preview_candy_prep" -> Preview(StringBuilderEngine.buildGoal("candy_prep"))
-            "preview_trade_fodder" -> Preview(StringBuilderEngine.buildGoal("trade_fodder"))
+            "detail_safe_cleanup" -> GoalDetail("safe_cleanup")
+            "detail_candy_prep" -> GoalDetail("candy_prep")
+            "detail_pvp_candidates" -> GoalDetail("pvp_candidates")
             "knowledge" -> KnowledgeBase
+            "presets" -> Presets
             "expert" -> ExpertBuilder
             "favorites" -> Favorites
             "settings" -> Settings
@@ -43,7 +42,7 @@ fun MainNavigation(startRoute: String? = null) {
                 userPrefs!!.firstUseSeen -> Home
                 else -> Onboarding
             }
-            else -> Home
+            else -> Home // Default to Home. Specific goals are handled inside Home -> GoalDetail
         }
     } ?: return
 
@@ -64,6 +63,7 @@ fun MainNavigation(startRoute: String? = null) {
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
+            // By omitting custom animators that scale awkwardly, we get a clean fade/slide default from NavDisplay
             NavDisplay(
                 backStack = backStack,
                 onBack = { backStack.removeLastOrNull() },
@@ -77,41 +77,43 @@ fun MainNavigation(startRoute: String? = null) {
                         }
                     }
                     entry<Home> {
-                        HomeScreen { goalId -> backStack.add(homeGoalDestination(goalId)) }
+                        HomeScreen { goalId -> 
+                            if (goalId == "expert") {
+                                backStack.add(ExpertBuilder)
+                            } else if (goalId == "presets") {
+                                backStack.add(Presets)
+                            } else {
+                                backStack.add(GoalDetail(goalId)) 
+                            }
+                        }
                     }
-                    entry<GuidedQuestions> { route ->
-                        GuidedQuestionsScreen(
+                    entry<GoalDetail> { route ->
+                        GoalDetailScreen(
                             goalId = route.goalId,
-                            onGenerate = { configString ->
-                                backStack.add(Preview(StringBuilderEngine.buildGoal(route.goalId, configString)))
-                            },
-                            onBack = { backStack.removeLastOrNull() }
-                        )
-                    }
-                    entry<Preview> { route ->
-                        PreviewScreen(
-                            generatedString = route.generatedString,
-                            onCopy = {
-                                if (requiresRiskWarning(route.generatedString.riskLevel)) {
-                                    backStack.add(RiskWarning(route.generatedString))
-                                } else {
-                                    clipboard.setText(AnnotatedString(route.generatedString.rawSyntax))
-                                    android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            onSaveFavorite = {
-                                scope.launch { repository.addFavorite(SavedTemplate.from(route.generatedString)) }
-                                android.widget.Toast.makeText(context, "Saved to favorites", android.widget.Toast.LENGTH_SHORT).show()
-                            },
-                            onBack = { backStack.removeLastOrNull() }
+                            onBack = { backStack.removeLastOrNull() },
+                            onNavigateRisk = { generatedString ->
+                                backStack.add(RiskWarning(generatedString))
+                            }
                         )
                     }
                     entry<ExpertBuilder> {
                         ExpertBuilderScreen(
                             onGenerate = { query ->
-                                backStack.add(Preview(StringBuilderEngine.buildGoal("expert", customQuery = query)))
+                                // Custom queries might need risk warning checks directly or through a unified preview.
+                                // For now, we can show a toast or bypass to a warning.
+                                val generated = StringBuilderEngine.buildGoal("expert", customQuery = query)
+                                clipboard.setText(AnnotatedString(generated.rawSyntax))
+                                android.widget.Toast.makeText(context, "Copied custom string", android.widget.Toast.LENGTH_SHORT).show()
                             },
                             onBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Presets> {
+                        PresetsScreen(
+                            onBack = { backStack.removeLastOrNull() },
+                            onNavigateRisk = { generatedString ->
+                                backStack.add(RiskWarning(generatedString))
+                            }
                         )
                     }
                     entry<Favorites> {

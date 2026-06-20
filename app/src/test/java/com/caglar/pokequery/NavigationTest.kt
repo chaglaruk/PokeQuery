@@ -17,12 +17,6 @@ class NavigationTest {
     }
 
     @Test
-    fun `expert home card opens expert builder directly`() {
-        assertEquals(ExpertBuilder, homeGoalDestination("expert"))
-        assertEquals(GuidedQuestions("safe_cleanup"), homeGoalDestination("safe_cleanup"))
-    }
-
-    @Test
     fun `medium and high copies require risk warning`() {
         assertTrue(requiresRiskWarning(RiskLevel.Medium))
         assertTrue(requiresRiskWarning(RiskLevel.High))

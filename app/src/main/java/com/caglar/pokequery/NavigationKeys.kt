@@ -7,12 +7,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object Onboarding : NavKey
 @Serializable data object Home : NavKey
-@Serializable data class GuidedQuestions(val goalId: String) : NavKey
-@Serializable data class Preview(val generatedString: GeneratedString) : NavKey
+@Serializable data class GoalDetail(val goalId: String) : NavKey
 @Serializable data object ExpertBuilder : NavKey
 @Serializable data object Favorites : NavKey
 @Serializable data object KnowledgeBase : NavKey
 @Serializable data object Settings : NavKey
+@Serializable data object Presets : NavKey
 @Serializable data class RiskWarning(val generatedString: GeneratedString) : NavKey
 
 fun bottomTabDestination(route: String): NavKey? = when (route) {
@@ -24,8 +24,7 @@ fun bottomTabDestination(route: String): NavKey? = when (route) {
     else -> null
 }
 
-fun homeGoalDestination(goalId: String): NavKey =
-    if (goalId == "expert") ExpertBuilder else GuidedQuestions(goalId)
+
 
 fun requiresRiskWarning(riskLevel: RiskLevel): Boolean =
     riskLevel == RiskLevel.Medium || riskLevel == RiskLevel.High
