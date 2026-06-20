@@ -1,6 +1,6 @@
 package com.example.pokequery.ui.components
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -12,88 +12,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pokequery.R
 import com.example.pokequery.theme.*
 
-// 1. OnboardingHero (only used on Onboarding)
-@Composable
-fun OnboardingHero(modifier: Modifier = Modifier) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val w = size.width
-            val h = size.height
-            
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(TealPrimary.copy(alpha = 0.5f), Color.Transparent),
-                    center = Offset(w/2, h*0.8f),
-                    radius = w * 0.6f
-                ),
-                center = Offset(w/2, h*0.8f)
-            )
-            
-            val shieldPath = Path().apply {
-                moveTo(w/2, h*0.1f)
-                lineTo(w*0.8f, h*0.2f)
-                quadraticTo(w*0.8f, h*0.6f, w/2, h*0.9f)
-                quadraticTo(w*0.2f, h*0.6f, w*0.2f, h*0.2f)
-                close()
-            }
-            drawPath(shieldPath, brush = Brush.verticalGradient(listOf(BlueCTA, TealPrimary)))
-            
-            val innerShieldPath = Path().apply {
-                moveTo(w/2, h*0.15f)
-                lineTo(w*0.75f, h*0.23f)
-                quadraticTo(w*0.75f, h*0.58f, w/2, h*0.85f)
-                quadraticTo(w*0.25f, h*0.58f, w*0.25f, h*0.23f)
-                close()
-            }
-            drawPath(innerShieldPath, color = CardDark.copy(alpha = 0.9f))
-        }
-    }
-}
-
-// 2. HomeMapHeader (used only on Home)
-@Composable
-fun HomeMapHeader(modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-        Canvas(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
-            val w = size.width
-            val h = size.height
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF030D1B), Color(0xFF0A1B38))
-                )
-            )
-            val path1 = Path().apply {
-                moveTo(0f, h * 0.4f)
-                quadraticTo(w * 0.3f, h * 0.3f, w * 0.5f, h * 0.5f)
-                quadraticTo(w * 0.8f, h * 0.7f, w, h * 0.6f)
-            }
-            drawPath(path1, color = TealPrimary.copy(alpha = 0.2f), style = Stroke(width = 6f))
-            
-            val pins = listOf(Offset(w * 0.15f, h * 0.35f), Offset(w * 0.45f, h * 0.45f), Offset(w * 0.85f, h * 0.65f))
-            for (pin in pins) {
-                drawCircle(color = TealPrimary.copy(alpha = 0.5f), radius = 12f, center = pin)
-                drawCircle(color = TealPrimary, radius = 6f, center = pin)
-            }
-        }
-        Column(modifier = Modifier.padding(24.dp).align(Alignment.BottomStart)) {
-            Text("What do you want to find?", color = Color.White, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text("Pick a goal and we'll build a safe search string for it.", color = TextSecondary, fontSize = 14.sp)
-        }
-    }
-}
-
-// 3. GoalCardGrid (used on Home)
+// 1. GoalCardGrid (used on Home)
 @Composable
 fun GoalCardGrid(
     title: String,
@@ -121,26 +50,35 @@ fun GoalCardGrid(
     }
 }
 
-// 4. RiskHeaderCard
+// 2. RiskHeaderCard
 @Composable
 fun RiskHeaderCard(riskLevel: String, subtitle: String, color: Color) {
     Box(
-        modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(20.dp)).border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(20.dp)).padding(20.dp)
+        modifier = Modifier.fillMaxWidth().height(120.dp).background(CardPremium, RoundedCornerShape(20.dp)).border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Image(
+            painter = painterResource(id = if (color == AmberWarning) R.drawable.header_medium_risk else R.drawable.header_low_risk),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        // Dim overlay to ensure text legibility
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(20.dp)))
+        
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize().padding(20.dp)) {
             Box(modifier = Modifier.size(48.dp).background(color.copy(alpha = 0.2f), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
                 Icon(if (color == AmberWarning) Icons.Default.Warning else Icons.Default.Info, contentDescription = null, tint = color)
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(text = riskLevel, color = color, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, fontSize = 18.sp)
-                Text(text = subtitle, color = TextSecondary, fontSize = 14.sp)
+                Text(text = subtitle, color = Color.White, fontSize = 14.sp)
             }
         }
     }
 }
 
-// 5. SearchStringPanel
+// 3. SearchStringPanel
 @Composable
 fun SearchStringPanel(query: String) {
     Box(
@@ -150,7 +88,7 @@ fun SearchStringPanel(query: String) {
     }
 }
 
-// 6. CopyCTA
+// 4. CopyCTA
 @Composable
 fun CopyCTA(color: Color, onClick: () -> Unit) {
     Button(
@@ -163,7 +101,7 @@ fun CopyCTA(color: Color, onClick: () -> Unit) {
     }
 }
 
-// 7. ExplanationCard
+// 5. ExplanationCard
 @Composable
 fun ExplanationCard(explanation: String) {
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(16.dp)).border(1.dp, BorderDark, RoundedCornerShape(16.dp)).padding(16.dp)) {
@@ -173,7 +111,7 @@ fun ExplanationCard(explanation: String) {
     }
 }
 
-// 8. ProtectedChipGrid
+// 6. ProtectedChipGrid
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProtectedChipGrid(protections: List<String>) {
@@ -183,7 +121,7 @@ fun ProtectedChipGrid(protections: List<String>) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.background(CardPremium, RoundedCornerShape(50)).border(1.dp, BorderDark, RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Canvas(modifier = Modifier.size(12.dp)) { drawCircle(color = TealPrimary, radius = 6f) }
+                Box(modifier = Modifier.size(12.dp).background(TealPrimary, RoundedCornerShape(50)))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(text = protection, color = TextPrimary, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
             }
@@ -191,7 +129,7 @@ fun ProtectedChipGrid(protections: List<String>) {
     }
 }
 
-// 9. WarningInfoPanel
+// 7. WarningInfoPanel
 @Composable
 fun WarningInfoPanel(title: String, message: String) {
     Column(modifier = Modifier.fillMaxWidth().background(Color(0xFF3E2723), RoundedCornerShape(16.dp)).border(1.dp, AmberWarning.copy(alpha=0.5f), RoundedCornerShape(16.dp)).padding(16.dp)) {
@@ -205,7 +143,7 @@ fun WarningInfoPanel(title: String, message: String) {
     }
 }
 
-// 10. KnowledgeTermCard
+// 8. KnowledgeTermCard
 @Composable
 fun KnowledgeTermCard(syntax: String, risk: String, description: String, quirks: String) {
     val riskColor = if (risk == "High") CoralDanger else if (risk == "Medium") AmberWarning else TealPrimary
@@ -225,7 +163,7 @@ fun KnowledgeTermCard(syntax: String, risk: String, description: String, quirks:
     }
 }
 
-// 11. ExpertEditorPanel
+// 9. ExpertEditorPanel
 @Composable
 fun ExpertEditorPanel(query: String, onQueryChange: (String) -> Unit) {
     OutlinedTextField(
@@ -239,18 +177,24 @@ fun ExpertEditorPanel(query: String, onQueryChange: (String) -> Unit) {
     )
 }
 
-// 12. EmptyFavoritesPanel
+// 10. EmptyFavoritesPanel
 @Composable
 fun EmptyFavoritesPanel() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(48.dp).padding(bottom = 16.dp))
+            Image(
+                painter = painterResource(id = R.drawable.empty_favorites_illustration),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(150.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text("No saved search strings.", color = TextSecondary)
         }
     }
 }
 
-// 13. SettingsCard
+// 11. SettingsCard
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(16.dp)).border(1.dp, BorderDark, RoundedCornerShape(16.dp)).padding(16.dp), content = content)

@@ -1,5 +1,6 @@
 package com.example.pokequery.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -14,24 +15,42 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.pokequery.R
 import com.example.pokequery.theme.*
-import com.example.pokequery.ui.components.HomeMapHeader
 import com.example.pokequery.ui.components.GoalCardGrid
 
 @Composable
 fun HomeScreen(onGoalSelected: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
-        // Map header covering top area
-        HomeMapHeader(modifier = Modifier.fillMaxWidth().height(250.dp))
+        // Map header from image asset
+        Box(modifier = Modifier.fillMaxWidth().height(250.dp)) {
+            Image(
+                painter = painterResource(id = R.drawable.header_home_map),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            // Dim overlay to ensure text legibility
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
+            
+            Column(modifier = Modifier.padding(24.dp).align(Alignment.BottomStart)) {
+                Text("What do you want to find?", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Pick a goal and we'll build a safe search string for it.", color = Color.White.copy(alpha = 0.9f), style = MaterialTheme.typography.bodyMedium)
+            }
+        }
         
         Spacer(modifier = Modifier.height(16.dp))
         
         val goals = listOf(
             GoalData("Safe Cleanup", "Find junk without deleting shinies", Icons.Default.Delete, TealPrimary, "safe_cleanup"),
-            GoalData("2x Candy Prep", "Find duplicates to transfer", Icons.Default.Build, AmberWarning, "candy_prep"), // Using Build instead of generic List
+            GoalData("2x Candy Prep", "Find duplicates to transfer", Icons.Default.Build, AmberWarning, "candy_prep"),
             GoalData("Trade Fodder", "Find non-shiny trade candidates", Icons.AutoMirrored.Filled.Send, BlueCTA, "trade_fodder"),
             GoalData("Hundo Check", "Find perfect 4★ Pokémon", Icons.Default.Star, Color(0xFF9C27B0), "hundo_check"),
             GoalData("Untagged Cleanup", "Find Pokémon missing tags", Icons.Default.Clear, TealPrimary, "untagged"),
