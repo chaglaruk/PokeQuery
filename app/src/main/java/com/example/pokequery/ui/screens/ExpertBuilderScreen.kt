@@ -42,6 +42,18 @@ fun ExpertBuilderScreen(
                 unfocusedBorderColor = Color.Gray
             )
         )
+        
+        val linterWarnings = com.example.pokequery.domain.lint.Linter.lint(rawQuery)
+        if (linterWarnings.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            linterWarnings.forEach { warning ->
+                Text(
+                    text = "• ${warning.message}", 
+                    color = if (warning.isError) Color(0xFFE57373) else Color(0xFFFFC107), 
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 

@@ -22,9 +22,13 @@ object StringBuilderEngine {
     ): GeneratedString {
         
         var query = baseQuery
+        val generatedWarnings = mutableListOf<String>()
         
         // Safety check: Never generate |
-        query = query.replace("|", ",")
+        if (query.contains("|")) {
+            query = query.replace("|", ",")
+            generatedWarnings.add("The '|' operator is unsupported and was replaced with ','.")
+        }
 
         val exclusions = mutableListOf<String>()
         val highRiskIncluded = mutableListOf<String>()
@@ -51,6 +55,12 @@ object StringBuilderEngine {
                 query = "$query&$protectionStr"
                 exclusions.addAll(missingExclusions.filter { !exclusions.contains(it) })
             }
+            generatedWarnings.add("Count output: Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.")
+        }
+        
+        // Trade warning check
+        if (query.contains("trade")) {
+            generatedWarnings.add("Trade disclaimer: Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.")
         }
 
         return GeneratedString(
@@ -58,7 +68,8 @@ object StringBuilderEngine {
             plainLanguageExplanation = explanation,
             excludedCategories = exclusions,
             includedHighRiskCategories = highRiskIncluded,
-            riskLevel = if (query.contains("count") && riskLevel == RiskLevel.Low) RiskLevel.Medium else riskLevel
+            riskLevel = if (query.contains("count") && riskLevel == RiskLevel.Low) RiskLevel.Medium else riskLevel,
+            warnings = generatedWarnings
         )
     }
 }

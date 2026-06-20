@@ -5,5 +5,6 @@ data class GeneratedString(
     val plainLanguageExplanation: String,
     val excludedCategories: List<String>,
     val includedHighRiskCategories: List<String>,
-    val riskLevel: RiskLevel
+    val riskLevel: RiskLevel,
+    val warnings: List<String> = emptyList()
 )

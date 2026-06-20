@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,19 +46,37 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
             .background(BackgroundDark)
             .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
-        Text(
-            text = "What do you want to find?",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        Text(
-            text = "Pick a goal and we'll build a safe search string for it.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
+        // Decorative map/route header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .padding(bottom = 16.dp)
+                .background(com.example.pokequery.theme.CardDark, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+        ) {
+            androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                val canvasWidth = size.width
+                val canvasHeight = size.height
+                drawCircle(color = TealPrimary.copy(alpha = 0.2f), radius = 40f, center = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.2f, y = canvasHeight * 0.5f))
+                drawCircle(color = AmberWarning.copy(alpha = 0.2f), radius = 60f, center = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.8f, y = canvasHeight * 0.3f))
+                drawLine(color = Color.Gray.copy(alpha = 0.3f), start = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.2f, y = canvasHeight * 0.5f), end = androidx.compose.ui.geometry.Offset(x = canvasWidth * 0.8f, y = canvasHeight * 0.3f), strokeWidth = 5f)
+            }
+            Column(modifier = Modifier.padding(16.dp).align(Alignment.BottomStart)) {
+                Text(
+                    text = "PokeQuery",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Text(
+                    text = "Select a goal to generate a safe search string.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+        }
         
+        Spacer(modifier = Modifier.height(8.dp))
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(16.dp),

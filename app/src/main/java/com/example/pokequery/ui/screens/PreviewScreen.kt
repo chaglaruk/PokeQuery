@@ -120,6 +120,14 @@ fun PreviewScreen(
         Text(text = "What does this do?", color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
         Text(text = generatedString.plainLanguageExplanation, color = Color.Gray, fontSize = 14.sp, lineHeight = 20.sp)
         
+        if (generatedString.warnings.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Warnings", color = CoralDanger, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+            generatedString.warnings.forEach { warning ->
+                Text(text = "• $warning", color = AmberWarning, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(bottom = 4.dp))
+            }
+        }
+        
         Spacer(modifier = Modifier.height(24.dp))
 
         // Protections

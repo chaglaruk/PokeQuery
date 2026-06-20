@@ -23,6 +23,27 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun KnowledgeBaseScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    var terms by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        val jsonString = context.assets.open("knowledgebase.json").bufferedReader().use { it.readText() }
+        val jsonArray = org.json.JSONArray(jsonString)
+        val parsedList = mutableListOf<Map<String, String>>()
+        for (i in 0 until jsonArray.length()) {
+            val obj = jsonArray.getJSONObject(i)
+            parsedList.add(
+                mapOf(
+                    "syntax" to obj.optString("syntax"),
+                    "description" to obj.optString("description_en"),
+                    "risk" to obj.optString("riskLevel"),
+                    "quirks" to obj.optString("knownQuirks")
+                )
+            )
+        }
+        terms = parsedList
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +56,33 @@ fun KnowledgeBaseScreen(onBack: () -> Unit) {
             }
             Text("Knowledge Base", color = Color.White, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp, start = 8.dp))
         }
-        Text("Library of Search Strings will appear here.", color = Color.Gray)
+        
+        if (terms.isEmpty()) {
+            Text("Loading...", color = Color.Gray)
+        } else {
+            LazyColumn {
+                items(terms) { term ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .background(CardDark, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                            .padding(16.dp)
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(term["syntax"] ?: "", color = TealPrimary, style = MaterialTheme.typography.bodyLarge)
+                            Text(term["risk"] ?: "", color = if (term["risk"] == "High") Color(0xFFE57373) else if (term["risk"] == "Medium") Color(0xFFFFC107) else TealPrimary)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(term["description"] ?: "", color = Color.White)
+                        if (term["quirks"] != "null" && !term["quirks"].isNullOrEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("Note: ${term["quirks"]}", color = Color(0xFFFFC107), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -63,4 +63,26 @@ class StringBuilderEngineTest {
         val warnings = Linter.lint("count3-")
         assertTrue(warnings.any { it.message.contains("Unsafe count usage") })
     }
+
+    @Test
+    fun `engine adds count warning`() {
+        val result = StringBuilderEngine.buildString(baseQuery = "count2-", explanation = "test")
+        assertTrue(result.warnings.any { it.contains("Count is based on Pokédex species number") })
+    }
+
+    @Test
+    fun `engine adds trade disclaimer`() {
+        val result = StringBuilderEngine.buildString(baseQuery = "trade", explanation = "test")
+        assertTrue(result.warnings.any { it.contains("Real trade eligibility depends on friendship level") })
+    }
+
+    @Test
+    fun `safe cleanup includes positive condition and review explanation`() {
+        // Simulating Navigation.kt pass
+        val explanation = "This is a REVIEW string targeting 1-star low-value candidates. It is not an automatic transfer command."
+        val result = StringBuilderEngine.buildString(baseQuery = "1*", explanation = explanation)
+        assertTrue(result.rawSyntax.contains("1*"))
+        assertTrue(result.plainLanguageExplanation.contains("REVIEW string"))
+        assertTrue(result.plainLanguageExplanation.contains("not an automatic transfer"))
+    }
 }
