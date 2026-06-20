@@ -36,24 +36,24 @@ fun OnboardingScreen(onStart: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
             Text("Safe search strings for Pokémon GO", color = Color.White.copy(alpha=0.8f), fontSize = 16.sp)
             
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(0.5f))
             
             Box(
-                modifier = Modifier.fillMaxWidth().height(300.dp),
+                modifier = Modifier.fillMaxWidth().weight(3f),
                 contentAlignment = Alignment.Center
             ) {
-                // Subtle glow behind the hero
-                Box(modifier = Modifier.size(250.dp).background(Brush.radialGradient(listOf(TealPrimary.copy(alpha = 0.15f), Color.Transparent))))
+                // Stronger glow behind the hero
+                Box(modifier = Modifier.fillMaxSize(0.8f).background(Brush.radialGradient(listOf(TealPrimary.copy(alpha = 0.25f), Color.Transparent))))
                 
                 Image(
                     painter = painterResource(id = R.drawable.onboarding_hero),
                     contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxSize(1.2f).offset(y = 20.dp) // Make it much larger and slightly pushed down
                 )
             }
             
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(0.5f))
             
             // Compose trust indicators
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {

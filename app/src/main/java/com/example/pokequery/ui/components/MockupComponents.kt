@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -35,10 +36,10 @@ fun RiskHeaderCardCompose(riskLevel: String, subtitle: String, color: Color, bac
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
-                    alpha = 0.7f
+                    alpha = 0.9f // Increased visibility from 0.7f
                 )
-                // Gradient to fade the left edge smoothly into the solid background color
-                Box(modifier = Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(CardPremium, Color.Transparent))))
+                // Stronger gradient to fade the left edge smoothly into the solid background color
+                Box(modifier = Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(CardPremium, CardPremium.copy(alpha=0.6f), Color.Transparent))))
             }
         }
         
@@ -66,22 +67,25 @@ fun GoalCardGrid(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(150.dp),
+        modifier = Modifier.fillMaxWidth().height(160.dp), // Increased height to match reference
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardPremium)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            // Stronger gradient border glow
             Box(
-                modifier = Modifier.fillMaxSize().border(1.dp, Brush.verticalGradient(listOf(iconTint.copy(alpha = 0.5f), Color.Transparent)), RoundedCornerShape(20.dp))
+                modifier = Modifier.fillMaxSize().border(2.dp, Brush.verticalGradient(listOf(iconTint.copy(alpha = 0.8f), iconTint.copy(alpha=0.2f), Color.Transparent)), RoundedCornerShape(20.dp))
             )
+            // Stronger top accent background
             Box(
-                modifier = Modifier.fillMaxWidth().height(60.dp).background(Brush.verticalGradient(listOf(iconTint.copy(alpha = 0.15f), Color.Transparent))).align(Alignment.TopCenter)
+                modifier = Modifier.fillMaxWidth().height(70.dp).background(Brush.verticalGradient(listOf(iconTint.copy(alpha = 0.3f), Color.Transparent))).align(Alignment.TopCenter)
             )
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Larger icon
                 Image(
                     painter = painterResource(id = iconResId),
                     contentDescription = null,
-                    modifier = Modifier.size(42.dp),
+                    modifier = Modifier.size(56.dp).offset(y = (-4).dp), // Increased from 42dp by ~33%
                     contentScale = ContentScale.Fit
                 )
                 Spacer(modifier = Modifier.weight(1f))
@@ -207,14 +211,17 @@ fun ExpertEditorPanel(query: String, onQueryChange: (String) -> Unit) {
 fun EmptyFavoritesPanel() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                painter = painterResource(id = R.drawable.empty_favorites),
-                contentDescription = null,
-                modifier = Modifier.size(160.dp),
-                contentScale = ContentScale.Fit
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("No saved search strings.", color = TextSecondary)
+            // Replaced image placeholder with polished Compose empty state
+            Box(
+                modifier = Modifier.size(100.dp).background(CardPremium, RoundedCornerShape(50.dp)).border(2.dp, BorderDark, RoundedCornerShape(50.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Favorite, contentDescription = null, tint = TextSecondary.copy(alpha = 0.5f), modifier = Modifier.size(48.dp))
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("No saved search strings.", color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Your favorite queries will appear here.", color = TextSecondary, fontSize = 14.sp)
         }
     }
 }
