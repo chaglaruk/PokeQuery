@@ -71,17 +71,26 @@ class StringBuilderEngineTest {
     }
 
     @Test
-    fun `engine adds trade disclaimer`() {
-        val result = StringBuilderEngine.buildString(baseQuery = "trade", explanation = "test")
+    fun `trade fodder includes trade warning and correct protections`() {
+        val result = StringBuilderEngine.buildString(baseQuery = "count2-&!traded", explanation = "test")
         assertTrue(result.warnings.any { it.contains("Real trade eligibility depends on friendship level") })
+        assertTrue(result.warnings.any { it.contains("Count is based on Pokédex species number") })
+        assertFalse(result.rawSyntax == "traded")
+        assertTrue(result.rawSyntax.contains("!traded"))
+        
+        // Ensure rawString is indeed the full string with all protections
+        assertTrue(result.rawSyntax.contains("!shiny"))
+        assertTrue(result.rawSyntax.contains("!lucky"))
+        assertTrue(result.rawSyntax.contains("!legendary"))
     }
 
     @Test
     fun `safe cleanup includes positive condition and review explanation`() {
-        // Simulating Navigation.kt pass
         val explanation = "This is a REVIEW string targeting 1-star low-value candidates. It is not an automatic transfer command."
         val result = StringBuilderEngine.buildString(baseQuery = "1*", explanation = explanation)
         assertTrue(result.rawSyntax.contains("1*"))
+        assertTrue(result.rawSyntax.contains("!shiny"))
+        assertTrue(result.rawSyntax.contains("!4*"))
         assertTrue(result.plainLanguageExplanation.contains("REVIEW string"))
         assertTrue(result.plainLanguageExplanation.contains("not an automatic transfer"))
     }

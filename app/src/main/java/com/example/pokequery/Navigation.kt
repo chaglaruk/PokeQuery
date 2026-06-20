@@ -58,7 +58,7 @@ fun MainNavigation() {
                             val baseQuery = when (gq.goalId) {
                                 "safe_cleanup" -> "1*"
                                 "candy_prep" -> "count2-"
-                                "trade_fodder" -> "traded"
+                                "trade_fodder" -> "count2-&!traded"
                                 "hundo_check" -> "4*"
                                 "untagged" -> "!#"
                                 "expert" -> ""

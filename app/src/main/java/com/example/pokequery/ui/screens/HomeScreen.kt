@@ -26,11 +26,32 @@ import com.example.pokequery.theme.CoralDanger
 import com.example.pokequery.theme.PurpleIV
 import com.example.pokequery.theme.TealPrimary
 import com.example.pokequery.ui.components.GoalCard
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import com.example.pokequery.data.repository.UserPreferencesRepository
+import com.example.pokequery.data.repository.dataStore
+import kotlinx.coroutines.launch
 
 data class GoalItem(val id: String, val title: String, val description: String, val icon: ImageVector, val color: Color)
 
 @Composable
 fun HomeScreen(onGoalSelected: (String) -> Unit) {
+    val context = LocalContext.current
+    val repository = remember { UserPreferencesRepository(context.dataStore) }
+    val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
+    val scope = rememberCoroutineScope()
+
+    if (userPrefs == null) {
+        return // Loading state
+    }
+
+    if (!userPrefs!!.firstUseSeen) {
+        OnboardingScreen(onStart = {
+            scope.launch { repository.setFirstUseSeen(true) }
+        })
+        return
+    }
+
     val goals = listOf(
         GoalItem("safe_cleanup", "Safe Cleanup", "Remove clutter safely", Icons.Default.CheckCircle, TealPrimary),
         GoalItem("candy_prep", "2x Candy Prep", "Find extras to transfer", Icons.Default.List, AmberWarning),
