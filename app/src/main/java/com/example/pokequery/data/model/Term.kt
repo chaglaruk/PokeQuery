@@ -1,5 +1,7 @@
 package com.example.pokequery.data.model
 
+import kotlinx.serialization.Serializable
+
 data class Term(
     val id: String,
     val syntax: String,
@@ -13,4 +15,5 @@ data class Term(
     val knownQuirks: String?
 )
 
-enum class RiskLevel { Low, Medium, High }
+@Serializable
+enum class RiskLevel { Info, Low, Medium, High }

@@ -29,6 +29,7 @@ class StringBuilderEngineTest {
         // mandatory protections for count should still apply
         assertTrue(result.rawSyntax.contains("!shiny"))
         assertTrue(result.rawSyntax.contains("!legendary"))
+        assertTrue(result.rawSyntax.contains("!costume"))
     }
 
     @Test
@@ -72,7 +73,7 @@ class StringBuilderEngineTest {
 
     @Test
     fun `trade fodder includes trade warning and correct protections`() {
-        val result = StringBuilderEngine.buildString(baseQuery = "count2-&!traded", explanation = "test")
+        val result = StringBuilderEngine.buildGoal("trade_fodder")
         assertTrue(result.warnings.any { it.contains("Real trade eligibility depends on friendship level") })
         assertTrue(result.warnings.any { it.contains("Count is based on Pokédex species number") })
         assertFalse(result.rawSyntax == "traded")
@@ -99,7 +100,7 @@ class StringBuilderEngineTest {
     fun `hundo check does not hide special categories and has correct explanation`() {
         // Simulating Navigation.kt behavior where protections are cleared
         val explanation = "Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15."
-        val result = StringBuilderEngine.buildString(baseQuery = "4*", protections = emptyList(), explanation = explanation)
+        val result = StringBuilderEngine.buildGoal("hundo_check")
         
         assertEquals("4*", result.rawSyntax)
         assertFalse(result.rawSyntax.contains("!shiny"))
@@ -112,5 +113,14 @@ class StringBuilderEngineTest {
         
         assertTrue(result.plainLanguageExplanation.contains("perfect IV / hundo"))
         assertTrue(result.plainLanguageExplanation.contains("15/15/15"))
+        assertEquals(RiskLevel.Info, result.riskLevel)
+        assertTrue(result.warnings.isEmpty())
+    }
+
+    @Test
+    fun `all default count goals exclude costume`() {
+        listOf("candy_prep", "trade_fodder").forEach { goal ->
+            assertTrue("$goal must exclude costume", StringBuilderEngine.buildGoal(goal).rawSyntax.contains("!costume"))
+        }
     }
 }

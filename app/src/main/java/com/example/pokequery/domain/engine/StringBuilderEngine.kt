@@ -11,14 +11,16 @@ object StringBuilderEngine {
     )
     
     val COUNT_MANDATORY_PROTECTIONS = listOf(
-        "shiny", "lucky", "legendary", "mythical", "shadow", "purified", "favorite", "traded"
+        "shiny", "lucky", "legendary", "mythical", "shadow", "purified", "favorite", "traded", "costume"
     )
 
     fun buildString(
         baseQuery: String,
         protections: List<String> = DEFAULT_PROTECTIONS,
         explanation: String,
-        riskLevel: RiskLevel = RiskLevel.Low
+        riskLevel: RiskLevel = RiskLevel.Low,
+        goalId: String = "custom",
+        title: String = "Custom Search"
     ): GeneratedString {
         
         var query = baseQuery
@@ -30,21 +32,10 @@ object StringBuilderEngine {
             generatedWarnings.add("The '|' operator is unsupported and was replaced with ','.")
         }
 
-        val exclusions = mutableListOf<String>()
-        val highRiskIncluded = mutableListOf<String>()
-
-        val protectionsToAdd = protections.filter { !baseQuery.contains(it) }
+        val protectionsToAdd = protections.filter { !baseQuery.contains("!$it") }
         if (protectionsToAdd.isNotEmpty()) {
             val protectionStr = protectionsToAdd.joinToString("&") { "!$it" }
             query = if (query.isEmpty()) protectionStr else "$query&$protectionStr"
-        }
-        exclusions.addAll(protectionsToAdd)
-
-        // Check what high risk things we are exposing based on standard DEFAULT_PROTECTIONS
-        DEFAULT_PROTECTIONS.forEach {
-            if (baseQuery.contains(it) || !protections.contains(it)) {
-                highRiskIncluded.add(it)
-            }
         }
 
         // Mandatory count[N] safety check
@@ -53,23 +44,75 @@ object StringBuilderEngine {
             if (missingExclusions.isNotEmpty()) {
                 val protectionStr = missingExclusions.joinToString("&") { "!$it" }
                 query = "$query&$protectionStr"
-                exclusions.addAll(missingExclusions.filter { !exclusions.contains(it) })
             }
             generatedWarnings.add("Count output: Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.")
         }
         
         // Trade warning check
-        if (query.contains("trade")) {
+        if (goalId == "trade_fodder") {
             generatedWarnings.add("Trade disclaimer: Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.")
         }
+
+        val protectedCategories = (DEFAULT_PROTECTIONS + COUNT_MANDATORY_PROTECTIONS)
+            .distinct()
+            .filter { query.contains("!$it") }
 
         return GeneratedString(
             rawSyntax = query,
             plainLanguageExplanation = explanation,
-            excludedCategories = exclusions,
-            includedHighRiskCategories = highRiskIncluded,
+            protectedCategories = protectedCategories,
+            includedHighRiskCategories = DEFAULT_PROTECTIONS.filterNot { query.contains("!$it") },
             riskLevel = if (query.contains("count") && riskLevel == RiskLevel.Low) RiskLevel.Medium else riskLevel,
-            warnings = generatedWarnings
+            warnings = generatedWarnings,
+            goalId = goalId,
+            title = title
         )
     }
+
+    fun buildGoal(goalId: String, include0Star: Boolean = false, customQuery: String = ""): GeneratedString {
+        val (query, explanation, risk, title) = when (goalId) {
+            "safe_cleanup" -> GoalSpec(
+                if (include0Star) "0*,1*" else "1*",
+                "This is a REVIEW string targeting low-value candidates. It is not an automatic transfer command.",
+                if (include0Star) RiskLevel.Medium else RiskLevel.Low,
+                "Safe Cleanup"
+            )
+            "candy_prep" -> GoalSpec(
+                "count2-",
+                "Finds extras. Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.",
+                RiskLevel.Medium,
+                "2x Candy Prep"
+            )
+            "trade_fodder" -> GoalSpec(
+                "count2-&!traded",
+                "Finds candidates for trading. Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.",
+                RiskLevel.Medium,
+                "Trade Fodder"
+            )
+            "hundo_check" -> GoalSpec(
+                "4*",
+                "Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15.",
+                RiskLevel.Info,
+                "Hundo Check"
+            )
+            "untagged" -> GoalSpec("!#", "Finds Pokémon without any tags.", RiskLevel.Low, "Untagged Cleanup")
+            "expert" -> GoalSpec(customQuery, "Custom search string. Review all matches in the game before acting.", RiskLevel.Medium, "Custom Search")
+            else -> GoalSpec(customQuery, "Custom search string.", RiskLevel.Medium, "Custom Search")
+        }
+        return buildString(
+            baseQuery = query,
+            protections = if (goalId == "hundo_check") emptyList() else DEFAULT_PROTECTIONS,
+            explanation = explanation,
+            riskLevel = risk,
+            goalId = goalId,
+            title = title
+        )
+    }
+
+    private data class GoalSpec(
+        val query: String,
+        val explanation: String,
+        val risk: RiskLevel,
+        val title: String
+    )
 }

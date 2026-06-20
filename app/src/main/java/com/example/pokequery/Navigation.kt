@@ -1,189 +1,117 @@
 package com.example.pokequery
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.example.pokequery.domain.engine.StringBuilderEngine
-import com.example.pokequery.data.model.RiskLevel
-import com.example.pokequery.ui.screens.*
-import com.example.pokequery.ui.components.BottomNavBar
-
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.platform.LocalContext
 import com.example.pokequery.data.repository.UserPreferencesRepository
 import com.example.pokequery.data.repository.dataStore
-
+import com.example.pokequery.domain.engine.StringBuilderEngine
+import com.example.pokequery.ui.components.BottomNavBar
+import com.example.pokequery.ui.screens.*
 import kotlinx.coroutines.launch
 
 @Composable
 fun MainNavigation(startRoute: String? = null) {
-  val context = LocalContext.current
-  val repository = remember { UserPreferencesRepository(context.dataStore) }
-  val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
-  
-  // Decide the initial route
-  val initialEntry = remember(startRoute, userPrefs) {
-      if (startRoute != null) {
-          when (startRoute) {
-              "onboarding" -> Onboarding
-              "home" -> Home
-              "guided_safe_cleanup" -> GuidedQuestions("safe_cleanup")
-              "preview_safe_cleanup" -> Preview("1*", "safe_cleanup", false)
-              "preview_candy_prep" -> Preview("count2-", "candy_prep", false)
-              "preview_trade_fodder" -> Preview("count2-&!traded", "trade_fodder", false)
-              "knowledge" -> KnowledgeBase
-              "expert" -> ExpertBuilder
-              "favorites" -> Favorites
-              "settings" -> Settings
-              else -> Home
-          }
-      } else {
-          if (userPrefs == null) null // Still loading
-          else if (!userPrefs!!.firstUseSeen) Onboarding
-          else Home
-      }
-  }
+    val context = LocalContext.current
+    val repository = remember { UserPreferencesRepository(context.dataStore) }
+    val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
+    val initialEntry = remember(startRoute, userPrefs) {
+        when (startRoute) {
+            "onboarding" -> Onboarding
+            "home" -> Home
+            "guided_safe_cleanup" -> GuidedQuestions("safe_cleanup")
+            "preview_safe_cleanup" -> Preview(StringBuilderEngine.buildGoal("safe_cleanup"))
+            "preview_candy_prep" -> Preview(StringBuilderEngine.buildGoal("candy_prep"))
+            "preview_trade_fodder" -> Preview(StringBuilderEngine.buildGoal("trade_fodder"))
+            "knowledge" -> KnowledgeBase
+            "expert" -> ExpertBuilder
+            "favorites" -> Favorites
+            "settings" -> Settings
+            null -> when {
+                userPrefs == null -> null
+                userPrefs!!.firstUseSeen -> Home
+                else -> Onboarding
+            }
+            else -> Home
+        }
+    } ?: return
 
-  if (initialEntry == null) {
-      // Loading screen or just empty box
-      return
-  }
+    val backStack = rememberNavBackStack(initialEntry)
+    var currentTab by remember { mutableStateOf("home") }
 
-  val backStack = rememberNavBackStack(initialEntry)
-  var currentTab by remember { mutableStateOf("home") }
-
-  // Check if current screen is Onboarding
-  val isCurrentOnboarding = backStack.lastOrNull() is Onboarding
-
-  Scaffold(
-      bottomBar = {
-          if (!isCurrentOnboarding) {
-              BottomNavBar(
-                  currentRoute = currentTab,
-                  onNavigate = { route ->
-                      currentTab = route
-                      backStack.clear()
-                      when (route) {
-                          "home" -> backStack.add(Home)
-                          "builder" -> backStack.add(ExpertBuilder)
-                          "favorites" -> backStack.add(Favorites)
-                          "settings" -> backStack.add(Settings)
-                      }
-                  }
-              )
-          }
-      }
-  ) { paddingValues ->
-      Box(modifier = Modifier.padding(paddingValues)) {
-          NavDisplay(
-            backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
-            entryProvider = entryProvider {
-                entry<Onboarding> {
-                    val scope = androidx.compose.runtime.rememberCoroutineScope()
-                    OnboardingScreen(onStart = {
-                        scope.launch { repository.setFirstUseSeen(true) }
-                        backStack.clear()
-                        backStack.add(Home)
-                    })
-                }
-                entry<Home> {
-                  HomeScreen(onGoalSelected = { goalId -> backStack.add(GuidedQuestions(goalId)) })
-                }
-                entry<GuidedQuestions> { gq ->
-                    GuidedQuestionsScreen(
-                        goalId = gq.goalId,
-                        onGenerate = { include0Star ->
-                            val baseQuery = when (gq.goalId) {
-                                "safe_cleanup" -> "1*"
-                                "candy_prep" -> "count2-"
-                                "trade_fodder" -> "count2-&!traded"
-                                "hundo_check" -> "4*"
-                                "untagged" -> "!#"
-                                "expert" -> ""
-                                else -> ""
-                            }
-                            backStack.add(Preview(baseQuery, gq.goalId, include0Star))
-                        },
-                        onBack = { backStack.removeLastOrNull() }
-                    )
-                }
-                entry<Preview> { preview ->
-                    var query = preview.baseQuery
-                    val protections = StringBuilderEngine.DEFAULT_PROTECTIONS.toMutableList()
-                    if (preview.goalId == "safe_cleanup" && preview.include0Star) {
-                        query = "0*,1*"
-                        protections.remove("0*")
-                    } else if (preview.goalId == "safe_cleanup" && !preview.include0Star) {
-                        protections.remove("0*") // handled by guided flow
-                    } else if (preview.goalId == "hundo_check") {
-                        protections.clear()
+    Scaffold(
+        bottomBar = {
+            if (backStack.lastOrNull() !is Onboarding) {
+                BottomNavBar(currentRoute = currentTab) { route ->
+                    currentTab = route
+                    backStack.clear()
+                    when (route) {
+                        "home" -> backStack.add(Home)
+                        "builder" -> backStack.add(ExpertBuilder)
+                        "favorites" -> backStack.add(Favorites)
+                        "settings" -> backStack.add(Settings)
                     }
-
-                    val explanation = when (preview.goalId) {
-                        "safe_cleanup" -> "This is a REVIEW string targeting 1-star low-value candidates. It is not an automatic transfer command."
-                        "candy_prep" -> "Finds extras. Count is based on Pokédex species number and may not distinguish shiny/form/costume differences."
-                        "trade_fodder" -> "Finds candidates for trading. Real trade eligibility depends on friendship level and cannot be guaranteed by search strings."
-                        "hundo_check" -> "Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15."
-                        "untagged" -> "Finds Pokemon without any tags."
-                        else -> "Custom or generated search string."
+                }
+            }
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            NavDisplay(
+                backStack = backStack,
+                onBack = { backStack.removeLastOrNull() },
+                entryProvider = entryProvider {
+                    entry<Onboarding> {
+                        val scope = rememberCoroutineScope()
+                        OnboardingScreen {
+                            scope.launch { repository.setFirstUseSeen(true) }
+                            backStack.clear()
+                            backStack.add(Home)
+                        }
                     }
-                    val risk = when (preview.goalId) {
-                        "safe_cleanup" -> if (preview.include0Star) RiskLevel.Medium else RiskLevel.Low
-                        "candy_prep" -> RiskLevel.Medium
-                        "trade_fodder" -> RiskLevel.Low
-                        else -> RiskLevel.Low
+                    entry<Home> {
+                        HomeScreen { goalId -> backStack.add(GuidedQuestions(goalId)) }
                     }
-
-                    val generated = StringBuilderEngine.buildString(
-                        baseQuery = query,
-                        protections = protections,
-                        explanation = explanation,
-                        riskLevel = risk
-                    )
-                    
-                    PreviewScreen(
-                        generatedString = generated.rawSyntax,
-                        onCopy = { /* TODO implement clipboard copy feedback */ },
-                        onBack = { backStack.removeLastOrNull() }
-                    )
+                    entry<GuidedQuestions> { route ->
+                        GuidedQuestionsScreen(
+                            goalId = route.goalId,
+                            onGenerate = { include0Star ->
+                                backStack.add(Preview(StringBuilderEngine.buildGoal(route.goalId, include0Star)))
+                            },
+                            onBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Preview> { route ->
+                        PreviewScreen(
+                            generatedString = route.generatedString,
+                            onCopy = {},
+                            onBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<ExpertBuilder> {
+                        ExpertBuilderScreen(
+                            onGenerate = { query ->
+                                backStack.add(Preview(StringBuilderEngine.buildGoal("expert", customQuery = query)))
+                            },
+                            onBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                    entry<Favorites> { FavoritesScreen { backStack.removeLastOrNull() } }
+                    entry<Settings> { SettingsScreen { backStack.removeLastOrNull() } }
+                    entry<KnowledgeBase> { KnowledgeBaseScreen { backStack.removeLastOrNull() } }
+                    entry<RiskWarning> {
+                        RiskWarningScreen(
+                            onAcknowledge = { backStack.removeLastOrNull() },
+                            onBack = { backStack.removeLastOrNull() }
+                        )
+                    }
                 }
-                entry<ExpertBuilder> {
-                    ExpertBuilderScreen(
-                        onGenerate = { query -> backStack.add(Preview(query, "expert", false)) },
-                        onBack = { backStack.removeLastOrNull() }
-                    )
-                }
-                entry<Favorites> {
-                    FavoritesScreen(onBack = { backStack.removeLastOrNull() })
-                }
-                entry<Settings> {
-                    SettingsScreen(onBack = { backStack.removeLastOrNull() })
-                }
-                entry<KnowledgeBase> {
-                    KnowledgeBaseScreen(onBack = { backStack.removeLastOrNull() })
-                }
-                entry<RiskWarning> {
-                    RiskWarningScreen(
-                        onAcknowledge = { backStack.removeLastOrNull() },
-                        onBack = { backStack.removeLastOrNull() }
-                    )
-                }
-              }
-          )
-      }
-  }
+            )
+        }
+    }
 }
