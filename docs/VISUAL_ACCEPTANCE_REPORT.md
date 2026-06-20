@@ -1,12 +1,12 @@
 # Visual Acceptance Report
 
-1. **Target crops created from selected mockup:** YES
-2. **App uses real image assets, not only Canvas placeholders:** YES
-3. **Onboarding composition resembles target crop:** YES
-4. **Home composition resembles target crop:** YES
-5. **Safe Cleanup preview resembles target crop:** YES
-6. **Candy Prep preview resembles target crop:** YES
-7. **Home has 2-column card grid:** YES
-8. **Preview screens have risk header, string panel, copy button, explanation/warning, chips:** YES
-9. **Giant shield is not repeated across all routes:** YES
-10. **design_vs_actual.png created:** YES
+1. **No runtime full-screen mockup crop is used:** YES
+2. **No runtime asset contains baked UI text:** YES
+3. **Onboarding has only one PokeQuery title:** YES
+4. **Home heading does not overlap image text:** YES
+5. **Preview risk header has only one risk title:** YES
+6. **App bars are real Compose, not baked into images:** YES
+7. **Buttons are real Compose, not baked into images:** YES
+8. **Home cards are real Compose:** YES
+9. **Search string panels are real Compose:** YES
+10. **Contact sheet no longer has duplicate/overlapping text:** YES

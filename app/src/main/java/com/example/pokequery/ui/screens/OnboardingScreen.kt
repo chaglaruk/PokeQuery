@@ -24,40 +24,31 @@ import com.example.pokequery.theme.*
 
 @Composable
 fun OnboardingScreen(onStart: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
-        // Full background image
-        Image(
-            painter = painterResource(id = R.drawable.bg_night_map),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-        // Dark overlay to ensure text legibility
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)))
-
+    // Dark Navy Background
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0A1B38))) {
         Column(
             modifier = Modifier.fillMaxSize().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text("PokeQuery", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Safe search strings for Pokémon GO", color = Color.White.copy(alpha=0.9f), fontSize = 16.sp)
-            
             Spacer(modifier = Modifier.height(32.dp))
             
-            // Central Hero illustration from asset
+            Text("PokeQuery", color = Color.White, fontSize = 40.sp, fontWeight = FontWeight.ExtraBold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Safe search strings for Pokémon GO", color = Color.White.copy(alpha=0.8f), fontSize = 16.sp)
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Clean decorative hero asset
             Image(
-                painter = painterResource(id = R.drawable.hero_onboarding_search_shield),
+                painter = painterResource(id = R.drawable.onboarding_hero_decor),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxWidth().height(300.dp)
+                modifier = Modifier.fillMaxWidth().height(250.dp)
             )
             
             Spacer(modifier = Modifier.weight(1f))
             
-            // 3 Trust indicators
+            // Compose trust indicators
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 TrustIcon(Icons.Default.Lock, "No login")
                 TrustIcon(Icons.Default.CheckCircle, "Offline-first")
@@ -69,7 +60,7 @@ fun OnboardingScreen(onStart: () -> Unit) {
             Button(
                 onClick = onStart,
                 colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(60.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text("Start building", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -82,10 +73,10 @@ fun OnboardingScreen(onStart: () -> Unit) {
 @Composable
 private fun TrustIcon(icon: ImageVector, text: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(modifier = Modifier.size(48.dp).background(CardPremium.copy(alpha=0.8f), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = TealPrimary)
+        Box(modifier = Modifier.size(56.dp).background(CardPremium, RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(28.dp))
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text, color = Color.White.copy(alpha=0.9f), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(text, color = Color.White.copy(alpha=0.9f), fontSize = 13.sp, fontWeight = FontWeight.Medium)
     }
 }
