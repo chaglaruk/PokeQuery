@@ -31,7 +31,10 @@ fun MainNavigation(startRoute: String? = null) {
             "home" -> Home
             "detail_safe_cleanup" -> GoalDetail("safe_cleanup")
             "detail_candy_prep" -> GoalDetail("candy_prep")
+            "detail_trade_fodder" -> GoalDetail("trade_fodder")
             "detail_pvp_candidates" -> GoalDetail("pvp_candidates")
+            "detail_nundo_finder" -> GoalDetail("nundo_finder")
+            "detail_lucky_trade" -> GoalDetail("lucky_trade")
             "knowledge" -> KnowledgeBase
             "presets" -> Presets
             "expert" -> ExpertBuilder

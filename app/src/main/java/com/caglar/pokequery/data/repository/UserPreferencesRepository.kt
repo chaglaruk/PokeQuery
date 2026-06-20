@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.caglar.pokequery.data.model.RiskLevel
@@ -21,13 +22,25 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val FIRST_USE_SEEN = booleanPreferencesKey("first_use_seen")
         val LEGACY_FAVORITES = stringSetPreferencesKey("favorites_set")
         val SAVED_TEMPLATES = stringSetPreferencesKey("saved_templates_v1")
+        val WARNING_BEHAVIOR = stringPreferencesKey("warning_behavior")
+        val DUPLICATE_THRESHOLD = stringPreferencesKey("duplicate_threshold")
+        val SAFETY_STYLE = stringPreferencesKey("safety_style")
+        val COPY_BEHAVIOR = stringPreferencesKey("copy_behavior")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data.map { preferences ->
         UserPreferences(
             firstUseSeen = preferences[FIRST_USE_SEEN] ?: false,
+            warningBehavior = preferences[WARNING_BEHAVIOR] ?: "Always Warn",
+            duplicateThreshold = preferences[DUPLICATE_THRESHOLD] ?: "Count 3 (Safe)",
+            safetyStyle = preferences[SAFETY_STYLE] ?: "Conservative",
+            copyBehavior = preferences[COPY_BEHAVIOR] ?: "Confirm Risky Copy",
             favorites = readFavorites(preferences).sortedByDescending { it.createdAt }
         )
+    }
+
+    suspend fun setSetting(key: Preferences.Key<String>, value: String) {
+        dataStore.edit { it[key] = value }
     }
 
     suspend fun setFirstUseSeen(seen: Boolean) {
@@ -52,6 +65,16 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    suspend fun resetSettings() {
+        dataStore.edit { preferences ->
+            val favs = preferences[SAVED_TEMPLATES]
+            val firstUse = preferences[FIRST_USE_SEEN]
+            preferences.clear()
+            if (favs != null) preferences[SAVED_TEMPLATES] = favs
+            if (firstUse != null) preferences[FIRST_USE_SEEN] = firstUse
+        }
+    }
+
     private fun readFavorites(preferences: Preferences): List<SavedTemplate> {
         val saved = preferences[SAVED_TEMPLATES].orEmpty().mapNotNull(SavedTemplateCodec::decode)
         val legacy = preferences[LEGACY_FAVORITES].orEmpty().map { raw ->
@@ -70,6 +93,10 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
 data class UserPreferences(
     val firstUseSeen: Boolean,
+    val warningBehavior: String = "Always Warn",
+    val duplicateThreshold: String = "Count 3 (Safe)",
+    val safetyStyle: String = "Conservative",
+    val copyBehavior: String = "Confirm Risky Copy",
     val favorites: List<SavedTemplate>
 )
 
