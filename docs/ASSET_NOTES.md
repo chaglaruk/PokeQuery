@@ -1,14 +1,10 @@
 # Asset Notes
 
-## Prototype-Only Assets
-The following assets are clean decorative crops derived directly from the generated AI mockup (`ChatGPT Image 20 Haz 2026 01_53_00 (1).png`). They contain only background decorations or creature silhouettes, with no baked UI text, app bars, or buttons.
+## Strict Native Compose Only
+The selected mockup is **reference-only**. The target crops are **documentation-only**.
+NO mockup crop or screenshot is used at runtime as an app asset.
 
-* `app/src/main/res/drawable-nodpi/onboarding_hero_decor.webp`
-* `app/src/main/res/drawable-nodpi/home_map_decor.webp`
-* `app/src/main/res/drawable-nodpi/low_risk_decor.webp`
-* `app/src/main/res/drawable-nodpi/medium_risk_decor.webp`
+All UI text, buttons, cards, headings, and app bars are purely generated via Jetpack Compose.
+All decorative visuals (backgrounds, hero images, radar waves, risk headers) are procedurally drawn using `androidx.compose.foundation.Canvas`.
 
-**WARNING:** For any future Play Store or public release, these must be replaced with IP-safe, original custom-drawn assets to avoid copyright violations with Niantic, Nintendo, or The Pokémon Company.
-
-## Final Statement
-No runtime asset contains baked UI text or full-screen mockup layout.
+No baked UI images remain.

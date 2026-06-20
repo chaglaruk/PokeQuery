@@ -1,6 +1,5 @@
 package com.example.pokequery.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -15,15 +14,14 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.pokequery.R
 import com.example.pokequery.theme.*
 import com.example.pokequery.ui.components.GoalCardGrid
+import com.example.pokequery.ui.components.HomeMapHeaderCompose
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,15 +36,9 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
         containerColor = BackgroundDark
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            // Map header with clean decor
+            // Map header with clean compose decor
             Box(modifier = Modifier.fillMaxWidth().height(160.dp).background(Color(0xFF030D1B))) {
-                Image(
-                    painter = painterResource(id = R.drawable.home_map_decor),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                    alpha = 0.5f // Fade it back
-                )
+                HomeMapHeaderCompose()
                 
                 Column(modifier = Modifier.padding(24.dp).fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
                     Text("What do you want to find?", color = Color.White, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold)

@@ -72,7 +72,7 @@ fun PreviewScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            RiskHeaderCard(riskLevel = riskLevel, subtitle = riskSubtitle, color = riskColor)
+            RiskHeaderCardCompose(riskLevel = riskLevel, subtitle = riskSubtitle, color = riskColor)
             
             Text("Your search string", color = TextPrimary, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
             

@@ -1,12 +1,11 @@
 # Visual Acceptance Report
 
-1. **No runtime full-screen mockup crop is used:** YES
-2. **No runtime asset contains baked UI text:** YES
-3. **Onboarding has only one PokeQuery title:** YES
-4. **Home heading does not overlap image text:** YES
-5. **Preview risk header has only one risk title:** YES
-6. **App bars are real Compose, not baked into images:** YES
-7. **Buttons are real Compose, not baked into images:** YES
-8. **Home cards are real Compose:** YES
-9. **Search string panels are real Compose:** YES
-10. **Contact sheet no longer has duplicate/overlapping text:** YES
+1. **No mockup crop in runtime drawables:** YES
+2. **Home header has no baked PokeQuery text:** YES
+3. **Preview risk headers have no baked text/artifacts:** YES
+4. **Onboarding has one real Compose PokeQuery title only:** YES
+5. **All buttons are Compose:** YES
+6. **All cards are Compose:** YES
+7. **All app bars are Compose:** YES
+8. **Contact sheet has no duplicated/baked text artifacts:** YES
+9. **UI still follows target composition:** YES
