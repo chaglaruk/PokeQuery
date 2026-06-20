@@ -1,5 +1,6 @@
 package com.example.pokequery.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,18 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pokequery.R
 import com.example.pokequery.theme.*
-import com.example.pokequery.ui.components.NightMapBackground
-import com.example.pokequery.ui.components.OnboardingHeroCompose
 
 @Composable
 fun OnboardingScreen(onStart: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        NightMapBackground()
-
+    Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
         Column(
             modifier = Modifier.fillMaxSize().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -37,7 +37,12 @@ fun OnboardingScreen(onStart: () -> Unit) {
             
             Spacer(modifier = Modifier.weight(1f))
             
-            OnboardingHeroCompose(modifier = Modifier.fillMaxWidth().height(250.dp))
+            Image(
+                painter = painterResource(id = R.drawable.onboarding_hero),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxWidth().height(250.dp)
+            )
             
             Spacer(modifier = Modifier.weight(1f))
             

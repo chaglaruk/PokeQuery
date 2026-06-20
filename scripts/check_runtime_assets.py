@@ -4,22 +4,24 @@ import sys
 
 def check_runtime_assets():
     assets_dir = 'app/src/main/res/drawable-nodpi'
-    assets = glob.glob(os.path.join(assets_dir, '*.webp')) + glob.glob(os.path.join(assets_dir, '*.png'))
+    assets = glob.glob(os.path.join(assets_dir, '*.webp')) + glob.glob(os.path.join(assets_dir, '*.png')) + glob.glob(os.path.join(assets_dir, '*.jpg'))
     
-    banned_assets = [
-        'bg_night_map.webp', 'bg_night_map.png',
-        'hero_onboarding_search_shield.webp', 'hero_onboarding_search_shield.png',
-        'header_home_map.webp', 'header_home_map.png',
-        'header_low_risk.webp', 'header_low_risk.png',
-        'header_medium_risk.webp', 'header_medium_risk.png',
-        'onboarding_hero_decor.webp', 'onboarding_hero_decor.png',
-        'home_map_decor.webp', 'home_map_decor.png',
-        'low_risk_decor.webp', 'low_risk_decor.png',
-        'medium_risk_decor.webp', 'medium_risk_decor.png',
-        'empty_favorites_illustration.webp', 'empty_favorites_illustration.png'
+    allowed_assets = [
+        'onboarding_hero.png',
+        'home_header_bg.png',
+        'safe_cleanup_header.png',
+        'candy_prep_header.png',
+        'trade_fodder_header.png',
+        'empty_favorites.png',
+        'goal_safe_cleanup_icon.png',
+        'goal_candy_prep_icon.png',
+        'goal_trade_icon.png',
+        'goal_hundo_icon.png',
+        'goal_tag_icon.png',
+        'goal_expert_icon.png'
     ]
     
-    suspicious_keywords = ['target', 'screenshot', 'full', 'contact', 'mockup', 'screen', 'decor']
+    suspicious_keywords = ['target', 'mockup', 'screenshot', 'contact', 'screen', 'crop', 'full']
     
     print(f"Found {len(assets)} runtime image assets.")
     failed = False
@@ -28,17 +30,17 @@ def check_runtime_assets():
         filename = os.path.basename(asset).lower()
         print(f" - {filename}")
         
-        if filename in banned_assets:
-            print(f"   ERROR: Asset '{filename}' is a banned mockup crop.")
+        if filename not in allowed_assets:
+            print(f"   ERROR: Asset '{filename}' is NOT in the UI_ASSET_CONTRACT allowed list.")
             failed = True
             
         for keyword in suspicious_keywords:
             if keyword in filename:
-                print(f"   ERROR: Asset '{filename}' contains suspicious keyword '{keyword}', suggesting it might be derived from a mockup crop.")
+                print(f"   ERROR: Asset '{filename}' contains suspicious keyword '{keyword}'.")
                 failed = True
                 
     if failed:
-        print("FAIL: Runtime mockup crops detected!")
+        print("FAIL: Invalid runtime assets detected!")
         sys.exit(1)
     else:
         print("PASS")

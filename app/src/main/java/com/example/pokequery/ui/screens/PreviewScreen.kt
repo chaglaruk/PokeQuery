@@ -13,6 +13,7 @@ import com.example.pokequery.data.model.GeneratedString
 import com.example.pokequery.data.model.RiskLevel
 import com.example.pokequery.theme.*
 import com.example.pokequery.ui.components.*
+import com.example.pokequery.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +41,13 @@ fun PreviewScreen(
         RiskLevel.Medium -> "Requires manual review"
         RiskLevel.High -> "Contains high-risk inclusions"
     }
+    
+    val backgroundResId = when (generatedString.title) {
+        "Safe Cleanup" -> R.drawable.safe_cleanup_header
+        "2x Candy Prep" -> R.drawable.candy_prep_header
+        "Trade Fodder" -> R.drawable.trade_fodder_header
+        else -> null
+    }
 
     Scaffold(
         topBar = {
@@ -55,7 +63,7 @@ fun PreviewScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            RiskHeaderCardCompose(riskLevel = riskLabel, subtitle = riskSubtitle, color = riskColor)
+            RiskHeaderCardCompose(riskLevel = riskLabel, subtitle = riskSubtitle, color = riskColor, backgroundDrawableResId = backgroundResId)
             Text("Your search string", color = TextPrimary, fontWeight = FontWeight.SemiBold)
             SearchStringPanel(query = generatedString.rawSyntax)
             CopyCTA(color = riskColor, onClick = onCopy)

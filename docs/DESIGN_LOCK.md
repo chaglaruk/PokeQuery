@@ -1,32 +1,25 @@
-# Design Lock & Rules
+# PokeQuery UI Design Lock
 
-## GLOBAL FAIL CONDITIONS
-* If the same giant shield hero appears on more than one screen, the UI fails.
-* If Home does not show a 2-column grid of goal cards, the UI fails.
-* If Preview does not show a search string panel, copy button, risk header, explanation panel, and protected chips, the UI fails.
-* If Knowledge, Expert, Favorites, and Settings look like onboarding, the UI fails.
-* If contact_sheet.png still visually resembles the old shield-only sheet, the UI fails.
-* If only colors changed, the UI fails.
+The mockup is a visual reference only. It must not be used as a runtime background or baked UI screenshot.
 
-## BANNED PATTERNS
-* Reusing HeroIllustrationPlaceholder across all screens
-* One generic shield as the main visual for every route
-* Same layout for all bottom-nav tabs
-* Placeholder-only cards
-* Plain Compose Column with one trust card
-* Documentation-only "visual alignment"
+Hard rules:
+- All text must be real Jetpack Compose text.
+- All buttons, cards, chips, app bars, bottom nav, and search panels must be real Compose components.
+- Target crops are reference-only.
+- Runtime assets must contain no baked text, no buttons, no app bars, no bottom nav, no full-screen mockup crops.
+- Do not use official Pokémon/Niantic/Nintendo assets for release.
 
-## REQUIRED COMPONENTS
-1. **OnboardingHero**: Only used on Onboarding. Large hero visual allowed here.
-2. **HomeMapHeader**: Used only on Home. Horizontal map/exploration header.
-3. **GoalCardGrid**: Home must show 6 cards in 2 columns (Safe Cleanup, 2x Candy Prep, Trade Fodder, Hundo Check, Untagged Cleanup, Expert Builder).
-4. **RiskHeaderCard**: Used in preview screens. Small/medium horizontal header.
-5. **SearchStringPanel**: Large monospace final string box.
-6. **CopyCTA**: Large blue button for Low Risk. Large amber/yellow button for Medium Risk.
-7. **ExplanationCard**: "What does this do?" panel.
-8. **ProtectedChipGrid**: Shows protected categories as chips.
-9. **WarningInfoPanel**: For count/trade warnings.
-10. **KnowledgeTermCard**: For Knowledge Base.
-11. **ExpertEditorPanel**: For Expert Builder.
-12. **EmptyFavoritesPanel**: For Favorites.
-13. **SettingsCard**: For Settings.
+Target style:
+- dark navy / midnight blue
+- Pokémon GO-like blue CTA
+- teal/green low-risk
+- amber/yellow medium-risk
+- rounded premium cards
+- map / route / waypoint / exploration mood
+- mature game companion utility, not hacker/cyberpunk/crypto
+
+Screen requirements:
+- Onboarding: title, subtitle, large hero, No login / Offline-first / Copy-only, blue Start button, no bottom nav.
+- Home: app bar, map header, “What do you want to find?”, 2-column 6-card grid, bottom nav.
+- Preview: app bar, risk header, search string panel, copy button, explanation/warning, protected chips.
+- Knowledge/Expert/Favorites/Settings must be distinct real screens.

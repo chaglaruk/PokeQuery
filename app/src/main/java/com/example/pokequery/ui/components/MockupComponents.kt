@@ -1,159 +1,39 @@
 package com.example.pokequery.ui.components
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pokequery.R
 import com.example.pokequery.theme.*
 
-// 1. NightMapBackground
+// 1. RiskHeaderCardCompose
 @Composable
-fun NightMapBackground(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF030D1B), Color(0xFF0A1B38))))) {
-        val w = size.width
-        val h = size.height
-
-        // Abstract hills
-        val hillPath = Path().apply {
-            moveTo(0f, h * 0.8f)
-            quadraticTo(w * 0.3f, h * 0.6f, w * 0.7f, h * 0.85f)
-            quadraticTo(w * 0.9f, h * 0.9f, w, h * 0.8f)
-            lineTo(w, h)
-            lineTo(0f, h)
-            close()
-        }
-        drawPath(hillPath, color = Color(0xFF061428))
-
-        // Curved route lines
-        val route1 = Path().apply {
-            moveTo(0f, h * 0.2f)
-            quadraticTo(w * 0.4f, h * 0.3f, w * 0.8f, h * 0.1f)
-        }
-        val route2 = Path().apply {
-            moveTo(w * 0.2f, h)
-            quadraticTo(w * 0.5f, h * 0.6f, w, h * 0.4f)
-        }
-        drawPath(route1, color = TealPrimary.copy(alpha = 0.15f), style = Stroke(width = 6f))
-        drawPath(route2, color = TealPrimary.copy(alpha = 0.15f), style = Stroke(width = 6f))
-
-        // Waypoint dots
-        val dots = listOf(
-            Offset(w * 0.2f, h * 0.23f),
-            Offset(w * 0.6f, h * 0.18f),
-            Offset(w * 0.35f, h * 0.78f),
-            Offset(w * 0.8f, h * 0.52f)
-        )
-        dots.forEach { dot ->
-            drawCircle(color = TealPrimary.copy(alpha = 0.4f), radius = 12f, center = dot)
-            drawCircle(color = TealPrimary, radius = 6f, center = dot)
-        }
-    }
-}
-
-// 2. OnboardingHeroCompose
-@Composable
-fun OnboardingHeroCompose(modifier: Modifier = Modifier) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val w = size.width
-            val h = size.height
-            val cx = w / 2
-            val cy = h / 2
-
-            // Radar rings
-            for (i in 1..4) {
-                drawCircle(
-                    color = TealPrimary.copy(alpha = 0.1f * (5 - i)),
-                    radius = w * 0.15f * i,
-                    center = Offset(cx, cy),
-                    style = Stroke(width = 4f)
-                )
-            }
-
-            // Shield emblem
-            val shieldW = w * 0.4f
-            val shieldH = h * 0.6f
-            val shieldPath = Path().apply {
-                moveTo(cx, cy - shieldH/2)
-                lineTo(cx + shieldW/2, cy - shieldH/3)
-                quadraticTo(cx + shieldW/2, cy + shieldH/3, cx, cy + shieldH/2)
-                quadraticTo(cx - shieldW/2, cy + shieldH/3, cx - shieldW/2, cy - shieldH/3)
-                close()
-            }
-            drawPath(shieldPath, brush = Brush.verticalGradient(listOf(BlueCTA, TealPrimary)))
-            
-            // Inner dark shield
-            val innerShieldPath = Path().apply {
-                moveTo(cx, cy - shieldH/2 + 10f)
-                lineTo(cx + shieldW/2 - 10f, cy - shieldH/3 + 5f)
-                quadraticTo(cx + shieldW/2 - 10f, cy + shieldH/3 - 10f, cx, cy + shieldH/2 - 10f)
-                quadraticTo(cx - shieldW/2 + 10f, cy + shieldH/3 - 10f, cx - shieldW/2 + 10f, cy - shieldH/3 + 5f)
-                close()
-            }
-            drawPath(innerShieldPath, color = CardDark.copy(alpha = 0.9f))
-        }
-        
-        Icon(Icons.Default.Search, contentDescription = null, tint = Color.White, modifier = Modifier.size(64.dp))
-    }
-}
-
-// 3. HomeMapHeaderCompose
-@Composable
-fun HomeMapHeaderCompose(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.fillMaxSize().background(Color(0xFF030D1B))) {
-        val w = size.width
-        val h = size.height
-
-        val route = Path().apply {
-            moveTo(0f, h * 0.5f)
-            quadraticTo(w * 0.5f, h * 0.2f, w, h * 0.6f)
-        }
-        drawPath(route, color = TealPrimary.copy(alpha = 0.2f), style = Stroke(width = 8f))
-
-        val dots = listOf(Offset(w * 0.15f, h * 0.44f), Offset(w * 0.65f, h * 0.35f))
-        dots.forEach { dot ->
-            drawCircle(color = TealPrimary.copy(alpha = 0.3f), radius = 16f, center = dot)
-            drawCircle(color = TealPrimary, radius = 8f, center = dot)
-        }
-    }
-}
-
-// 4. RiskHeaderCardCompose
-@Composable
-fun RiskHeaderCardCompose(riskLevel: String, subtitle: String, color: Color) {
+fun RiskHeaderCardCompose(riskLevel: String, subtitle: String, color: Color, backgroundDrawableResId: Int? = null) {
     Box(
         modifier = Modifier.fillMaxWidth().height(120.dp).background(CardPremium, RoundedCornerShape(16.dp)).border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
     ) {
-        // Decorative radar rings on the right
-        Canvas(modifier = Modifier.matchParentSize()) {
-            val w = size.width
-            val h = size.height
-            val cx = w * 0.85f
-            val cy = h / 2
-            
-            clipRect(right = w, bottom = h) {
-                drawCircle(color.copy(alpha = 0.05f), radius = h * 0.4f, center = Offset(cx, cy), style = Stroke(6f))
-                drawCircle(color.copy(alpha = 0.1f), radius = h * 0.7f, center = Offset(cx, cy), style = Stroke(6f))
-                drawCircle(color.copy(alpha = 0.15f), radius = h, center = Offset(cx, cy), style = Stroke(6f))
-            }
+        if (backgroundDrawableResId != null) {
+            Image(
+                painter = painterResource(id = backgroundDrawableResId),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize().padding(start = 64.dp),
+                alpha = 0.6f
+            )
         }
         
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -169,12 +49,12 @@ fun RiskHeaderCardCompose(riskLevel: String, subtitle: String, color: Color) {
     }
 }
 
-// 5. GoalCardVisualIcon (Just using Material icons via GoalCardGrid)
+// 2. GoalCardGrid
 @Composable
 fun GoalCardGrid(
     title: String,
     subtitle: String,
-    icon: ImageVector,
+    iconResId: Int,
     iconTint: Color,
     onClick: () -> Unit
 ) {
@@ -185,11 +65,12 @@ fun GoalCardGrid(
         colors = CardDefaults.cardColors(containerColor = CardPremium)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier.fillMaxWidth().height(3.dp).background(Brush.horizontalGradient(listOf(Color.Transparent, iconTint.copy(alpha = 0.8f), Color.Transparent))).align(Alignment.TopCenter)
-            )
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(28.dp))
+                Image(
+                    painter = painterResource(id = iconResId),
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp)
+                )
                 Text(text = title, color = TextPrimary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 15.sp)
                 Text(text = subtitle, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
             }
@@ -197,7 +78,7 @@ fun GoalCardGrid(
     }
 }
 
-// 6. ProtectedChipGrid
+// 3. ProtectedChipGrid
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProtectedChipGrid(protections: List<String>) {
@@ -215,7 +96,7 @@ fun ProtectedChipGrid(protections: List<String>) {
     }
 }
 
-// 7. SearchStringPanel
+// 4. SearchStringPanel
 @Composable
 fun SearchStringPanel(query: String) {
     Box(
@@ -225,7 +106,7 @@ fun SearchStringPanel(query: String) {
     }
 }
 
-// 8. WarningInfoPanel
+// 5. WarningInfoPanel
 @Composable
 fun WarningInfoPanel(title: String, message: String) {
     Column(modifier = Modifier.fillMaxWidth().background(Color(0xFF3E2723), RoundedCornerShape(12.dp)).border(1.dp, AmberWarning.copy(alpha=0.5f), RoundedCornerShape(12.dp)).padding(16.dp)) {
@@ -239,7 +120,7 @@ fun WarningInfoPanel(title: String, message: String) {
     }
 }
 
-// 9. CopyCTA
+// 6. CopyCTA
 @Composable
 fun CopyCTA(color: Color, onClick: () -> Unit) {
     Button(
@@ -252,7 +133,7 @@ fun CopyCTA(color: Color, onClick: () -> Unit) {
     }
 }
 
-// 10. ExplanationCard
+// 7. ExplanationCard
 @Composable
 fun ExplanationCard(explanation: String) {
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, BorderDark, RoundedCornerShape(12.dp)).padding(16.dp)) {
@@ -262,7 +143,7 @@ fun ExplanationCard(explanation: String) {
     }
 }
 
-// 11. KnowledgeTermCard
+// 8. KnowledgeTermCard
 @Composable
 fun KnowledgeTermCard(
     syntax: String,
@@ -293,7 +174,7 @@ fun KnowledgeTermCard(
     }
 }
 
-// 12. ExpertEditorPanel
+// 9. ExpertEditorPanel
 @Composable
 fun ExpertEditorPanel(query: String, onQueryChange: (String) -> Unit) {
     OutlinedTextField(
@@ -307,21 +188,23 @@ fun ExpertEditorPanel(query: String, onQueryChange: (String) -> Unit) {
     )
 }
 
-// 13. EmptyFavoritesPanel (Compose only)
+// 10. EmptyFavoritesPanel
 @Composable
 fun EmptyFavoritesPanel() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(modifier = Modifier.size(100.dp).background(CardDark, RoundedCornerShape(50.dp)).border(2.dp, BorderDark, RoundedCornerShape(50.dp)), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(48.dp))
-            }
+            Image(
+                painter = painterResource(id = R.drawable.empty_favorites),
+                contentDescription = null,
+                modifier = Modifier.size(120.dp)
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Text("No saved search strings.", color = TextSecondary)
         }
     }
 }
 
-// 14. SettingsCard
+// 11. SettingsCard
 @Composable
 fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, BorderDark, RoundedCornerShape(12.dp)).padding(16.dp), content = content)
