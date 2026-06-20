@@ -1,6 +1,6 @@
 # Release Readiness Report
 
-**Status**: Preparing for Internal Testing (v0.2.1)
+**Status**: Preparing for Internal Testing (v0.2.2)
 
 ## Build / Test Status
 - Internal MVP: Passed
@@ -11,7 +11,7 @@
 
 ## Release Blockers
 - ~~**Package Name**: Currently uses `com.example.pokequery` which cannot be uploaded to Google Play.~~ **(Resolved in v0.2.1: Renamed to `com.caglar.pokequery`)**
-- **Signing Keystore**: No production keystore configured yet.
+- **Signing Keystore**: You must generate a local keystore and `keystore.properties` to fully sign the final `.aab` for upload. See `KEYSTORE_LOCAL_SETUP.md`.
 
 ## Non-Blockers
 - **Code Shrinking / Proguard**: Currently disabled. Should be enabled eventually for production AAB size reduction.
