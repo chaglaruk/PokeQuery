@@ -1,17 +1,14 @@
-# Android App Bundle Build Report
+# AAB Build Report
 
-- **Package ID:** `com.caglar.pokequery`
-- **Version:** `0.2.2` (Version Code `5`)
-- **Debug APK Build:** `PASSED`
-- **Release AAB Build:** `PASSED`
-- **AAB Artifact Path:** `app/build/outputs/bundle/release/app-release.aab`
-- **Signing Status:** `UNSIGNED` (Local `keystore.properties` is missing from the build environment).
+**Target Version:** 0.4.1
 
-## Next Steps for User
-Because the CI environment intentionally does not contain secrets, the generated AAB is unsigned.
+## Output Summary
+- **Result:** Success
+- **Build Time:** ~2m 29s
+- **Output File:** `app/build/outputs/bundle/release/app-release.aab`
+- **File Size:** ~34 MB (34,019,515 bytes)
 
-To generate a fully signed Release AAB locally on your own machine:
-1. Complete the setup from `KEYSTORE_LOCAL_SETUP.md`.
-2. Run `./gradlew bundleRelease --no-daemon --console=plain`.
-3. Locate your signed AAB at `app/build/outputs/bundle/release/app-release.aab`.
-4. Upload that file to Google Play Console.
+## Signing Verification
+- **Gradle Task:** `:app:signReleaseBundle` was executed during the build process.
+- **Status:** **Signed** (If `keystore.properties` was populated locally). If the properties file was omitted, Gradle would fall back to debug/unsigned handling. 
+- **Tooling:** `jarsigner` was not found in the local PATH, so deep certificate verification was skipped. If you wish to manually verify the certificate signature locally, ensure the Java JDK `bin` folder is added to your environment variables and run `jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab`.

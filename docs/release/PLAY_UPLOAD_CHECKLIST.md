@@ -1,14 +1,12 @@
 # Play Upload Checklist
 
-Before uploading the application to the Google Play Console for Internal Testing or Production, verify the following:
+## Required Assets
+- [ ] **App Icon:** High-res 512x512 icon (no Nintendo/Niantic IP).
+- [ ] **Feature Graphic:** 1024x500 banner containing premium abstract night map visuals.
+- [ ] **Screenshots:** The 7 screenshots referenced in `SCREENSHOT_PLAN.md`.
 
-- [x] App package ID confirmed (`com.caglar.pokequery`)
-- [ ] Signed Release AAB generated
-- [x] App icon final
-- [x] Screenshots ready
-- [x] Privacy notes ready
-- [x] Data safety draft ready
-- [x] Store listing draft ready
-- [x] Internal testing checklist ready
-- [x] No official Pokémon/Niantic/Nintendo assets used (All mockups/gameplay replaced with generic UI)
-- [x] Third-party notices present (`THIRD_PARTY_NOTICES.md`)
+## Legal & Policy
+- [ ] Data Safety Form completed (No Data Collected).
+- [ ] Privacy Policy linked.
+- [ ] Content Rating questionnaire complete.
+- [ ] Target Audience set.

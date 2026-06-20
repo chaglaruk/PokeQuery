@@ -1,15 +1,22 @@
 # Screenshot Plan
 
-To publish on Google Play, you will need a complete set of visually polished screenshots demonstrating the app's features. 
+This document outlines the official screenshots required for the Play Console Store Listing, mapped directly from our `capture_screenshots.ps1` deterministic pipeline.
 
-Plan to capture and upload the following:
-1. **Onboarding**: Showcasing the offline-first trust metrics and hero graphic.
-2. **Home Grid**: Showcasing the selection of core cleanup goals.
-3. **Safe Cleanup Preview**: Demonstrating the string generation and safe protections in place.
-4. **2x Candy Prep**: Highlighting the duplicate filtering warning card.
-5. **Trade Fodder Preview**: Demonstrating the trade-eligibility warning and copy button.
-6. **Expert Builder**: Showcasing the custom text input and live linter warnings.
-7. **Favorites**: Demonstrating the saved templates list.
-8. **Knowledge Base**: Showing the terminology guide with risk tiers.
+## Recommended Listing Screenshots
 
-Ensure you capture these without system status bars or with clean demo-mode status bars.
+1. **Onboarding / Welcome:** `docs/screenshots/1_onboarding_step_1.png`
+   - *Caption Idea: Discover safe, powerful search strings.*
+2. **Home / Builder:** `docs/screenshots/4_home.png`
+   - *Caption Idea: Choose a goal and let the app build the string.*
+3. **Safe Cleanup:** `docs/screenshots/5_safe_cleanup_detail.png`
+   - *Caption Idea: Safely clear out low-value clutter.*
+4. **2x Candy Prep:** `docs/screenshots/6_candy_prep_detail.png`
+   - *Caption Idea: Prepare transfers for 2x candy events.*
+5. **PvP IV Candidates:** `docs/screenshots/9_pvp_detail.png`
+   - *Caption Idea: Find perfect Great & Ultra league candidates.*
+6. **Knowledge Base:** `docs/screenshots/12_knowledge_search.png`
+   - *Caption Idea: Look up term definitions offline.*
+7. **Settings / Localization:** `docs/screenshots/16_settings.png`
+   - *Caption Idea: Switch seamlessly between English and Turkish outputs.*
+
+**Note:** All UI is final, strictly non-creature, dark-mode mapping style. Do NOT use fake Pokémon art or external IP imagery.

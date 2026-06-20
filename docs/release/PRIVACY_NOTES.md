@@ -1,11 +1,9 @@
 # Privacy Notes
 
-PokeQuery is designed with privacy and safety as the ultimate priority. 
+PokeQuery operates in a privacy-first, zero-trust environment:
 
-- **No Login Required**: The app does not require users to create an account or provide any personal information.
-- **No Pokémon GO Account Access**: The app does not ask for, read, or require your Pokémon GO credentials.
-- **No Unofficial APIs**: The app does not connect to Niantic servers or use any TOS-violating third-party APIs.
-- **No Scraping or Automation**: The app does not scrape your screen, read your game memory, or automate gameplay. It simply generates text strings for you to manually paste.
-- **Offline-First**: All search templates and knowledge base data are stored locally. The app requires no internet connection to function.
-- **Local Storage Only**: Your saved "Favorites" and app settings are stored locally on your physical device. 
-- **No Analytics / No Ads**: We do not currently track usage analytics, crash logs, or serve advertisements.
+- **No User Accounts:** There is no login, registration, or session tracking.
+- **No Cloud Sync:** All history, favorites, and settings are saved on device in `DataStore`.
+- **No Analytics:** The app contains no crash reporting or analytics SDKs.
+- **No API Calls:** The search string engine generates queries via static mappings in local code. It never queries an external database at runtime.
+- **No Account Linking:** The app explicitly does not connect to Niantic or the Pokémon GO app. Users must manually copy text and paste it into the game themselves.
