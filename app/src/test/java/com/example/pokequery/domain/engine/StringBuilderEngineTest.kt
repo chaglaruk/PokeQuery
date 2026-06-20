@@ -94,4 +94,23 @@ class StringBuilderEngineTest {
         assertTrue(result.plainLanguageExplanation.contains("REVIEW string"))
         assertTrue(result.plainLanguageExplanation.contains("not an automatic transfer"))
     }
+
+    @Test
+    fun `hundo check does not hide special categories and has correct explanation`() {
+        // Simulating Navigation.kt behavior where protections are cleared
+        val explanation = "Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15."
+        val result = StringBuilderEngine.buildString(baseQuery = "4*", protections = emptyList(), explanation = explanation)
+        
+        assertEquals("4*", result.rawSyntax)
+        assertFalse(result.rawSyntax.contains("!shiny"))
+        assertFalse(result.rawSyntax.contains("!legendary"))
+        assertFalse(result.rawSyntax.contains("!shadow"))
+        assertFalse(result.rawSyntax.contains("!lucky"))
+        assertFalse(result.rawSyntax.contains("!costume"))
+        assertFalse(result.rawSyntax.contains("!#"))
+        assertFalse(result.rawSyntax.contains("!traded"))
+        
+        assertTrue(result.plainLanguageExplanation.contains("perfect IV / hundo"))
+        assertTrue(result.plainLanguageExplanation.contains("15/15/15"))
+    }
 }

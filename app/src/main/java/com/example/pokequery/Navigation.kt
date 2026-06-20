@@ -77,13 +77,15 @@ fun MainNavigation() {
                         protections.remove("0*")
                     } else if (preview.goalId == "safe_cleanup" && !preview.include0Star) {
                         protections.remove("0*") // handled by guided flow
+                    } else if (preview.goalId == "hundo_check") {
+                        protections.clear()
                     }
 
                     val explanation = when (preview.goalId) {
                         "safe_cleanup" -> "This is a REVIEW string targeting 1-star low-value candidates. It is not an automatic transfer command."
                         "candy_prep" -> "Finds extras. Count is based on Pokédex species number and may not distinguish shiny/form/costume differences."
                         "trade_fodder" -> "Finds candidates for trading. Real trade eligibility depends on friendship level and cannot be guaranteed by search strings."
-                        "hundo_check" -> "Finds perfect IV/hundo candidates."
+                        "hundo_check" -> "Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15."
                         "untagged" -> "Finds Pokemon without any tags."
                         else -> "Custom or generated search string."
                     }
