@@ -1,17 +1,13 @@
-- **Theme**: Dark-mode-first (#101114 background).
-- **Cards**: #1b1d22 with 1px low-opacity white border, 14px radius.
+- **Theme**: Dark-mode-first (#101114 background) evoking a "Night Map" or exploration motif.
+- **Cards**: #1b1d22 (CardDark) with 1px low-opacity white border (optional), 14px radius. Premium rounded corners, generous padding (16dp).
 - **Accents**: 
-  - Teal (#1D9E75) for CTA/primary e.g. "Safe Cleanup"
-  - Amber for "2x Candy Prep" and medium risk
-  - Coral for "Trade Fodder"
-  - Purple for "IV Check"
-- **Typography**: 
-  - Titles: 14px/500
-  - Body: 12px
-  - Small text: 11px
-  - Monospace + teal for the generated string box
-- **Protections**:
-  - Show a lock icon for default protected categories (cannot be easily toggled off).
-- **Risk Badges**:
-  - Low Risk: Soft green + check
-  - Medium/High: Amber/Red
+  - Teal (#1D9E75) for low-risk badges, protected chips, and primary CTAs (e.g. "Safe Cleanup")
+  - Amber (#FFC107) for Medium Risk warnings (e.g. "2x Candy Prep") and important toggles
+  - Coral (#E57373) for High Risk actions (e.g. "Trade Fodder" or destructive actions)
+  - Purple (#9C27B0) for "Hundo Check" or specialized searches
+- **Typography**: Clean sans-serif, bold titles (White), readable gray secondary text.
+- **Components**:
+  - `BottomNavBar`: Dark navy background, teal selection indicators, inactive gray icons.
+  - `GoalCard`: Dark card, centered icon with specific accent color, bold title, subtitle.
+  - `PreviewScreen`: High-contrast presentation of raw search string (monospace font, teal color), distinct risk badge (Teal/Amber/Coral), and pill-shaped chips for protected categories.
+  - `GuidedQuestionsScreen`: Clear toggle switches (Teal when active), descriptive warning text (Amber).
