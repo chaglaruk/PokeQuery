@@ -32,6 +32,7 @@ import com.caglar.pokequery.data.model.RiskLevel
 import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
+import com.caglar.pokequery.domain.engine.GoalStringBuilder
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
 import com.caglar.pokequery.requiresRiskWarning
 import com.caglar.pokequery.theme.*
@@ -83,19 +84,11 @@ fun GoalDetailScreen(
 
         val language = userPrefs?.gameLanguage ?: "English"
         val baseGoal = StringBuilderEngine.buildGoal(goalId, config, language = language)
-        if (goalId in listOf("hundo_check", "nundo_finder", "pvp_candidates")) {
-            baseGoal
-        } else {
-            StringBuilderEngine.buildString(
-                baseQuery = baseGoal.rawSyntax.split("&").firstOrNull { !it.startsWith("!") }.orEmpty(),
-                protections = protections,
-                explanation = baseGoal.plainLanguageExplanation,
-                riskLevel = baseGoal.riskLevel,
-                goalId = goalId,
-                title = baseGoal.title,
-                language = language
-            )
-        }
+        // v0.4.2 (Fix 1, audit BUG-001): delegate to the tested helper so engine-mandated
+        // terms (e.g. '!traded' on trade_fodder / lucky_trade) are preserved and optional
+        // protections are additive + deduplicated. The previous split-on-'&' logic silently
+        // dropped '!traded' from trade goals.
+        GoalStringBuilder.buildFinal(baseGoal, optionalProtections = protections, language = language)
     }
 
     val favorite = remember(userPrefs, generatedString.rawSyntax) {

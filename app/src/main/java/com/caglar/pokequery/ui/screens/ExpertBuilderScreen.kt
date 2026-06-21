@@ -37,6 +37,9 @@ fun ExpertBuilderScreen(
         }
         
         val linterWarnings = com.caglar.pokequery.domain.lint.Linter.lint(rawQuery)
+        // v0.4.2 (Fix 2, audit BUG-005): block copy when any error-level linter warning is present.
+        // The rule lives in the tested ExpertCopyPolicy; advisory-only warnings still allow copy.
+        val copyBlocked = !com.caglar.pokequery.domain.lint.ExpertCopyPolicy.canCopy(rawQuery)
         if (linterWarnings.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, BorderDark, RoundedCornerShape(12.dp)).padding(16.dp)) {
@@ -48,18 +51,32 @@ fun ExpertBuilderScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
+                if (copyBlocked) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Fix the errors above before copying.",
+                        color = CoralDanger,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { onGenerate(rawQuery) },
-            colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
+            onClick = { if (!copyBlocked) onGenerate(rawQuery) },
+            enabled = !copyBlocked,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BlueCTA,
+                disabledContainerColor = BlueCTA.copy(alpha = 0.35f),
+                disabledContentColor = Color.White.copy(alpha = 0.6f)
+            ),
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Copy Custom String", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Copy Custom String", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
     }
 }

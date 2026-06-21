@@ -2,18 +2,27 @@
 
 **App Name**: PokeQuery
 
-**Package ID**: `com.caglar.pokequery`
-*⚠️ BLOCKER: This is a placeholder package name. It must be changed before any Play Store upload.*
-*Recommendation: Rename to `com.caglar.pokequery` or `com.pokequery.app` prior to release.*
+**Package ID / applicationId / namespace**: `com.caglar.pokequery`
 
-**Versions**:
-- `versionName`: 0.1.3
-- `versionCode`: 2
+> Note: An older revision of this file described the package as a "placeholder" and
+> recommended renaming it to `com.caglar.pokequery`. The rename (commit `c55c689`) was
+> completed long ago, so that historical blocker no longer applies. The package is
+> `com.caglar.pokequery` across `build.gradle.kts`, the manifest, and all release docs.
+> The string `poke.cglr` does not appear as a current package anywhere in the project.
+
+**Versions** (v0.4.2 safety patch):
+- `versionName`: 0.4.2
+- `versionCode`: 9
 
 **SDK Versions**:
 - `minSdk`: 24
 - `targetSdk`: 36
+- `compileSdk`: 36
 
 **Build Configs**:
-- `debug`: Configured (No shrinking)
-- `release`: Configured (Minify disabled temporarily, Proguard defined)
+- `debug`: Configured (no shrinking)
+- `release`: Configured (minify disabled; ProGuard rules defined). Signing loaded from
+  gitignored `keystore.properties` when present.
+- `buildConfig`: enabled (v0.4.2) so `BuildConfig.VERSION_NAME` drives the in-app About
+  version via `AppVersion` (Fix 5, audit BUG-008/015) — the displayed version no longer
+  drifts from the built version.

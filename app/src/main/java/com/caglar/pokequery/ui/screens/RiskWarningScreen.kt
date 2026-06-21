@@ -8,11 +8,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.caglar.pokequery.theme.AmberWarning
 import com.caglar.pokequery.theme.BackgroundDark
+import com.caglar.pokequery.theme.TextPrimary
+import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.data.model.GeneratedString
+import com.caglar.pokequery.domain.engine.SearchTermMapper
 
 @Composable
 fun RiskWarningScreen(
@@ -20,6 +22,9 @@ fun RiskWarningScreen(
     onConfirmCopy: () -> Unit,
     onBack: () -> Unit
 ) {
+    // v0.4.2 (Fix 3): show a Turkish-beta caution when the generated string is Turkish output.
+    val turkishBeta = SearchTermMapper.looksTurkish(generatedString.rawSyntax)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -30,20 +35,31 @@ fun RiskWarningScreen(
     ) {
         Icon(Icons.Default.Warning, contentDescription = "Warning", tint = AmberWarning, modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(16.dp))
-        Text("${generatedString.riskLevel} Risk Copy", color = Color.White, style = MaterialTheme.typography.titleLarge)
+        Text("${generatedString.riskLevel} Risk Copy", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
+        // v0.4.2 (Fix 7): raised contrast from Color.Gray to TextSecondary for WCAG AA.
         Text(
             "Review the search and its warnings before copying. The app only creates text; always inspect matches before acting.",
-            color = Color.Gray,
+            color = TextSecondary,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
+        if (turkishBeta) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "Turkish search terms are beta. Please verify results in Pokémon GO before transferring or trading.",
+                color = AmberWarning,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = onConfirmCopy, modifier = Modifier.fillMaxWidth()) {
             Text("Confirm and Copy")
         }
         Spacer(modifier = Modifier.height(8.dp))
         TextButton(onClick = onBack) {
-            Text("Go Back", color = Color.Gray)
+            // v0.4.2 (Fix 7): raised contrast from Color.Gray to TextSecondary.
+            Text("Go Back", color = TextSecondary)
         }
     }
 }
