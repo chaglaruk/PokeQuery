@@ -2,6 +2,19 @@ package com.caglar.pokequery.data.model
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Knowledge-base term verification status (Package 8).
+ *
+ * Do not fake verification. If a token's behavior in a localized Pokémon GO client is
+ * uncertain, mark it BETA or NEEDS_VERIFICATION — never VERIFIED.
+ */
+@Serializable
+enum class VerificationStatus {
+    VERIFIED,
+    BETA,
+    NEEDS_VERIFICATION
+}
+
 data class Term(
     val id: String,
     val syntax: String,
@@ -12,7 +25,13 @@ data class Term(
     val riskLevel: RiskLevel,
     val sourceUrl: String,
     val lastVerified: String,
-    val knownQuirks: String?
+    val knownQuirks: String?,
+    // Package 8 optional metadata (null/needs_verification when absent).
+    val verificationStatus: VerificationStatus = VerificationStatus.NEEDS_VERIFICATION,
+    val safetyLevel: String? = null,
+    val languageSensitive: Boolean? = null,
+    val example: String? = null,
+    val commonMistake: String? = null
 )
 
 @Serializable

@@ -35,7 +35,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
-    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 3 })
+    val pageCount = com.caglar.pokequery.onboarding.OnboardingContent.pageCount
+    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { pageCount })
     val coroutineScope = rememberCoroutineScope()
 
     Box(Modifier.fillMaxSize()) {
@@ -53,9 +54,23 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
             }
 
             HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
+                // Package 3: pages 1 (paste flow) and 2 (risk legend) come from the tested
+                // OnboardingContent model. Pages 0/3/4 keep their original rich layouts.
                 when (page) {
                     0 -> OnboardingHeroPage()
-                    1 -> OnboardingLargeCardPage(
+                    1 -> OnboardingBulletsPage(
+                        title = com.caglar.pokequery.onboarding.OnboardingContent.pages[1].title,
+                        bullets = com.caglar.pokequery.onboarding.OnboardingContent.pages[1].bullets,
+                        description = com.caglar.pokequery.onboarding.OnboardingContent.pages[1].description,
+                        accent = TealPrimary
+                    )
+                    2 -> OnboardingBulletsPage(
+                        title = com.caglar.pokequery.onboarding.OnboardingContent.pages[2].title,
+                        bullets = com.caglar.pokequery.onboarding.OnboardingContent.pages[2].bullets,
+                        description = com.caglar.pokequery.onboarding.OnboardingContent.pages[2].description,
+                        accent = AmberWarning
+                    )
+                    3 -> OnboardingLargeCardPage(
                         title = "Build the right search in seconds",
                         description = "Use safe defaults for cleanup, candy prep, trading, PvP checks, Hundos and Nundos.",
                         goalId = "candy_prep",
@@ -79,7 +94,7 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    repeat(3) { index ->
+                    repeat(pageCount) { index ->
                         Box(
                             modifier = Modifier
                                 .size(if (pagerState.currentPage == index) 10.dp else 8.dp)
@@ -91,7 +106,7 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if (pagerState.currentPage == 2) {
+                        if (pagerState.currentPage == pageCount - 1) {
                             onStart()
                         } else {
                             coroutineScope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
@@ -101,7 +116,7 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
                     shape = RoundedCornerShape(18.dp),
                     modifier = Modifier.height(58.dp).widthIn(min = 152.dp)
                 ) {
-                    Text(if (pagerState.currentPage == 2) "Start building" else "Next", fontWeight = FontWeight.Bold)
+                    Text(if (pagerState.currentPage == pageCount - 1) "Start building" else "Next", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -133,6 +148,30 @@ private fun OnboardingHeroPage() {
             TrustFeature(Icons.Default.Search, "Powerful", "Searches", Modifier.weight(1f))
             TrustFeature(Icons.Default.Lock, "Protected", "Defaults", Modifier.weight(1f))
             TrustFeature(Icons.Default.CheckCircle, "Keep", "Value", Modifier.weight(1f))
+        }
+    }
+}
+
+// Package 3: renders the paste-flow steps and the risk-color legend from the tested
+// OnboardingContent model. Uses a PremiumPanel for readability; no new art required.
+@Composable
+private fun OnboardingBulletsPage(
+    title: String,
+    bullets: List<String>,
+    description: String,
+    accent: Color
+) {
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        com.caglar.pokequery.ui.components.PremiumPanel(borderColor = accent, modifier = Modifier.fillMaxWidth()) {
+            Text(title, color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp, lineHeight = 30.sp)
+            Spacer(Modifier.height(12.dp))
+            bullets.forEach { step ->
+                Text("•  $step", color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(vertical = 3.dp))
+            }
+            if (description.isNotBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Text(description, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+            }
         }
     }
 }

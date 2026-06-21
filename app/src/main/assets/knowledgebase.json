@@ -201,7 +201,12 @@
     "riskLevel": "High",
     "sourceUrl": "https://pokemongohub.net/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": "Does not distinguish shiny, form, gender, or costume. Bare count expands to count2-."
+    "knownQuirks": "Does not distinguish shiny, form, gender, or costume. Bare count expands to count2-.",
+    "verificationStatus": "beta",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "example": "count2-&!shiny",
+    "commonMistake": "The Turkish equivalent (toplam/sayı/sayısı) is contested and unverified — verify in a Turkish client before relying on it."
   },
   {
     "id": "status_shiny",
@@ -213,7 +218,12 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "verified",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "example": "shiny&4*",
+    "commonMistake": "Shinies are valuable; never include them in a cleanup string."
   },
   {
     "id": "status_legendary",
@@ -225,7 +235,11 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "verified",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "commonMistake": "Valuable; exclude from cleanup strings."
   },
   {
     "id": "status_mythical",
@@ -237,7 +251,11 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "beta",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "commonMistake": "Turkish equivalent 'mistik' is unverified — verify before use."
   },
   {
     "id": "status_ultrabeast",
@@ -249,7 +267,11 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "beta",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "commonMistake": "Turkish equivalent 'ultra canavar' is unverified — verify before use."
   },
   {
     "id": "status_shadow",
@@ -261,7 +283,11 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "verified",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "commonMistake": "Rare; exclude from cleanup strings."
   },
   {
     "id": "status_purified",
@@ -273,7 +299,10 @@
     "riskLevel": "Medium",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "beta",
+    "languageSensitive": true,
+    "commonMistake": "Turkish equivalent 'arıtılmış'/'arındırılmış' is contested — verify before use."
   },
   {
     "id": "status_favorite",
@@ -285,7 +314,11 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "verified",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "commonMistake": "User-marked favorites; never include in cleanup strings."
   },
   {
     "id": "status_favourite",
@@ -297,7 +330,11 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "verified",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "commonMistake": "UK spelling variant of 'favorite'."
   },
   {
     "id": "status_costume",
@@ -309,7 +346,11 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "verified",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "commonMistake": "Limited-time costumes are collectible; exclude from cleanup."
   },
   {
     "id": "status_background",
@@ -321,7 +362,10 @@
     "riskLevel": "High",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "beta",
+    "safetyLevel": "risky",
+    "languageSensitive": true
   },
   {
     "id": "status_locationbackground",
@@ -333,7 +377,11 @@
     "riskLevel": "High",
     "sourceUrl": "https://pokemongohub.net/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "beta",
+    "safetyLevel": "risky",
+    "languageSensitive": true,
+    "commonMistake": "Compound token; verify it works exactly as written in the client."
   },
   {
     "id": "status_specialbackground",
@@ -369,7 +417,10 @@
     "riskLevel": "Medium",
     "sourceUrl": "https://niantic.helpshift.com/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "verificationStatus": "beta",
+    "languageSensitive": true,
+    "commonMistake": "Turkish equivalent is contested ('takaslanan' vs 'takas edilmiş') — verify before use."
   },
   {
     "id": "status_defender",
