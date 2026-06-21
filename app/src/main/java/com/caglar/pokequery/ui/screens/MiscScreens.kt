@@ -288,6 +288,30 @@ fun SettingsScreen(onBack: () -> Unit) {
                     fontSize = 11.sp,
                     lineHeight = 15.sp
                 )
+                Spacer(Modifier.height(12.dp))
+                // Package 2: tester feedback via mailto (no network, no analytics).
+                // The user reviews and sends manually from their own email app.
+                val feedbackContext = com.caglar.pokequery.feedback.FeedbackContext(
+                    appVersion = com.caglar.pokequery.AppVersion.versionName,
+                    androidVersion = android.os.Build.VERSION.RELEASE ?: "unknown",
+                    deviceModel = android.os.Build.MODEL ?: "unknown",
+                    gameLanguage = userPrefs?.gameLanguage ?: "English"
+                )
+                Text(
+                    "Send tester feedback",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        val mailto = com.caglar.pokequery.feedback.FeedbackBuilder.buildMailtoUri(feedbackContext)
+                        val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse(mailto))
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        } else {
+                            Toast.makeText(context, "No email app found. Please email caglar@caglardinc.com manually.", Toast.LENGTH_LONG).show()
+                        }
+                    }.padding(vertical = 8.dp)
+                )
+                Text("Opens your email app with a pre-filled template. Nothing is sent automatically.", color = TextSecondary, fontSize = 11.sp)
             }
         }
     }
@@ -300,12 +324,21 @@ private fun KnowledgeTermRow(term: Term, expanded: Boolean, onToggle: () -> Unit
             Column(Modifier.weight(1f)) {
                 Text(term.syntax, color = term.riskLevel.toneColor(), fontWeight = FontWeight.Bold, fontSize = 17.sp, fontFamily = FontFamily.Monospace)
                 Text("${term.category} • Tier ${term.tier} • Risk: ${term.riskLevel}", color = TextSecondary, fontSize = 12.sp)
+                // Package 8: compact verification/safety/language badges.
+                KbBadges(term)
             }
             Icon(if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, contentDescription = null, tint = TextSecondary)
         }
         AnimatedVisibility(expanded) {
             Column(Modifier.padding(top = 12.dp)) {
                 Text(term.descriptionEn, color = TextPrimary, fontSize = 14.sp)
+                // Package 8: example + common-mistake when present.
+                term.example?.let {
+                    Text("Example: $it", color = TealPrimary, fontSize = 12.sp, fontFamily = FontFamily.Monospace, modifier = Modifier.padding(top = 8.dp))
+                }
+                term.commonMistake?.let {
+                    Text("Common mistake: $it", color = AmberWarning, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+                }
                 if (!term.knownQuirks.isNullOrEmpty()) {
                     Text("Note: ${term.knownQuirks}", color = AmberWarning, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
                 }
@@ -318,6 +351,44 @@ private fun KnowledgeTermRow(term: Term, expanded: Boolean, onToggle: () -> Unit
                 }
             }
         }
+    }
+}
+
+// Package 8: compact, dark-mode-readable badges. Verified=teal, Beta=amber, Needs verification=secondary.
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun KbBadges(term: Term) {
+    androidx.compose.foundation.layout.FlowRow(
+        modifier = Modifier.padding(top = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        val status = term.verificationStatus
+        val (statusLabel, statusColor) = when (status) {
+            com.caglar.pokequery.data.model.VerificationStatus.VERIFIED -> "Verified" to TealPrimary
+            com.caglar.pokequery.data.model.VerificationStatus.BETA -> "Beta" to AmberWarning
+            com.caglar.pokequery.data.model.VerificationStatus.NEEDS_VERIFICATION -> "Needs verification" to TextSecondary
+        }
+        KbBadge(statusLabel, statusColor)
+        if (status == com.caglar.pokequery.data.model.VerificationStatus.BETA ||
+            term.safetyLevel?.lowercase() == "risky") {
+            KbBadge("Risky", CoralDanger)
+        }
+        if (term.languageSensitive == true) {
+            KbBadge("Language-sensitive", BlueCTA)
+        }
+    }
+}
+
+@Composable
+private fun KbBadge(label: String, color: Color) {
+    Row(
+        modifier = Modifier
+            .background(color.copy(alpha = 0.16f), RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
     }
 }
 

@@ -22,8 +22,11 @@ fun RiskWarningScreen(
     onConfirmCopy: () -> Unit,
     onBack: () -> Unit
 ) {
-    // v0.4.2 (Fix 3): show a Turkish-beta caution when the generated string is Turkish output.
-    val turkishBeta = SearchTermMapper.looksTurkish(generatedString.rawSyntax)
+    // Package 4: per-goal explanation. RiskMessageBuilder appends the Turkish-beta
+    // caution when the output looks Turkish, so the warning is goal-aware + localized.
+    val turkish = SearchTermMapper.looksTurkish(generatedString.rawSyntax)
+    val goalMessage = com.caglar.pokequery.domain.risk.RiskMessageBuilder
+        .messageFor(generatedString.goalId, turkish)
 
     Column(
         modifier = Modifier
@@ -43,15 +46,14 @@ fun RiskWarningScreen(
             color = TextSecondary,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
-        if (turkishBeta) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                "Turkish search terms are beta. Please verify results in Pokémon GO before transferring or trading.",
-                color = AmberWarning,
-                modifier = Modifier.padding(horizontal = 16.dp),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        Spacer(modifier = Modifier.height(12.dp))
+        // Package 4: goal-specific explanation (already includes Turkish caution if relevant).
+        Text(
+            goalMessage,
+            color = TextPrimary,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.bodyMedium
+        )
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = onConfirmCopy, modifier = Modifier.fillMaxWidth()) {
             Text("Confirm and Copy")
