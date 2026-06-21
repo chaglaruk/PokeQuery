@@ -1,0 +1,53 @@
+The following document serves as the official Product Requirements Document (PRD) and Design Brief for the PokeQuery Android utility. This document aligns the production-ready UI designs with the core product philosophy of a privacy-first, manual helper app.
+
+PokeQuery: Product PRD & Design Brief
+1. Executive Summary
+PokeQuery is a high-end, offline-first Android utility designed to help Pokémon GO players manage their collections safely. It provides a library of reliable search strings for inventory management, prioritizing user data privacy and risk mitigation through a "manual-only" workflow.
+
+1.1 Core Value Proposition
+Safety First: Prevents accidental deletion of valuable Pokémon by providing "Safe Cleanup" strings.
+Privacy-First: Operates entirely offline with no login, no tracking, and no data collection.
+Productivity: Eliminates the need to memorize complex search syntax for PvP, trading, and event prep.
+1.2 Product Truths (The "Nots")
+NOT a game or a clone.
+NOT an IV scanner or screen-reader.
+NOT automated (Manual Copy/Paste only).
+NOT affiliated with Niantic, Nintendo, or The Pokémon Company.
+2. Visual Identity & Design System
+The app follows a Premium Utility aesthetic, moving away from "game-like" visuals toward a sophisticated collector’s tool.
+
+Color Palette: Deep Navy (#0A0E1A) and Slate Black background; Electric Cyan (#00E5FF) primary accents; Subtle Gold (#FFD700) for caution/warnings.
+Typography: High-contrast sans-serif (Inter/Roboto) for UI; Monospace (JetBrains Mono) for search strings.
+Components: Material 3 inspired surfaces, refined cards with soft glows, 44dp+ touch targets, and clear safety badges.
+Iconography: Abstract original icons (shields, lens, tags, grids). Strictly no copyrighted assets.
+3. Functional Requirements
+3.1 Onboarding & Trust Building
+Workflow Education: Clearly explain the "Goal → Review → Copy → Paste" manual loop.
+Privacy Assurance: Highlight "Offline-First" and "No Login Required" status immediately.
+3.2 Goal-Based String Generation
+Safe Cleanup: Build strings that exclude Shinies, Legendaries, Hundos, and Mythicals.
+Event Prep: Specific filters for "2x Candy Transfer" events.
+Trading: Identify trade fodder or potential "Lucky Trade" candidates based on age.
+PvP: Filter for specific league candidates (Great/Ultra) without claim of IV ranking.
+3.3 Expert Builder (Visual Modular Editor)
+Modular Filtering: Users add/remove "Token Chips" (e.g., Distance, Age, IV Floor).
+Live Preview: Real-time generation of the string in a monospace hero box.
+Linter Assistant: Visual warnings for invalid syntax or risky combinations.
+3.4 Knowledge Base & Presets
+Reference Library: Searchable database of all supported operators with "Verified" or "Beta" status badges.
+Popular Presets: One-tap access to community-standard strings.
+3.5 Settings & Safety
+Language Localization: Support for English and Turkish (Beta).
+Destructive Action Guards: Confirmation dialogs for clearing history or favorites.
+Transparency: Explicitly disabled "Coming Later" sections for cloud sync and community features to maintain trust in the current offline model.
+4. Technical Specifications
+Platform: Native Android (Optimized for 9:16 aspect ratios).
+UI Framework: Jetpack Compose for modern, declarative UI handling.
+Persistence: Local-only storage (Room/SQLite) for Favorites and History.
+Integration: Standard Android Clipboard API for string copying; Intent-based sharing for feedback.
+5. Implementation Roadmap
+Phase 1 (Core): Home, Detail Screens (Cleanup/Prep), and Clipboard Logic.
+Phase 2 (Safety): Risk Warning system and Onboarding flow.
+Phase 3 (Utility): Knowledge Base, History/Favorites persistence, and Presets.
+Phase 4 (Advanced): Expert Builder (Modular Logic) and Settings expansion.
+PokeQuery is designed to be the "Swiss Army Knife" for serious collectors, focusing on precision and reliability without ever compromising user privacy.

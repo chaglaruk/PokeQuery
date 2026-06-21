@@ -28,7 +28,7 @@ import com.caglar.pokequery.theme.CardPremium
 private data class NavTab(val route: String, val label: String, val icon: ImageVector)
 
 private val tabs = listOf(
-    NavTab("builder", "Builder", Icons.Default.Home),
+    NavTab("builder", "Home", Icons.Default.Home),
     NavTab("favorites", "Favorites", Icons.Default.Favorite),
     NavTab("history", "History", Icons.Default.History),
     NavTab("knowledge", "Knowledge", Icons.Default.Info),
@@ -40,7 +40,7 @@ fun BottomNavBar(
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
-    NavigationBar(containerColor = BottomNavBackground, contentColor = Color.White, modifier = Modifier.height(86.dp)) {
+    NavigationBar(containerColor = BottomNavBackground, contentColor = Color.White, modifier = Modifier.height(80.dp)) {
         tabs.forEach { tab ->
             NavigationBarItem(
                 selected = currentRoute == tab.route,

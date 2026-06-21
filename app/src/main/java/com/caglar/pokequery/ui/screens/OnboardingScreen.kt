@@ -18,6 +18,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -28,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.R
 import com.caglar.pokequery.theme.*
-import com.caglar.pokequery.ui.components.MapBackdrop
 import com.caglar.pokequery.ui.components.PremiumPanel
 import kotlinx.coroutines.launch
 
@@ -39,8 +39,7 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { pageCount })
     val coroutineScope = rememberCoroutineScope()
 
-    Box(Modifier.fillMaxSize()) {
-        MapBackdrop(Modifier.matchParentSize(), imageAlpha = 0.48f)
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(BackgroundDark, SlateBlack, BackgroundDark)))) {
 
         Column(
             modifier = Modifier

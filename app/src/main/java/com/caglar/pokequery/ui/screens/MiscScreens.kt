@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -87,8 +88,8 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
                                 onClick = { category = cat },
                                 label = { Text(cat) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = BlueCTA,
-                                    selectedLabelColor = Color.White,
+                                    selectedContainerColor = TealPrimary.copy(alpha = 0.18f),
+                                    selectedLabelColor = TealPrimary,
                                     labelColor = TextSecondary
                                 )
                             )
@@ -101,7 +102,13 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
                         (it.syntax.contains(searchQuery, true) || it.descriptionEn.contains(searchQuery, true) || it.category.contains(searchQuery, true))
                 }
                 if (filtered.isEmpty()) {
-                    item { EmptyState("No search terms found", "Try another term or category.") }
+                    item {
+                        com.caglar.pokequery.ui.pq.PqEmptyState(
+                            icon = Icons.Default.Search,
+                            title = "No search terms found",
+                            subtitle = "Try another term or category."
+                        )
+                    }
                 } else {
                     items(filtered, key = { it.id }) { term ->
                         var expanded by remember { mutableStateOf(startExpanded && term == filtered.firstOrNull()) }
@@ -275,6 +282,22 @@ fun SettingsScreen(onBack: () -> Unit) {
         }
 
         item {
+            // v0.5.0 Stitch: disabled "Coming Later" section. Explicitly unavailable to
+            // maintain trust in the offline-first model. Never active, never networked.
+            PremiumPanel {
+                Text("Coming Later", color = TextSecondary, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(10.dp))
+                com.caglar.pokequery.ui.pq.PqComingLaterCard("Cloud Sync", "Offline-first. No cloud sync exists today.")
+                Spacer(Modifier.height(8.dp))
+                com.caglar.pokequery.ui.pq.PqComingLaterCard("Community Preset Packs", "Shareable preset packs are not available yet.")
+                Spacer(Modifier.height(8.dp))
+                com.caglar.pokequery.ui.pq.PqComingLaterCard("Import / Export", "Local favorites/history only; no import/export yet.")
+                Spacer(Modifier.height(8.dp))
+                com.caglar.pokequery.ui.pq.PqComingLaterCard("Automatic Database Updates", "The knowledge base is local and never auto-updates online.")
+            }
+        }
+
+        item {
             PremiumPanel {
                 Text("About", color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
@@ -410,7 +433,13 @@ private fun SavedTemplateScreen(
         item { ScreenTitleBar(title, onBack) }
         when {
             templates == null -> item { CircularProgressIndicator(color = TealPrimary, modifier = Modifier.padding(20.dp)) }
-            templates.isEmpty() -> item { EmptyState(emptyTitle, emptySubtitle) }
+            templates.isEmpty() -> item {
+                com.caglar.pokequery.ui.pq.PqEmptyState(
+                    icon = androidx.compose.material.icons.Icons.Default.Star,
+                    title = emptyTitle,
+                    subtitle = emptySubtitle
+                )
+            }
             else -> items(templates, key = { it.id }) { template ->
                 SavedTemplateRow(template, onCopy = { onCopy(template) }, onDelete = onDelete?.let { { it(template) } })
             }
@@ -424,19 +453,17 @@ private fun SavedTemplateRow(template: SavedTemplate, onCopy: () -> Unit, onDele
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(template.name, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text("${template.riskLevel} • ${template.goalId}", color = TextSecondary, fontSize = 12.sp)
+                Text(template.goalId, color = TextSecondary, fontSize = 12.sp)
             }
-            RiskBadge(template.riskLevel)
+            com.caglar.pokequery.ui.pq.PqRiskBadge(template.riskLevel)
         }
         Spacer(Modifier.height(10.dp))
-        Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.Black.copy(alpha = 0.80f)).padding(12.dp)) {
-            Text(template.rawSyntax, color = TealPrimary, fontFamily = FontFamily.Monospace, fontSize = 14.sp)
-        }
+        com.caglar.pokequery.ui.pq.PqStringBox(template.rawSyntax)
         Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-            Button(onClick = onCopy, colors = ButtonDefaults.buttonColors(containerColor = BlueCTA), shape = RoundedCornerShape(12.dp)) {
-                Icon(Icons.Default.ContentCopy, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            Button(onClick = onCopy, colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = androidx.compose.ui.graphics.Color(0xFF050709)), shape = RoundedCornerShape(12.dp)) {
+                Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Copy", color = Color.White)
+                Text(if (onDelete == null) "Copy again" else "Copy")
             }
             if (onDelete != null) {
                 Spacer(Modifier.width(8.dp))

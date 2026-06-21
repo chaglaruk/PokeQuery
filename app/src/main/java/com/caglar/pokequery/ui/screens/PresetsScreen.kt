@@ -70,65 +70,66 @@ fun PresetsScreen(
     val repository = androidx.compose.runtime.remember { com.caglar.pokequery.data.repository.UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
 
-    Column(modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp)) {
-        ScreenTitleBar("Popular Presets", onBack, Modifier.padding(bottom = 16.dp))
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
+    ) {
+        item { ScreenTitleBar("Popular Presets", onBack, Modifier.padding(bottom = 8.dp)) }
+        val grouped = POPULAR_PRESETS.groupBy { it.category }
+        grouped.forEach { (category, presets) ->
+            item {
+                com.caglar.pokequery.ui.pq.PqSectionHeader(
+                    category.uppercase(),
+                    Modifier.padding(top = 10.dp)
+                )
+            }
+            items(presets) { preset ->
+                com.caglar.pokequery.ui.pq.PqCard {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(preset.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                        com.caglar.pokequery.ui.pq.PqRiskBadge(preset.risk)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(preset.description, color = TextSecondary, fontSize = 13.sp)
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            val grouped = POPULAR_PRESETS.groupBy { it.category }
-            grouped.forEach { (category, presets) ->
-                item {
-                    Text(category, color = TealPrimary, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
-                }
-                items(presets) { preset ->
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = CardDark),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
+                    Spacer(modifier = Modifier.height(10.dp))
+                    com.caglar.pokequery.ui.pq.PqStringBox(preset.syntax)
+
+                    preset.warnings.forEach { warning ->
+                        Text("• $warning", color = AmberWarning, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+                    }
+                    if (preset.risk == RiskLevel.Medium || preset.risk == RiskLevel.High) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        com.caglar.pokequery.ui.pq.PqManualReviewPanel("Review matches in Pokémon GO before transferring or trading.")
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = {
+                            val language = userPrefs?.gameLanguage ?: "English"
+                            val generated = StringBuilderEngine.buildString(
+                                baseQuery = preset.syntax,
+                                protections = emptyList(), // Built-in; preset safety contract tested.
+                                explanation = preset.description,
+                                riskLevel = preset.risk,
+                                goalId = "preset",
+                                title = preset.title,
+                                language = language
+                            )
+                            if (preset.risk == RiskLevel.High || preset.risk == RiskLevel.Medium) {
+                                onNavigateRisk(generated)
+                            } else {
+                                onCopy(generated)
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = androidx.compose.ui.graphics.Color(0xFF050709)),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(preset.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                RiskBadge(preset.risk)
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(preset.description, color = TextSecondary, fontSize = 14.sp)
-                            
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Box(modifier = Modifier.fillMaxWidth().background(Color.Black, RoundedCornerShape(8.dp)).padding(12.dp)) {
-                                Text(preset.syntax, color = TealPrimary, fontFamily = FontFamily.Monospace, fontSize = 14.sp)
-                            }
-                            
-                            preset.warnings.forEach { warning ->
-                                Text("Warning: $warning", color = AmberWarning, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
-                            }
-                            
-                            Button(
-                                onClick = {
-                                    val language = userPrefs?.gameLanguage ?: "English"
-                                    val generated = StringBuilderEngine.buildString(
-                                        baseQuery = preset.syntax,
-                                        protections = emptyList(), // Built-in
-                                        explanation = preset.description,
-                                        riskLevel = preset.risk,
-                                        goalId = "preset",
-                                        title = preset.title,
-                                        language = language
-                                    )
-                                    if (preset.risk == RiskLevel.High || preset.risk == RiskLevel.Medium) {
-                                        onNavigateRisk(generated)
-                                    } else {
-                                        onCopy(generated)
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
-                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.ContentCopy, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Copy", color = Color.White, fontWeight = FontWeight.Bold)
-                            }
-                        }
+                        Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Copy", fontWeight = FontWeight.Bold)
                     }
                 }
             }

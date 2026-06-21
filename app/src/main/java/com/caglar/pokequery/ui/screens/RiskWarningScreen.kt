@@ -1,20 +1,39 @@
 package com.caglar.pokequery.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.caglar.pokequery.theme.AmberWarning
-import com.caglar.pokequery.theme.BackgroundDark
-import com.caglar.pokequery.theme.TextPrimary
-import com.caglar.pokequery.theme.TextSecondary
+import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.data.model.GeneratedString
 import com.caglar.pokequery.domain.engine.SearchTermMapper
+import com.caglar.pokequery.domain.risk.RiskMessageBuilder
+import com.caglar.pokequery.theme.BackgroundDark
+import com.caglar.pokequery.theme.CardDark
+import com.caglar.pokequery.theme.CoralDanger
+import com.caglar.pokequery.theme.GoldCaution
+import com.caglar.pokequery.theme.TextPrimary
+import com.caglar.pokequery.theme.TextSecondary
+import com.caglar.pokequery.ui.pq.PqPrimaryButton
+import com.caglar.pokequery.ui.pq.PqSecondaryButton
 
 @Composable
 fun RiskWarningScreen(
@@ -25,43 +44,45 @@ fun RiskWarningScreen(
     // Package 4: per-goal explanation. RiskMessageBuilder appends the Turkish-beta
     // caution when the output looks Turkish, so the warning is goal-aware + localized.
     val turkish = SearchTermMapper.looksTurkish(generatedString.rawSyntax)
-    val goalMessage = com.caglar.pokequery.domain.risk.RiskMessageBuilder
-        .messageFor(generatedString.goalId, turkish)
+    val goalMessage = RiskMessageBuilder.messageFor(generatedString.goalId, turkish)
+
+    val riskColor = when (generatedString.riskLevel) {
+        com.caglar.pokequery.data.model.RiskLevel.High -> CoralDanger
+        else -> GoldCaution
+    }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundDark)
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(Icons.Default.Warning, contentDescription = "Warning", tint = AmberWarning, modifier = Modifier.size(64.dp))
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("${generatedString.riskLevel} Risk Copy", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-        // v0.4.2 (Fix 7): raised contrast from Color.Gray to TextSecondary for WCAG AA.
+        Box(
+            Modifier.size(84.dp).clip(RoundedCornerShape(22.dp)).background(riskColor.copy(alpha = 0.18f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.Warning, contentDescription = "Warning", tint = riskColor, modifier = Modifier.size(46.dp))
+        }
+        Spacer(Modifier.height(18.dp))
+        Text("${generatedString.riskLevel} Risk", color = riskColor, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+        Spacer(Modifier.height(14.dp))
         Text(
-            "Review the search and its warnings before copying. The app only creates text; always inspect matches before acting.",
+            "Review the search and its warnings before copying. PokeQuery only creates text — always inspect matches in Pokémon GO before acting.",
             color = TextSecondary,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 12.dp)
         )
-        Spacer(modifier = Modifier.height(12.dp))
-        // Package 4: goal-specific explanation (already includes Turkish caution if relevant).
-        Text(
-            goalMessage,
-            color = TextPrimary,
-            modifier = Modifier.padding(horizontal = 16.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onConfirmCopy, modifier = Modifier.fillMaxWidth()) {
-            Text("Confirm and Copy")
+        Spacer(Modifier.height(14.dp))
+        // Goal-specific explanation surface (includes Turkish caution if relevant).
+        Box(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(CardDark)
+                .padding(14.dp)
+        ) {
+            Text(goalMessage, color = TextPrimary, fontSize = 13.sp, lineHeight = 19.sp)
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        TextButton(onClick = onBack) {
-            // v0.4.2 (Fix 7): raised contrast from Color.Gray to TextSecondary.
-            Text("Go Back", color = TextSecondary)
-        }
+        Spacer(Modifier.height(28.dp))
+        PqPrimaryButton(text = "Accept & Copy", onClick = onConfirmCopy)
+        Spacer(Modifier.height(10.dp))
+        PqSecondaryButton(text = "Review Query", onClick = onBack)
     }
 }
