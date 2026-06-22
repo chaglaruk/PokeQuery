@@ -1,35 +1,48 @@
 package com.caglar.pokequery.domain.locale
 
 import android.content.Context
-import android.os.Build
-import android.os.LocaleList
 import java.util.Locale
 
 /**
- * v0.5.2 (Fix 7): App Language — Layer A of the two-layer localization architecture.
+ * v0.5.2 (Fix 7) → v0.5.2.1 hotfix: App Language — Layer A of the two-layer localization
+ * architecture.
  *
- * Applies the user's chosen UI language via Android's per-app language APIs. This affects
- * only this app's interface resources; it does NOT touch the system locale, the Pokémon GO
- * app, or the generated search strings (those are Layer B — Search String Language).
+ * Records the user's chosen UI language and applies it as an **in-process** resource-lookup
+ * hint only. This affects only this app's interface resources; it does NOT touch the system
+ * locale, the Pokémon GO app, or the generated search strings (those are Layer B — Search
+ * String Language).
  *
- *   System Default → empty locale list → the OS uses the device/system locale.
+ *   System Default → leave the process default locale untouched (follow the device locale).
  *   English        → Locale("en")
  *   Turkish        → Locale("tr")
  *
- * On API 33+ we use the platform per-app language service via its string service name
- * ("locale") and reflection. We avoid a compile-time reference to android.os.LocaleManager
- * because the AGP 9.x Build-Tools-API (BTA) compiler trims that API-33 symbol from its
- * resolved surface even under @RequiresApi. The string-service + reflection path is
- * reflection-free of any third-party dependency, survives the BTA trimming, and targets the
- * exact same platform LocaleManager.setApplicationLocales/getApplicationLocales contract.
+ * ## v0.5.2.1 hotfix — why no OS LocaleManager
  *
- * On older devices we fall back to setting the process [Locale] default so resource lookups
- * localize within the current run. We deliberately do NOT add an AppCompat dependency.
+ * The original v0.5.2 implementation applied the per-app locale via Android's
+ * `LocaleManager#setApplicationLocales` (reached through the "locale" system service +
+ * reflection, to dodge the AGP BTA trimming of the API-33 symbol). On API 33+ that call
+ * **recreates the Activity** whenever the applied locale actually changes. It was wired from
+ * a `SideEffect` in `MainActivity`, which runs on every composition. Because the preference
+ * is loaded asynchronously (`collectAsState(initial = null)`), the effective value flipped
+ * between "System Default" (null) and the persisted label on every recreation — so each
+ * `setApplicationLocales` call changed the locale, which recreated the Activity, which ran
+ * the SideEffect again... an infinite recreation loop. On Samsung SM-S931B / Android 16 the
+ * window got stuck with `WindowStopped=true` and rendered a permanent black screen,
+ * recoverable only by `pm clear`. The `runCatching` swallowed every exception, so nothing
+ * was logged. English and Turkish both reproduced; System Default alone was stable.
  *
- * SCOPE NOTE: the app's UI strings are currently English-only. Wiring the per-app locale
- * here is the *foundation* so that when Turkish string resources (values-tr) are added
- * later they work automatically. Settings makes clear App Language is independent of the
- * generated search strings.
+ * The fix prioritizes stability over "true" OS per-app language for v0.5.2:
+ *   - We do NOT call `LocaleManager` / `setApplicationLocales` / any reflection.
+ *   - `apply()` sets only the process-default `Locale` via `Locale.setDefault(...)`, which is
+ *     an in-memory field set: it does NOT recreate the Activity and is safe to call from
+ *     composition.
+ *   - `MainActivity` now applies it via `LaunchedEffect(appLanguage)` (per-change) instead of
+ *     `SideEffect` (per-frame), so even the invocation cadence cannot loop.
+ *
+ * This has no functional downside today because the app ships no localized resources yet
+ * (no `values-tr/`): the OS locale call was only ever a foundation, and Settings now says so
+ * honestly. When real translated string resources are added in a future release, the
+ * process-locale set here makes them resolve correctly within the run.
  */
 object AppLocaleController {
 
@@ -48,56 +61,42 @@ object AppLocaleController {
     }
 
     /**
-     * Applies the per-app locale. Idempotent; safe to call repeatedly.
+     * Applies the App Language preference as an in-process, **recreation-free** locale hint.
+     *
+     * Idempotent and safe to call from composition (see [MainActivity]). It deliberately does
+     * NOT call `LocaleManager` / `setApplicationLocales` — see the class kdoc for why. The
+     * [context] is accepted for API stability but is not required by the current
+     * implementation.
      */
     fun apply(context: Context, appLanguage: String) {
-        val tag = localeTagFor(appLanguage)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            applyApi33(context, tag)
-        } else if (!tag.isNullOrEmpty()) {
-            // API < 33: best-effort process locale so resource lookups localize within this run.
-            val parts = tag.split("-")
-            val locale = if (parts.size > 1) Locale(parts[0], parts[1]) else Locale(parts[0])
-            Locale.setDefault(locale)
-        }
+        applyProcessLocale(localeTagFor(appLanguage))
     }
 
-    /** Reads back the currently applied per-app locale label (System Default if unset). */
-    fun currentLabel(context: Context): String {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return when (Locale.getDefault().language) {
-                "en" -> ENGLISH
-                "tr" -> TURKISH
-                else -> SYSTEM_DEFAULT
-            }
-        }
-        val tags = currentTagsApi33(context)
-        return when (tags.substringBefore("-").lowercase()) {
+    /**
+     * Sets the process-default [Locale] for the given tag. Pure JDK only: no Android locale
+     * service, no Activity recreation. A null/empty tag (System Default) is a no-op so the
+     * app follows the device locale. Kept public + context-free so the safety guarantee is
+     * directly unit-testable.
+     */
+    fun applyProcessLocale(tag: String?) {
+        if (tag.isNullOrEmpty()) return // System Default: do not fight the device locale.
+        val parts = tag.split("-")
+        val locale = if (parts.size > 1) Locale(parts[0], parts[1]) else Locale(parts[0])
+        Locale.setDefault(locale)
+    }
+
+    /**
+     * Reads back the currently applied App Language label (System Default if unset).
+     *
+     * Reads the process default locale only — no `LocaleManager` read, consistent with the
+     * v0.5.2.1 hotfix. The [context] is accepted for API stability.
+     */
+    fun currentLabel(@Suppress("UNUSED_PARAMETER") context: Context): String =
+        when (Locale.getDefault().language) {
             "en" -> ENGLISH
             "tr" -> TURKISH
             else -> SYSTEM_DEFAULT
         }
-    }
-
-    // ---- API 33+ implementation via the platform "locale" service + reflection. ----
-    // Targets android.os.LocaleManager#setApplicationLocales(LocaleList).
-
-    private const val LOCALE_SERVICE = "locale"
-
-    private fun applyApi33(context: Context, tag: String?) {
-        runCatching {
-            val lm = context.getSystemService(LOCALE_SERVICE) ?: return@runCatching
-            val list = if (tag.isNullOrEmpty()) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(tag)
-            lm.javaClass.getMethod("setApplicationLocales", LocaleList::class.java).invoke(lm, list)
-        }
-    }
-
-    private fun currentTagsApi33(context: Context): String =
-        runCatching {
-            val lm = context.getSystemService(LOCALE_SERVICE) ?: return@runCatching ""
-            val list = lm.javaClass.getMethod("getApplicationLocales").invoke(lm) as? LocaleList
-            list?.toLanguageTags().orEmpty()
-        }.getOrDefault("")
 }
 
 /**
@@ -111,4 +110,3 @@ object AppLocaleLabels {
         else -> AppLocaleController.SYSTEM_DEFAULT
     }
 }
-

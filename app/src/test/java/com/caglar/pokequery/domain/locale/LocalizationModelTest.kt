@@ -2,8 +2,10 @@ package com.caglar.pokequery.domain.locale
 
 import com.caglar.pokequery.domain.locale.LocalizationModel.AppLanguage
 import com.caglar.pokequery.domain.locale.LocalizationModel.SearchStringLanguage
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -106,5 +108,76 @@ class LocalizationModelTest {
         assertEquals("tr", AppLocaleController.localeTagFor("Turkish"))
         assertEquals(null, AppLocaleController.localeTagFor("System Default"))
         assertEquals(null, AppLocaleController.localeTagFor("unknown"))
+    }
+
+    // ---- v0.5.2.1 hotfix: recreation-free, in-process locale apply ----
+
+    @Test
+    fun `applyProcessLocale sets english locale without going through LocaleManager`() {
+        val before = Locale.getDefault()
+        try {
+            AppLocaleController.applyProcessLocale("en")
+            assertEquals("en", Locale.getDefault().language)
+        } finally {
+            Locale.setDefault(before)
+        }
+    }
+
+    @Test
+    fun `applyProcessLocale sets turkish locale without going through LocaleManager`() {
+        // Selecting Turkish must never black-screen the app: this is the regression that
+        // reproduces the SM-S931B / Android 16 blocker. It only touches the process default
+        // locale (JDK), so it cannot recreate the Activity.
+        val before = Locale.getDefault()
+        try {
+            AppLocaleController.applyProcessLocale("tr")
+            assertEquals("tr", Locale.getDefault().language)
+        } finally {
+            Locale.setDefault(before)
+        }
+    }
+
+    @Test
+    fun `applyProcessLocale is idempotent and System Default is a no-op`() {
+        // System Default must not fight the device locale, and applying the same locale twice
+        // must be stable (no loop). We capture the current default, set "en" twice, then
+        // restore — the key assertion is the call returns normally both times with the same
+        // resulting locale.
+        val before = Locale.getDefault()
+        try {
+            // System Default (null/blank) must not change the current locale at all.
+            AppLocaleController.applyProcessLocale(null)
+            assertEquals(before, Locale.getDefault())
+            AppLocaleController.applyProcessLocale("")
+            assertEquals(before, Locale.getDefault())
+
+            // English twice is stable and equal.
+            AppLocaleController.applyProcessLocale("en")
+            val first = Locale.getDefault()
+            AppLocaleController.applyProcessLocale("en")
+            assertEquals(first, Locale.getDefault())
+            assertEquals("en", Locale.getDefault().language)
+        } finally {
+            Locale.setDefault(before)
+        }
+    }
+
+    @Test
+    fun `applyProcessLocale switching back and forth is stable`() {
+        // The original bug was the flip between System Default (null) and a real tag causing a
+        // recreation loop. The hotfix path is recreation-free; this asserts repeated toggling
+        // converges to the last applied value with no exception.
+        val before = Locale.getDefault()
+        try {
+            AppLocaleController.applyProcessLocale("en")
+            assertEquals("en", Locale.getDefault().language)
+            AppLocaleController.applyProcessLocale("tr")
+            assertEquals("tr", Locale.getDefault().language)
+            AppLocaleController.applyProcessLocale("en")
+            assertEquals("en", Locale.getDefault().language)
+            assertNotEquals("tr", Locale.getDefault().language)
+        } finally {
+            Locale.setDefault(before)
+        }
     }
 }

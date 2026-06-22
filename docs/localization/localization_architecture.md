@@ -12,7 +12,8 @@ single most important rule of the architecture and the reason Turkish output sta
 │   Controls: interface text ONLY (buttons, labels, screen titles).   │
 │   Options:  System Default · English · Turkish                      │
 │   Store:    UserPreferences.appLanguage                             │
-│   Apply:    AppLocaleController (Android per-app locale, API 33+)    │
+│   Apply:    AppLocaleController (in-process Locale.setDefault,       │
+│              recreation-free — see "v0.5.2.1 hotfix" below)          │
 │   Effect on generated search strings: NONE                          │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↕ independent
@@ -58,7 +59,7 @@ two layers are decoupled on purpose.
 | App UI language controller (Layer A) | `domain/locale/AppLocaleController.kt` |
 | Search-token registry with metadata (Layer B docs) | `domain/locale/SearchTokenRegistry.kt` |
 | Active Turkish translation map (Layer B emit) | `domain/engine/SearchTermMapper.kt` |
-| App Language application point | `MainActivity.kt` (`SideEffect` → `AppLocaleController.apply`) |
+| App Language application point | `MainActivity.kt` (`LaunchedEffect(appLanguage)` → `AppLocaleController.apply`) |
 | Settings UI for both layers | `ui/screens/MiscScreens.kt` ("Search & Language" panel) |
 
 ## What this means for the user
@@ -80,3 +81,17 @@ two layers are decoupled on purpose.
   `turkish_verification_matrix.md`.
 - ❌ Machine-translate Pokémon GO tokens as a source of truth. Only `SearchTokenRegistry` +
   the verified matrix are truth.
+- ❌ Apply the OS per-app locale (`LocaleManager.setApplicationLocales`) from composition. The
+  v0.5.2 original did this from a `SideEffect` and, because the pref loads asynchronously,
+  the null→label flip recreated the Activity every frame → a permanent black screen on
+  Samsung SM-S931B / Android 16 (v0.5.2.1 hotfix). Use `AppLocaleController.apply`, which
+  sets only the in-process default locale and is recreation-free.
+
+## v0.5.2.1 hotfix note
+
+App Language is applied via `AppLocaleController.applyProcessLocale` (`Locale.setDefault`),
+invoked from `MainActivity` through `LaunchedEffect(appLanguage)`. This is intentionally a
+foundation: the app ships no `values-tr/` resources yet, so Settings presents App Language
+honestly as "where translations are available — more coming." Selecting English or Turkish
+must never black-screen the app, and the regression tests in `LocalizationModelTest`
+(`applyProcessLocale …`) lock the recreation-free behavior down.

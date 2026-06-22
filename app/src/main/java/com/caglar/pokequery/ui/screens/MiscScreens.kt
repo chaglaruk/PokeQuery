@@ -233,8 +233,11 @@ fun SettingsScreen(onBack: () -> Unit) {
                 // v0.5.2 (Fix 7): LAYER A — App Language (UI text only).
                 // This controls the app interface text. It does NOT change the generated
                 // Pokémon GO search strings. The two layers are intentionally independent.
+                // v0.5.2.1 hotfix: full translated UI resources are not shipped yet, so this
+                // is presented honestly as a foundation/preference. Selecting a language never
+                // black-screens the app (in-process locale only; no OS LocaleManager call).
                 Text("App Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Text("Controls the interface text. Does not change generated search strings.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+                Text("Controls the interface text where translations are available. More translations are coming in a future update. Does not change generated search strings.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
                 Spacer(Modifier.height(4.dp))
                 val appLang = userPrefs?.appLanguage ?: "System Default"
                 RadioRow("System Default", appLang == "System Default") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "System Default") } }
