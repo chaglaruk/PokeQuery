@@ -217,8 +217,11 @@ fun GoalDetailScreen(
                 Spacer(Modifier.height(18.dp))
                 PqSectionHeader("NOTES")
                 PqCard {
-                    generatedString.warnings.forEach {
-                        Text("• $it", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp, modifier = Modifier.padding(vertical = 2.dp))
+                    // v0.5.1 (Fix 4): explicit vertical spacing between note rows so the
+                    // Trade Fodder card (count caveat + trade disclaimer) no longer overlaps.
+                    generatedString.warnings.forEachIndexed { index, warning ->
+                        if (index > 0) Spacer(Modifier.height(8.dp))
+                        Text("• $warning", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
                     }
                 }
             }
@@ -260,8 +263,20 @@ private fun OptionsPanel(
             if (goalId == "safe_cleanup" || goalId == "untagged") SwitchRow("Exclude Shadow / Purified", "", excludeShadow, onExcludeShadow)
         }
         "pvp_candidates" -> {
-            RadioRow("Great League (under 1500 CP)", pvpLeague == "great") { onPvpLeague("great") }
-            RadioRow("Ultra League (under 2500 CP)", pvpLeague == "ultra") { onPvpLeague("ultra") }
+            // v0.5.1 (Fix 5): Segmented control so each league shows its own concrete
+            // search string. The selected league drives `config` -> StringBuilderEngine.
+            Text("Choose a league. The generated string updates instantly.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+            Spacer(Modifier.height(10.dp))
+            com.caglar.pokequery.ui.pq.PqSegmentedControl(
+                options = listOf("great" to "Great League", "ultra" to "Ultra League"),
+                selected = pvpLeague,
+                onSelect = onPvpLeague
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                if (pvpLeague == "ultra") "Under 2500 CP" else "Under 1500 CP",
+                color = TealPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium
+            )
         }
         "lucky_trade" -> {
             RadioRow("Older candidates (Age > 365 days)", luckyMode == "age") { onLuckyMode("age") }
@@ -274,14 +289,20 @@ private fun OptionsPanel(
 
 @Composable
 private fun SwitchRow(label: String, subLabel: String = "", checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    // v0.5.1 (Fix 2): Robust wrapping row. Align Top so multi-line helper text never
+    // overlaps the switch; generous vertical padding + explicit line heights keep labels
+    // readable on 1080x2340 / 480dpi phones without fixed-height clipping.
     Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { onCheckedChange(!checked) }.padding(vertical = 10.dp, horizontal = 4.dp),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { onCheckedChange(!checked) }.padding(vertical = 12.dp, horizontal = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
-        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-            Text(label, color = TextPrimary, fontWeight = FontWeight.Medium, fontSize = 14.sp)
-            if (subLabel.isNotEmpty()) Text(subLabel, color = TextSecondary, fontSize = 12.sp)
+        Column(modifier = Modifier.weight(1f).padding(end = 16.dp, top = 6.dp)) {
+            Text(label, color = TextPrimary, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 19.sp)
+            if (subLabel.isNotEmpty()) {
+                Spacer(Modifier.height(2.dp))
+                Text(subLabel, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+            }
         }
         Switch(
             checked = checked,
@@ -293,11 +314,13 @@ private fun SwitchRow(label: String, subLabel: String = "", checked: Boolean, on
 
 @Composable
 private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    // v0.5.1 (Fix 2): Top-aligned with line height + spacing so the radio never overlaps
+    // multi-line labels (e.g. Great/Ultra League descriptions).
     Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick).padding(vertical = 10.dp, horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick).padding(vertical = 12.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.Top
     ) {
         RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = TealPrimary, unselectedColor = TextSecondary))
-        Text(label, color = TextPrimary, fontSize = 14.sp, modifier = Modifier.padding(start = 8.dp))
+        Text(label, color = TextPrimary, fontSize = 14.sp, lineHeight = 19.sp, modifier = Modifier.padding(start = 10.dp, top = 2.dp))
     }
 }

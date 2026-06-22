@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Diamond
@@ -37,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -120,8 +123,39 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
 
 @Composable
 private fun HomeHeader() {
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 6.dp)) {
-        Text("PokeQuery", color = TextPrimary, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+    // v0.5.1 (Fix 8): Branded wordmark. "Poke" white + "Query" cyan, with a spark accent
+    // above the 'Q'. Original treatment — no Pokémon logo font, colors, Poké Ball, or
+    // creatures. The dark shadow gives it a logo-like depth against the navy background.
+    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 6.dp)) {
+        Box {
+            // Spark accent floating over the wordmark (top-right of "Query").
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = CyanGlow,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-4).dp, y = (-6).dp)
+                    .size(18.dp)
+            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    "Poke",
+                    color = TextPrimary,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.shadow(elevation = 4.dp, spotColor = Color.Black, ambientColor = Color.Black)
+                )
+                Text(
+                    "Query",
+                    color = TealPrimary,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.shadow(elevation = 4.dp, spotColor = Color.Black, ambientColor = Color.Black)
+                )
+            }
+        }
+        Spacer(Modifier.height(6.dp))
         Text("Build safer search strings for Pokémon GO", color = TextSecondary, fontSize = 14.sp)
     }
 }

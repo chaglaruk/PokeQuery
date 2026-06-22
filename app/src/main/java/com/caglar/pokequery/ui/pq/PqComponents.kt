@@ -107,7 +107,10 @@ fun PqCard(
     content: @Composable () -> Unit
 ) {
     val shape = RoundedCornerShape(18.dp)
-    Box(
+    // v0.5.1 (Fixes 2/3/4): Stack children vertically. The previous Box laid callers'
+    // Spacers/Rows/cards on top of each other (z-axis), causing the text overlap, copy
+    // button covering the query string, and Trade Fodder notes overlap observed on S25.
+    Column(
         modifier
             .clip(shape)
             .background(CardDark)
@@ -123,7 +126,9 @@ fun PqGlowCard(
     content: @Composable () -> Unit
 ) {
     val shape = RoundedCornerShape(20.dp)
-    Box(
+    // v0.5.1 (Fix 3): vertical stacking so the result block hierarchy (badge -> string box
+    // -> copy button) lays out top-to-bottom instead of overlapping.
+    Column(
         modifier
             .clip(shape)
             .background(Brush.verticalGradient(listOf(CardPremium, CardDark)))
@@ -191,6 +196,56 @@ fun PqChip(
         .padding(horizontal = 12.dp, vertical = 7.dp)
     Box(mod) {
         Text(text, color = if (selected) accent else TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+/**
+ * v0.5.1 (Fix 5): Segmented control for mutually-exclusive modes.
+ *
+ * Used by PvP Candidates (Great / Ultra League) so the visible generated string is
+ * clearly tied to the selected league. Fills the available width, no horizontal scroll.
+ */
+@Composable
+fun <T> PqSegmentedControl(
+    options: List<Pair<T, String>>,
+    selected: T,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    accent: Color = TealPrimary
+) {
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(SlateBlack)
+            .border(1.dp, BorderSubtle, shape)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        options.forEach { (value, label) ->
+            val isSelected = value == selected
+            val segmentShape = RoundedCornerShape(10.dp)
+            Box(
+                Modifier
+                    .weight(1f)
+                    .clip(segmentShape)
+                    .background(if (isSelected) accent.copy(alpha = 0.22f) else Color.Transparent)
+                    .then(if (isSelected) Modifier.border(1.dp, accent, segmentShape) else Modifier)
+                    .let { if (options.size > 1) it.clickable { onSelect(value) } else it }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    label,
+                    color = if (isSelected) accent else TextSecondary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
+            }
+        }
     }
 }
 
@@ -271,6 +326,31 @@ fun PqSectionHeader(text: String, modifier: Modifier = Modifier) {
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.2.sp,
         modifier = modifier.padding(bottom = 8.dp)
+    )
+}
+
+/**
+ * v0.5.1 (Fix 9): Branded major-heading style.
+ *
+ * Uses an extra-heavy weight + tight letter-spacing for a display feel on hero/major
+ * screen titles only (the same brand language as the Home wordmark). Intentionally NOT
+ * applied to body text — readability stays on the default sans-serif. Keep usage limited
+ * to top-of-screen titles so the app does not feel childish.
+ */
+@Composable
+fun PqBrandTitle(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = TextPrimary,
+    fontSize: androidx.compose.ui.unit.TextUnit = 22.sp
+) {
+    Text(
+        text,
+        color = color,
+        fontSize = fontSize,
+        fontWeight = FontWeight.ExtraBold,
+        letterSpacing = (-0.3).sp,
+        modifier = modifier
     )
 }
 

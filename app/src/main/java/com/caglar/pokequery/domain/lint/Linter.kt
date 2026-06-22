@@ -41,16 +41,29 @@ object Linter {
         val isPvP = lower.contains("0-1attack") || lower.contains("3-4defense")
         val isTradePrep = lower.contains("age365-") || lower.contains("distance100-")
 
-        val cleanupOrCountOrTrade = ("count" in lower || "trade" in lower || tokens.any { it in setOf("0*", "1*", "2*") }) && !isPvP && !isTradePrep
-        
-        if (cleanupOrCountOrTrade) {
+        // v0.5.1 (Fix 7): The bare 'traded' status token is a positive filter, NOT a
+        // cleanup/trade search. The previous `"trade" in lower` substring matched the
+        // 'traded' token, so `lucky&traded` was wrongly fail-closed as a risky cleanup.
+        // Genuine transfer/cleanup contexts are count (candy prep) and star bands (0/1/2*).
+        val cleanupOrCount = ("count" in lower || tokens.any { it in setOf("0*", "1*", "2*") }) && !isPvP && !isTradePrep
+
+        if (cleanupOrCount) {
             riskyCategories.filter { it in tokens }.forEach {
-                warnings += LintWarning("Risky inclusion of $it in a cleanup/count/trade search.", true)
+                warnings += LintWarning("Risky inclusion of $it in a cleanup/count search.", true)
             }
         }
 
         if (isTradePrep) {
             warnings += LintWarning("Trade prep search. Review manually. Valuable Pokémon may appear.", false)
+        }
+
+        // v0.5.1 (Fix 7): Advisory (not blocking) for a positive risky-category filter
+        // outside any cleanup/count/PvP/trade-prep context — e.g. lucky&traded. The user
+        // explicitly chose these conditions, so copy stays enabled with a visible hint.
+        if (!cleanupOrCount && !isPvP && !isTradePrep) {
+            riskyCategories.filter { it in tokens }.forEach {
+                warnings += LintWarning("Includes $it as a positive filter. Review matches before acting.", false)
+            }
         }
 
         Regex("#([a-z0-9]+)").findAll(lower).map { it.groupValues[1] }.filter { it in reservedTerms }.forEach {

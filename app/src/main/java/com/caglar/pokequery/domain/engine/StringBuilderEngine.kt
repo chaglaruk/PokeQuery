@@ -90,7 +90,9 @@ object StringBuilderEngine {
             "safe_cleanup" -> GoalSpec(
                 if (config == "include0Star") "0*,1*" else "1*",
                 "This is a REVIEW string targeting low-value candidates. It is not an automatic transfer command.",
-                if (config == "include0Star") RiskLevel.Medium else RiskLevel.Low,
+                // v0.5.1 (Fix 1): Safe Cleanup is a transfer-adjacent review. Both modes route
+                // through RiskWarning so the user explicitly accepts the review reminder.
+                RiskLevel.Medium,
                 "Safe Cleanup",
                 DEFAULT_PROTECTIONS
             )

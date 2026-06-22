@@ -2,9 +2,9 @@ package com.caglar.pokequery.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,9 +50,15 @@ import com.caglar.pokequery.ui.pq.PqPrimaryButton
 import com.caglar.pokequery.ui.pq.PqSectionHeader
 import com.caglar.pokequery.ui.pq.PqStringBox
 
-// v0.5.0 Stitch Expert Builder — modular chip editor (not a code editor).
+// v0.5.0 / v0.5.1 Stitch Expert Builder — modular grouped chip editor.
 // Live preview + linter assistant. Raw query is an optional advanced mode.
 // ExpertCopyPolicy still blocks copy on linter errors (safety unchanged from v0.4.2).
+//
+// v0.5.1 (Fix 6): chip groups use FlowRow so every option is visible without horizontal
+// scrolling on a 1080px-wide phone.
+// v0.5.1 (Fix 7): richer grouped option set (status/tags, IV, count, age, distance,
+// exclusions). Copy is disabled ONLY on true linter errors; advisory/risky warnings
+// keep copy enabled with a visible banner (see Linter / ExpertCopyPolicy).
 
 @Composable
 fun ExpertBuilderScreen(
@@ -65,7 +71,9 @@ fun ExpertBuilderScreen(
 
     val rawQuery = if (advancedMode) rawOverride else model.buildRawQuery()
     val warnings = Linter.lint(rawQuery)
+    // v0.5.1 (Fix 7): only TRUE linter errors disable copy. Advisory/risky warnings do not.
     val copyBlocked = !ExpertCopyPolicy.canCopy(rawQuery)
+    val hasAdvisoryOnly = !copyBlocked && warnings.isNotEmpty()
 
     Column(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).verticalScroll(rememberScrollState()).padding(16.dp)
@@ -74,7 +82,7 @@ fun ExpertBuilderScreen(
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
             }
-            Text("Expert Builder", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.weight(1f))
+            Text("Expert Builder", color = TextPrimary, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.3).sp, fontSize = 22.sp, modifier = Modifier.weight(1f))
             TextButton(onClick = { advancedMode = !advancedMode; if (!advancedMode) rawOverride = "" }) {
                 Icon(Icons.Default.Code, contentDescription = null, tint = if (advancedMode) TealPrimary else TextSecondary, modifier = Modifier.padding(end = 6.dp))
                 Text(if (advancedMode) "Chips" else "Raw", color = if (advancedMode) TealPrimary else TextSecondary, fontWeight = FontWeight.Bold)
@@ -93,44 +101,9 @@ fun ExpertBuilderScreen(
                 placeholder = { Text("e.g. 4*&!shiny", color = TextSecondary) }
             )
         } else {
-            PqSectionHeader("ADD CONDITION")
-            ChipRow(
-                options = listOf("shiny", "legendary", "shadow", "lucky", "traded", "costume"),
-                selected = model.positiveTokens,
-                onToggle = { model = model.togglePositive(it) }
-            )
-            Spacer(Modifier.height(14.dp))
-
-            PqSectionHeader("IV FLOOR (ATTACK)")
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(0, 1, 2, 3, 4).forEach { floor ->
-                    PqChip(
-                        text = "${floor}attack",
-                        selected = model.ivAttackFloor == floor,
-                        onClick = { model = model.setIvAttack(if (model.ivAttackFloor == floor) null else floor) }
-                    )
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-
-            PqSectionHeader("DUPLICATE COUNT")
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(2, 3, 4).forEach { floor ->
-                    PqChip(
-                        text = "count$floor-",
-                        selected = model.countFloor == floor,
-                        onClick = { model = model.setCount(if (model.countFloor == floor) null else floor) }
-                    )
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-
-            PqSectionHeader("EXCLUDE (PROTECT)")
-            ChipRow(
-                options = listOf("shiny", "legendary", "traded", "favorite", "lucky", "costume", "4*"),
-                selected = model.exclusions,
-                isExclusion = true,
-                onToggle = { model = model.toggleExclusion(it) }
+            ExpertChipBuilder(
+                model = model,
+                onModelChange = { model = it }
             )
         }
 
@@ -153,12 +126,16 @@ fun ExpertBuilderScreen(
                         "• ${w.message}",
                         color = if (w.isError) CoralDanger else GoldCaution,
                         fontSize = 12.sp,
+                        lineHeight = 17.sp,
                         modifier = Modifier.padding(vertical = 2.dp)
                     )
                 }
                 if (copyBlocked) {
                     Spacer(Modifier.height(6.dp))
                     Text("Fix the errors above before copying.", color = CoralDanger, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                } else if (hasAdvisoryOnly) {
+                    Spacer(Modifier.height(6.dp))
+                    Text("Advisory only — copy stays enabled. Review matches before acting.", color = GoldCaution, fontWeight = FontWeight.Bold, fontSize = 12.sp, lineHeight = 16.sp)
                 }
             }
         }
@@ -166,7 +143,7 @@ fun ExpertBuilderScreen(
         Spacer(Modifier.height(24.dp))
 
         PqPrimaryButton(
-            text = "Copy Custom String",
+            text = if (copyBlocked) "Fix errors to copy" else "Copy Custom String",
             onClick = { if (!copyBlocked) onGenerate(rawQuery) },
             enabled = !copyBlocked
         )
@@ -175,19 +152,117 @@ fun ExpertBuilderScreen(
 }
 
 @Composable
-private fun ChipRow(
-    options: List<String>,
-    selected: Set<String>,
-    isExclusion: Boolean = false,
-    onToggle: (String) -> Unit
+private fun ExpertChipBuilder(
+    model: ExpertQueryModel,
+    onModelChange: (ExpertQueryModel) -> Unit
 ) {
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        options.forEach { opt ->
-            val isSelected = opt in selected
+    // ----- INCLUDE: status / tags -----
+    PqSectionHeader("INCLUDE (STATUS / TAGS)")
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf("shiny", "legendary", "mythical", "ultrabeast", "shadow", "purified", "costume", "lucky", "traded", "defender").forEach { token ->
             PqChip(
-                text = if (isExclusion && isSelected) "!$opt" else opt,
+                text = token,
+                selected = token in model.positiveTokens,
+                onClick = { onModelChange(model.togglePositive(token)) }
+            )
+        }
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // ----- IV FILTERS -----
+    PqSectionHeader("IV FLOOR — ATTACK")
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(0, 1, 2, 3, 4).forEach { floor ->
+            PqChip(
+                text = "${floor}attack",
+                selected = model.ivAttackFloor == floor,
+                onClick = { onModelChange(model.setIvAttack(if (model.ivAttackFloor == floor) null else floor)) }
+            )
+        }
+    }
+    Spacer(Modifier.height(10.dp))
+    PqSectionHeader("IV FLOOR — DEFENSE")
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(0, 1, 2, 3, 4).forEach { floor ->
+            PqChip(
+                text = "${floor}defense",
+                selected = model.ivDefenseFloor == floor,
+                onClick = { onModelChange(model.setIvDefense(if (model.ivDefenseFloor == floor) null else floor)) }
+            )
+        }
+    }
+    Spacer(Modifier.height(10.dp))
+    PqSectionHeader("IV FLOOR — HP")
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(0, 1, 2, 3, 4).forEach { floor ->
+            PqChip(
+                text = "${floor}hp",
+                selected = model.ivHpFloor == floor,
+                onClick = { onModelChange(model.setIvHp(if (model.ivHpFloor == floor) null else floor)) }
+            )
+        }
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // ----- COUNT / AGE / DISTANCE -----
+    PqSectionHeader("DUPLICATE COUNT")
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(2, 3, 4).forEach { floor ->
+            PqChip(
+                text = "count$floor-",
+                selected = model.countFloor == floor,
+                onClick = { onModelChange(model.setCount(if (model.countFloor == floor) null else floor)) }
+            )
+        }
+    }
+    Spacer(Modifier.height(10.dp))
+    PqSectionHeader("AGE / DISTANCE")
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        PqChip(text = "age365-", selected = model.age365, onClick = { onModelChange(model.setAge(!model.age365)) })
+        PqChip(text = "distance100-", selected = model.distance100, onClick = { onModelChange(model.setDistance(!model.distance100)) })
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // ----- EXCLUDE (PROTECT) -----
+    PqSectionHeader("EXCLUDE (PROTECT)")
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        listOf("shiny", "legendary", "mythical", "ultrabeast", "traded", "untraded", "favorite", "lucky", "shadow", "purified", "costume", "4*").forEach { token ->
+            val isSelected = token in model.exclusions
+            PqChip(
+                text = if (isSelected) "!$token" else token,
                 selected = isSelected,
-                onClick = { onToggle(opt) }
+                onClick = { onModelChange(model.toggleExclusion(token)) }
             )
         }
     }

@@ -89,4 +89,43 @@ class ExpertQueryModelTest {
         model = model.togglePositive("shiny")
         assertFalse(model.positiveTokens.contains("shiny"))
     }
+
+    // v0.5.1 (Fix 6/7): deterministic preview string for the richer grouped option set.
+    // New fields (age, distance, IV defense/hp) join the output in a stable order so the
+    // live preview is reproducible.
+
+    @Test
+    fun `iv defense and hp floors appear in deterministic order`() {
+        val model = ExpertQueryModel(ivAttackFloor = 0, ivDefenseFloor = 15, ivHpFloor = 15)
+        assertEquals("0attack&15defense&15hp", model.buildRawQuery())
+    }
+
+    @Test
+    fun `age and distance filters are appended after count`() {
+        val model = ExpertQueryModel(countFloor = 2, age365 = true, distance100 = true)
+        assertEquals("count2-&age365-&distance100-", model.buildRawQuery())
+    }
+
+    @Test
+    fun `setters toggle age and distance`() {
+        val on = ExpertQueryModel().setAge(true).setDistance(true)
+        assertEquals("age365-&distance100-", on.buildRawQuery())
+        val off = on.setAge(false).setDistance(false)
+        assertEquals("", off.buildRawQuery())
+    }
+
+    @Test
+    fun `full grouped selection produces deterministic preview`() {
+        // Positives (sorted) -> iv floors -> count -> age -> distance -> exclusions (sorted).
+        val model = ExpertQueryModel(
+            positiveTokens = setOf("lucky", "shiny"),
+            ivAttackFloor = 1,
+            ivDefenseFloor = 3,
+            ivHpFloor = 3,
+            countFloor = 2,
+            age365 = true,
+            exclusions = setOf("traded")
+        )
+        assertEquals("lucky,shiny&1attack&3defense&3hp&count2-&age365-&!traded", model.buildRawQuery())
+    }
 }

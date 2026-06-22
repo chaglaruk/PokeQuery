@@ -39,4 +39,30 @@ class ExpertCopyPolicyTest {
     fun `clean safe query does not block copy`() {
         assertTrue(ExpertCopyPolicy.canCopy("4*&!shiny"))
     }
+
+    // v0.5.1 (Fix 7): lucky + traded is an advisory positive filter, NOT a cleanup/count
+    // search. The previous `"trade" in lower` substring matched the 'traded' token and
+    // fail-closed copy. Copy must stay enabled with a visible advisory.
+    @Test
+    fun `lucky and traded positive filters do not block copy`() {
+        assertTrue(ExpertCopyPolicy.canCopy("lucky,traded"))
+        assertTrue(ExpertCopyPolicy.canCopy("lucky&traded"))
+    }
+
+    @Test
+    fun `advisory risky positive filter does not block copy`() {
+        // shiny as a positive filter outside a cleanup/count context is advisory only.
+        assertTrue(ExpertCopyPolicy.canCopy("shiny"))
+        assertTrue(ExpertCopyPolicy.canCopy("legendary"))
+    }
+
+    @Test
+    fun `true error still blocks copy after fix 7`() {
+        // pipe is a true error.
+        assertFalse(ExpertCopyPolicy.canCopy("shiny|lucky"))
+        // bare count without mandatory exclusions is a true error.
+        assertFalse(ExpertCopyPolicy.canCopy("count2-"))
+        // risky inclusion in a count context is still a true error.
+        assertFalse(ExpertCopyPolicy.canCopy("count2-&shiny"))
+    }
 }
