@@ -26,6 +26,42 @@ class NavigationTest {
         assertEquals(GoalDetail("safe_cleanup"), homeGoalDestination("safe_cleanup"))
     }
 
+    // v0.5.2 (Fix 4): Knowledge Base navigation bug. The Home "Knowledge Base" card must
+    // open KnowledgeBase — NOT GoalDetail("knowledge") which the detail screen's unknown-goal
+    // fallback routed to Expert Builder. All non-goal Home cards are now explicitly mapped.
+    @Test
+    fun `home knowledge card opens knowledge base not a goal detail`() {
+        val destination = homeGoalDestination("knowledge")
+        assertTrue(
+            "Home Knowledge Base card must route to KnowledgeBase, got $destination",
+            destination is KnowledgeBase
+        )
+        assertEquals(KnowledgeBase(), destination)
+    }
+
+    @Test
+    fun `home favorites card opens favorites screen directly`() {
+        val destination = homeGoalDestination("favorites")
+        assertTrue(
+            "Home Favorites card must route to Favorites, got $destination",
+            destination is Favorites
+        )
+    }
+
+    @Test
+    fun `every home non-goal card maps to a non-goal-detail destination`() {
+        // The Home grid's non-detail cards. None of these may resolve to GoalDetail,
+        // otherwise the card opens the wrong screen (the original KB bug).
+        val nonGoalCards = listOf("expert", "presets", "knowledge", "favorites")
+        nonGoalCards.forEach { card ->
+            val dest = homeGoalDestination(card)
+            assertFalse(
+                "Home card '$card' must not resolve to GoalDetail (regression: would reopen wrong screen)",
+                dest is GoalDetail
+            )
+        }
+    }
+
     @Test
     fun `direct screenshot routes resolve and old review route falls back home`() {
         assertEquals(GoalDetail("safe_cleanup"), startDestination("detail_safe_cleanup", true))

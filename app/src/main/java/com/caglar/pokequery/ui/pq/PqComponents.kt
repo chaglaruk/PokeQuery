@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -57,6 +60,7 @@ import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.theme.TextTertiary
+import com.caglar.pokequery.theme.density.currentDensity
 
 /**
  * v0.5.0 Stitch design system — reusable Pq* primitives.
@@ -110,12 +114,14 @@ fun PqCard(
     // v0.5.1 (Fixes 2/3/4): Stack children vertically. The previous Box laid callers'
     // Spacers/Rows/cards on top of each other (z-axis), causing the text overlap, copy
     // button covering the query string, and Trade Fodder notes overlap observed on S25.
+    // v0.5.2 (Fix 6): card padding now follows the Visual Density tokens.
+    val density = currentDensity()
     Column(
         modifier
             .clip(shape)
             .background(CardDark)
             .then(if (glow) Modifier.border(1.dp, TealPrimary.copy(alpha = 0.35f), shape) else Modifier.border(1.dp, borderColor, shape))
-            .padding(16.dp)
+            .padding(density.cardPadding)
     ) { content() }
 }
 
@@ -128,12 +134,14 @@ fun PqGlowCard(
     val shape = RoundedCornerShape(20.dp)
     // v0.5.1 (Fix 3): vertical stacking so the result block hierarchy (badge -> string box
     // -> copy button) lays out top-to-bottom instead of overlapping.
+    // v0.5.2 (Fix 6): card padding now follows the Visual Density tokens.
+    val density = currentDensity()
     Column(
         modifier
             .clip(shape)
             .background(Brush.verticalGradient(listOf(CardPremium, CardDark)))
             .border(1.dp, accent.copy(alpha = 0.45f), shape)
-            .padding(16.dp)
+            .padding(density.glowCardPadding)
     ) { content() }
 }
 
@@ -187,13 +195,15 @@ fun PqChip(
     onClick: (() -> Unit)? = null,
     accent: Color = TealPrimary
 ) {
+    // v0.5.2 (Fix 6): chip padding follows the Visual Density tokens.
+    val density = currentDensity()
     val shape = RoundedCornerShape(50)
     val mod = Modifier
         .clip(shape)
         .background(if (selected) accent.copy(alpha = 0.18f) else CardPremium)
         .border(1.dp, if (selected) accent else BorderSubtle, shape)
         .let { if (onClick != null) it.clickable { onClick() } else it }
-        .padding(horizontal = 12.dp, vertical = 7.dp)
+        .padding(horizontal = density.chipPaddingHorizontal, vertical = density.chipPaddingVertical)
     Box(mod) {
         Text(text, color = if (selected) accent else TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
     }
@@ -297,6 +307,9 @@ fun PqTrustChip(label: String) {
 
 @Composable
 fun PqStringBox(text: String, accent: Color = TealPrimary, modifier: Modifier = Modifier) {
+    // v0.5.2 (Fix 6): the generated-string box scales its font slightly with Visual Density
+    // (Compact shrinks to ~0.96x, clamped to a readable floor) so Compact shows more text.
+    val density = currentDensity()
     Box(
         modifier
             .fillMaxWidth()
@@ -309,13 +322,72 @@ fun PqStringBox(text: String, accent: Color = TealPrimary, modifier: Modifier = 
             text,
             color = TealPrimary,
             fontFamily = FontFamily.Monospace,
-            fontSize = 14.sp,
-            lineHeight = 20.sp
+            fontSize = density.bodySize(14f),
+            lineHeight = density.bodySize(20f)
         )
     }
 }
 
 // ---------- Section header ----------
+
+/**
+ * v0.5.2 (Fix 2 + Fix 3): the canonical PokeQuery wordmark, shared by onboarding and Home.
+ *
+ * Replaces the raster `logo_wordmark_source.webp` (which rendered as an opaque black block
+ * because the WebP carried a solid background) with a pure vector treatment drawn in the
+ * brand language: white "Poke" + electric-cyan "Query", heavy weight, a soft shadow for logo
+ * depth, and a spark accent over the 'Q'. Original artwork — no Pokémon font, colors, layout,
+ * Poké Ball, or creatures. Both screens now share ONE definition, so the wordmark is
+ * consistent everywhere instead of diverging between onboarding and Home.
+ *
+ * @param fontSize  wordmark size.
+ * @param centered  horizontally center the wordmark (used by the onboarding hero).
+ */
+@Composable
+fun PqWordmark(
+    modifier: Modifier = Modifier,
+    fontSize: androidx.compose.ui.unit.TextUnit = 30.sp,
+    centered: Boolean = false
+) {
+    val sparkSize = (fontSize.value * 0.55f).dp
+    val wordmark: @Composable () -> Unit = {
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                "Poke",
+                color = TextPrimary,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Black,
+                letterSpacing = (-0.5).sp,
+                modifier = Modifier.shadow(elevation = 4.dp, spotColor = Color.Black, ambientColor = Color.Black)
+            )
+            Box {
+                Text(
+                    "Query",
+                    color = TealPrimary,
+                    fontSize = fontSize,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = (-0.5).sp,
+                    modifier = Modifier.shadow(elevation = 4.dp, spotColor = Color.Black, ambientColor = Color.Black)
+                )
+                // Spark accent floating over the top-right of "Query".
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = CyanGlow,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 2.dp, y = (-6).dp)
+                        .size(sparkSize)
+                )
+            }
+        }
+    }
+    if (centered) {
+        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { wordmark() }
+    } else {
+        Box(modifier) { wordmark() }
+    }
+}
 
 @Composable
 fun PqSectionHeader(text: String, modifier: Modifier = Modifier) {

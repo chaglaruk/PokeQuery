@@ -42,9 +42,21 @@ fun startDestination(startRoute: String?, firstUseSeen: Boolean?): NavKey? = whe
     else -> Home
 }
 
+/**
+ * Resolves a Home card goalId to its real NavKey destination.
+ *
+ * v0.5.2 (Fix 4 — Knowledge Base navigation bug): the Home grid contains several cards
+ * that are NOT goal details (Knowledge Base, Expert Builder, Popular Presets,
+ * Favorites). Previously only "expert"/"presets" were mapped, so "knowledge" fell into
+ * the `else` branch and produced GoalDetail("knowledge"), which opened the Expert Builder
+ * via the detail screen's unknown-goal fallback. Now every non-detail Home card is mapped
+ * explicitly, and GoalDetail is reserved for genuine goal IDs.
+ */
 fun homeGoalDestination(goalId: String): NavKey = when (goalId) {
     "expert" -> ExpertBuilder
     "presets" -> Presets
+    "knowledge" -> KnowledgeBase()
+    "favorites" -> Favorites
     else -> GoalDetail(goalId)
 }
 

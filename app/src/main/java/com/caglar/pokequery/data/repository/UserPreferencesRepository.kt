@@ -29,6 +29,10 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val COPY_BEHAVIOR = stringPreferencesKey("copy_behavior")
         val GAME_LANGUAGE = stringPreferencesKey("game_language")
         val VISUAL_DENSITY = stringPreferencesKey("visual_density")
+        // v0.5.2 (Fix 7): two-layer localization. APP_LANGUAGE controls UI text only;
+        // GAME_LANGUAGE controls the generated Pokémon GO search strings only. They are
+        // independent — choosing a Turkish UI must NOT force Turkish search strings.
+        val APP_LANGUAGE = stringPreferencesKey("app_language")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data.map { preferences ->
@@ -40,6 +44,9 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             copyBehavior = preferences[COPY_BEHAVIOR] ?: "Confirm Risky Copy",
             gameLanguage = preferences[GAME_LANGUAGE] ?: "English",
             visualDensity = preferences[VISUAL_DENSITY] ?: "Comfortable",
+            // v0.5.2 (Fix 7): System Default = follow device locale for UI; empty/legacy
+            // values default to System Default (not Turkish) so we never surprise the user.
+            appLanguage = preferences[APP_LANGUAGE] ?: "System Default",
             favorites = readFavorites(preferences).sortedByDescending { it.createdAt },
             history = readHistory(preferences).sortedByDescending { it.createdAt }
         )
@@ -131,6 +138,8 @@ data class UserPreferences(
     val copyBehavior: String = "Confirm Risky Copy",
     val gameLanguage: String = "English",
     val visualDensity: String = "Comfortable",
+    // v0.5.2 (Fix 7): App UI language, independent from the search-string language.
+    val appLanguage: String = "System Default",
     val favorites: List<SavedTemplate>,
     val history: List<SavedTemplate> = emptyList()
 )

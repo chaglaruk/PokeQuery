@@ -3,6 +3,7 @@ package com.caglar.pokequery.ui.screens
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -57,6 +58,23 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
         item { ScreenTitleBar("Knowledge Base", onBack) }
+        // v0.5.2 (Fix 9): Turkish guardrail banner. Turkish tokens are beta/unverified; the
+        // "Language-sensitive" / "Beta" / "Risky" badges below come from the per-term metadata.
+        item {
+            val shape = RoundedCornerShape(14.dp)
+            Row(
+                Modifier.fillMaxWidth().clip(shape).background(AmberWarning.copy(alpha = 0.08f))
+                    .border(1.dp, AmberWarning.copy(alpha = 0.35f), shape).padding(12.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Box(Modifier.size(6.dp).background(AmberWarning, androidx.compose.foundation.shape.CircleShape))
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    "Turkish search tokens are BETA and language-sensitive. A wrong localized form can silently return no results. Verify in Pokémon GO before relying on a Turkish search.",
+                    color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp
+                )
+            }
+        }
         item {
             OutlinedTextField(
                 value = searchQuery,
@@ -183,6 +201,11 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Spacer(Modifier.height(10.dp))
                 Text("Visual Density", color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
+                Text(
+                    "Changes card padding, chip spacing and list gaps across the app. Comfortable is the default premium feel; Compact fits more on screen. Title sizes stay the same.",
+                    color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp
+                )
+                Spacer(Modifier.height(4.dp))
                 Row(Modifier.fillMaxWidth()) {
                     Box(Modifier.weight(1f)) { RadioRow("Comfortable", userPrefs?.visualDensity == "Comfortable") { scope.launch { repository.setSetting(UserPreferencesRepository.VISUAL_DENSITY, "Comfortable") } } }
                     Box(Modifier.weight(1f)) { RadioRow("Compact", userPrefs?.visualDensity == "Compact") { scope.launch { repository.setSetting(UserPreferencesRepository.VISUAL_DENSITY, "Compact") } } }
@@ -206,16 +229,41 @@ fun SettingsScreen(onBack: () -> Unit) {
             PremiumPanel(borderColor = TealPrimary) {
                 Text("Search & Language", color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
-                Text("Search Term Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Text("Applies language translations to generated strings.", color = TextSecondary, fontSize = 12.sp)
+
+                // v0.5.2 (Fix 7): LAYER A — App Language (UI text only).
+                // This controls the app interface text. It does NOT change the generated
+                // Pokémon GO search strings. The two layers are intentionally independent.
+                Text("App Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text("Controls the interface text. Does not change generated search strings.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
                 Spacer(Modifier.height(4.dp))
-                RadioRow("Auto (English — safe default)", userPrefs?.gameLanguage == "Auto" || userPrefs?.gameLanguage == null || userPrefs?.gameLanguage == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Auto") } }
-                RadioRow("English", userPrefs?.gameLanguage == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "English") } }
-                RadioRow("Turkish (Beta — verify before use)", userPrefs?.gameLanguage == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Turkish") } }
+                val appLang = userPrefs?.appLanguage ?: "System Default"
+                RadioRow("System Default", appLang == "System Default") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "System Default") } }
+                RadioRow("English", appLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "English") } }
+                RadioRow("Turkish", appLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Turkish") } }
                 Spacer(Modifier.height(6.dp))
-                // v0.4.2 (Fix 3): Turkish tokens are community-sourced and unverified.
                 Text(
-                    "Turkish search terms are beta. Please verify results in Pokémon GO before transferring or trading.",
+                    "App Language applies to this app only. Pokémon GO itself is not affected.",
+                    color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                // v0.5.2 (Fix 7): LAYER B — Search String Language (generated strings only).
+                // This controls the language of the text you paste into Pokémon GO. It is
+                // independent of App Language: a Turkish UI can still emit safe English
+                // strings, and vice-versa. Auto (Safe) stays English (conservative).
+                Text("Search String Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text("Controls the language of the generated search strings you copy into Pokémon GO.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+                Spacer(Modifier.height(4.dp))
+                val searchLang = userPrefs?.gameLanguage ?: "English"
+                val searchAuto = searchLang == "Auto" || searchLang.isBlank() || searchLang == "English"
+                RadioRow("Auto (Safe — English)", searchAuto) { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Auto") } }
+                RadioRow("English", searchLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "English") } }
+                RadioRow("Turkish (Beta — verify before use)", searchLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Turkish") } }
+                Spacer(Modifier.height(6.dp))
+                // v0.4.2 (Fix 3) / v0.5.2 (Fix 9): Turkish tokens are community-sourced and unverified.
+                Text(
+                    "Turkish search terms are beta. Please verify results in Pokémon GO before transferring or trading. Auto (Safe) never switches to Turkish automatically.",
                     color = AmberWarning,
                     fontSize = 12.sp,
                     lineHeight = 16.sp
@@ -284,9 +332,14 @@ fun SettingsScreen(onBack: () -> Unit) {
         item {
             // v0.5.0 Stitch: disabled "Coming Later" section. Explicitly unavailable to
             // maintain trust in the offline-first model. Never active, never networked.
+            // v0.5.2 (Fix 10): "AI Assistant" is documented as coming-later and is strictly
+            // non-functional — see docs/ai/AI_FEASIBILITY.md + AI_ASSISTANT_ROADMAP.md. The
+            // offline-first app remains unchanged.
             PremiumPanel {
                 Text("Coming Later", color = TextSecondary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
+                com.caglar.pokequery.ui.pq.PqComingLaterCard("AI Assistant", "Coming later · Not available yet. The offline-first app remains unchanged.")
+                Spacer(Modifier.height(8.dp))
                 com.caglar.pokequery.ui.pq.PqComingLaterCard("Cloud Sync", "Offline-first. No cloud sync exists today.")
                 Spacer(Modifier.height(8.dp))
                 com.caglar.pokequery.ui.pq.PqComingLaterCard("Community Preset Packs", "Shareable preset packs are not available yet.")

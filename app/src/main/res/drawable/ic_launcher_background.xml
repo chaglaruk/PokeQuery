@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  v0.5.2 (Fix 1): refreshed adaptive-icon background.
+
+  Deep-navy radial that matches the app's BackgroundDark (#0A0E1A) with a faint cyan glow
+  halo behind the shield, so the new foreground reads as premium and on-brand. No imagery.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
@@ -10,13 +16,14 @@
             <gradient
                 android:type="radial"
                 android:centerX="54"
-                android:centerY="48"
-                android:gradientRadius="78"
-                android:startColor="#0B3A72"
-                android:centerColor="#061B36"
-                android:endColor="#020812" />
+                android:centerY="50"
+                android:gradientRadius="74"
+                android:startColor="#0E2A4D"
+                android:centerColor="#091A30"
+                android:endColor="#070B16" />
         </aapt:attr>
     </path>
-    <path android:fillColor="#220D6EFD" android:pathData="M-5,77 C18,58 30,70 52,53 C74,36 89,43 115,22 L115,108 L-5,108 Z" />
-    <path android:strokeColor="#2A00E5FF" android:strokeWidth="1.2" android:fillColor="#00000000" android:pathData="M8,78 C26,63 40,70 56,55 C73,39 86,43 101,31" />
+    <!-- Faint cyan glow halo behind the shield. -->
+    <path android:fillColor="#1800E5FF" android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" />
+    <path android:fillColor="#0C00E5FF" android:pathData="M54,54m-30,0a30,30 0,1 1,60 0a30,30 0,1 1,-60 0" />
 </vector>

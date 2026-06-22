@@ -126,22 +126,39 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
 private fun OnboardingHeroPage() {
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.height(18.dp))
-        Image(
-            painter = painterResource(R.drawable.logo_wordmark_source),
-            contentDescription = "PokeQuery",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxWidth(0.6f).height(48.dp)
+        // v0.5.2 (Fix 2): use the vector PqWordmark instead of the raster logo_wordmark_source
+        // WebP, which rendered as an opaque black block. Same brand treatment as Home (Fix 3).
+        com.caglar.pokequery.ui.pq.PqWordmark(
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 34.sp,
+            centered = true
         )
         Spacer(Modifier.height(8.dp))
         Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 16.sp, textAlign = TextAlign.Center)
-        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp)) {
-            Image(
-                painter = painterResource(R.drawable.onboarding_hero_scene),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize()
-            )
-            Box(Modifier.matchParentSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, BackgroundDark))))
+        // v0.5.2 (Fix 2): hero no longer uses ContentScale.Crop on a fixed-height Box (which
+        // produced a square crop). It is shown with FillWidth inside a rounded, navy panel so
+        // the art composes edge-to-edge with the layout instead of looking like a cropped tile.
+        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(SlateBlack)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.onboarding_hero_scene),
+                    contentDescription = null,
+                    // FillWidth (not Crop) so the hero art keeps its proportions and fills the panel.
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                // Subtle navy fade at the bottom so the hero blends into the background.
+                Box(
+                    Modifier.matchParentSize().background(
+                        Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, BackgroundDark))
+                    )
+                )
+            }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             TrustFeature(Icons.Default.Search, "Powerful", "Searches", Modifier.weight(1f))

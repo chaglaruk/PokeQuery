@@ -1,6 +1,8 @@
 package com.caglar.pokequery.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,6 +28,9 @@ import androidx.compose.ui.graphics.Color
 import com.caglar.pokequery.data.repository.dataStore
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 data class Preset(
     val title: String,
@@ -69,68 +75,117 @@ fun PresetsScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val repository = androidx.compose.runtime.remember { com.caglar.pokequery.data.repository.UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
+    val language = userPrefs?.gameLanguage ?: "English"
+
+    // v0.5.2 (Fix 5): which preset is expanded for preview/customize/copy. Only one open at
+    // a time keeps the screen compact (less scrolling) while still showing the full string,
+    // warnings, and copy flow when a card is tapped.
+    var expandedTitle by remember { mutableStateOf<String?>(null) }
+
+    val grouped = POPULAR_PRESETS.groupBy { it.category }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
     ) {
-        item { ScreenTitleBar("Popular Presets", onBack, Modifier.padding(bottom = 8.dp)) }
-        val grouped = POPULAR_PRESETS.groupBy { it.category }
+        item {
+            ScreenTitleBar("Popular Presets", onBack, Modifier.padding(bottom = 4.dp))
+            Text(
+                "Tap a preset to preview, customize and copy. Risk badges show how careful to be.",
+                color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp
+            )
+        }
         grouped.forEach { (category, presets) ->
             item {
                 com.caglar.pokequery.ui.pq.PqSectionHeader(
                     category.uppercase(),
-                    Modifier.padding(top = 10.dp)
+                    Modifier.padding(top = 8.dp)
                 )
             }
-            items(presets) { preset ->
-                com.caglar.pokequery.ui.pq.PqCard {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(preset.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp, modifier = Modifier.weight(1f))
-                        com.caglar.pokequery.ui.pq.PqRiskBadge(preset.risk)
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(preset.description, color = TextSecondary, fontSize = 13.sp)
+            items(presets, key = { it.title }) { preset ->
+                CompactPresetCard(
+                    preset = preset,
+                    isExpanded = expandedTitle == preset.title,
+                    language = language,
+                    onToggle = { expandedTitle = if (expandedTitle == preset.title) null else preset.title },
+                    onCopy = onCopy,
+                    onNavigateRisk = onNavigateRisk
+                )
+            }
+        }
+    }
+}
 
-                    Spacer(modifier = Modifier.height(10.dp))
-                    com.caglar.pokequery.ui.pq.PqStringBox(preset.syntax)
+/**
+ * v0.5.2 (Fix 5): compact preset row. Collapsed = one-line title + risk badge + short
+ * purpose (fits several per screen, far less scrolling). Expanded = the preview string box,
+ * warnings, manual-review reminder, and Copy — the full preview/customize/copy flow, using
+ * the EXACT same StringBuilderEngine.buildString path and risk routing as before.
+ */
+@Composable
+private fun CompactPresetCard(
+    preset: Preset,
+    isExpanded: Boolean,
+    language: String,
+    onToggle: () -> Unit,
+    onCopy: (GeneratedString) -> Unit,
+    onNavigateRisk: (GeneratedString) -> Unit
+) {
+    val shape = RoundedCornerShape(14.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(CardDark)
+            .border(1.dp, BorderSubtle, shape)
+            .clickable(onClick = onToggle)
+            .padding(horizontal = 14.dp, vertical = 11.dp)
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(preset.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
+                Text(preset.description, color = TextSecondary, fontSize = 11.sp, maxLines = if (isExpanded) 3 else 1)
+            }
+            Spacer(Modifier.width(8.dp))
+            com.caglar.pokequery.ui.pq.PqRiskBadge(preset.risk)
+        }
 
-                    preset.warnings.forEach { warning ->
-                        Text("• $warning", color = AmberWarning, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
-                    }
-                    if (preset.risk == RiskLevel.Medium || preset.risk == RiskLevel.High) {
-                        Spacer(modifier = Modifier.height(6.dp))
-                        com.caglar.pokequery.ui.pq.PqManualReviewPanel("Review matches in Pokémon GO before transferring or trading.")
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Button(
-                        onClick = {
-                            val language = userPrefs?.gameLanguage ?: "English"
-                            val generated = StringBuilderEngine.buildString(
-                                baseQuery = preset.syntax,
-                                protections = emptyList(), // Built-in; preset safety contract tested.
-                                explanation = preset.description,
-                                riskLevel = preset.risk,
-                                goalId = "preset",
-                                title = preset.title,
-                                language = language
-                            )
-                            if (preset.risk == RiskLevel.High || preset.risk == RiskLevel.Medium) {
-                                onNavigateRisk(generated)
-                            } else {
-                                onCopy(generated)
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = androidx.compose.ui.graphics.Color(0xFF050709)),
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Copy", fontWeight = FontWeight.Bold)
-                    }
+        androidx.compose.animation.AnimatedVisibility(isExpanded) {
+            Column(Modifier.padding(top = 10.dp)) {
+                com.caglar.pokequery.ui.pq.PqStringBox(preset.syntax)
+                preset.warnings.forEach { warning ->
+                    Text("• $warning", color = AmberWarning, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+                }
+                if (preset.risk == RiskLevel.Medium || preset.risk == RiskLevel.High) {
+                    Spacer(Modifier.height(6.dp))
+                    com.caglar.pokequery.ui.pq.PqManualReviewPanel("Review matches in Pokémon GO before transferring or trading.")
+                }
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = {
+                        val generated = StringBuilderEngine.buildString(
+                            baseQuery = preset.syntax,
+                            protections = emptyList(), // Built-in; preset safety contract tested.
+                            explanation = preset.description,
+                            riskLevel = preset.risk,
+                            goalId = "preset",
+                            title = preset.title,
+                            language = language
+                        )
+                        if (preset.risk == RiskLevel.High || preset.risk == RiskLevel.Medium) {
+                            onNavigateRisk(generated)
+                        } else {
+                            onCopy(generated)
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = androidx.compose.ui.graphics.Color(0xFF050709)),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Preview & Copy", fontWeight = FontWeight.Bold)
                 }
             }
         }

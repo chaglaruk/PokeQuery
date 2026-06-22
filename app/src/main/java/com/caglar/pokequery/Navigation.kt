@@ -20,6 +20,8 @@ import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
+import com.caglar.pokequery.theme.density.DensityTokens
+import com.caglar.pokequery.theme.density.LocalDensityTokens
 import com.caglar.pokequery.ui.components.BottomNavBar
 import com.caglar.pokequery.ui.screens.*
 import kotlinx.coroutines.launch
@@ -37,6 +39,12 @@ fun MainNavigation(startRoute: String? = null) {
 
     val backStack = rememberNavBackStack(initialEntry)
     var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
+
+    // v0.5.2 (Fix 6): resolve Visual Density once from the live preference and provide the
+    // tokens to the whole UI. While the pref is still loading, default to Comfortable so the
+    // first frame matches the long-standing look (never Compact-by-accident).
+    val densityTokens = DensityTokens.resolve(userPrefs?.visualDensity)
+    androidx.compose.runtime.CompositionLocalProvider(LocalDensityTokens provides densityTokens) {
 
     fun copyGenerated(generated: GeneratedString) {
         clipboard.setText(AnnotatedString(generated.rawSyntax))
@@ -147,4 +155,5 @@ fun MainNavigation(startRoute: String? = null) {
             )
         }
     }
+    } // end CompositionLocalProvider
 }
