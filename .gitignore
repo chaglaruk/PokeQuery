@@ -21,3 +21,4 @@ keystore.properties
 *.p12
 *.pem
 *.key
+.agent-reference/
