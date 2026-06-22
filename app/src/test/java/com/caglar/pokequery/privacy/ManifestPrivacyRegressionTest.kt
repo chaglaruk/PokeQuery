@@ -87,4 +87,23 @@ class ManifestPrivacyRegressionTest {
             Regex("""allowBackup="false"""", RegexOption.IGNORE_CASE).containsMatchIn(manifest)
         )
     }
+
+    @Test
+    fun `dataExtractionRules is linked in manifest`() {
+        // API 31+ cloud-backup and device-transfer rules must be wired so the system reads them.
+        assertTrue(
+            "Expected android:dataExtractionRules=\"@xml/data_extraction_rules\" in manifest",
+            manifest.contains("dataExtractionRules", ignoreCase = true)
+        )
+    }
+
+    @Test
+    fun `fullBackupContent is linked in manifest`() {
+        // Pre-API-31 backup rules must be wired so the system reads them.
+        assertTrue(
+            "Expected android:fullBackupContent=\"@xml/backup_rules\" in manifest",
+            manifest.contains("fullBackupContent", ignoreCase = true)
+        )
+    }
 }
+
