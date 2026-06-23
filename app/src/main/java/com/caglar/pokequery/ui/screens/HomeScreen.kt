@@ -53,6 +53,7 @@ import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.theme.density.currentDensity
+import com.caglar.pokequery.ui.motion.PqMotionTokens
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqTrustChip
 
@@ -114,13 +115,17 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
             }
             homeGoals.chunked(2).forEachIndexed { rowIndex, row ->
                 item {
-                    // Only the first two rows (4 cards) get a stagger index; the rest appear at rest,
-                    // so scrolling further down never triggers a late cascade (refinement #2).
-                    val staggerIndex = if (rowIndex < 2) 2 + rowIndex else -1
+                    // v0.5.4 (Fix 3): EVERY goal row animates once on the screen entrance, not
+                    // just the first two. Each row gets a stable stagger index (header=0, chips=1,
+                    // rows start at 2) capped at MAX_STAGGER_INDEX so the cascade stays subtle and
+                    // rows beyond the cap share the final (longest) delay. The screen-level `visible`
+                    // flag flips once and never resets, so scrolling never replays the entrance
+                    // (C1); an item composed after entrance animates instantly to its at-rest state.
+                    val staggerIndex = (2 + rowIndex).coerceAtMost(PqMotionTokens.MAX_STAGGER_INDEX)
                     Row(
                         Modifier.fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = (density.listGap.value / 2).dp)
-                            .then(if (staggerIndex >= 0) Modifier.pqStaggeredItem(visible, staggerIndex) else Modifier),
+                            .pqStaggeredItem(visible, staggerIndex),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         row.forEach { goal ->

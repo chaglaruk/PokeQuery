@@ -548,10 +548,13 @@ fun PqComingLaterCard(title: String, description: String) {
 // ---------- Manual review panel ----------
 
 @Composable
-fun PqManualReviewPanel(text: String = "This is a review aid only. Always inspect matches in Pokémon GO before transferring or trading.") {
+fun PqManualReviewPanel(
+    modifier: Modifier = Modifier,
+    text: String = "This is a review aid only. Always inspect matches in Pokémon GO before transferring or trading."
+) {
     val shape = RoundedCornerShape(14.dp)
     Row(
-        Modifier.fillMaxWidth().clip(shape).background(GoldCaution.copy(alpha = 0.08f))
+        modifier.fillMaxWidth().clip(shape).background(GoldCaution.copy(alpha = 0.08f))
             .border(1.dp, GoldCaution.copy(alpha = 0.35f), shape).padding(12.dp),
         verticalAlignment = Alignment.Top
     ) {

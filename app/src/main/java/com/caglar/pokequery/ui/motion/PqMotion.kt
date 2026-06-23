@@ -64,9 +64,9 @@ object PqMotionTokens {
     const val MAX_STAGGER_INDEX = 6   // beyond this, items appear without further delay
 
     /** Icon spring-pop. Subtle overshoot — never cartoonish. */
-    const val ICON_POP_FROM = 0.88f
+    const val ICON_POP_FROM = 0.92f
     val iconSpring: FiniteAnimationSpec<Float> = spring(
-        dampingRatio = 0.72f,            // gently under-damped → one small overshoot, settles fast
+        dampingRatio = 0.80f,            // near-critical → minimal overshoot, settles fast and quiet
         stiffness = Spring.StiffnessMediumLow
     )
 

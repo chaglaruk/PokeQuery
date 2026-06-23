@@ -186,7 +186,7 @@ fun GoalDetailScreen(
 
             // Manual review reminder (always present for actionable goals).
             if (generatedString.riskLevel != RiskLevel.Info) {
-                PqManualReviewPanel()
+                PqManualReviewPanel(modifier = Modifier.pqStaggeredItem(visible, 3))
                 Spacer(Modifier.height(18.dp))
             }
 
@@ -211,8 +211,8 @@ fun GoalDetailScreen(
             // Protected categories chips (when relevant).
             if (generatedString.protectedCategories.isNotEmpty()) {
                 Spacer(Modifier.height(18.dp))
-                PqSectionHeader("PROTECTED")
-                PqCard {
+                PqSectionHeader("PROTECTED", Modifier.pqStaggeredItem(visible, 4))
+                PqCard(modifier = Modifier.pqStaggeredItem(visible, 4)) {
                     Text(
                         generatedString.protectedCategories.joinToString("  ") { "!$it" },
                         color = TealPrimary, fontSize = 12.sp
@@ -223,8 +223,8 @@ fun GoalDetailScreen(
             // Warnings (goal-specific, e.g. count caveat).
             if (generatedString.warnings.isNotEmpty()) {
                 Spacer(Modifier.height(18.dp))
-                PqSectionHeader("NOTES")
-                PqCard {
+                PqSectionHeader("NOTES", Modifier.pqStaggeredItem(visible, 5))
+                PqCard(modifier = Modifier.pqStaggeredItem(visible, 5)) {
                     // v0.5.1 (Fix 4): explicit vertical spacing between note rows so the
                     // Trade Fodder card (count caveat + trade disclaimer) no longer overlaps.
                     generatedString.warnings.forEachIndexed { index, warning ->
@@ -236,8 +236,8 @@ fun GoalDetailScreen(
 
             // DETAILS block: explanation.
             Spacer(Modifier.height(18.dp))
-            PqSectionHeader("DETAILS")
-            PqCard {
+            PqSectionHeader("DETAILS", Modifier.pqStaggeredItem(visible, 6))
+            PqCard(modifier = Modifier.pqStaggeredItem(visible, 6)) {
                 Text(generatedString.plainLanguageExplanation, color = TextSecondary, fontSize = 13.sp, lineHeight = 19.sp)
             }
             Spacer(Modifier.height(24.dp))

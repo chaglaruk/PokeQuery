@@ -164,7 +164,7 @@ private fun CompactPresetCard(
                 }
                 if (preset.risk == RiskLevel.Medium || preset.risk == RiskLevel.High) {
                     Spacer(Modifier.height(6.dp))
-                    com.caglar.pokequery.ui.pq.PqManualReviewPanel("Review matches in Pokémon GO before transferring or trading.")
+                    com.caglar.pokequery.ui.pq.PqManualReviewPanel(text = "Review matches in Pokémon GO before transferring or trading.")
                 }
                 Spacer(Modifier.height(10.dp))
                 com.caglar.pokequery.ui.pq.PqPrimaryButton(

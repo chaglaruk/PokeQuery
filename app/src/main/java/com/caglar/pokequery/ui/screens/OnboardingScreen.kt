@@ -54,7 +54,7 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
                 TextButton(onClick = onStart) { Text("Skip", color = TextSecondary, fontWeight = FontWeight.Bold) }
             }
 
-            HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
+            HorizontalPager(state = pagerState, modifier = Modifier.weight(1f).fillMaxWidth()) { page ->
                 // Package 3: pages 1 (paste flow) and 2 (risk legend) come from the tested
                 // OnboardingContent model. Pages 0/3/4 keep their original rich layouts.
                 when (page) {
@@ -149,12 +149,13 @@ private fun OnboardingHeroPage() {
             textAlign = TextAlign.Center,
             modifier = Modifier.pqStaggeredItem(visible, 0)
         )
-        // v0.5.2 (Fix 2): hero no longer uses ContentScale.Crop on a fixed-height Box (which
-        // produced a square crop). It is shown with FillWidth inside a rounded, navy panel so
-        // the art composes edge-to-edge with the layout instead of looking like a cropped tile.
+        // v0.5.4 (Fix 1): the hero is now a real WIDE asset (onboarding_hero_wide, 3:2) rendered
+        // with ContentScale.Crop in an edge-to-edge rounded panel — not the square
+        // onboarding_hero_scene tile it replaced. The panel keeps a navy background as a fallback
+        // under any letterboxing, and a bottom fade blends the art into the page background.
         // `.weight()` is a ColumnScope call, so it is applied first; the motion modifiers follow.
         Box(
-            Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp)
+            Modifier.weight(1f).fillMaxWidth()
                 .pqStaggeredItem(visible, 1)
                 .pqSpringPop(visible),
             contentAlignment = Alignment.Center
@@ -166,10 +167,11 @@ private fun OnboardingHeroPage() {
                     .background(SlateBlack)
             ) {
                 Image(
-                    painter = painterResource(R.drawable.onboarding_hero_scene),
+                    painter = painterResource(R.drawable.onboarding_hero_wide),
                     contentDescription = null,
-                    // FillWidth (not Crop) so the hero art keeps its proportions and fills the panel.
-                    contentScale = ContentScale.FillWidth,
+                    // Crop (not FillWidth) so the wide art fills the panel edge-to-edge at any
+                    // aspect ratio, matching the rest of the onboarding card treatment.
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth()
                 )
                 // Subtle navy fade at the bottom so the hero blends into the background.
