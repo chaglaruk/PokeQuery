@@ -27,6 +27,7 @@ def check_runtime_assets():
         'nundo_header.webp',
         'onboarding_hero.webp',
         'onboarding_hero_scene.webp',
+        'onboarding_hero_wide.webp',
         'pvp_header.webp',
         'safe_cleanup_header.webp',
         'trade_fodder_header.webp',

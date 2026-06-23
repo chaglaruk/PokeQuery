@@ -38,6 +38,8 @@ import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.theme.*
 import com.caglar.pokequery.ui.components.*
+import com.caglar.pokequery.ui.motion.pqSpringPop
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,18 +54,21 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
 
     LaunchedEffect(Unit) { result = repository.load() }
 
+    // v0.5.3 motion polish: staggered entrance — title bar + banner fade in first; list rows
+    // appear at rest (no cascade while scrolling). One hoisted flag → runs once only.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
-        item { ScreenTitleBar("Knowledge Base", onBack) }
+        item { ScreenTitleBar("Knowledge Base", onBack, Modifier.pqStaggeredItem(visible, 0)) }
         // v0.5.2 (Fix 9): Turkish guardrail banner. Turkish tokens are beta/unverified; the
         // "Language-sensitive" / "Beta" / "Risky" badges below come from the per-term metadata.
         item {
             val shape = RoundedCornerShape(14.dp)
             Row(
-                Modifier.fillMaxWidth().clip(shape).background(AmberWarning.copy(alpha = 0.08f))
+                Modifier.fillMaxWidth().pqStaggeredItem(visible, 1).clip(shape).background(AmberWarning.copy(alpha = 0.08f))
                     .border(1.dp, AmberWarning.copy(alpha = 0.35f), shape).padding(12.dp),
                 verticalAlignment = Alignment.Top
             ) {
@@ -139,6 +144,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
             }
         }
     }
+    }
 }
 
 @Composable
@@ -188,12 +194,15 @@ fun SettingsScreen(onBack: () -> Unit) {
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
 
+    // v0.5.3 motion polish: staggered entrance — title bar + first panel fade in; subsequent
+    // panels appear at rest (no cascade while scrolling). One hoisted flag → runs once only.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         contentPadding = PaddingValues(bottom = 22.dp)
     ) {
-        item { ScreenTitleBar("Settings", onBack) }
+        item { ScreenTitleBar("Settings", onBack, Modifier.pqStaggeredItem(visible, 0)) }
 
         item {
             PremiumPanel {
@@ -243,13 +252,19 @@ fun SettingsScreen(onBack: () -> Unit) {
                 RadioRow("System Default", appLang == "System Default") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "System Default") } }
                 RadioRow("English", appLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "English") } }
                 RadioRow("Turkish", appLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Turkish") } }
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
                     "App Language applies to this app only. Pokémon GO itself is not affected.",
                     color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp
                 )
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 2.dp),
+                    thickness = 1.dp,
+                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.08f)
+                )
+                Spacer(Modifier.height(12.dp))
 
                 // v0.5.2 (Fix 7): LAYER B — Search String Language (generated strings only).
                 // This controls the language of the text you paste into Pokémon GO. It is
@@ -258,12 +273,18 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Text("Search String Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Text("Controls the language of the generated search strings you copy into Pokémon GO.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
                 Spacer(Modifier.height(4.dp))
-                val searchLang = userPrefs?.gameLanguage ?: "English"
-                val searchAuto = searchLang == "Auto" || searchLang.isBlank() || searchLang == "English"
+                // v0.5.4 (Fix 5): exactly one Search String Language option may be selected.
+                // Previously the Auto predicate also matched "English" (conflating the
+                // generation-time invariant "Auto resolves to English" with UI selection
+                // state), so choosing English lit both Auto and English. Auto is now selected
+                // ONLY when the stored value is "Auto" (or blank/unset). English and Turkish
+                // are exact equality, matching the (working) App Language pattern above.
+                val searchLang = userPrefs?.gameLanguage ?: "Auto"
+                val searchAuto = searchLang == "Auto" || searchLang.isBlank()
                 RadioRow("Auto (Safe — English)", searchAuto) { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Auto") } }
                 RadioRow("English", searchLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "English") } }
                 RadioRow("Turkish (Beta — verify before use)", searchLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Turkish") } }
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(10.dp))
                 // v0.4.2 (Fix 3) / v0.5.2 (Fix 9): Turkish tokens are community-sourced and unverified.
                 Text(
                     "Turkish search terms are beta. Please verify results in Pokémon GO before transferring or trading. Auto (Safe) never switches to Turkish automatically.",
@@ -394,6 +415,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         }
     }
+    }
 }
 
 @Composable
@@ -481,25 +503,33 @@ private fun SavedTemplateScreen(
     onCopy: (SavedTemplate) -> Unit,
     onDelete: ((SavedTemplate) -> Unit)? = null
 ) {
+    // v0.5.3 motion polish: staggered entrance — title bar fades in first. Empty-state icon gets
+    // a subtle spring-pop. List rows appear at rest (no cascade while scrolling).
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
-        item { ScreenTitleBar(title, onBack) }
+        item { ScreenTitleBar(title, onBack, Modifier.pqStaggeredItem(visible, 0)) }
         when {
             templates == null -> item { CircularProgressIndicator(color = TealPrimary, modifier = Modifier.padding(20.dp)) }
             templates.isEmpty() -> item {
-                com.caglar.pokequery.ui.pq.PqEmptyState(
-                    icon = androidx.compose.material.icons.Icons.Default.Star,
-                    title = emptyTitle,
-                    subtitle = emptySubtitle
-                )
+                androidx.compose.foundation.layout.Box(
+                    Modifier.pqStaggeredItem(visible, 1).pqSpringPop(visible)
+                ) {
+                    com.caglar.pokequery.ui.pq.PqEmptyState(
+                        icon = androidx.compose.material.icons.Icons.Default.Star,
+                        title = emptyTitle,
+                        subtitle = emptySubtitle
+                    )
+                }
             }
             else -> items(templates, key = { it.id }) { template ->
                 SavedTemplateRow(template, onCopy = { onCopy(template) }, onDelete = onDelete?.let { { it(template) } })
             }
         }
+    }
     }
 }
 
@@ -515,12 +545,13 @@ private fun SavedTemplateRow(template: SavedTemplate, onCopy: () -> Unit, onDele
         }
         Spacer(Modifier.height(10.dp))
         com.caglar.pokequery.ui.pq.PqStringBox(template.rawSyntax)
-        Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-            Button(onClick = onCopy, colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = androidx.compose.ui.graphics.Color(0xFF050709)), shape = RoundedCornerShape(12.dp)) {
-                Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(if (onDelete == null) "Copy again" else "Copy")
-            }
+        Spacer(Modifier.height(14.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            com.caglar.pokequery.ui.pq.PqPrimaryButton(
+                text = if (onDelete == null) "Copy again" else "Copy",
+                onClick = onCopy,
+                leadingIcon = Icons.Default.ContentCopy
+            )
             if (onDelete != null) {
                 Spacer(Modifier.width(8.dp))
                 IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = CoralDanger) }

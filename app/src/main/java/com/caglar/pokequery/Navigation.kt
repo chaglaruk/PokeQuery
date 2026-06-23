@@ -23,6 +23,8 @@ import com.caglar.pokequery.domain.engine.StringBuilderEngine
 import com.caglar.pokequery.theme.density.DensityTokens
 import com.caglar.pokequery.theme.density.LocalDensityTokens
 import com.caglar.pokequery.ui.components.BottomNavBar
+import com.caglar.pokequery.ui.motion.PqMotionTokens
+import com.caglar.pokequery.ui.motion.ProvidePqMotion
 import com.caglar.pokequery.ui.screens.*
 import kotlinx.coroutines.launch
 
@@ -44,6 +46,10 @@ fun MainNavigation(startRoute: String? = null) {
     // tokens to the whole UI. While the pref is still loading, default to Comfortable so the
     // first frame matches the long-standing look (never Compact-by-accident).
     val densityTokens = DensityTokens.resolve(userPrefs?.visualDensity)
+    // v0.5.3 motion polish: provide the resolved reduced-motion state + tokens to the whole UI.
+    // ProvidePqMotion resolves the OS animation scale ONCE (read-only, cached) — never writes a
+    // setting, never recreates the Activity, no repeated system reads. See ui/motion/ReduceMotion.
+    ProvidePqMotion {
     androidx.compose.runtime.CompositionLocalProvider(LocalDensityTokens provides densityTokens) {
 
     fun copyGenerated(generated: GeneratedString) {
@@ -66,13 +72,16 @@ fun MainNavigation(startRoute: String? = null) {
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            // By omitting custom animators that scale awkwardly, we get a clean fade/slide default from NavDisplay
+            // v0.5.3 motion polish: smooth PURE crossfade between destinations (no vertical slide).
+            // Subtlety over visible motion — a slide was deliberately NOT added (the reference app
+            // has more motion, but PokeQuery stays premium/utility-like). Durations centralized in
+            // PqMotionTokens so the "reduce until premium" dial lives in one place.
             NavDisplay(
                 backStack = backStack,
                 onBack = { backStack.removeLastOrNull() },
-                transitionSpec = { fadeIn(tween(140)) togetherWith fadeOut(tween(100)) },
-                popTransitionSpec = { fadeIn(tween(140)) togetherWith fadeOut(tween(100)) },
-                predictivePopTransitionSpec = { _ -> fadeIn(tween(140)) togetherWith fadeOut(tween(100)) },
+                transitionSpec = { fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
+                popTransitionSpec = { fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
+                predictivePopTransitionSpec = { _ -> fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
                 entryProvider = entryProvider {
                     entry<Onboarding> { route ->
                         val scope = rememberCoroutineScope()
@@ -156,4 +165,5 @@ fun MainNavigation(startRoute: String? = null) {
         }
     }
     } // end CompositionLocalProvider
+    } // end ProvidePqMotion
 }

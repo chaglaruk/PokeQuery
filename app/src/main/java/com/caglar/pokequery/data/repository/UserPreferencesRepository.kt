@@ -42,7 +42,11 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             duplicateThreshold = preferences[DUPLICATE_THRESHOLD] ?: "Count 3 (Safe)",
             safetyStyle = preferences[SAFETY_STYLE] ?: "Conservative",
             copyBehavior = preferences[COPY_BEHAVIOR] ?: "Confirm Risky Copy",
-            gameLanguage = preferences[GAME_LANGUAGE] ?: "English",
+            // v0.5.4 (Fix 5): default Search String Language is "Auto" (Safe — English) to
+            // match LocalizationModel.SearchStringLanguage.DEFAULT. Was "English", which kept
+            // the selection correct but diverged from the documented model default. Output is
+            // unchanged: SearchTermMapper resolves Auto -> English at generation time.
+            gameLanguage = preferences[GAME_LANGUAGE] ?: "Auto",
             visualDensity = preferences[VISUAL_DENSITY] ?: "Comfortable",
             // v0.5.2 (Fix 7): System Default = follow device locale for UI; empty/legacy
             // values default to System Default (not Turkish) so we never surprise the user.
@@ -136,7 +140,8 @@ data class UserPreferences(
     val duplicateThreshold: String = "Count 3 (Safe)",
     val safetyStyle: String = "Conservative",
     val copyBehavior: String = "Confirm Risky Copy",
-    val gameLanguage: String = "English",
+    // v0.5.4 (Fix 5): align with LocalizationModel.SearchStringLanguage.DEFAULT (Auto).
+    val gameLanguage: String = "Auto",
     val visualDensity: String = "Comfortable",
     // v0.5.2 (Fix 7): App UI language, independent from the search-string language.
     val appLanguage: String = "System Default",

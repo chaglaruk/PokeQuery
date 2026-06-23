@@ -53,6 +53,8 @@ import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.theme.density.currentDensity
+import com.caglar.pokequery.ui.motion.PqMotionTokens
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqTrustChip
 
 // v0.5.0 Stitch Home: header + 3 trust chips (horizontal scroll) + 2-col goal grid.
@@ -85,18 +87,25 @@ private val homeGoals = listOf(
 fun HomeScreen(onGoalSelected: (String) -> Unit) {
     // v0.5.2 (Fix 6): goal-grid vertical gaps and trust-chip spacing follow Visual Density.
     val density = currentDensity()
+    // v0.5.3 motion polish: staggered entrance driven by ONE hoisted `visible` flag. Per C1,
+    // only the header + first couple of goal rows (the part painted on the first frame) are
+    // tagged — rows that first compose after the entrance is complete animate instantly from
+    // rest, so scrolling never replays the cascade. The top-level `pqStaggeredItem(visible, i)`
+    // modifier works inside LazyColumn item blocks without a scope receiver.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Scaffold(containerColor = BackgroundDark) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            item { HomeHeader() }
+            item { HomeHeader(Modifier.pqStaggeredItem(visible, 0)) }
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                        .pqStaggeredItem(visible, 1),
                     horizontalArrangement = Arrangement.spacedBy(density.chipSpacing)
                 ) {
                     PqTrustChip("Offline-First")
@@ -104,10 +113,19 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
                     PqTrustChip("No Tracking")
                 }
             }
-            homeGoals.chunked(2).forEach { row ->
+            homeGoals.chunked(2).forEachIndexed { rowIndex, row ->
                 item {
+                    // v0.5.4 (Fix 3): EVERY goal row animates once on the screen entrance, not
+                    // just the first two. Each row gets a stable stagger index (header=0, chips=1,
+                    // rows start at 2) capped at MAX_STAGGER_INDEX so the cascade stays subtle and
+                    // rows beyond the cap share the final (longest) delay. The screen-level `visible`
+                    // flag flips once and never resets, so scrolling never replays the entrance
+                    // (C1); an item composed after entrance animates instantly to its at-rest state.
+                    val staggerIndex = (2 + rowIndex).coerceAtMost(PqMotionTokens.MAX_STAGGER_INDEX)
                     Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = (density.listGap.value / 2).dp),
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = (density.listGap.value / 2).dp)
+                            .pqStaggeredItem(visible, staggerIndex),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         row.forEach { goal ->
@@ -119,14 +137,15 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
             }
         }
     }
+    }
 }
 
 @Composable
-private fun HomeHeader() {
+private fun HomeHeader(entranceModifier: Modifier = Modifier) {
     // v0.5.2 (Fix 3): Home now uses the SAME vector PqWordmark as onboarding, so the brand
     // logo is consistent across the two screens instead of diverging. Original artwork — no
     // Pokémon logo font, colors, Poké Ball, or creatures.
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 6.dp)) {
+    Column(Modifier.fillMaxWidth().then(entranceModifier).padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 6.dp)) {
         com.caglar.pokequery.ui.pq.PqWordmark(fontSize = 30.sp)
         Spacer(Modifier.height(6.dp))
         Text("Build safer search strings for Pokémon GO", color = TextSecondary, fontSize = 14.sp)

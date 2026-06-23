@@ -32,6 +32,8 @@ import com.caglar.pokequery.theme.CoralDanger
 import com.caglar.pokequery.theme.GoldCaution
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
+import com.caglar.pokequery.ui.motion.pqSpringPop
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqPrimaryButton
 import com.caglar.pokequery.ui.pq.PqSecondaryButton
 
@@ -51,38 +53,55 @@ fun RiskWarningScreen(
         else -> GoldCaution
     }
 
+    // v0.5.3 motion polish: staggered entrance. The risk icon gets a subtle spring-pop
+    // (illustration only); title/explanation/buttons fade+slide. One hoisted flag → once only.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Column(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Box(
-            Modifier.size(84.dp).clip(RoundedCornerShape(22.dp)).background(riskColor.copy(alpha = 0.18f)),
+            Modifier.size(84.dp).clip(RoundedCornerShape(22.dp)).background(riskColor.copy(alpha = 0.18f))
+                .pqStaggeredItem(visible, 0)
+                .pqSpringPop(visible),
             contentAlignment = Alignment.Center
         ) {
             Icon(Icons.Default.Warning, contentDescription = "Warning", tint = riskColor, modifier = Modifier.size(46.dp))
         }
         Spacer(Modifier.height(18.dp))
-        Text("${generatedString.riskLevel} Risk", color = riskColor, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+        Text(
+            "${generatedString.riskLevel} Risk",
+            color = riskColor,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.pqStaggeredItem(visible, 1)
+        )
         Spacer(Modifier.height(14.dp))
         Text(
             "Review the search and its warnings before copying. PokeQuery only creates text — always inspect matches in Pokémon GO before acting.",
             color = TextSecondary,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = 12.dp).pqStaggeredItem(visible, 1)
         )
         Spacer(Modifier.height(14.dp))
         // Goal-specific explanation surface (includes Turkish caution if relevant).
         Box(
             Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(CardDark)
                 .padding(14.dp)
+                .pqStaggeredItem(visible, 2)
         ) {
             Text(goalMessage, color = TextPrimary, fontSize = 13.sp, lineHeight = 19.sp)
         }
         Spacer(Modifier.height(28.dp))
-        PqPrimaryButton(text = "Accept & Copy", onClick = onConfirmCopy)
+        Box(Modifier.pqStaggeredItem(visible, 3)) {
+            PqPrimaryButton(text = "Accept & Copy", onClick = onConfirmCopy)
+        }
         Spacer(Modifier.height(10.dp))
-        PqSecondaryButton(text = "Review Query", onClick = onBack)
+        Box(Modifier.pqStaggeredItem(visible, 4)) {
+            PqSecondaryButton(text = "Review Query", onClick = onBack)
+        }
+    }
     }
 }
