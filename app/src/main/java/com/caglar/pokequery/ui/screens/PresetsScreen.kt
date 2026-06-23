@@ -26,6 +26,7 @@ import com.caglar.pokequery.ui.components.ScreenTitleBar
 import com.caglar.pokequery.ui.components.RiskBadge
 import androidx.compose.ui.graphics.Color
 import com.caglar.pokequery.data.repository.dataStore
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,13 +85,16 @@ fun PresetsScreen(
 
     val grouped = POPULAR_PRESETS.groupBy { it.category }
 
+    // v0.5.3 motion polish: staggered entrance — title bar fades in first; preset cards appear
+    // at rest (no cascade while scrolling). One hoisted flag → runs once only.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
     ) {
         item {
-            ScreenTitleBar("Popular Presets", onBack, Modifier.padding(bottom = 4.dp))
+            ScreenTitleBar("Popular Presets", onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
             Text(
                 "Tap a preset to preview, customize and copy. Risk badges show how careful to be.",
                 color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp
@@ -114,6 +118,7 @@ fun PresetsScreen(
                 )
             }
         }
+    }
     }
 }
 
@@ -162,7 +167,9 @@ private fun CompactPresetCard(
                     com.caglar.pokequery.ui.pq.PqManualReviewPanel("Review matches in Pokémon GO before transferring or trading.")
                 }
                 Spacer(Modifier.height(10.dp))
-                Button(
+                com.caglar.pokequery.ui.pq.PqPrimaryButton(
+                    text = "Preview & Copy",
+                    leadingIcon = Icons.Default.ContentCopy,
                     onClick = {
                         val generated = StringBuilderEngine.buildString(
                             baseQuery = preset.syntax,
@@ -178,15 +185,8 @@ private fun CompactPresetCard(
                         } else {
                             onCopy(generated)
                         }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = androidx.compose.ui.graphics.Color(0xFF050709)),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Preview & Copy", fontWeight = FontWeight.Bold)
-                }
+                    }
+                )
             }
         }
     }

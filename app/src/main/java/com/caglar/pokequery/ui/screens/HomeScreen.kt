@@ -53,6 +53,7 @@ import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.theme.density.currentDensity
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqTrustChip
 
 // v0.5.0 Stitch Home: header + 3 trust chips (horizontal scroll) + 2-col goal grid.
@@ -85,18 +86,25 @@ private val homeGoals = listOf(
 fun HomeScreen(onGoalSelected: (String) -> Unit) {
     // v0.5.2 (Fix 6): goal-grid vertical gaps and trust-chip spacing follow Visual Density.
     val density = currentDensity()
+    // v0.5.3 motion polish: staggered entrance driven by ONE hoisted `visible` flag. Per C1,
+    // only the header + first couple of goal rows (the part painted on the first frame) are
+    // tagged — rows that first compose after the entrance is complete animate instantly from
+    // rest, so scrolling never replays the cascade. The top-level `pqStaggeredItem(visible, i)`
+    // modifier works inside LazyColumn item blocks without a scope receiver.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Scaffold(containerColor = BackgroundDark) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            item { HomeHeader() }
+            item { HomeHeader(Modifier.pqStaggeredItem(visible, 0)) }
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                        .pqStaggeredItem(visible, 1),
                     horizontalArrangement = Arrangement.spacedBy(density.chipSpacing)
                 ) {
                     PqTrustChip("Offline-First")
@@ -104,10 +112,15 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
                     PqTrustChip("No Tracking")
                 }
             }
-            homeGoals.chunked(2).forEach { row ->
+            homeGoals.chunked(2).forEachIndexed { rowIndex, row ->
                 item {
+                    // Only the first two rows (4 cards) get a stagger index; the rest appear at rest,
+                    // so scrolling further down never triggers a late cascade (refinement #2).
+                    val staggerIndex = if (rowIndex < 2) 2 + rowIndex else -1
                     Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = (density.listGap.value / 2).dp),
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = (density.listGap.value / 2).dp)
+                            .then(if (staggerIndex >= 0) Modifier.pqStaggeredItem(visible, staggerIndex) else Modifier),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         row.forEach { goal ->
@@ -119,14 +132,15 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
             }
         }
     }
+    }
 }
 
 @Composable
-private fun HomeHeader() {
+private fun HomeHeader(entranceModifier: Modifier = Modifier) {
     // v0.5.2 (Fix 3): Home now uses the SAME vector PqWordmark as onboarding, so the brand
     // logo is consistent across the two screens instead of diverging. Original artwork — no
     // Pokémon logo font, colors, Poké Ball, or creatures.
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 6.dp)) {
+    Column(Modifier.fillMaxWidth().then(entranceModifier).padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 6.dp)) {
         com.caglar.pokequery.ui.pq.PqWordmark(fontSize = 30.sp)
         Spacer(Modifier.height(6.dp))
         Text("Build safer search strings for Pokémon GO", color = TextSecondary, fontSize = 14.sp)

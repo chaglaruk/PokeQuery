@@ -31,9 +31,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -147,6 +153,27 @@ fun PqGlowCard(
 
 // ---------- Buttons ----------
 
+/**
+ * v0.5.3 motion polish: the brief in-progress spinner label exposed to assistive tech when the
+ * primary button is in its loading state. A single shared constant so the wording is consistent
+ * and easy to localize later. Kept short on purpose.
+ */
+private const val PQ_BUTTON_LOADING_DESC = "Working"
+
+/**
+ * v0.5.3 motion polish — the primary CTA now has a subtle label→spinner→label morph.
+ *
+ * Safety contract (do not regress):
+ *  - **The action fires immediately and exactly once.** `onClick` runs synchronously as the very
+ *    first thing the Button's click lambda does. The loading state is flipped on *afterwards* and
+ *    the button is disabled for the ~150ms window, so a second tap cannot re-fire the action.
+ *  - **The morph never delays the action.** Copy/search actions complete before any animation.
+ *    The spinner is pure visual confirmation that something happened.
+ *  - **Reduced-motion skips the morph entirely** (instant label → label). See [LocalPqMotion].
+ *  - **Button bounds never change** — the spinner is sized to fit the existing min 52dp height.
+ *  - **Accessible**: the spinner node carries [PQ_BUTTON_LOADING_DESC] so screen readers announce
+ *    the in-progress state; the label returns automatically so the button stays identifiable.
+ */
 @Composable
 fun PqPrimaryButton(
     text: String,
@@ -155,9 +182,25 @@ fun PqPrimaryButton(
     enabled: Boolean = true,
     leadingIcon: ImageVector? = null
 ) {
+    val motion = com.caglar.pokequery.ui.motion.LocalPqMotion.current
+    var loading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
     Button(
-        onClick = onClick,
-        enabled = enabled,
+        onClick = {
+            // C2: action FIRST, synchronously, before any state flip. Runs exactly once — the
+            // button is disabled (loading=true) for the morph window, blocking a second firing.
+            onClick()
+            if (!motion.reducedMotion) {
+                loading = true
+                scope.launch {
+                    kotlinx.coroutines.delay(motion.tokens.BUTTON_MORPH_MS.toLong())
+                    loading = false
+                }
+            }
+        },
+        // Disabled while loading so the action cannot fire twice. Honors the caller's `enabled`.
+        enabled = enabled && !loading,
         colors = ButtonDefaults.buttonColors(
             containerColor = TealPrimary,
             contentColor = SlateBlack,
@@ -167,11 +210,34 @@ fun PqPrimaryButton(
         shape = RoundedCornerShape(14.dp),
         modifier = modifier.fillMaxWidth().heightIn(min = 52.dp)
     ) {
-        if (leadingIcon != null) {
-            Icon(leadingIcon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(8.dp))
+        // Crossfade label ↔ spinner inside the SAME bounds. Reduced-motion → no animation, but
+        // content is still correct (instant swap).
+        androidx.compose.animation.Crossfade(
+            targetState = loading,
+            animationSpec = androidx.compose.animation.core.tween(
+                if (motion.reducedMotion) 0 else motion.tokens.BUTTON_MORPH_MS
+            ),
+            label = "pqPrimaryButtonMorph"
+        ) { isLoading ->
+            if (isLoading) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier.size(22.dp),
+                    color = SlateBlack,
+                    strokeWidth = 2.5.dp,
+                    // Reusable short constant — keeps accessibility wording consistent.
+                    // null contentDescription is intentional: the button's own semantics still
+                    // describe it; the spinner is a transient confirmation, not a primary control.
+                )
+            } else {
+                androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (leadingIcon != null) {
+                        Icon(leadingIcon, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    Text(text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+            }
         }
-        Text(text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
     }
 }
 

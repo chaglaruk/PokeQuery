@@ -45,6 +45,7 @@ import com.caglar.pokequery.theme.GoldCaution
 import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqChip
 import com.caglar.pokequery.ui.pq.PqPrimaryButton
 import com.caglar.pokequery.ui.pq.PqSectionHeader
@@ -75,10 +76,13 @@ fun ExpertBuilderScreen(
     val copyBlocked = !ExpertCopyPolicy.canCopy(rawQuery)
     val hasAdvisoryOnly = !copyBlocked && warnings.isNotEmpty()
 
+    // v0.5.3 motion polish: staggered entrance — top bar → live preview. Chip groups and the
+    // copy button sit below the entrance fold and appear at rest (no cascade while scrolling).
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Column(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).verticalScroll(rememberScrollState()).padding(16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().pqStaggeredItem(visible, 0)) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
             }
@@ -109,7 +113,7 @@ fun ExpertBuilderScreen(
 
         Spacer(Modifier.height(18.dp))
 
-        PqSectionHeader("LIVE PREVIEW")
+        PqSectionHeader("LIVE PREVIEW", Modifier.pqStaggeredItem(visible, 1))
         PqStringBox(rawQuery.ifEmpty { "—" })
 
         if (warnings.isNotEmpty()) {
@@ -148,6 +152,7 @@ fun ExpertBuilderScreen(
             enabled = !copyBlocked
         )
         Spacer(Modifier.height(24.dp))
+    }
     }
 }
 

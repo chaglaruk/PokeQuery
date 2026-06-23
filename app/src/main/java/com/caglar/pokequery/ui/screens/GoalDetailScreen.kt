@@ -64,6 +64,7 @@ import com.caglar.pokequery.ui.pq.PqGlowCard
 import com.caglar.pokequery.ui.pq.PqManualReviewPanel
 import com.caglar.pokequery.ui.pq.PqPrimaryButton
 import com.caglar.pokequery.ui.pq.PqRiskBadge
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqSectionHeader
 import com.caglar.pokequery.ui.pq.PqStringBox
 import kotlinx.coroutines.launch
@@ -122,11 +123,18 @@ fun GoalDetailScreen(
     }
 
     Scaffold(containerColor = BackgroundDark) { paddingValues ->
+        // v0.5.3 motion polish: staggered entrance. Top bar → result card → refine card. Final
+        // layout is byte-identical to pre-animation (offset animates to 0, alpha to 1), so there
+        // is no post-entrance layout shift. One hoisted flag → runs once, never on scroll.
+        com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()).padding(16.dp)
         ) {
             // Top bar: back + title + favorite.
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().pqStaggeredItem(visible, 0)
+            ) {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
                 }
@@ -150,8 +158,8 @@ fun GoalDetailScreen(
             Spacer(Modifier.height(16.dp))
 
             // RESULT block: risk badge + string hero + copy CTA.
-            PqSectionHeader("RESULT")
-            PqGlowCard {
+            PqSectionHeader("RESULT", Modifier.pqStaggeredItem(visible, 1))
+            PqGlowCard(modifier = Modifier.pqStaggeredItem(visible, 1)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(generatedString.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f))
                     PqRiskBadge(generatedString.riskLevel)
@@ -183,8 +191,8 @@ fun GoalDetailScreen(
             }
 
             // REFINE block: options.
-            PqSectionHeader("REFINE")
-            PqCard {
+            PqSectionHeader("REFINE", Modifier.pqStaggeredItem(visible, 2))
+            PqCard(modifier = Modifier.pqStaggeredItem(visible, 2)) {
                 OptionsPanel(
                     goalId = goalId,
                     include0Star = include0Star, onInclude0Star = { include0Star = it },
@@ -233,6 +241,7 @@ fun GoalDetailScreen(
                 Text(generatedString.plainLanguageExplanation, color = TextSecondary, fontSize = 13.sp, lineHeight = 19.sp)
             }
             Spacer(Modifier.height(24.dp))
+        }
         }
     }
 }

@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.R
 import com.caglar.pokequery.theme.*
 import com.caglar.pokequery.ui.components.PremiumPanel
+import com.caglar.pokequery.ui.motion.pqSpringPop
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -124,21 +126,39 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
 
 @Composable
 private fun OnboardingHeroPage() {
+    // v0.5.3 motion polish: staggered entrance for the hero page. The wordmark + hero art get a
+    // subtle spring-pop (icons/illustrations only); the tagline and trust chips fade+slide. The
+    // entrance is driven by ONE hoisted `visible` flag, so it runs once and never replays.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.height(18.dp))
         // v0.5.2 (Fix 2): use the vector PqWordmark instead of the raster logo_wordmark_source
         // WebP, which rendered as an opaque black block. Same brand treatment as Home (Fix 3).
         com.caglar.pokequery.ui.pq.PqWordmark(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .pqStaggeredItem(visible, 0)
+                .pqSpringPop(visible),
             fontSize = 34.sp,
             centered = true
         )
         Spacer(Modifier.height(8.dp))
-        Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 16.sp, textAlign = TextAlign.Center)
+        Text(
+            "Safe search strings for Pokémon GO",
+            color = TextSecondary,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.pqStaggeredItem(visible, 0)
+        )
         // v0.5.2 (Fix 2): hero no longer uses ContentScale.Crop on a fixed-height Box (which
         // produced a square crop). It is shown with FillWidth inside a rounded, navy panel so
         // the art composes edge-to-edge with the layout instead of looking like a cropped tile.
-        Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+        // `.weight()` is a ColumnScope call, so it is applied first; the motion modifiers follow.
+        Box(
+            Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp)
+                .pqStaggeredItem(visible, 1)
+                .pqSpringPop(visible),
+            contentAlignment = Alignment.Center
+        ) {
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -160,11 +180,15 @@ private fun OnboardingHeroPage() {
                 )
             }
         }
-        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp).pqStaggeredItem(visible, 2),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             TrustFeature(Icons.Default.Search, "Powerful", "Searches", Modifier.weight(1f))
             TrustFeature(Icons.Default.Lock, "Protected", "Defaults", Modifier.weight(1f))
             TrustFeature(Icons.Default.CheckCircle, "Keep", "Value", Modifier.weight(1f))
         }
+    }
     }
 }
 
@@ -201,13 +225,17 @@ private fun OnboardingLargeCardPage(
     imageRes: Int,
     showTrustRows: Boolean = false
 ) {
+    // v0.5.3 motion polish: each large-card page gets its own one-shot entrance so the hero art
+    // spring-pops when the page is swiped in. Driven by a per-page hoisted flag (one page = one
+    // entrance), so swiping back and forth replays cleanly and never loops.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        PremiumPanel(borderColor = accent, modifier = Modifier.fillMaxWidth()) {
+        PremiumPanel(borderColor = accent, modifier = Modifier.fillMaxWidth().pqStaggeredItem(visible, 0)) {
             Image(
                 painter = painterResource(imageRes),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().height(250.dp).clip(RoundedCornerShape(22.dp))
+                modifier = Modifier.fillMaxWidth().height(250.dp).clip(RoundedCornerShape(22.dp)).pqSpringPop(visible)
             )
             Spacer(Modifier.height(12.dp))
             Text(title, color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, textAlign = TextAlign.Center, lineHeight = 34.sp)
@@ -218,6 +246,7 @@ private fun OnboardingLargeCardPage(
             Spacer(Modifier.height(16.dp))
             TrustStrip("Private", "Offline-first", "Copy-only")
         }
+    }
     }
 }
 

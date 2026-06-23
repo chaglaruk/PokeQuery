@@ -38,6 +38,8 @@ import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.theme.*
 import com.caglar.pokequery.ui.components.*
+import com.caglar.pokequery.ui.motion.pqSpringPop
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,18 +54,21 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
 
     LaunchedEffect(Unit) { result = repository.load() }
 
+    // v0.5.3 motion polish: staggered entrance — title bar + banner fade in first; list rows
+    // appear at rest (no cascade while scrolling). One hoisted flag → runs once only.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
-        item { ScreenTitleBar("Knowledge Base", onBack) }
+        item { ScreenTitleBar("Knowledge Base", onBack, Modifier.pqStaggeredItem(visible, 0)) }
         // v0.5.2 (Fix 9): Turkish guardrail banner. Turkish tokens are beta/unverified; the
         // "Language-sensitive" / "Beta" / "Risky" badges below come from the per-term metadata.
         item {
             val shape = RoundedCornerShape(14.dp)
             Row(
-                Modifier.fillMaxWidth().clip(shape).background(AmberWarning.copy(alpha = 0.08f))
+                Modifier.fillMaxWidth().pqStaggeredItem(visible, 1).clip(shape).background(AmberWarning.copy(alpha = 0.08f))
                     .border(1.dp, AmberWarning.copy(alpha = 0.35f), shape).padding(12.dp),
                 verticalAlignment = Alignment.Top
             ) {
@@ -139,6 +144,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
             }
         }
     }
+    }
 }
 
 @Composable
@@ -188,12 +194,15 @@ fun SettingsScreen(onBack: () -> Unit) {
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
 
+    // v0.5.3 motion polish: staggered entrance — title bar + first panel fade in; subsequent
+    // panels appear at rest (no cascade while scrolling). One hoisted flag → runs once only.
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         contentPadding = PaddingValues(bottom = 22.dp)
     ) {
-        item { ScreenTitleBar("Settings", onBack) }
+        item { ScreenTitleBar("Settings", onBack, Modifier.pqStaggeredItem(visible, 0)) }
 
         item {
             PremiumPanel {
@@ -394,6 +403,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
         }
     }
+    }
 }
 
 @Composable
@@ -481,25 +491,33 @@ private fun SavedTemplateScreen(
     onCopy: (SavedTemplate) -> Unit,
     onDelete: ((SavedTemplate) -> Unit)? = null
 ) {
+    // v0.5.3 motion polish: staggered entrance — title bar fades in first. Empty-state icon gets
+    // a subtle spring-pop. List rows appear at rest (no cascade while scrolling).
+    com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
-        item { ScreenTitleBar(title, onBack) }
+        item { ScreenTitleBar(title, onBack, Modifier.pqStaggeredItem(visible, 0)) }
         when {
             templates == null -> item { CircularProgressIndicator(color = TealPrimary, modifier = Modifier.padding(20.dp)) }
             templates.isEmpty() -> item {
-                com.caglar.pokequery.ui.pq.PqEmptyState(
-                    icon = androidx.compose.material.icons.Icons.Default.Star,
-                    title = emptyTitle,
-                    subtitle = emptySubtitle
-                )
+                androidx.compose.foundation.layout.Box(
+                    Modifier.pqStaggeredItem(visible, 1).pqSpringPop(visible)
+                ) {
+                    com.caglar.pokequery.ui.pq.PqEmptyState(
+                        icon = androidx.compose.material.icons.Icons.Default.Star,
+                        title = emptyTitle,
+                        subtitle = emptySubtitle
+                    )
+                }
             }
             else -> items(templates, key = { it.id }) { template ->
                 SavedTemplateRow(template, onCopy = { onCopy(template) }, onDelete = onDelete?.let { { it(template) } })
             }
         }
+    }
     }
 }
 
