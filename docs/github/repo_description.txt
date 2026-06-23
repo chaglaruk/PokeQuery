@@ -1,0 +1,1 @@
+Offline-first Android app that builds safer Pokémon GO search strings — no login, no tracking, no automation.
