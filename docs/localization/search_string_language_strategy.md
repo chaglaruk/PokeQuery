@@ -55,6 +55,18 @@ warning.
 > chose Turkish. The candidates are recorded as hypotheses in `SearchTokenRegistry.COUNT_CANDIDATES`
 > and `turkish_verification_matrix.md`; they are the single source of truth. This is the
 > safety-first path for an unverified, parser-sensitive token.
+>
+> **v0.5.5 safety hotfix — compound protection tokens are also English-fallback.** The same
+> policy now extends to the multi-word parser-sensitive PROTECTION/exclusion tokens: `background`,
+> `locationbackground`, `specialbackground`, `ultrabeast`. Their Turkish candidate forms
+> (`arka planlı`, `konum arka planlı`, `özel arka planlı`, `ultra canavar`) are unverified on a
+> live Turkish Pokémon GO client, and a broken exclusion token fails *silently* — it could let a
+> valuable Pokémon into a cleanup/transfer/trade list. So until each candidate is confirmed live
+> and promoted to `VERIFIED`, the mapper emits the **English token** even in Turkish output. The
+> candidate phrases remain recorded as hypotheses in `SearchTokenRegistry.compoundCandidates` and
+> the verification matrix (and may still appear in UI labels / KB `description_tr`), but they are
+> NOT emitted in the generated query. UI labels and docs may show candidate wording; only the
+> generated query is locked to English until verified.
 
 ## Risk surfacing
 
@@ -69,5 +81,10 @@ warning.
 - ❌ Auto-switch to Turkish based on locale or App Language.
 - ❌ Treat machine translation as a source of truth for Pokémon GO tokens.
 - ❌ Emit `VERIFIED` tokens without a recorded live confirmation.
+- ❌ Emit an unverified parser-sensitive token in Turkish in the generated query. `count` and
+  the compound protection tokens (`background`/`locationbackground`/`specialbackground`/
+  `ultrabeast`) must fall back to English until each is confirmed live.
+- ❌ Treat KB `description_tr` wording or the candidate maps (`COUNT_CANDIDATES`,
+  `compoundCandidates`) as proof of Pokémon GO support — they are hypotheses to test.
 - ❌ Allow the search-string language to be changed by anything other than an explicit user
   action in Settings.

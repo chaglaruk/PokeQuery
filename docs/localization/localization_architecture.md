@@ -48,8 +48,10 @@ two layers are decoupled on purpose.
    `LocalizationModel.resolveSearchStringLanguageIndependentOf(searchPref, appPref)` ignores
    `appPref` entirely.
 4. **No token is ever marked VERIFIED without live confirmation.** The
-   `SearchTokenRegistry` documents every important token's verification status; as of v0.5.2
-   none are VERIFIED.
+   `SearchTokenRegistry` documents every important token's verification status; as of v0.5.5
+   none are VERIFIED. Parser-sensitive unverified tokens (`count` + compound protection tokens)
+   additionally fall back to **English in the generated string** even when Turkish is selected
+   (see the English-fallback rule below).
 
 ## Where the layers live (code map)
 
@@ -80,12 +82,40 @@ two layers are decoupled on purpose.
 > radio labels must keep a "Foundation / coming later" framing. Search String Language
 > (Layer B) is fully active and unaffected.
 
+> **English-fallback rule for parser-sensitive unverified tokens (v0.5.5 Fix 4 + safety hotfix).**
+> Some Layer-B tokens are parser-critical AND unverified on a live Turkish Pokémon GO client. For
+> those, the English token is **emitted** even when Search String Language is Turkish. This is a
+> correctness/safety rule, not a cosmetic one — a wrong protection/exclusion token fails *silently*
+> and could let a valuable Pokémon into a cleanup/transfer/trade list.
+>
+> The rule covers two classes today:
+> - **`count`** (Fix 4) — parser-sensitive numeric syntax (`countN-`); English `count` is emitted
+>   even in Turkish output. Candidates (`toplam`/`sayı`/`sayısı`) live in
+>   `SearchTokenRegistry.COUNT_CANDIDATES` as test hypotheses, not emitted.
+> - **Compound protection tokens** (safety hotfix) — `background`, `locationbackground`,
+>   `specialbackground`, `ultrabeast`. These are multi-word, parser-sensitive EXCLUSION tokens.
+>   English tokens are emitted even in Turkish output. Candidate phrases live in
+>   `SearchTokenRegistry.compoundCandidates` as test hypotheses, not emitted.
+>
+> What stays Turkish: UI labels, KB `description_tr` candidate wording, the docs/matrix, and all
+> the verified-safe single-word tokens still present in `SearchTermMapper.turkishMap` (`parlak`,
+> `efsanevi`, `gölge`, `kostümlü`, `takaslanan`, …). Only the *generated query* locks the
+> parser-sensitive unverified class to English. The single mechanism is `SearchTermMapper`:
+> removing a key from `turkishMap` = English fallback. Promoting a candidate back requires a live
+> confirmation logged in `turkish_verification_matrix.md`, then re-adding the key to `turkishMap`
+> and flipping its registry status together.
+
 ## Do not
 
 - ❌ Derive the search-string language from the app UI language or device locale.
 - ❌ Auto-promote `Auto` to Turkish for any reason.
 - ❌ Mark a token VERIFIED without a live Pokémon GO Turkish-client confirmation recorded in
   `turkish_verification_matrix.md`.
+- ❌ Emit an unverified parser-sensitive token (`count`, or any compound protection token —
+  `background`/`locationbackground`/`specialbackground`/`ultrabeast`) in Turkish in the generated
+  query. These must fall back to English until confirmed live (see the English-fallback rule).
+- ❌ Treat KB `description_tr` wording or the candidate maps (`COUNT_CANDIDATES`,
+  `compoundCandidates`) as proof of support. They are hypotheses to test, not emitted tokens.
 - ❌ Machine-translate Pokémon GO tokens as a source of truth. Only `SearchTokenRegistry` +
   the verified matrix are truth.
 - ❌ Apply the OS per-app locale (`LocaleManager.setApplicationLocales`) from composition. The

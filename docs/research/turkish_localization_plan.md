@@ -10,6 +10,15 @@ Turkish Pokémon GO search terms are available from community and third-party so
 > In particular `count` is **English-fallback** (emitted as `count` even in Turkish output) until
 > one of its contesting candidates (`toplam` / `sayı` / `sayısı` — see
 > `SearchTokenRegistry.COUNT_CANDIDATES`) is confirmed live.
+>
+> **v0.5.5 safety hotfix: compound protection tokens are also English-fallback.** The multi-word
+> parser-sensitive PROTECTION/exclusion tokens — `background`, `locationbackground`,
+> `specialbackground`, `ultrabeast` — are emitted in **English even in Turkish output** until each
+> candidate phrase (`arka planlı`, `konum arka planlı`, `özel arka planlı`, `ultra canavar` — see
+> `SearchTokenRegistry.compoundCandidates`) is confirmed live in a Turkish Pokémon GO client. These
+> are exclusion tokens that fail *silently* when wrong, so they are held to the same standard as
+> `count`. UI labels and KB `description_tr` may still show the candidate phrase; only the
+> generated query is locked to English until verified.
 
 ## Beta Phase Constraint
 **Do not enable Turkish runtime mode in this phase.**
@@ -26,6 +35,10 @@ To clear the beta constraint, a tester with a Turkish Pokémon GO client must ex
 | Legendary | `legendary` | `efsanevi` | Pending |
 | Traded | `traded` | `takaslanan` (emitted) / `takaslanmış`, `takas edilmiş` (alternatives) | Pending |
 | Count limit | `count2-` | **English fallback emitted.** Test `toplam2-`, `sayı2-`, `sayısı2-` | Pending |
+| Ultra Beast (protection) | `!ultrabeast` | **English fallback emitted.** Test `!ultra canavar`, `!ultracanavar` | Pending |
+| Background (protection) | `!background` | **English fallback emitted.** Test `!arka planlı`, `!arkaplanlı` | Pending |
+| Location background (protection) | `!locationbackground` | **English fallback emitted.** Test `!konum arka planlı`, `!konumarkaplanlı` | Pending |
+| Special background (protection) | `!specialbackground` | **English fallback emitted.** Test `!özel arka planlı`, `!özelarkaplanlı` | Pending |
 | IV - Attack | `0attack` | `0saldırı` | Pending |
 | IV - Defense | `0defense` | `0savunma` | Pending |
 | IV - HP | `0hp` | `0sg` / `0hp` | Pending |

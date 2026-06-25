@@ -21,11 +21,19 @@ This matrix exists so we never over-claim that Turkish terms are verified. The a
 > `SearchTokenRegistry.countMeta` together. The single source of truth for the candidates is
 > `SearchTokenRegistry.COUNT_CANDIDATES`.
 >
-> **v0.5.5 (Fix 4) — compound tokens carry alternative hypotheses.** Multi-word candidates
-> (`specialbackground`, `locationbackground`, `ultrabeast`) are the riskiest for the Pokémon GO
-> parser because their exact spacing/form is unverified. Each now lists an English-fallback and
-> a no-space Turkish alternative alongside the current phrase candidate, so all three can be
-> tested. None are `works` until confirmed live.
+> **v0.5.5 safety hotfix — compound protection tokens are English-fallback (EMITTED), not just
+> an alternative.** Multi-word candidates (`background`, `specialbackground`,
+> `locationbackground`, `ultrabeast`) are parser-sensitive PROTECTION/exclusion tokens: a wrong
+> form silently breaks an exclusion that must keep a valuable Pokémon out of a cleanup/transfer/
+> trade list. Because their exact Turkish spacing/form is unverified on a live Turkish Pokémon GO
+> client, PokeQuery now **emits the English token** in the generated string even when Search
+> String Language is Turkish — mirroring the `count` policy. The Turkish candidate phrases below
+> remain in this matrix (and in `SearchTokenRegistry.compoundCandidates`) as **hypotheses to test
+> live**, NOT proof of support. UI labels and KB `description_tr` wording may still show the
+> candidate phrase; only the generated query is locked to English until verified. When one is
+> confirmed live, promote it to `works` here AND add it back to `SearchTermMapper.turkishMap` +
+> `SearchTokenRegistry` together. The single source of truth for the candidates is
+> `SearchTokenRegistry.compoundCandidates`.
 
 ## Matrix
 
@@ -43,9 +51,10 @@ Legend — `untested` = default; `works` = confirmed live in Turkish client; `fa
 | `shadow` | `gölge` | — | `!gölge` | Excludes shadows | untested | — | — | Likely correct; confirm live. |
 | `purified` | `arıtılmış` | `arındırılmış` | `purified` | Returns purified | untested | — | — | Contested ("arıtılmış" vs "arındırılmış"). |
 | `costume` | `kostümlü` | — | `!kostümlü` | Excludes costumes | untested | — | — | Likely correct; confirm live. |
-| `specialbackground` | `özel arka planlı` | `specialbackground` (English fallback), `özelarkaplanlı` (no-space) | `özel arka planlı` / `özelarkaplanlı` / `specialbackground` | Returns special backgrounds | untested | — | — | Compound token; spacing/form unverified. Test all three candidates. |
-| `locationbackground` | `konum arka planlı` | `locationbackground` (English fallback), `konumarkaplanlı` (no-space) | `konum arka planlı` / `konumarkaplanlı` / `locationbackground` | Returns location backgrounds | untested | — | — | Compound token; spacing/form unverified. Test all three candidates. |
-| `ultrabeast` | `ultra canavar` | `ultrabeast` (English fallback), `ultracanavar` (no-space) | `ultra canavar` / `ultracanavar` / `ultrabeast` | Returns Ultra Beasts | untested | — | — | Compound token; spacing/form unverified. Test all three candidates. |
+| `background` | **(English fallback: `background`)** | `arka planlı` (phrase), `arkaplanlı` (no-space) | `!background` (emitted) / `!arka planlı`,`!arkaplanlı` (to test) | Excludes backgrounded Pokémon | untested | — | — | v0.5.5 hotfix: English `background` EMITTED even in TR output (protection token). Candidates `arka planlı`/`arkaplanlı` are NOT emitted — test live, then promote ONE. Source of truth: `SearchTokenRegistry.compoundCandidates`. |
+| `specialbackground` | **(English fallback: `specialbackground`)** | `özel arka planlı` (phrase), `özelarkaplanlı` (no-space) | `!specialbackground` (emitted) / `!özel arka planlı`,`!özelarkaplanlı` (to test) | Returns special backgrounds | untested | — | — | v0.5.5 hotfix: English `specialbackground` EMITTED even in TR output (protection token). Compound candidates NOT emitted — test live, then promote ONE. |
+| `locationbackground` | **(English fallback: `locationbackground`)** | `konum arka planlı` (phrase), `konumarkaplanlı` (no-space) | `!locationbackground` (emitted) / `!konum arka planlı`,`!konumarkaplanlı` (to test) | Returns location backgrounds | untested | — | — | v0.5.5 hotfix: English `locationbackground` EMITTED even in TR output (protection token). Compound candidates NOT emitted — test live, then promote ONE. |
+| `ultrabeast` | **(English fallback: `ultrabeast`)** | `ultra canavar` (phrase), `ultracanavar` (no-space) | `!ultrabeast` (emitted) / `!ultra canavar`,`!ultracanavar` (to test) | Returns Ultra Beasts | untested | — | — | v0.5.5 hotfix: English `ultrabeast` EMITTED even in TR output (protection token). Compound candidates NOT emitted — test live, then promote ONE. |
 | `age` | `yaş` | — | `yaş365-` | Pokémon caught 365+ days ago | untested | — | — | Verify the localized prefix works. |
 | `distance` | `mesafe` | — | `mesafe100-` | Pokémon caught 100km+ away | untested | — | — | Verify the localized prefix works. |
 | `attack` | `saldırı` | — | `0saldırı` | Exact 0 Attack IV | untested | — | — | Verify suffix form. |

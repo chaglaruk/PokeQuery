@@ -55,9 +55,11 @@ class SearchTokenRegistryTest {
     @Test
     fun `contested tokens are marked risky not beta`() {
         // v0.5.5 (Fix 4): count is no longer RISKY — it is UNTESTED (English fallback, see
-        // the dedicated count-centralization test). mythical / purified / backgrounds / UB
-        // still have contesting or risky compound candidates → RISKY.
-        val risky = listOf("mythical", "purified", "specialbackground", "locationbackground", "ultrabeast", "background")
+        // the dedicated count-centralization test).
+        // v0.5.5 safety hotfix: the compound protection tokens (backgrounds / UB) are ALSO no
+        // longer RISKY — they are UNTESTED (English fallback, see the dedicated compound test).
+        // Only mythical / purified still have contesting single-word candidates → RISKY.
+        val risky = listOf("mythical", "purified")
         risky.forEach { token ->
             assertEquals(
                 "'$token' has contesting/risky candidates and must be RISKY",
@@ -123,10 +125,12 @@ class SearchTokenRegistryTest {
         // subset of this registry. Any token the mapper emits must be documented here as at
         // least BETA (never VERIFIED). This test guards drift between the two sources.
         // v0.5.5 (Fix 4): 'count' is NO LONGER emitted (English fallback) so it is removed here.
+        // v0.5.5 safety hotfix: the compound protection tokens (background, locationbackground,
+        // specialbackground, ultrabeast) are ALSO NO LONGER emitted (English fallback) so they
+        // are removed here. Their candidates live in SearchTokenRegistry.compoundCandidates.
         val mapperEmitsTurkish = listOf(
-            "shiny", "legendary", "mythical", "ultrabeast", "shadow", "purified", "favorite",
-            "lucky", "traded", "costume", "background", "locationbackground", "specialbackground",
-            "attack", "defense", "hp", "distance", "age"
+            "shiny", "legendary", "mythical", "shadow", "purified", "favorite",
+            "lucky", "traded", "costume", "attack", "defense", "hp", "distance", "age"
         )
         mapperEmitsTurkish.forEach { token ->
             val meta = SearchTokenRegistry.byEnglish(token)
@@ -144,13 +148,43 @@ class SearchTokenRegistryTest {
         // v0.5.5 (Fix 4): the multi-word compound candidates (backgrounds, ultra beast) are the
         // riskiest for the Pokémon GO parser because their exact spacing/form is unverified. They
         // must appear in compoundTokens, be RISKY (not verified/beta), and stay non-safeToEmit.
+        //
+        // v0.5.5 safety hotfix: these are now UNTESTED (was RISKY) AND not emitted (English
+        // fallback) because a broken PROTECTION token is dangerous — it must work to exclude a
+        // valuable Pokémon from cleanup/trade lists. Their candidate forms live in
+        // compoundCandidates (NOT the active mapper), kept as hypotheses to verify live.
         assertEquals(
             listOf("specialbackground", "locationbackground", "ultrabeast", "background"),
             SearchTokenRegistry.compoundTokens.map { it.english }
         )
         SearchTokenRegistry.compoundTokens.forEach { token ->
-            assertEquals("'${token.english}' compound must be RISKY", TokenVerification.RISKY, token.status)
+            assertEquals("'${token.english}' compound must be UNTESTED (English fallback)", TokenVerification.UNTESTED, token.status)
+            assertTrue("'${token.english}' must have no emitted Turkish candidate (fallback)", token.turkish == null)
             assertFalse("'${token.english}' must not be safe to emit", token.safeToEmit)
+        }
+    }
+
+    @Test
+    fun `compound protection token candidates are centralized and not emitted`() {
+        // v0.5.5 safety hotfix: the multi-word Turkish candidates for the parser-sensitive
+        // PROTECTION tokens are gathered in ONE place (compoundCandidates), mirroring
+        // COUNT_CANDIDATES. They are NOT emitted — generated protection strings keep the English
+        // token. This is the single source of truth the mapper, KB and docs agree on.
+        assertEquals(
+            mapOf(
+                "background" to "arka planlı",
+                "locationbackground" to "konum arka planlı",
+                "specialbackground" to "özel arka planlı",
+                "ultrabeast" to "ultra canavar"
+            ),
+            SearchTokenRegistry.compoundCandidates
+        )
+        // Every candidate maps to a token that exists and is NOT emitted (English fallback).
+        SearchTokenRegistry.compoundCandidates.forEach { (english, candidate) ->
+            val meta = SearchTokenRegistry.byEnglish(english)
+            assertNotNull("Candidate '$candidate' maps to unknown token '$english'", meta)
+            assertTrue("'$english' must be UNTESTED (English fallback)", meta!!.status == TokenVerification.UNTESTED)
+            assertTrue("'$english' must have no emitted Turkish candidate", meta.turkish == null)
         }
     }
 }

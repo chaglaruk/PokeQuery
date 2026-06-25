@@ -271,7 +271,7 @@
     "verificationStatus": "beta",
     "safetyLevel": "risky",
     "languageSensitive": true,
-    "commonMistake": "Turkish equivalent 'ultra canavar' is unverified — verify before use."
+    "commonMistake": "Compound PROTECTION token: 'ultra canavar' is unverified on a live Turkish client, so PokeQuery emits the English 'ultrabeast' even in Turkish output until a candidate is confirmed live. See SearchTokenRegistry.compoundCandidates."
   },
   {
     "id": "status_shadow",
@@ -365,7 +365,8 @@
     "knownQuirks": null,
     "verificationStatus": "beta",
     "safetyLevel": "risky",
-    "languageSensitive": true
+    "languageSensitive": true,
+    "commonMistake": "Compound PROTECTION token: 'arka planlı' is unverified on a live Turkish client, so PokeQuery emits the English 'background' even in Turkish output until a candidate is confirmed live. See SearchTokenRegistry.compoundCandidates."
   },
   {
     "id": "status_locationbackground",
@@ -381,7 +382,7 @@
     "verificationStatus": "beta",
     "safetyLevel": "risky",
     "languageSensitive": true,
-    "commonMistake": "Compound token; verify it works exactly as written in the client."
+    "commonMistake": "Compound PROTECTION token: 'konum arka planlı' is unverified on a live Turkish client, so PokeQuery emits the English 'locationbackground' even in Turkish output until a candidate is confirmed live. See SearchTokenRegistry.compoundCandidates."
   },
   {
     "id": "status_specialbackground",
@@ -393,7 +394,8 @@
     "riskLevel": "High",
     "sourceUrl": "https://pokemongohub.net/",
     "lastVerified": "2026-06-20",
-    "knownQuirks": null
+    "knownQuirks": null,
+    "commonMistake": "Compound PROTECTION token: 'özel arka planlı' is unverified on a live Turkish client, so PokeQuery emits the English 'specialbackground' even in Turkish output until a candidate is confirmed live. See SearchTokenRegistry.compoundCandidates."
   },
   {
     "id": "status_lucky",
