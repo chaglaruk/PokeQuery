@@ -30,9 +30,14 @@ import org.junit.Test
 class PopularPresetsSafetyTest {
 
     // Required protections for count-style / IV-band cleanup (per v0.4.2 spec + engine).
+    // v0.5.5 (Fix 6): mirrors the strengthened engine COUNT_MANDATORY_PROTECTIONS, which now
+    // also protects Ultra Beasts and the background variants from landing in a count/cleanup
+    // list. Count-bearing presets get these from the engine's fail-closed path; IV-band presets
+    // include them inline in their hand-authored syntax.
     private val requiredProtections = listOf(
         "shiny", "lucky", "legendary", "mythical", "shadow", "purified",
-        "favorite", "traded", "costume"
+        "favorite", "traded", "costume",
+        "ultrabeast", "background", "locationbackground", "specialbackground"
     )
 
     // Mirrors the exact call PresetsScreen makes when a preset is copied.

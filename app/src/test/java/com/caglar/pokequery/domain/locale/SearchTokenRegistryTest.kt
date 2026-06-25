@@ -54,15 +54,31 @@ class SearchTokenRegistryTest {
 
     @Test
     fun `contested tokens are marked risky not beta`() {
-        // count / mythical / purified / backgrounds have contesting candidates → RISKY.
-        val risky = listOf("count", "mythical", "purified", "specialbackground", "locationbackground", "ultrabeast")
+        // v0.5.5 (Fix 4): count is no longer RISKY — it is UNTESTED (English fallback, see
+        // the dedicated count-centralization test). mythical / purified / backgrounds / UB
+        // still have contesting or risky compound candidates → RISKY.
+        val risky = listOf("mythical", "purified", "specialbackground", "locationbackground", "ultrabeast", "background")
         risky.forEach { token ->
             assertEquals(
-                "'$token' has contesting candidates and must be RISKY",
+                "'$token' has contesting/risky candidates and must be RISKY",
                 TokenVerification.RISKY,
                 SearchTokenRegistry.byEnglish(token)!!.status
             )
         }
+    }
+
+    @Test
+    fun `count token truth is centralized and not emitted as turkish`() {
+        // v0.5.5 (Fix 4): the count Turkish candidate is contested across sources
+        // (toplam/sayı/sayısı) AND the token is parser-sensitive numeric syntax, so:
+        //  - the registry metadata has NO turkish candidate (English fallback is emitted);
+        //  - its status is UNTESTED (not RISKY/BETA/VERIFIED);
+        //  - the contesting candidates are captured in COUNT_CANDIDATES for the matrix.
+        val count = SearchTokenRegistry.byEnglish("count")!!
+        assertEquals(TokenVerification.UNTESTED, count.status)
+        assertTrue("count must have no emitted Turkish candidate", count.turkish == null)
+        assertEquals(SearchTokenRegistry.COUNT_CANDIDATES, listOf("toplam", "sayı", "sayısı"))
+        assertEquals(count, SearchTokenRegistry.countMeta)
     }
 
     @Test
@@ -106,10 +122,11 @@ class SearchTokenRegistryTest {
         // The active SearchTermMapper Turkish map (the only tokens we currently EMIT) is a
         // subset of this registry. Any token the mapper emits must be documented here as at
         // least BETA (never VERIFIED). This test guards drift between the two sources.
+        // v0.5.5 (Fix 4): 'count' is NO LONGER emitted (English fallback) so it is removed here.
         val mapperEmitsTurkish = listOf(
             "shiny", "legendary", "mythical", "ultrabeast", "shadow", "purified", "favorite",
             "lucky", "traded", "costume", "background", "locationbackground", "specialbackground",
-            "attack", "defense", "hp", "distance", "age", "count"
+            "attack", "defense", "hp", "distance", "age"
         )
         mapperEmitsTurkish.forEach { token ->
             val meta = SearchTokenRegistry.byEnglish(token)
@@ -119,6 +136,21 @@ class SearchTokenRegistryTest {
                 "'$token' is emitted by the mapper; registry status must be BETA or RISKY, got ${meta!!.status}",
                 meta.status == TokenVerification.BETA || meta.status == TokenVerification.RISKY
             )
+        }
+    }
+
+    @Test
+    fun `compound parser-sensitive tokens are tracked and never verified`() {
+        // v0.5.5 (Fix 4): the multi-word compound candidates (backgrounds, ultra beast) are the
+        // riskiest for the Pokémon GO parser because their exact spacing/form is unverified. They
+        // must appear in compoundTokens, be RISKY (not verified/beta), and stay non-safeToEmit.
+        assertEquals(
+            listOf("specialbackground", "locationbackground", "ultrabeast", "background"),
+            SearchTokenRegistry.compoundTokens.map { it.english }
+        )
+        SearchTokenRegistry.compoundTokens.forEach { token ->
+            assertEquals("'${token.english}' compound must be RISKY", TokenVerification.RISKY, token.status)
+            assertFalse("'${token.english}' must not be safe to emit", token.safeToEmit)
         }
     }
 }

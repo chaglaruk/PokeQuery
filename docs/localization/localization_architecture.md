@@ -64,14 +64,21 @@ two layers are decoupled on purpose.
 
 ## What this means for the user
 
-- Choosing **Turkish** under *App Language* translates the app's interface (once Turkish
-  string resources — `values-tr/` — are added in a future release) but **keeps generating
-  safe English search strings**.
+- Choosing **Turkish** under *App Language* is a **Foundation** preference only. As of v0.5.5
+  the app ships **no `values-tr/` string resources**, so choosing Turkish does **not** actually
+  translate the interface today — most of the UI stays in English. The preference is recorded
+  and ready for a future localization sprint, but Settings says so honestly (the options are
+  labelled "Foundation"). Crucially it **keeps generating safe English search strings**.
 - Choosing **Turkish (Beta)** under *Search String Language* translates the generated search
   strings, but shows the beta warning everywhere relevant and still routes risky copies
   through Risk Warning.
 - Both can be combined (Turkish UI + Turkish search strings) or crossed
   (English UI + Turkish search strings) — either is valid and intentional.
+
+> **Honesty rule (v0.5.5, Fix 2).** App Language must never be presented as if full UI
+> translation already works. Until real `values-tr/` resources exist, the section copy and
+> radio labels must keep a "Foundation / coming later" framing. Search String Language
+> (Layer B) is fully active and unaffected.
 
 ## Do not
 

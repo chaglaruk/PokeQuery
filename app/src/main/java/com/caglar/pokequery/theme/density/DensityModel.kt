@@ -16,6 +16,31 @@ import androidx.compose.ui.unit.sp
  * string ("Comfortable" / "Compact") into a concrete set of spacing/sizing tokens, and
  * [LocalDensityTokens] exposes the resolved tokens to the whole composition.
  *
+ * v0.5.5 (Fix 1): the tokens are now consumed at every UI layer, so toggling Compact
+ * produces a clearly denser layout rather than a barely-noticeable card-padding nudge.
+ * Each token drives a specific layout layer — consume the RIGHT token for the gap you are
+ * spacing so the density cascade is consistent across screens:
+ *
+ *   Card / surface interior
+ *     - [cardPadding]        inner padding of [com.caglar.pokequery.ui.pq.PqCard]
+ *     - [glowCardPadding]    inner padding of [com.caglar.pokequery.ui.pq.PqGlowCard]
+ *
+ *   Chips (compact pill controls)
+ *     - [chipSpacing]        horizontal gap between chips in a row (Home trust chips)
+ *     - [chipPaddingVertical] / [chipPaddingHorizontal]  interior padding of a chip
+ *
+ *   List / section structure (the dominant visual rhythm of each screen)
+ *     - [listGap]            vertical gap between homogeneous rows in a LazyColumn
+ *                            (Knowledge Base terms, Favorites/History rows, Preset cards)
+ *     - [sectionGap]         vertical gap between DISTINCT sections — between PremiumPanels
+ *                            on Settings, and between RESULT/REFINE/PROTECTED/NOTES/DETAILS
+ *                            on Goal Detail
+ *     - [innerElementGap]    gap between elements that belong to one section (header → body,
+ *                            string box → copy button, badge → title)
+ *
+ *   Type
+ *     - [bodyTextScale]      scales body/surface text via [bodySize]; titles are NOT scaled.
+ *
  * The two modes scale consistently:
  *   - Comfortable: the v0.5.0/v0.5.1 spacing — generous, premium feel.
  *   - Compact: tighter card padding, chip spacing, section gaps and list gaps, and a very

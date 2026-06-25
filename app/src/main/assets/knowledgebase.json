@@ -206,7 +206,7 @@
     "safetyLevel": "risky",
     "languageSensitive": true,
     "example": "count2-&!shiny",
-    "commonMistake": "The Turkish equivalent (toplam/sayı/sayısı) is contested and unverified — verify in a Turkish client before relying on it."
+    "commonMistake": "The Turkish equivalent is contested (toplam/sayı/sayısı) and unverified. PokeQuery emits the English 'count' even in Turkish output until one candidate is confirmed live. See SearchTokenRegistry.COUNT_CANDIDATES."
   },
   {
     "id": "status_shiny",

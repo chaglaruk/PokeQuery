@@ -46,7 +46,11 @@ class SearchTermMapperTest {
         // Golden behavior for currently-mapped tokens only. This locks the *existing* map;
         // it does NOT assert the tokens are verified against the live game client.
         val result = SearchTermMapper.translateSyntax("count2-&!shiny", "Turkish")
-        assertTrue("Expected Turkish count token in: $result", result.contains("toplam2-"))
+        // v0.5.5 (Fix 4): 'count' is NO LONGER translated — its Turkish candidate is contested
+        // (toplam/sayı/sayısı) and parser-sensitive, so the English 'count' is emitted even in
+        // Turkish output. Other mapped tokens (shiny→parlak) still translate.
+        assertTrue("count must stay English (fallback) in Turkish output: $result", result.contains("count2-"))
+        assertFalse("count must NOT be translated to 'toplam' (unverified candidate): $result", result.contains("toplam"))
         assertTrue("Expected Turkish shiny token in: $result", result.contains("parlak"))
     }
 
@@ -61,7 +65,9 @@ class SearchTermMapperTest {
     @Test
     fun `looksTurkish detects translated output for the risk-warning beta notice`() {
         // Used by the RiskWarning screen to decide whether to show the Turkish-beta caution.
-        assertTrue(SearchTermMapper.looksTurkish("toplam2-&!parlak"))
+        // v0.5.5 (Fix 4): count stays English even in Turkish output, so the detector must rely
+        // on the OTHER translated tokens (parlak/gölge) and Turkish-specific letters — not count.
+        assertTrue(SearchTermMapper.looksTurkish("count2-&!parlak"))
         assertTrue(SearchTermMapper.looksTurkish("count2-&!gölge"))
         assertFalse(SearchTermMapper.looksTurkish("count2-&!shiny"))
         assertFalse(SearchTermMapper.looksTurkish("4*"))

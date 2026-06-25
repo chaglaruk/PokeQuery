@@ -12,6 +12,20 @@ This matrix exists so we never over-claim that Turkish terms are verified. The a
 - The Knowledge Base `description_tr` fields.
 
 > Multiple candidates exist for several tokens (e.g. `count` → `toplam` / `sayı` / `sayısı`; `traded` → `takaslanan` / `takas edilmiş`). Do **not** pick one and call it verified. Test it first.
+>
+> **v0.5.5 (Fix 4) — `count` is English-fallback.** The `count` token is parser-sensitive
+> numeric syntax (`countN-`) AND its Turkish form is contested across code/KB/plan, so as of
+> v0.5.5 PokeQuery emits the **English `count`** even in Turkish output. The three candidates
+> below (`toplam` / `sayı` / `sayısı`) remain in this matrix as hypotheses to test live. When
+> one is confirmed, promote it to `works` here AND add it to `SearchTermMapper` +
+> `SearchTokenRegistry.countMeta` together. The single source of truth for the candidates is
+> `SearchTokenRegistry.COUNT_CANDIDATES`.
+>
+> **v0.5.5 (Fix 4) — compound tokens carry alternative hypotheses.** Multi-word candidates
+> (`specialbackground`, `locationbackground`, `ultrabeast`) are the riskiest for the Pokémon GO
+> parser because their exact spacing/form is unverified. Each now lists an English-fallback and
+> a no-space Turkish alternative alongside the current phrase candidate, so all three can be
+> tested. None are `works` until confirmed live.
 
 ## Matrix
 
@@ -21,7 +35,7 @@ Legend — `untested` = default; `works` = confirmed live in Turkish client; `fa
 |---|---|---|---|---|---|---|---|---|
 | `shiny` | `parlak` | — | `parlak` | Returns all shiny Pokémon | untested | — | — | Likely correct but must be confirmed live. |
 | `traded` | `takaslanan` | `takas edilmiş` | `!takaslanan` | Excludes all traded Pokémon | untested | — | — | Contested. KB uses "Takas edilmiş"; code emits "takaslanan". |
-| `count` | `toplam` | `sayı`, `sayısı` | `toplam2-` | Returns species with 2+ owned | untested | — | — | Most contested. Three candidates across code/KB/plan. |
+| `count` | **(English fallback: `count`)** | `toplam`, `sayı`, `sayısı` | `count2-` (emitted) / `toplam2-`,`sayı2-`,`sayısı2-` (to test) | Returns species with 2+ owned | untested | — | — | v0.5.5: English `count` emitted even in TR output. Contesting candidates `toplam`/`sayı`/`sayısı` are NOT emitted — test all three live, then promote ONE. Source of truth: `SearchTokenRegistry.COUNT_CANDIDATES`. |
 | `favorite` | `favori` | — | `!favori` | Excludes favorites | untested | — | — | Likely correct; confirm live. |
 | `favourite` | `favori` | — | `!favourite` | UK spelling variant | untested | — | — | English-only token; Turkish map reuses "favori". |
 | `legendary` | `efsanevi` | — | `efsanevi` | Returns legendaries | untested | — | — | Likely correct; confirm live. |
@@ -29,9 +43,9 @@ Legend — `untested` = default; `works` = confirmed live in Turkish client; `fa
 | `shadow` | `gölge` | — | `!gölge` | Excludes shadows | untested | — | — | Likely correct; confirm live. |
 | `purified` | `arıtılmış` | `arındırılmış` | `purified` | Returns purified | untested | — | — | Contested ("arıtılmış" vs "arındırılmış"). |
 | `costume` | `kostümlü` | — | `!kostümlü` | Excludes costumes | untested | — | — | Likely correct; confirm live. |
-| `specialbackground` | `özel arka planlı` | — | `özel arka planlı` | Returns special backgrounds | untested | — | — | Compound token; verify exact form. |
-| `locationbackground` | `konum arka planlı` | — | `konum arka planlı` | Returns location backgrounds | untested | — | — | Compound token; verify exact form. |
-| `ultrabeast` | `ultra canavar` | — | `ultra canavar` | Returns Ultra Beasts | untested | — | — | Compound token; verify exact form. |
+| `specialbackground` | `özel arka planlı` | `specialbackground` (English fallback), `özelarkaplanlı` (no-space) | `özel arka planlı` / `özelarkaplanlı` / `specialbackground` | Returns special backgrounds | untested | — | — | Compound token; spacing/form unverified. Test all three candidates. |
+| `locationbackground` | `konum arka planlı` | `locationbackground` (English fallback), `konumarkaplanlı` (no-space) | `konum arka planlı` / `konumarkaplanlı` / `locationbackground` | Returns location backgrounds | untested | — | — | Compound token; spacing/form unverified. Test all three candidates. |
+| `ultrabeast` | `ultra canavar` | `ultrabeast` (English fallback), `ultracanavar` (no-space) | `ultra canavar` / `ultracanavar` / `ultrabeast` | Returns Ultra Beasts | untested | — | — | Compound token; spacing/form unverified. Test all three candidates. |
 | `age` | `yaş` | — | `yaş365-` | Pokémon caught 365+ days ago | untested | — | — | Verify the localized prefix works. |
 | `distance` | `mesafe` | — | `mesafe100-` | Pokémon caught 100km+ away | untested | — | — | Verify the localized prefix works. |
 | `attack` | `saldırı` | — | `0saldırı` | Exact 0 Attack IV | untested | — | — | Verify suffix form. |

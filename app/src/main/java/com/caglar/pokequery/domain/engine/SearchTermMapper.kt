@@ -10,15 +10,18 @@ object SearchTermMapper {
     // Pokémon GO Turkish client. Per docs/research/turkish_localization_plan.md the
     // spot-check matrix for these terms is still "Pending". Do not enable Auto→Turkish.
     //
-    // Contested tokens (multiple candidate translations across code / KB / localization
-    // plan — VERIFY before treating as correct):
-    //   - count        : map uses "toplam"; localization plan suggests "sayı"; KB "sayısı"
-    //   - traded       : map uses "takaslanan"; KB description_tr "Takas edilmiş"
+    // v0.5.5 (Fix 4) — token truth is centralized and aligned across code/registry/KB/docs:
+    //   - count        : CONTESTED across sources ("toplam" in the old map, "sayı" in the
+    //                    localization plan, "sayısı" in the KB). It is also parser-sensitive
+    //                    numeric syntax (countN-). Until ONE candidate is confirmed live, we
+    //                    DO NOT translate it — the English `count` is emitted even in Turkish
+    //                    output (English fallback). Candidates remain in the verification
+    //                    matrix as hypotheses to test. See SearchTokenRegistry.countMeta.
+    //   - traded       : map uses "takaslanan"; KB description_tr "Takas edilmiş" (contested)
     //   - mythical     : map "mistik" — verify
     //   - purified     : map "arıtılmış" — verify
-    //   - specialbackground : "özel arka planlı" — verify
-    //   - locationbackground : "konum arka planlı" — verify
-    //   - ultrabeast   : "ultra canavar" — verify
+    //   - specialbackground / locationbackground / ultrabeast : multi-word compound candidates
+    //                    — unverified; documented as RISKY in the registry + matrix.
     //   - hp           : "can" per explicit user requirement; KB notes variable localization
     // ---------------------------------------------------------------------------
     private val turkishMap = mapOf(
@@ -44,8 +47,11 @@ object SearchTermMapper {
         // Distance and age terms sometimes localize, sometimes not.
         // We map them just in case based on standard localized prefixes.
         "distance" to "mesafe",
-        "age" to "yaş",
-        "count" to "toplam"
+        "age" to "yaş"
+        // NOTE: "count" is deliberately NOT mapped. See the block comment above — the Turkish
+        // candidate is contested (toplam/sayı/sayısı) and the token is parser-sensitive numeric
+        // syntax, so the English "count" is emitted even in Turkish output until a candidate is
+        // confirmed live. SearchTokenRegistry.COUNT_CANDIDATES lists the hypotheses to test.
     )
 
     /**

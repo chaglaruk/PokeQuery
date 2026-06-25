@@ -67,13 +67,48 @@ data class SearchTokenMetadata(
  *   - Tokens with no agreed candidate are UNTESTED.
  *   - Newer/special tokens (@special, megaevolve, fusion, dynamax, gigantamax) are UNTESTED
  *     until someone confirms them — we explicitly do NOT guess.
+ *
+ * v0.5.5 (Fix 4): the `count` token truth is centralized here via [COUNT_CANDIDATES] +
+ * [countMeta]. `count` is parser-sensitive numeric syntax (`countN-`) AND its Turkish form is
+ * contested across sources, so it is NOT emitted in Turkish output (English fallback). The
+ * candidates remain documented as hypotheses to test. This is the single source of truth the
+ * mapper, KB and docs all agree on — there is no longer a divergence between "toplam" (old
+ * map), "sayı" (localization plan) and "sayısı" (KB).
  */
 object SearchTokenRegistry {
+
+    /**
+     * v0.5.5 (Fix 4): the contesting Turkish candidates for `count` gathered in ONE place.
+     * Sources:
+     *   - "toplam"  : the value the legacy SearchTermMapper map used (v0.4.x–v0.5.4).
+     *   - "sayı"    : docs/research/turkish_localization_plan.md spot-check matrix.
+     *   - "sayısı"  : Knowledge Base description_tr for the count term.
+     * None are verified against a live Turkish client. They are hypotheses for the verification
+     * matrix, NOT emitted tokens. The mapper uses the English `count` fallback until one is
+     * confirmed live and promoted to [TokenVerification.VERIFIED].
+     */
+    val COUNT_CANDIDATES: List<String> = listOf("toplam", "sayı", "sayısı")
+
+    /**
+     * v0.5.5 (Fix 4): the canonical `count` token metadata. `turkish` is null because no
+     * candidate is emitted (English fallback); the candidates live in [COUNT_CANDIDATES] and
+     * the notes, and in the verification matrix.
+     */
+    val countMeta: SearchTokenMetadata = SearchTokenMetadata(
+        english = "count",
+        turkish = null,
+        status = TokenVerification.UNTESTED,
+        languageSensitive = true,
+        example = "count2-",
+        notes = "Parser-sensitive numeric syntax (countN-). Turkish candidates contest across " +
+            "sources (${COUNT_CANDIDATES.joinToString("/")}); none verified. English 'count' is " +
+            "emitted even in Turkish output (English fallback) until a candidate is confirmed live."
+    )
 
     val tokens: List<SearchTokenMetadata> = listOf(
         SearchTokenMetadata("shiny", "parlak", TokenVerification.BETA, true, "shiny", "shiny (English always works; localized form is unverified)"),
         SearchTokenMetadata("traded", "takaslanan", TokenVerification.BETA, true, "!traded", "takas edilmiş (KB description) vs takaslanan (map) — contesting candidates"),
-        SearchTokenMetadata("count", "toplam", TokenVerification.RISKY, true, "count2-", "Contesting: 'toplam' (map) vs 'sayı' (localization plan) vs 'sayısı' (KB). Do not trust."),
+        countMeta,
         SearchTokenMetadata("favorite", "favori", TokenVerification.BETA, true, "favorite", "favourite (UK spelling) is also accepted by the game; localized form unverified"),
         SearchTokenMetadata("lucky", "şanslı", TokenVerification.BETA, true, "lucky"),
         SearchTokenMetadata("legendary", "efsanevi", TokenVerification.BETA, true, "legendary"),
@@ -81,10 +116,13 @@ object SearchTokenRegistry {
         SearchTokenMetadata("shadow", "gölge", TokenVerification.BETA, true, "shadow"),
         SearchTokenMetadata("purified", "arıtılmış", TokenVerification.RISKY, true, "purified", "Candidate 'arıtılmış' unconfirmed"),
         SearchTokenMetadata("costume", "kostümlü", TokenVerification.BETA, true, "costume"),
+        // --- Compound/background/ultra-beast candidates: multi-word, RISKY, unverified. ---
+        // These ARE currently emitted by the mapper (legacy beta behavior) but flagged RISKY so
+        // the KB shows the warning and the verification matrix tracks them. Do NOT promote.
         SearchTokenMetadata("background", "arka planlı", TokenVerification.RISKY, true, "background", "Compound candidate; exact form in-game unverified"),
-        SearchTokenMetadata("specialbackground", "özel arka planlı", TokenVerification.RISKY, true, "specialbackground", "Multi-word candidate; spacing behavior in-game unverified"),
-        SearchTokenMetadata("locationbackground", "konum arka planlı", TokenVerification.RISKY, true, "locationbackground", "Multi-word candidate; spacing behavior in-game unverified"),
-        SearchTokenMetadata("ultrabeast", "ultra canavar", TokenVerification.RISKY, true, "ultrabeast", "Multi-word candidate; unconfirmed"),
+        SearchTokenMetadata("specialbackground", "özel arka planlı", TokenVerification.RISKY, true, "specialbackground", "Multi-word compound candidate; spacing behavior in-game unverified"),
+        SearchTokenMetadata("locationbackground", "konum arka planlı", TokenVerification.RISKY, true, "locationbackground", "Multi-word compound candidate; spacing behavior in-game unverified"),
+        SearchTokenMetadata("ultrabeast", "ultra canavar", TokenVerification.RISKY, true, "ultrabeast", "Multi-word compound candidate; unconfirmed"),
         SearchTokenMetadata("age", "yaş", TokenVerification.BETA, true, "age365-"),
         SearchTokenMetadata("distance", "mesafe", TokenVerification.BETA, true, "distance100-"),
         SearchTokenMetadata("attack", "saldırı", TokenVerification.BETA, true, "0-1attack"),
@@ -111,4 +149,16 @@ object SearchTokenRegistry {
     /** All tokens still requiring verification before they can be trusted. */
     fun unverifiedOrBeta(): List<SearchTokenMetadata> =
         tokens.filter { it.status != TokenVerification.VERIFIED }
+
+    /**
+     * v0.5.5 (Fix 4): the compound tokens most likely to be mishandled by a Pokémon GO parser
+     * (multi-word localized candidates whose exact spacing/form is unverified). Surfaced so the
+     * verification matrix and tests can require these to be tracked and never marked verified.
+     */
+    val compoundTokens: List<SearchTokenMetadata> = listOf(
+        byEnglish("specialbackground")!!,
+        byEnglish("locationbackground")!!,
+        byEnglish("ultrabeast")!!,
+        byEnglish("background")!!
+    )
 }

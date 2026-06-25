@@ -48,6 +48,14 @@ As of v0.5.2 **no token is VERIFIED**. The tokens the mapper currently emits (le
 behavior) are marked `BETA`/`RISKY`, never `VERIFIED`, and all carry the "verify before use"
 warning.
 
+> **v0.5.5 (Fix 4) — `count` is English-fallback even in Turkish output.** `count` is
+> parser-sensitive numeric syntax (`countN-`) and its Turkish form is contested
+> (`toplam` / `sayı` / `sayısı` across code/KB/plan). Until ONE candidate is confirmed live and
+> promoted to `VERIFIED`, the mapper emits the **English `count`** even when the user explicitly
+> chose Turkish. The candidates are recorded as hypotheses in `SearchTokenRegistry.COUNT_CANDIDATES`
+> and `turkish_verification_matrix.md`; they are the single source of truth. This is the
+> safety-first path for an unverified, parser-sensitive token.
+
 ## Risk surfacing
 
 - The Risk Warning screen shows a Turkish-beta caution when the generated string looks
