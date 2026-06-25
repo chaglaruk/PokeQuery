@@ -11,7 +11,13 @@ object StringBuilderEngine {
     )
     
     val COUNT_MANDATORY_PROTECTIONS = listOf(
-        "shiny", "lucky", "legendary", "mythical", "shadow", "purified", "favorite", "traded", "costume"
+        "shiny", "lucky", "legendary", "mythical", "shadow", "purified", "favorite", "traded", "costume",
+        // v0.5.5 (Fix 6): count/duplicate-cleanup queries must also protect the valuable
+        // variant categories — Ultra Beasts and the background variants. A bare `count2-` finds
+        // duplicates by Pokédex species number and does NOT distinguish these forms, so without
+        // these exclusions a valuable Ultra Beast or special-background Pokémon could land in a
+        // transfer/cleanup list. These now join shiny/legendary/etc. as mandatory.
+        "ultrabeast", "background", "locationbackground", "specialbackground"
     )
 
     fun buildString(
@@ -85,6 +91,31 @@ object StringBuilderEngine {
         return "Moderate"
     }
 
+    /**
+     * v0.5.5 (Fix 5) — risk-model intent (inspection-only vs action-adjacent).
+     *
+     * The risk level assigned per goal below is intentional, not arbitrary:
+     *
+     *   **Inspection-only goals → Info / Low.** `hundo_check`, `nundo_finder` and
+     *   `pvp_candidates` only surface Pokémon to *look at* — they do not, by themselves,
+     *   suggest a cleanup/trade action, so they carry no mandatory protections and the lowest
+     *   risk band. Finding a hundo to admire, a nundo to track, or a PvP IV candidate to
+     *   research does not put a valuable Pokémon at risk of transfer, so a confirmation gate
+     *   would add friction without adding safety.
+     *
+     *   **Action-adjacent / cleanup / trade goals → Medium.** `safe_cleanup`, `candy_prep`,
+     *   `trade_fodder` and `lucky_trade` produce strings whose natural next step IS a transfer,
+     *   evolution-for-candy, or trade — irreversible actions where a mistaken match could lose
+     *   a valuable Pokémon. These route through RiskWarning, carry mandatory protections (count
+     *   cleanup protects shiny/legendary/…/variants; trade goals keep the `!traded` invariant),
+     *   and get the per-goal RiskMessageBuilder caution.
+     *
+     * This is why `4*` is Info while `count2-` is Medium even though both "find Pokémon": the
+     * risk is about what the string invites the user to DO next, not what it matches. Do not
+     * "normalize" these levels to Medium-for-everything or Info-for-everything without a clear
+     * reason — that would either drown inspection goals in false warnings or silently remove
+     * the gate from action-adjacent workflows.
+     */
     fun buildGoal(goalId: String, config: String = "", customQuery: String = "", language: String = "English"): GeneratedString {
         val (query, explanation, risk, title, customProtections) = when (goalId) {
             "safe_cleanup" -> GoalSpec(

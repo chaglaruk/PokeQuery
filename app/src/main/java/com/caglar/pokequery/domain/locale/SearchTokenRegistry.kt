@@ -67,13 +67,73 @@ data class SearchTokenMetadata(
  *   - Tokens with no agreed candidate are UNTESTED.
  *   - Newer/special tokens (@special, megaevolve, fusion, dynamax, gigantamax) are UNTESTED
  *     until someone confirms them — we explicitly do NOT guess.
+ *
+ * v0.5.5 (Fix 4): the `count` token truth is centralized here via [COUNT_CANDIDATES] +
+ * [countMeta]. `count` is parser-sensitive numeric syntax (`countN-`) AND its Turkish form is
+ * contested across sources, so it is NOT emitted in Turkish output (English fallback). The
+ * candidates remain documented as hypotheses to test. This is the single source of truth the
+ * mapper, KB and docs all agree on — there is no longer a divergence between "toplam" (old
+ * map), "sayı" (localization plan) and "sayısı" (KB).
+ *
+ * v0.5.5 safety hotfix: the compound PARSER-SENSITIVE PROTECTION tokens (`background`,
+ * `locationbackground`, `specialbackground`, `ultrabeast`) follow the same English-fallback
+ * policy as `count`. Their multi-word Turkish candidates are unverified and a broken protection
+ * token is dangerous (it must work to exclude a valuable Pokémon from cleanup/trade lists), so
+ * they are NOT emitted in Turkish output. Candidates are captured in [compoundCandidates] as
+ * hypotheses to verify live, and shown in the KB; the generated query keeps the English token.
  */
 object SearchTokenRegistry {
+
+    /**
+     * v0.5.5 (Fix 4): the contesting Turkish candidates for `count` gathered in ONE place.
+     * Sources:
+     *   - "toplam"  : the value the legacy SearchTermMapper map used (v0.4.x–v0.5.4).
+     *   - "sayı"    : docs/research/turkish_localization_plan.md spot-check matrix.
+     *   - "sayısı"  : Knowledge Base description_tr for the count term.
+     * None are verified against a live Turkish client. They are hypotheses for the verification
+     * matrix, NOT emitted tokens. The mapper uses the English `count` fallback until one is
+     * confirmed live and promoted to [TokenVerification.VERIFIED].
+     */
+    val COUNT_CANDIDATES: List<String> = listOf("toplam", "sayı", "sayısı")
+
+    /**
+     * v0.5.5 safety hotfix: the contesting multi-word Turkish candidates for the compound
+     * PARSER-SENSITIVE PROTECTION tokens. These tokens are emitted by StringBuilderEngine as
+     * protection/exclusion terms (e.g. `!background`, `!ultrabeast`) — a wrong form silently
+     * breaks the protection, the kind of token that must work to keep a valuable Pokémon out of
+     * a cleanup/transfer/trade list. Because their exact spacing/form is unverified against a live
+     * Turkish client, NONE are emitted: generated strings use the English token (English fallback),
+     * mirroring the `count` policy. The candidates below remain as hypotheses to verify live and
+     * are shown in the Knowledge Base descriptions. Each value is the current phrase candidate;
+     * the no-space alternative is documented in the verification matrix.
+     */
+    val compoundCandidates: Map<String, String> = mapOf(
+        "background" to "arka planlı",
+        "locationbackground" to "konum arka planlı",
+        "specialbackground" to "özel arka planlı",
+        "ultrabeast" to "ultra canavar"
+    )
+
+    /**
+     * v0.5.5 (Fix 4): the canonical `count` token metadata. `turkish` is null because no
+     * candidate is emitted (English fallback); the candidates live in [COUNT_CANDIDATES] and
+     * the notes, and in the verification matrix.
+     */
+    val countMeta: SearchTokenMetadata = SearchTokenMetadata(
+        english = "count",
+        turkish = null,
+        status = TokenVerification.UNTESTED,
+        languageSensitive = true,
+        example = "count2-",
+        notes = "Parser-sensitive numeric syntax (countN-). Turkish candidates contest across " +
+            "sources (${COUNT_CANDIDATES.joinToString("/")}); none verified. English 'count' is " +
+            "emitted even in Turkish output (English fallback) until a candidate is confirmed live."
+    )
 
     val tokens: List<SearchTokenMetadata> = listOf(
         SearchTokenMetadata("shiny", "parlak", TokenVerification.BETA, true, "shiny", "shiny (English always works; localized form is unverified)"),
         SearchTokenMetadata("traded", "takaslanan", TokenVerification.BETA, true, "!traded", "takas edilmiş (KB description) vs takaslanan (map) — contesting candidates"),
-        SearchTokenMetadata("count", "toplam", TokenVerification.RISKY, true, "count2-", "Contesting: 'toplam' (map) vs 'sayı' (localization plan) vs 'sayısı' (KB). Do not trust."),
+        countMeta,
         SearchTokenMetadata("favorite", "favori", TokenVerification.BETA, true, "favorite", "favourite (UK spelling) is also accepted by the game; localized form unverified"),
         SearchTokenMetadata("lucky", "şanslı", TokenVerification.BETA, true, "lucky"),
         SearchTokenMetadata("legendary", "efsanevi", TokenVerification.BETA, true, "legendary"),
@@ -81,10 +141,16 @@ object SearchTokenRegistry {
         SearchTokenMetadata("shadow", "gölge", TokenVerification.BETA, true, "shadow"),
         SearchTokenMetadata("purified", "arıtılmış", TokenVerification.RISKY, true, "purified", "Candidate 'arıtılmış' unconfirmed"),
         SearchTokenMetadata("costume", "kostümlü", TokenVerification.BETA, true, "costume"),
-        SearchTokenMetadata("background", "arka planlı", TokenVerification.RISKY, true, "background", "Compound candidate; exact form in-game unverified"),
-        SearchTokenMetadata("specialbackground", "özel arka planlı", TokenVerification.RISKY, true, "specialbackground", "Multi-word candidate; spacing behavior in-game unverified"),
-        SearchTokenMetadata("locationbackground", "konum arka planlı", TokenVerification.RISKY, true, "locationbackground", "Multi-word candidate; spacing behavior in-game unverified"),
-        SearchTokenMetadata("ultrabeast", "ultra canavar", TokenVerification.RISKY, true, "ultrabeast", "Multi-word candidate; unconfirmed"),
+        // --- Compound/background/ultra-beast candidates: multi-word, RISKY, unverified. ---
+        // v0.5.5 safety hotfix: these are PARSER-SENSITIVE PROTECTION tokens. A wrong multi-word
+        // form silently breaks a protection that must work to keep a valuable Pokémon out of a
+        // cleanup/transfer/trade list. They are NOT emitted in Turkish output (English fallback) —
+        // `turkish` is null. Candidate forms live in [compoundCandidates] and the KB/matrix for
+        // verification, not as emitted tokens. Do NOT promote until a candidate is confirmed live.
+        SearchTokenMetadata("background", null, TokenVerification.UNTESTED, true, "background", "Multi-word Turkish candidate unverified; English token emitted as protection (fallback)", "Compound candidate '${compoundCandidates["background"]}'; spacing/form unverified. Candidate kept in compoundCandidates, NOT emitted."),
+        SearchTokenMetadata("specialbackground", null, TokenVerification.UNTESTED, true, "specialbackground", "Multi-word Turkish candidate unverified; English token emitted as protection (fallback)", "Compound candidate '${compoundCandidates["specialbackground"]}'; spacing/form unverified. Candidate kept in compoundCandidates, NOT emitted."),
+        SearchTokenMetadata("locationbackground", null, TokenVerification.UNTESTED, true, "locationbackground", "Multi-word Turkish candidate unverified; English token emitted as protection (fallback)", "Compound candidate '${compoundCandidates["locationbackground"]}'; spacing/form unverified. Candidate kept in compoundCandidates, NOT emitted."),
+        SearchTokenMetadata("ultrabeast", null, TokenVerification.UNTESTED, true, "ultrabeast", "Multi-word Turkish candidate unverified; English token emitted as protection (fallback)", "Compound candidate '${compoundCandidates["ultrabeast"]}'; spacing/form unverified. Candidate kept in compoundCandidates, NOT emitted."),
         SearchTokenMetadata("age", "yaş", TokenVerification.BETA, true, "age365-"),
         SearchTokenMetadata("distance", "mesafe", TokenVerification.BETA, true, "distance100-"),
         SearchTokenMetadata("attack", "saldırı", TokenVerification.BETA, true, "0-1attack"),
@@ -111,4 +177,19 @@ object SearchTokenRegistry {
     /** All tokens still requiring verification before they can be trusted. */
     fun unverifiedOrBeta(): List<SearchTokenMetadata> =
         tokens.filter { it.status != TokenVerification.VERIFIED }
+
+    /**
+     * v0.5.5 (Fix 4): the compound tokens most likely to be mishandled by a Pokémon GO parser
+     * (multi-word localized candidates whose exact spacing/form is unverified). Surfaced so the
+     * verification matrix and tests can require these to be tracked and never marked verified.
+     *
+     * v0.5.5 safety hotfix: these are now UNTESTED + not emitted (English fallback) because a
+     * broken protection token is dangerous. Their candidate forms live in [compoundCandidates].
+     */
+    val compoundTokens: List<SearchTokenMetadata> = listOf(
+        byEnglish("specialbackground")!!,
+        byEnglish("locationbackground")!!,
+        byEnglish("ultrabeast")!!,
+        byEnglish("background")!!
+    )
 }

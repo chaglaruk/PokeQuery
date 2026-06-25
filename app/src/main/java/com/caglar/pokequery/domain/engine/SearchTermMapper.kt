@@ -10,31 +10,38 @@ object SearchTermMapper {
     // Pokémon GO Turkish client. Per docs/research/turkish_localization_plan.md the
     // spot-check matrix for these terms is still "Pending". Do not enable Auto→Turkish.
     //
-    // Contested tokens (multiple candidate translations across code / KB / localization
-    // plan — VERIFY before treating as correct):
-    //   - count        : map uses "toplam"; localization plan suggests "sayı"; KB "sayısı"
-    //   - traded       : map uses "takaslanan"; KB description_tr "Takas edilmiş"
+    // v0.5.5 (Fix 4) — token truth is centralized and aligned across code/registry/KB/docs:
+    //   - count        : CONTESTED across sources ("toplam" in the old map, "sayı" in the
+    //                    localization plan, "sayısı" in the KB). It is also parser-sensitive
+    //                    numeric syntax (countN-). Until ONE candidate is confirmed live, we
+    //                    DO NOT translate it — the English `count` is emitted even in Turkish
+    //                    output (English fallback). Candidates remain in the verification
+    //                    matrix as hypotheses to test. See SearchTokenRegistry.countMeta.
+    //   - traded       : map uses "takaslanan"; KB description_tr "Takas edilmiş" (contested)
     //   - mythical     : map "mistik" — verify
     //   - purified     : map "arıtılmış" — verify
-    //   - specialbackground : "özel arka planlı" — verify
-    //   - locationbackground : "konum arka planlı" — verify
-    //   - ultrabeast   : "ultra canavar" — verify
     //   - hp           : "can" per explicit user requirement; KB notes variable localization
+    //
+    // v0.5.5 safety hotfix — compound parser-sensitive tokens fall back to English. The multi-word
+    // candidates (background / locationbackground / specialbackground / ultrabeast) are deliberately
+    // NOT mapped here. Their exact spacing/form is unverified against a live Turkish client, and a
+    // wrong multi-word form silently breaks a PROTECTION token — the kind of token that must work to
+    // keep a valuable Pokémon out of a cleanup/transfer/trade list. Until one candidate per token is
+    // confirmed live, generated protection strings emit the English token even in Turkish output
+    // (English fallback). Candidate forms remain visible in the Knowledge Base descriptions_tr and in
+    // SearchTokenRegistry.compoundCandidates as hypotheses to verify. This mirrors the existing
+    // `count` English-fallback policy.
     // ---------------------------------------------------------------------------
     private val turkishMap = mapOf(
         "shiny" to "parlak",
         "legendary" to "efsanevi",
         "mythical" to "mistik",
-        "ultrabeast" to "ultra canavar",
         "shadow" to "gölge",
         "purified" to "arıtılmış",
         "favorite" to "favori",
         "lucky" to "şanslı",
         "traded" to "takaslanan",
         "costume" to "kostümlü",
-        "background" to "arka planlı",
-        "locationbackground" to "konum arka planlı",
-        "specialbackground" to "özel arka planlı",
 
         // IV and Stats
         "attack" to "saldırı",
@@ -44,8 +51,17 @@ object SearchTermMapper {
         // Distance and age terms sometimes localize, sometimes not.
         // We map them just in case based on standard localized prefixes.
         "distance" to "mesafe",
-        "age" to "yaş",
-        "count" to "toplam"
+        "age" to "yaş"
+        // NOTE: "count" is deliberately NOT mapped. See the block comment above — the Turkish
+        // candidate is contested (toplam/sayı/sayısı) and the token is parser-sensitive numeric
+        // syntax, so the English "count" is emitted even in Turkish output until a candidate is
+        // confirmed live. SearchTokenRegistry.COUNT_CANDIDATES lists the hypotheses to test.
+        //
+        // NOTE: the compound parser-sensitive protection tokens ("background",
+        // "locationbackground", "specialbackground", "ultrabeast") are ALSO deliberately NOT
+        // mapped (v0.5.5 safety hotfix). Their multi-word Turkish candidates are unverified and a
+        // broken protection token is dangerous. They fall back to English in generated strings.
+        // Candidate forms are tracked in SearchTokenRegistry.compoundCandidates.
     )
 
     /**
@@ -76,8 +92,10 @@ object SearchTermMapper {
         if (resolvedLanguage != "Turkish" || rawSyntax.isBlank()) return rawSyntax
 
         // Safe replacement to avoid substring clashing.
-        // Example: "count2-&!traded" -> "toplam2-&!takaslanan"
+        // Example: "count2-&!traded" -> "count2-&!takaslanan" (count stays English, fallback).
         // "distance100-&!shiny" -> "mesafe100-&!parlak"
+        // Protection tokens NOT in the map (background, ultrabeast, ...) are left in English
+        // (English fallback) — see the v0.5.5 safety hotfix note above.
 
         var translated = rawSyntax
 

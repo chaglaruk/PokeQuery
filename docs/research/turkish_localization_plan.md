@@ -1,7 +1,24 @@
 # Turkish Localization Plan
 
 ## Current Status
-Turkish Pokémon GO search terms are available from community and third-party sources (e.g., the pogosearch repository and community forums). 
+Turkish Pokémon GO search terms are available from community and third-party sources (e.g., the pogosearch repository and community forums).
+
+> **v0.5.5 (Fix 4): single source of truth.** Token truth now lives in code first —
+> `SearchTokenRegistry` (`domain/locale/SearchTokenRegistry.kt`) — and this doc plus the KB and
+> the verification matrix (`docs/localization/turkish_verification_matrix.md`) must stay aligned
+> with it. If the candidates below disagree with the registry, **the registry is authoritative**.
+> In particular `count` is **English-fallback** (emitted as `count` even in Turkish output) until
+> one of its contesting candidates (`toplam` / `sayı` / `sayısı` — see
+> `SearchTokenRegistry.COUNT_CANDIDATES`) is confirmed live.
+>
+> **v0.5.5 safety hotfix: compound protection tokens are also English-fallback.** The multi-word
+> parser-sensitive PROTECTION/exclusion tokens — `background`, `locationbackground`,
+> `specialbackground`, `ultrabeast` — are emitted in **English even in Turkish output** until each
+> candidate phrase (`arka planlı`, `konum arka planlı`, `özel arka planlı`, `ultra canavar` — see
+> `SearchTokenRegistry.compoundCandidates`) is confirmed live in a Turkish Pokémon GO client. These
+> are exclusion tokens that fail *silently* when wrong, so they are held to the same standard as
+> `count`. UI labels and KB `description_tr` may still show the candidate phrase; only the
+> generated query is locked to English until verified.
 
 ## Beta Phase Constraint
 **Do not enable Turkish runtime mode in this phase.**
@@ -12,12 +29,16 @@ All sourced Turkish terms must be treated as `beta/community-sourced` until they
 
 To clear the beta constraint, a tester with a Turkish Pokémon GO client must execute the following searches and confirm they yield correct results:
 
-| Category | Expected English | Community Turkish | Status |
+| Category | Expected English | Community Turkish candidate(s) | Status |
 | :--- | :--- | :--- | :--- |
 | Shiny | `shiny` | `parlak` | Pending |
 | Legendary | `legendary` | `efsanevi` | Pending |
-| Traded | `traded` | `takaslanmış` | Pending |
-| Count limit | `count2-` | `sayı2-` | Pending |
+| Traded | `traded` | `takaslanan` (emitted) / `takaslanmış`, `takas edilmiş` (alternatives) | Pending |
+| Count limit | `count2-` | **English fallback emitted.** Test `toplam2-`, `sayı2-`, `sayısı2-` | Pending |
+| Ultra Beast (protection) | `!ultrabeast` | **English fallback emitted.** Test `!ultra canavar`, `!ultracanavar` | Pending |
+| Background (protection) | `!background` | **English fallback emitted.** Test `!arka planlı`, `!arkaplanlı` | Pending |
+| Location background (protection) | `!locationbackground` | **English fallback emitted.** Test `!konum arka planlı`, `!konumarkaplanlı` | Pending |
+| Special background (protection) | `!specialbackground` | **English fallback emitted.** Test `!özel arka planlı`, `!özelarkaplanlı` | Pending |
 | IV - Attack | `0attack` | `0saldırı` | Pending |
 | IV - Defense | `0defense` | `0savunma` | Pending |
 | IV - HP | `0hp` | `0sg` / `0hp` | Pending |
@@ -27,3 +48,4 @@ To clear the beta constraint, a tester with a Turkish Pokémon GO client must ex
 
 ## Implementation Path
 Once the matrix is cleared, we will implement a `LanguageProvider` layer in the `StringBuilderEngine` to dynamically map our base English logic tokens to the verified Turkish strings before rendering the final output.
+

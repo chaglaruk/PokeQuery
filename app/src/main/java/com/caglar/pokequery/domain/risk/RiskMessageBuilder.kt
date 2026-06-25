@@ -7,6 +7,12 @@ package com.caglar.pokequery.domain.risk
  * showing a generic warning. A Turkish beta caution is appended when the generated output
  * is Turkish. Messages stay short and readable; they never claim automation or that the
  * app reads a Pokémon collection.
+ *
+ * v0.5.5 (Fix 5) — risk-model intent. These messages are only reached for Medium/High
+ * (action-adjacent) goals because of how risk levels are assigned in `StringBuilderEngine.buildGoal`:
+ * inspection-only goals (hundo/nundo/pvp) are Info and skip the warning gate entirely, while
+ * cleanup/trade goals are Medium and get a tailored caution here. See the kdoc on `buildGoal`
+ * for the full inspection-only vs action-adjacent rationale.
  */
 object RiskMessageBuilder {
 

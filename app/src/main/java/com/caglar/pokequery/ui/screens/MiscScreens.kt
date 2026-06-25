@@ -37,6 +37,7 @@ import com.caglar.pokequery.data.repository.KnowledgeBaseRepository
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.theme.*
+import com.caglar.pokequery.theme.density.currentDensity
 import com.caglar.pokequery.ui.components.*
 import com.caglar.pokequery.ui.motion.pqSpringPop
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
@@ -56,10 +57,13 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
 
     // v0.5.3 motion polish: staggered entrance — title bar + banner fade in first; list rows
     // appear at rest (no cascade while scrolling). One hoisted flag → runs once only.
+    // v0.5.5 (Fix 1): the gap between homogeneous KB term rows follows the Visual Density
+    // `listGap` token, so Compact tightens the list visibly.
+    val density = currentDensity()
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(density.listGap),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
         item { ScreenTitleBar("Knowledge Base", onBack, Modifier.pqStaggeredItem(visible, 0)) }
@@ -196,10 +200,14 @@ fun SettingsScreen(onBack: () -> Unit) {
 
     // v0.5.3 motion polish: staggered entrance — title bar + first panel fade in; subsequent
     // panels appear at rest (no cascade while scrolling). One hoisted flag → runs once only.
+    // v0.5.5 (Fix 1): the gap between the distinct Settings PremiumPanels follows the Visual
+    // Density `sectionGap` token; inner element gaps use `innerElementGap`. Compact tightens
+    // the whole screen visibly.
+    val density = currentDensity()
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(density.sectionGap),
         contentPadding = PaddingValues(bottom = 22.dp)
     ) {
         item { ScreenTitleBar("Settings", onBack, Modifier.pqStaggeredItem(visible, 0)) }
@@ -245,16 +253,21 @@ fun SettingsScreen(onBack: () -> Unit) {
                 // v0.5.2.1 hotfix: full translated UI resources are not shipped yet, so this
                 // is presented honestly as a foundation/preference. Selecting a language never
                 // black-screens the app (in-process locale only; no OS LocaleManager call).
-                Text("App Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Text("Controls the interface text where translations are available. More translations are coming in a future update. Does not change generated search strings.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+                // v0.5.5 (Fix 2): the section is now framed honestly as a FOUNDATION. The app has
+                // almost no translated UI strings yet (no values-tr/ resources), so picking Turkish
+                // does not actually translate the interface today. The preference is recorded and
+                // ready for a future localization sprint, but we must not imply full translation
+                // exists. The "(Foundation)" labels make that explicit.
+                Text("App Language (Foundation)", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text("This sets a language preference for the interface. Full UI translations are coming later and are not fully available yet — most of the interface stays in English today. This does NOT change generated search strings. Selecting a language never black-screens the app.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
                 Spacer(Modifier.height(4.dp))
                 val appLang = userPrefs?.appLanguage ?: "System Default"
-                RadioRow("System Default", appLang == "System Default") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "System Default") } }
-                RadioRow("English", appLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "English") } }
-                RadioRow("Turkish", appLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Turkish") } }
+                RadioRow("System Default (Foundation)", appLang == "System Default") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "System Default") } }
+                RadioRow("English (Foundation)", appLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "English") } }
+                RadioRow("Turkish (Foundation — coming later)", appLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Turkish") } }
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "App Language applies to this app only. Pokémon GO itself is not affected.",
+                    "App Language applies to this app only and is a foundation for future translation. Pokémon GO itself is not affected.",
                     color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp
                 )
 
@@ -505,10 +518,13 @@ private fun SavedTemplateScreen(
 ) {
     // v0.5.3 motion polish: staggered entrance — title bar fades in first. Empty-state icon gets
     // a subtle spring-pop. List rows appear at rest (no cascade while scrolling).
+    // v0.5.5 (Fix 1): the gap between saved-template rows follows the Visual Density `listGap`
+    // token, so Compact fits more saved strings per screen.
+    val density = currentDensity()
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(density.listGap),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
         item { ScreenTitleBar(title, onBack, Modifier.pqStaggeredItem(visible, 0)) }
@@ -535,6 +551,9 @@ private fun SavedTemplateScreen(
 
 @Composable
 private fun SavedTemplateRow(template: SavedTemplate, onCopy: () -> Unit, onDelete: (() -> Unit)? = null) {
+    // v0.5.5 (Fix 1): the inner element gaps (title → string box → copy button) follow the
+    // Visual Density `innerElementGap` token so Compact tightens the saved-string cards.
+    val density = currentDensity()
     PremiumPanel(borderColor = template.riskLevel.toneColor()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -543,7 +562,7 @@ private fun SavedTemplateRow(template: SavedTemplate, onCopy: () -> Unit, onDele
             }
             com.caglar.pokequery.ui.pq.PqRiskBadge(template.riskLevel)
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(density.innerElementGap))
         com.caglar.pokequery.ui.pq.PqStringBox(template.rawSyntax)
         Spacer(Modifier.height(14.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {

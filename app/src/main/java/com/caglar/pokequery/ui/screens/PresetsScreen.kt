@@ -87,10 +87,13 @@ fun PresetsScreen(
 
     // v0.5.3 motion polish: staggered entrance — title bar fades in first; preset cards appear
     // at rest (no cascade while scrolling). One hoisted flag → runs once only.
+    // v0.5.5 (Fix 1): the gap between preset cards follows the Visual Density `listGap`
+    // token, so Compact fits more presets per screen.
+    val density = com.caglar.pokequery.theme.density.currentDensity()
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(density.listGap),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
     ) {
         item {
@@ -138,6 +141,9 @@ private fun CompactPresetCard(
     onNavigateRisk: (GeneratedString) -> Unit
 ) {
     val shape = RoundedCornerShape(14.dp)
+    // v0.5.5 (Fix 1): preset card padding and the expanded inner element gaps (string box →
+    // copy button) follow the Visual Density tokens so Compact tightens the preset list.
+    val density = com.caglar.pokequery.theme.density.currentDensity()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -145,7 +151,7 @@ private fun CompactPresetCard(
             .background(CardDark)
             .border(1.dp, BorderSubtle, shape)
             .clickable(onClick = onToggle)
-            .padding(horizontal = 14.dp, vertical = 11.dp)
+            .padding(horizontal = density.cardPadding, vertical = (density.innerElementGap.value * 1.1f).dp)
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -157,7 +163,7 @@ private fun CompactPresetCard(
         }
 
         androidx.compose.animation.AnimatedVisibility(isExpanded) {
-            Column(Modifier.padding(top = 10.dp)) {
+            Column(Modifier.padding(top = density.innerElementGap)) {
                 com.caglar.pokequery.ui.pq.PqStringBox(preset.syntax)
                 preset.warnings.forEach { warning ->
                     Text("• $warning", color = AmberWarning, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
@@ -166,7 +172,7 @@ private fun CompactPresetCard(
                     Spacer(Modifier.height(6.dp))
                     com.caglar.pokequery.ui.pq.PqManualReviewPanel(text = "Review matches in Pokémon GO before transferring or trading.")
                 }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(density.innerElementGap))
                 com.caglar.pokequery.ui.pq.PqPrimaryButton(
                     text = "Preview & Copy",
                     leadingIcon = Icons.Default.ContentCopy,

@@ -12,6 +12,28 @@ This matrix exists so we never over-claim that Turkish terms are verified. The a
 - The Knowledge Base `description_tr` fields.
 
 > Multiple candidates exist for several tokens (e.g. `count` → `toplam` / `sayı` / `sayısı`; `traded` → `takaslanan` / `takas edilmiş`). Do **not** pick one and call it verified. Test it first.
+>
+> **v0.5.5 (Fix 4) — `count` is English-fallback.** The `count` token is parser-sensitive
+> numeric syntax (`countN-`) AND its Turkish form is contested across code/KB/plan, so as of
+> v0.5.5 PokeQuery emits the **English `count`** even in Turkish output. The three candidates
+> below (`toplam` / `sayı` / `sayısı`) remain in this matrix as hypotheses to test live. When
+> one is confirmed, promote it to `works` here AND add it to `SearchTermMapper` +
+> `SearchTokenRegistry.countMeta` together. The single source of truth for the candidates is
+> `SearchTokenRegistry.COUNT_CANDIDATES`.
+>
+> **v0.5.5 safety hotfix — compound protection tokens are English-fallback (EMITTED), not just
+> an alternative.** Multi-word candidates (`background`, `specialbackground`,
+> `locationbackground`, `ultrabeast`) are parser-sensitive PROTECTION/exclusion tokens: a wrong
+> form silently breaks an exclusion that must keep a valuable Pokémon out of a cleanup/transfer/
+> trade list. Because their exact Turkish spacing/form is unverified on a live Turkish Pokémon GO
+> client, PokeQuery now **emits the English token** in the generated string even when Search
+> String Language is Turkish — mirroring the `count` policy. The Turkish candidate phrases below
+> remain in this matrix (and in `SearchTokenRegistry.compoundCandidates`) as **hypotheses to test
+> live**, NOT proof of support. UI labels and KB `description_tr` wording may still show the
+> candidate phrase; only the generated query is locked to English until verified. When one is
+> confirmed live, promote it to `works` here AND add it back to `SearchTermMapper.turkishMap` +
+> `SearchTokenRegistry` together. The single source of truth for the candidates is
+> `SearchTokenRegistry.compoundCandidates`.
 
 ## Matrix
 
@@ -21,7 +43,7 @@ Legend — `untested` = default; `works` = confirmed live in Turkish client; `fa
 |---|---|---|---|---|---|---|---|---|
 | `shiny` | `parlak` | — | `parlak` | Returns all shiny Pokémon | untested | — | — | Likely correct but must be confirmed live. |
 | `traded` | `takaslanan` | `takas edilmiş` | `!takaslanan` | Excludes all traded Pokémon | untested | — | — | Contested. KB uses "Takas edilmiş"; code emits "takaslanan". |
-| `count` | `toplam` | `sayı`, `sayısı` | `toplam2-` | Returns species with 2+ owned | untested | — | — | Most contested. Three candidates across code/KB/plan. |
+| `count` | **(English fallback: `count`)** | `toplam`, `sayı`, `sayısı` | `count2-` (emitted) / `toplam2-`,`sayı2-`,`sayısı2-` (to test) | Returns species with 2+ owned | untested | — | — | v0.5.5: English `count` emitted even in TR output. Contesting candidates `toplam`/`sayı`/`sayısı` are NOT emitted — test all three live, then promote ONE. Source of truth: `SearchTokenRegistry.COUNT_CANDIDATES`. |
 | `favorite` | `favori` | — | `!favori` | Excludes favorites | untested | — | — | Likely correct; confirm live. |
 | `favourite` | `favori` | — | `!favourite` | UK spelling variant | untested | — | — | English-only token; Turkish map reuses "favori". |
 | `legendary` | `efsanevi` | — | `efsanevi` | Returns legendaries | untested | — | — | Likely correct; confirm live. |
@@ -29,9 +51,10 @@ Legend — `untested` = default; `works` = confirmed live in Turkish client; `fa
 | `shadow` | `gölge` | — | `!gölge` | Excludes shadows | untested | — | — | Likely correct; confirm live. |
 | `purified` | `arıtılmış` | `arındırılmış` | `purified` | Returns purified | untested | — | — | Contested ("arıtılmış" vs "arındırılmış"). |
 | `costume` | `kostümlü` | — | `!kostümlü` | Excludes costumes | untested | — | — | Likely correct; confirm live. |
-| `specialbackground` | `özel arka planlı` | — | `özel arka planlı` | Returns special backgrounds | untested | — | — | Compound token; verify exact form. |
-| `locationbackground` | `konum arka planlı` | — | `konum arka planlı` | Returns location backgrounds | untested | — | — | Compound token; verify exact form. |
-| `ultrabeast` | `ultra canavar` | — | `ultra canavar` | Returns Ultra Beasts | untested | — | — | Compound token; verify exact form. |
+| `background` | **(English fallback: `background`)** | `arka planlı` (phrase), `arkaplanlı` (no-space) | `!background` (emitted) / `!arka planlı`,`!arkaplanlı` (to test) | Excludes backgrounded Pokémon | untested | — | — | v0.5.5 hotfix: English `background` EMITTED even in TR output (protection token). Candidates `arka planlı`/`arkaplanlı` are NOT emitted — test live, then promote ONE. Source of truth: `SearchTokenRegistry.compoundCandidates`. |
+| `specialbackground` | **(English fallback: `specialbackground`)** | `özel arka planlı` (phrase), `özelarkaplanlı` (no-space) | `!specialbackground` (emitted) / `!özel arka planlı`,`!özelarkaplanlı` (to test) | Returns special backgrounds | untested | — | — | v0.5.5 hotfix: English `specialbackground` EMITTED even in TR output (protection token). Compound candidates NOT emitted — test live, then promote ONE. |
+| `locationbackground` | **(English fallback: `locationbackground`)** | `konum arka planlı` (phrase), `konumarkaplanlı` (no-space) | `!locationbackground` (emitted) / `!konum arka planlı`,`!konumarkaplanlı` (to test) | Returns location backgrounds | untested | — | — | v0.5.5 hotfix: English `locationbackground` EMITTED even in TR output (protection token). Compound candidates NOT emitted — test live, then promote ONE. |
+| `ultrabeast` | **(English fallback: `ultrabeast`)** | `ultra canavar` (phrase), `ultracanavar` (no-space) | `!ultrabeast` (emitted) / `!ultra canavar`,`!ultracanavar` (to test) | Returns Ultra Beasts | untested | — | — | v0.5.5 hotfix: English `ultrabeast` EMITTED even in TR output (protection token). Compound candidates NOT emitted — test live, then promote ONE. |
 | `age` | `yaş` | — | `yaş365-` | Pokémon caught 365+ days ago | untested | — | — | Verify the localized prefix works. |
 | `distance` | `mesafe` | — | `mesafe100-` | Pokémon caught 100km+ away | untested | — | — | Verify the localized prefix works. |
 | `attack` | `saldırı` | — | `0saldırı` | Exact 0 Attack IV | untested | — | — | Verify suffix form. |

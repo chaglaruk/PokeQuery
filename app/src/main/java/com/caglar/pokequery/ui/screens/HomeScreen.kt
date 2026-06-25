@@ -154,6 +154,10 @@ private fun HomeHeader(entranceModifier: Modifier = Modifier) {
 
 @Composable
 private fun StitchGoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    // v0.5.5 (Fix 1): the goal card padding and its inner element gap (icon → title) follow
+    // the Visual Density tokens, so Compact tightens each Home tile visibly. Touch targets are
+    // untouched (the whole card remains tappable); only padding/gaps scale.
+    val density = currentDensity()
     val shape = RoundedCornerShape(18.dp)
     Column(
         modifier = modifier
@@ -162,7 +166,7 @@ private fun StitchGoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClic
             .background(Brush.verticalGradient(listOf(CardPremium, CardDark)))
             .border(1.dp, goal.accent.copy(alpha = 0.3f), shape)
             .clickable(onClick = onClick)
-            .padding(16.dp)
+            .padding(density.cardPadding)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -172,7 +176,7 @@ private fun StitchGoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClic
                 Icon(goal.icon, contentDescription = null, tint = goal.accent, modifier = Modifier.size(22.dp))
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(density.innerElementGap))
         Text(goal.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1)
         Spacer(Modifier.height(2.dp))
         Text(goal.subtitle, color = TextSecondary, fontSize = 12.sp, maxLines = 2)

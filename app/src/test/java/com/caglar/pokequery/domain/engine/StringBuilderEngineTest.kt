@@ -22,7 +22,7 @@ class StringBuilderEngineTest {
     @Test
     fun `count templates include required exclusions`() {
         val result = StringBuilderEngine.buildString(
-            baseQuery = "count2-", 
+            baseQuery = "count2-",
             protections = emptyList(), // no optional protections
             explanation = "test"
         )
@@ -30,6 +30,40 @@ class StringBuilderEngineTest {
         assertTrue(result.rawSyntax.contains("!shiny"))
         assertTrue(result.rawSyntax.contains("!legendary"))
         assertTrue(result.rawSyntax.contains("!costume"))
+    }
+
+    @Test
+    fun `count cleanup protects ultra beast and background variants`() {
+        // v0.5.5 (Fix 6): count/duplicate queries must protect the valuable variant categories
+        // too. A bare count2- finds duplicates by Pokédex species number and does not distinguish
+        // forms, so without these exclusions a valuable Ultra Beast or special-background Pokémon
+        // could land in a transfer/cleanup list. These now join shiny/legendary/etc.
+        val result = StringBuilderEngine.buildString(
+            baseQuery = "count2-",
+            protections = emptyList(), // no optional protections — relies on COUNT_MANDATORY_PROTECTIONS
+            explanation = "test"
+        )
+        assertTrue("Ultra Beasts must be protected from count cleanup", result.rawSyntax.contains("!ultrabeast"))
+        assertTrue("background variants must be protected from count cleanup", result.rawSyntax.contains("!background"))
+        assertTrue("locationbackground must be protected from count cleanup", result.rawSyntax.contains("!locationbackground"))
+        assertTrue("specialbackground must be protected from count cleanup", result.rawSyntax.contains("!specialbackground"))
+    }
+
+    @Test
+    fun `count cleanup always keeps the traded invariant and existing protections`() {
+        // v0.5.5 (Fix 6): strengthening the count protections must NOT weaken any existing
+        // protection — the full strengthened set must be present, including the !traded invariant.
+        val result = StringBuilderEngine.buildString(
+            baseQuery = "count2-",
+            protections = emptyList(),
+            explanation = "test"
+        )
+        // The complete strengthened mandatory set.
+        StringBuilderEngine.COUNT_MANDATORY_PROTECTIONS.forEach { token ->
+            assertTrue("count cleanup must exclude '!$token'", result.rawSyntax.contains("!$token"))
+        }
+        // !traded invariant survives (Safe Cleanup / Trade Fodder safety).
+        assertTrue("!traded invariant must remain", result.rawSyntax.contains("!traded"))
     }
 
     @Test
@@ -180,5 +214,33 @@ class StringBuilderEngineTest {
 
         val tradePrepWarnings = Linter.lint("age365-&!traded")
         assertTrue(tradePrepWarnings.any { it.message.contains("Trade prep search") })
+    }
+
+    @Test
+    fun `risk model splits inspection-only goals from action-adjacent goals`() {
+        // v0.5.5 (Fix 5): documents the intentional risk-model intent. Inspection-only goals
+        // (find to admire/track/research) are Info and skip the RiskWarning gate + carry no
+        // mandatory protections. Action-adjacent goals (whose natural next step is a transfer/
+        // candy/trade) are Medium, route through RiskWarning, and carry protections.
+        // This is about what the string invites the user to DO, not what it matches.
+        val inspection = listOf("hundo_check", "nundo_finder", "pvp_candidates")
+        val actionAdjacent = listOf("safe_cleanup", "candy_prep", "trade_fodder", "lucky_trade")
+
+        inspection.forEach { goal ->
+            assertEquals(
+                "inspection-only goal '$goal' should be Info (no warning gate)",
+                RiskLevel.Info, StringBuilderEngine.buildGoal(goal).riskLevel
+            )
+            assertFalse(
+                "inspection-only goal '$goal' should carry NO mandatory protections",
+                StringBuilderEngine.buildGoal(goal).rawSyntax.contains("!")
+            )
+        }
+        actionAdjacent.forEach { goal ->
+            assertEquals(
+                "action-adjacent goal '$goal' should be Medium (routes through RiskWarning)",
+                RiskLevel.Medium, StringBuilderEngine.buildGoal(goal).riskLevel
+            )
+        }
     }
 }

@@ -122,6 +122,12 @@ fun GoalDetailScreen(
         userPrefs?.favorites?.firstOrNull { it.rawSyntax == generatedString.rawSyntax }
     }
 
+    // v0.5.5 (Fix 1): Visual Density drives the section rhythm on this screen. The distinct
+    // blocks (RESULT, REFINE, PROTECTED, NOTES, DETAILS) are separated by `sectionGap`; the
+    // gaps between elements inside the RESULT card (badge→string→copy) use `innerElementGap`.
+    // Compact tightens the whole scroll visibly without shrinking touch targets or titles.
+    val density = com.caglar.pokequery.theme.density.currentDensity()
+
     Scaffold(containerColor = BackgroundDark) { paddingValues ->
         // v0.5.3 motion polish: staggered entrance. Top bar → result card → refine card. Final
         // layout is byte-identical to pre-animation (offset animates to 0, alpha to 1), so there
@@ -155,7 +161,7 @@ fun GoalDetailScreen(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(density.sectionGap))
 
             // RESULT block: risk badge + string hero + copy CTA.
             PqSectionHeader("RESULT", Modifier.pqStaggeredItem(visible, 1))
@@ -164,7 +170,7 @@ fun GoalDetailScreen(
                     Text(generatedString.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f))
                     PqRiskBadge(generatedString.riskLevel)
                 }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(density.innerElementGap))
                 PqStringBox(generatedString.rawSyntax)
                 Spacer(Modifier.height(14.dp))
                 PqPrimaryButton(
@@ -182,12 +188,12 @@ fun GoalDetailScreen(
                 )
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(density.sectionGap))
 
             // Manual review reminder (always present for actionable goals).
             if (generatedString.riskLevel != RiskLevel.Info) {
                 PqManualReviewPanel(modifier = Modifier.pqStaggeredItem(visible, 3))
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(density.sectionGap))
             }
 
             // REFINE block: options.
@@ -210,7 +216,7 @@ fun GoalDetailScreen(
 
             // Protected categories chips (when relevant).
             if (generatedString.protectedCategories.isNotEmpty()) {
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(density.sectionGap))
                 PqSectionHeader("PROTECTED", Modifier.pqStaggeredItem(visible, 4))
                 PqCard(modifier = Modifier.pqStaggeredItem(visible, 4)) {
                     Text(
@@ -222,20 +228,20 @@ fun GoalDetailScreen(
 
             // Warnings (goal-specific, e.g. count caveat).
             if (generatedString.warnings.isNotEmpty()) {
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(density.sectionGap))
                 PqSectionHeader("NOTES", Modifier.pqStaggeredItem(visible, 5))
                 PqCard(modifier = Modifier.pqStaggeredItem(visible, 5)) {
                     // v0.5.1 (Fix 4): explicit vertical spacing between note rows so the
                     // Trade Fodder card (count caveat + trade disclaimer) no longer overlaps.
                     generatedString.warnings.forEachIndexed { index, warning ->
-                        if (index > 0) Spacer(Modifier.height(8.dp))
+                        if (index > 0) Spacer(Modifier.height(density.innerElementGap))
                         Text("• $warning", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
                     }
                 }
             }
 
             // DETAILS block: explanation.
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(density.sectionGap))
             PqSectionHeader("DETAILS", Modifier.pqStaggeredItem(visible, 6))
             PqCard(modifier = Modifier.pqStaggeredItem(visible, 6)) {
                 Text(generatedString.plainLanguageExplanation, color = TextSecondary, fontSize = 13.sp, lineHeight = 19.sp)
