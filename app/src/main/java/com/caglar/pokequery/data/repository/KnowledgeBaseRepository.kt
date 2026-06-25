@@ -27,6 +27,7 @@ class KnowledgeBaseRepository(private val context: Context) {
 
                 Term(
                     id = item.getString("id"),
+                    title = item.optString("title").takeIf { it.isNotBlank() && it != "null" },
                     syntax = item.getString("syntax"),
                     category = item.getString("category"),
                     tier = item.getString("tier"),

@@ -66,6 +66,7 @@ class NavigationTest {
     fun `direct screenshot routes resolve and old review route falls back home`() {
         assertEquals(GoalDetail("safe_cleanup"), startDestination("detail_safe_cleanup", true))
         assertEquals(History, startDestination("history", true))
+        assertEquals(ChangelogRoute, startDestination("changelog", true))
         assertEquals(Home, startDestination("review", true))
         assertEquals(Home, startDestination("search", true))
     }

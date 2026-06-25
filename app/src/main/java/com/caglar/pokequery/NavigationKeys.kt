@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object History : NavKey
 @Serializable data class KnowledgeBase(val startExpanded: Boolean = false) : NavKey
 @Serializable data object Settings : NavKey
+@Serializable data object ChangelogRoute : NavKey
 @Serializable data object Presets : NavKey
 @Serializable data class RiskWarning(val generatedString: GeneratedString) : NavKey
 
@@ -34,6 +35,7 @@ fun startDestination(startRoute: String?, firstUseSeen: Boolean?): NavKey? = whe
     "favorites" -> Favorites
     "history" -> History
     "settings" -> Settings
+    "changelog" -> ChangelogRoute
     null -> when (firstUseSeen) {
         null -> null
         true -> Home

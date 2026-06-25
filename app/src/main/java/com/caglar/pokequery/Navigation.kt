@@ -148,7 +148,13 @@ fun MainNavigation(startRoute: String? = null) {
                             onBack = { backStack.removeLastOrNull() }
                         )
                     }
-                    entry<Settings> { SettingsScreen { backStack.removeLastOrNull() } }
+                    entry<Settings> {
+                        SettingsScreen(
+                            onBack = { backStack.removeLastOrNull() },
+                            onOpenChangelog = { backStack.add(ChangelogRoute) }
+                        )
+                    }
+                    entry<ChangelogRoute> { ChangelogScreen { backStack.removeLastOrNull() } }
                     entry<KnowledgeBase> { route -> KnowledgeBaseScreen(startExpanded = route.startExpanded) { backStack.removeLastOrNull() } }
                     entry<RiskWarning> { route ->
                         RiskWarningScreen(

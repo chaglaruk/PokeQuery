@@ -9,6 +9,7 @@ package com.caglar.pokequery
  */
 object AppVersion {
     val versionName: String = BuildConfig.VERSION_NAME
+    val versionCode: Int = BuildConfig.VERSION_CODE
 
     val aboutDisplayString: String
         get() = "PokeQuery v$versionName"
