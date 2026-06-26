@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v0.6.1 widget rounded background (premium dark navy). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FF0F172A" />
+    <corners android:radius="18dp" />
+    <stroke android:width="1dp" android:color="#4D14B8A6" />
+</shape>

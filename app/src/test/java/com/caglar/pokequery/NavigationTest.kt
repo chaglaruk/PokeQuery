@@ -66,8 +66,35 @@ class NavigationTest {
     fun `direct screenshot routes resolve and old review route falls back home`() {
         assertEquals(GoalDetail("safe_cleanup"), startDestination("detail_safe_cleanup", true))
         assertEquals(History, startDestination("history", true))
+        assertEquals(ChangelogRoute, startDestination("changelog", true))
         assertEquals(Home, startDestination("review", true))
         assertEquals(Home, startDestination("search", true))
+    }
+
+    // v0.6.1: the new workflow + context surfaces resolve from a start_route (Home cards, app
+    // shortcuts and the Quick Access widget all feed startDestination).
+    @Test
+    fun `v061 surface routes resolve to their dedicated screens`() {
+        assertEquals(MyPresets, startDestination("my_presets", true))
+        assertEquals(PracticeMode, startDestination("practice", true))
+        assertEquals(CleaningJournal, startDestination("journal", true))
+        assertEquals(EventContext, startDestination("events", true))
+    }
+
+    @Test
+    fun `v061 home cards map to dedicated non-goal destinations`() {
+        // None of the new Home cards may resolve to GoalDetail (the KB-bug class of regression).
+        listOf("my_presets", "practice", "journal", "events").forEach { card ->
+            val dest = homeGoalDestination(card)
+            assertFalse(
+                "Home card '$card' must not resolve to GoalDetail",
+                dest is GoalDetail
+            )
+        }
+        assertEquals(MyPresets, homeGoalDestination("my_presets"))
+        assertEquals(PracticeMode, homeGoalDestination("practice"))
+        assertEquals(CleaningJournal, homeGoalDestination("journal"))
+        assertEquals(EventContext, homeGoalDestination("events"))
     }
 
     @Test

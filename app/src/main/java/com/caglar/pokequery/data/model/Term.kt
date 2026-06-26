@@ -17,6 +17,7 @@ enum class VerificationStatus {
 
 data class Term(
     val id: String,
+    val title: String? = null,
     val syntax: String,
     val category: String,
     val tier: String,

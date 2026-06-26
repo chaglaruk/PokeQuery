@@ -124,6 +124,28 @@ fun MainNavigation(startRoute: String? = null) {
                             }
                         )
                     }
+                    // v0.6.1: Personal Presets (local only). Risk gating preserved.
+                    entry<MyPresets> {
+                        MyPresetsScreen(
+                            onBack = { backStack.removeLastOrNull() },
+                            onCopy = ::copyGenerated,
+                            onNavigateRisk = { generatedString ->
+                                backStack.add(RiskWarning(generatedString))
+                            }
+                        )
+                    }
+                    // v0.6.1: Practice Mode (fake inventory sandbox, conceptual only).
+                    entry<PracticeMode> {
+                        PracticeModeScreen(onBack = { backStack.removeLastOrNull() })
+                    }
+                    // v0.6.1: Cleaning Journal (user-entered memory only, local).
+                    entry<CleaningJournal> {
+                        CleaningJournalScreen(onBack = { backStack.removeLastOrNull() })
+                    }
+                    // v0.6.1: Offline/manual Event Context (no network, no live data).
+                    entry<EventContext> {
+                        EventContextScreen(onBack = { backStack.removeLastOrNull() })
+                    }
                     entry<Favorites> {
                         FavoritesScreen(
                             onCopy = { favorite ->
@@ -148,7 +170,13 @@ fun MainNavigation(startRoute: String? = null) {
                             onBack = { backStack.removeLastOrNull() }
                         )
                     }
-                    entry<Settings> { SettingsScreen { backStack.removeLastOrNull() } }
+                    entry<Settings> {
+                        SettingsScreen(
+                            onBack = { backStack.removeLastOrNull() },
+                            onOpenChangelog = { backStack.add(ChangelogRoute) }
+                        )
+                    }
+                    entry<ChangelogRoute> { ChangelogScreen { backStack.removeLastOrNull() } }
                     entry<KnowledgeBase> { route -> KnowledgeBaseScreen(startExpanded = route.startExpanded) { backStack.removeLastOrNull() } }
                     entry<RiskWarning> { route ->
                         RiskWarningScreen(

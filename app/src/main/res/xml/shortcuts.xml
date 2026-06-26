@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v0.6.1 — Android App Shortcuts (static).
+
+  Static launcher long-press shortcuts that open the app directly to a high-value screen.
+  No new permission, no network, no background work. They carry only a start_route extra that
+  MainActivity forwards to MainNavigation.startDestination(). Back returns to Home.
+
+  Icons use original vector drawables only (no Pokémon/Niantic/Nintendo assets).
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="safe_cleanup"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_safe_cleanup"
+        android:shortcutShortLabel="@string/shortcut_safe_cleanup_short"
+        android:shortcutLongLabel="@string/shortcut_safe_cleanup_long"
+        android:shortcutDisabledMessage="@string/shortcut_safe_cleanup_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.caglar.pokequery"
+            android:targetClass="com.caglar.pokequery.MainActivity">
+            <extra android:name="start_route" android:value="detail_safe_cleanup" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="candy_prep"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_candy_prep"
+        android:shortcutShortLabel="@string/shortcut_candy_prep_short"
+        android:shortcutLongLabel="@string/shortcut_candy_prep_long"
+        android:shortcutDisabledMessage="@string/shortcut_candy_prep_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.caglar.pokequery"
+            android:targetClass="com.caglar.pokequery.MainActivity">
+            <extra android:name="start_route" android:value="detail_candy_prep" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="trade_fodder"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_trade_fodder"
+        android:shortcutShortLabel="@string/shortcut_trade_fodder_short"
+        android:shortcutLongLabel="@string/shortcut_trade_fodder_long"
+        android:shortcutDisabledMessage="@string/shortcut_trade_fodder_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.caglar.pokequery"
+            android:targetClass="com.caglar.pokequery.MainActivity">
+            <extra android:name="start_route" android:value="detail_trade_fodder" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="expert"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_expert"
+        android:shortcutShortLabel="@string/shortcut_expert_short"
+        android:shortcutLongLabel="@string/shortcut_expert_long"
+        android:shortcutDisabledMessage="@string/shortcut_expert_disabled">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.caglar.pokequery"
+            android:targetClass="com.caglar.pokequery.MainActivity">
+            <extra android:name="start_route" android:value="expert" />
+        </intent>
+    </shortcut>
+
+</shortcuts>

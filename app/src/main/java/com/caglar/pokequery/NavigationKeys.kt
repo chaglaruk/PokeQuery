@@ -13,8 +13,14 @@ import kotlinx.serialization.Serializable
 @Serializable data object History : NavKey
 @Serializable data class KnowledgeBase(val startExpanded: Boolean = false) : NavKey
 @Serializable data object Settings : NavKey
+@Serializable data object ChangelogRoute : NavKey
 @Serializable data object Presets : NavKey
 @Serializable data class RiskWarning(val generatedString: GeneratedString) : NavKey
+// v0.6.1: new workflow + context surfaces.
+@Serializable data object MyPresets : NavKey
+@Serializable data object PracticeMode : NavKey
+@Serializable data object CleaningJournal : NavKey
+@Serializable data object EventContext : NavKey
 
 fun startDestination(startRoute: String?, firstUseSeen: Boolean?): NavKey? = when (startRoute) {
     "onboarding" -> Onboarding(0)
@@ -34,6 +40,12 @@ fun startDestination(startRoute: String?, firstUseSeen: Boolean?): NavKey? = whe
     "favorites" -> Favorites
     "history" -> History
     "settings" -> Settings
+    "changelog" -> ChangelogRoute
+    // v0.6.1: new workflow + context surfaces reachable from Home cards, shortcuts and the widget.
+    "my_presets" -> MyPresets
+    "practice" -> PracticeMode
+    "journal" -> CleaningJournal
+    "events" -> EventContext
     null -> when (firstUseSeen) {
         null -> null
         true -> Home
@@ -57,6 +69,11 @@ fun homeGoalDestination(goalId: String): NavKey = when (goalId) {
     "presets" -> Presets
     "knowledge" -> KnowledgeBase()
     "favorites" -> Favorites
+    // v0.6.1: Home cards for the new workflow + context surfaces.
+    "my_presets" -> MyPresets
+    "practice" -> PracticeMode
+    "journal" -> CleaningJournal
+    "events" -> EventContext
     else -> GoalDetail(goalId)
 }
 

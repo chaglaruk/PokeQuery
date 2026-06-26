@@ -1,6 +1,8 @@
 package com.caglar.pokequery.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.data.model.GeneratedString
 import com.caglar.pokequery.domain.engine.SearchTermMapper
+import com.caglar.pokequery.domain.risk.RiskExplanations
 import com.caglar.pokequery.domain.risk.RiskMessageBuilder
 import com.caglar.pokequery.theme.BackgroundDark
 import com.caglar.pokequery.theme.CardDark
@@ -47,6 +50,7 @@ fun RiskWarningScreen(
     // caution when the output looks Turkish, so the warning is goal-aware + localized.
     val turkish = SearchTermMapper.looksTurkish(generatedString.rawSyntax)
     val goalMessage = RiskMessageBuilder.messageFor(generatedString.goalId, turkish)
+    val riskExplanation = RiskExplanations.forGoal(generatedString.goalId, generatedString.riskLevel)
 
     val riskColor = when (generatedString.riskLevel) {
         com.caglar.pokequery.data.model.RiskLevel.High -> CoralDanger
@@ -57,7 +61,7 @@ fun RiskWarningScreen(
     // (illustration only); title/explanation/buttons fade+slide. One hoisted flag → once only.
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(20.dp),
+        modifier = Modifier.fillMaxSize().background(BackgroundDark).verticalScroll(rememberScrollState()).padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -93,6 +97,25 @@ fun RiskWarningScreen(
                 .pqStaggeredItem(visible, 2)
         ) {
             Text(goalMessage, color = TextPrimary, fontSize = 13.sp, lineHeight = 19.sp)
+        }
+        Spacer(Modifier.height(12.dp))
+        Box(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(riskColor.copy(alpha = 0.10f))
+                .padding(14.dp)
+                .pqStaggeredItem(visible, 2)
+        ) {
+            Column {
+                Text("Why this risk?", color = riskColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(riskExplanation.shortReason, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+                Spacer(Modifier.height(6.dp))
+                riskExplanation.safetyChecklist.take(3).forEach { item ->
+                    Text("• $item", color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
+                }
+                if (riskExplanation.relatedKnowledgeIds.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text("Learn more in Knowledge Base: ${riskExplanation.relatedKnowledgeIds.joinToString()}", color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp)
+                }
+            }
         }
         Spacer(Modifier.height(28.dp))
         Box(Modifier.pqStaggeredItem(visible, 3)) {

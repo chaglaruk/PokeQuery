@@ -36,6 +36,8 @@ import com.caglar.pokequery.data.model.Term
 import com.caglar.pokequery.data.repository.KnowledgeBaseRepository
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
+import com.caglar.pokequery.domain.changelog.Changelog
+import com.caglar.pokequery.domain.scope.InventorySizeProfile
 import com.caglar.pokequery.theme.*
 import com.caglar.pokequery.theme.density.currentDensity
 import com.caglar.pokequery.ui.components.*
@@ -126,7 +128,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
 
                 val filtered = terms.filter {
                     (category == "All" || it.category == category) &&
-                        (it.syntax.contains(searchQuery, true) || it.descriptionEn.contains(searchQuery, true) || it.category.contains(searchQuery, true))
+                        (it.syntax.contains(searchQuery, true) || it.title?.contains(searchQuery, true) == true || it.descriptionEn.contains(searchQuery, true) || it.category.contains(searchQuery, true))
                 }
                 if (filtered.isEmpty()) {
                     item {
@@ -168,7 +170,15 @@ fun FavoritesScreen(
         emptySubtitle = "Tap Save Favorite on a generated string.",
         onBack = onBack,
         onCopy = onCopy,
-        onDelete = { scope.launch { repository.removeFavorite(it.id) } }
+        onDelete = { scope.launch { repository.removeFavorite(it.id) } },
+        // v0.6.1: Favorites -> Personal Presets bridge. Converts a favorite into a LOCAL personal
+        // preset (risk level preserved, never downgraded). LOCAL ONLY — never synced/uploaded.
+        onSaveAsPreset = { template ->
+            scope.launch {
+                repository.addPersonalPreset(com.caglar.pokequery.data.model.PersonalPreset.fromFavorite(template))
+                Toast.makeText(context, "Saved to My Presets", Toast.LENGTH_SHORT).show()
+            }
+        }
     )
 }
 
@@ -192,7 +202,7 @@ fun HistoryScreen(
 }
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
     val context = LocalContext.current
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
@@ -367,6 +377,31 @@ fun SettingsScreen(onBack: () -> Unit) {
         }
 
         item {
+            PremiumPanel(borderColor = BlueCTA) {
+                Text("Inventory size context", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "This helps PokeQuery explain broad/narrow queries in context. PokeQuery cannot see your Pok\u00e9mon GO inventory. Estimates are educational only.",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+                Spacer(Modifier.height(8.dp))
+                val profile = InventorySizeProfile.fromStored(userPrefs?.inventorySizeProfile)
+                InventorySizeProfile.entries.forEach { option ->
+                    RadioRow(
+                        label = if (option == InventorySizeProfile.NOT_SET) option.label else "${option.label} \u00b7 ${option.description}",
+                        selected = profile == option
+                    ) {
+                        scope.launch {
+                            repository.setSetting(UserPreferencesRepository.INVENTORY_SIZE_PROFILE, option.name)
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
             // v0.5.0 Stitch: disabled "Coming Later" section. Explicitly unavailable to
             // maintain trust in the offline-first model. Never active, never networked.
             // v0.5.2 (Fix 10): "AI Assistant" is documented as coming-later and is strictly
@@ -393,6 +428,12 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 Text(com.caglar.pokequery.AppVersion.aboutDisplayString, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 12.sp)
+                Text(
+                    "What Changed / Changelog",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
+                )
                 Spacer(Modifier.height(8.dp))
                 // v0.4.2 (Fix 6): non-affiliation disclaimer.
                 Text(
@@ -432,11 +473,63 @@ fun SettingsScreen(onBack: () -> Unit) {
 }
 
 @Composable
+fun ChangelogScreen(onBack: () -> Unit) {
+    val density = currentDensity()
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(density.listGap),
+        contentPadding = PaddingValues(bottom = 22.dp)
+    ) {
+        item { ScreenTitleBar("What Changed", onBack) }
+        item {
+            PremiumPanel(borderColor = TealPrimary) {
+                Text("Safety and privacy stance", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "No login. No tracking. No ads. No analytics. No Pok\u00e9mon GO account access. PokeQuery is unofficial and not affiliated with Pok\u00e9mon GO, Niantic, Nintendo, or The Pok\u00e9mon Company.",
+                    color = TextPrimary,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp
+                )
+            }
+        }
+        items(Changelog.entries, key = { it.versionName }) { entry ->
+            PremiumPanel(borderColor = if (entry.isCurrent) TealPrimary else BorderDark) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("v${entry.versionName} (${entry.versionCode})", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                        Text("${entry.releaseLabel} \u2022 ${entry.title}", color = TextSecondary, fontSize = 12.sp)
+                    }
+                    if (entry.isCurrent) {
+                        Text("Current", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+                Spacer(Modifier.height(density.innerElementGap))
+                entry.highlights.forEach { Text("\u2022 $it", color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp) }
+                if (entry.safetyNotes.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Safety notes", color = AmberWarning, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    entry.safetyNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
+                }
+                if (entry.testerNotes.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Tester notes", color = TealPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    entry.testerNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun KnowledgeTermRow(term: Term, expanded: Boolean, onToggle: () -> Unit, onCopy: () -> Unit) {
     PremiumPanel(borderColor = term.riskLevel.toneColor()) {
         Row(Modifier.fillMaxWidth().clickable(onClick = onToggle), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(term.syntax, color = term.riskLevel.toneColor(), fontWeight = FontWeight.Bold, fontSize = 17.sp, fontFamily = FontFamily.Monospace)
+                Text(term.title ?: term.syntax, color = term.riskLevel.toneColor(), fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                if (term.title != null) {
+                    Text(term.syntax, color = TextSecondary, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
+                }
                 Text("${term.category} • Tier ${term.tier} • Risk: ${term.riskLevel}", color = TextSecondary, fontSize = 12.sp)
                 // Package 8: compact verification/safety/language badges.
                 KbBadges(term)
@@ -514,7 +607,8 @@ private fun SavedTemplateScreen(
     emptySubtitle: String,
     onBack: () -> Unit,
     onCopy: (SavedTemplate) -> Unit,
-    onDelete: ((SavedTemplate) -> Unit)? = null
+    onDelete: ((SavedTemplate) -> Unit)? = null,
+    onSaveAsPreset: ((SavedTemplate) -> Unit)? = null
 ) {
     // v0.5.3 motion polish: staggered entrance — title bar fades in first. Empty-state icon gets
     // a subtle spring-pop. List rows appear at rest (no cascade while scrolling).
@@ -542,7 +636,12 @@ private fun SavedTemplateScreen(
                 }
             }
             else -> items(templates, key = { it.id }) { template ->
-                SavedTemplateRow(template, onCopy = { onCopy(template) }, onDelete = onDelete?.let { { it(template) } })
+                SavedTemplateRow(
+                    template,
+                    onCopy = { onCopy(template) },
+                    onDelete = onDelete?.let { { it(template) } },
+                    onSaveAsPreset = onSaveAsPreset?.let { { it(template) } }
+                )
             }
         }
     }
@@ -550,7 +649,12 @@ private fun SavedTemplateScreen(
 }
 
 @Composable
-private fun SavedTemplateRow(template: SavedTemplate, onCopy: () -> Unit, onDelete: (() -> Unit)? = null) {
+private fun SavedTemplateRow(
+    template: SavedTemplate,
+    onCopy: () -> Unit,
+    onDelete: (() -> Unit)? = null,
+    onSaveAsPreset: (() -> Unit)? = null
+) {
     // v0.5.5 (Fix 1): the inner element gaps (title → string box → copy button) follow the
     // Visual Density `innerElementGap` token so Compact tightens the saved-string cards.
     val density = currentDensity()
@@ -565,14 +669,25 @@ private fun SavedTemplateRow(template: SavedTemplate, onCopy: () -> Unit, onDele
         Spacer(Modifier.height(density.innerElementGap))
         com.caglar.pokequery.ui.pq.PqStringBox(template.rawSyntax)
         Spacer(Modifier.height(14.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             com.caglar.pokequery.ui.pq.PqPrimaryButton(
                 text = if (onDelete == null) "Copy again" else "Copy",
                 onClick = onCopy,
-                leadingIcon = Icons.Default.ContentCopy
+                leadingIcon = Icons.Default.ContentCopy,
+                modifier = Modifier.weight(1f)
             )
-            if (onDelete != null) {
+            if (onSaveAsPreset != null) {
                 Spacer(Modifier.width(8.dp))
+                IconButton(onClick = onSaveAsPreset) {
+                    Icon(
+                        Icons.Default.Star,
+                        contentDescription = "Save as preset",
+                        tint = TealPrimary
+                    )
+                }
+            }
+            if (onDelete != null) {
+                Spacer(Modifier.width(4.dp))
                 IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = CoralDanger) }
             }
         }
