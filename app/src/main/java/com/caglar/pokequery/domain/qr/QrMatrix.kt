@@ -20,7 +20,7 @@ object QrMatrix {
     fun encode(text: String): Array<BooleanArray> {
         val data = text.toByteArray(Charsets.UTF_8)
         val version = chooseVersion(data.size)
-        return QrEncoder(version, text, data).matrix
+        return QrEncoder(version, data).matrix
     }
 
     /**

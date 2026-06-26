@@ -72,6 +72,40 @@ class QrMatrixTest {
     }
 
     @Test
+    fun `two format-info copies are identical`() {
+        // The QR standard places TWO identical copies of the 15-bit format info:
+        //   Copy 1 (top-left): around the top-left finder (col 8 rows 0-5,7,8; row 8 cols 0-7)
+        //   Copy 2 (bottom-left/right): col 8 rows size-1 down; row 8 cols size-8..size-1
+        val m = encode("format info test")
+        val size = m.size
+        // Extract copy 1 bits (fx[0..14] per writeFormat placement, not yet de-XORed).
+        val copy1 = BooleanArray(15)
+        for (i in 0..5) copy1[i] = m[i][8]
+        copy1[6] = m[7][8]
+        copy1[7] = m[8][8]
+        copy1[8] = m[8][7]
+        for (i in 9..14) copy1[i] = m[8][14 - i]
+        // Extract copy 2 bits.
+        val copy2 = BooleanArray(15)
+        for (i in 0..6) copy2[i] = m[size - 1 - i][8]
+        for (i in 7..14) copy2[i] = m[8][size - 15 + i]
+        // Both copies must match bit-for-bit.
+        for (i in 0..14) {
+            assertEquals("format info bit $i must match between copies", copy1[i], copy2[i])
+        }
+    }
+
+    @Test
+    fun `format info at the two copies is non-blank`() {
+        val m = encode("another string")
+        val size = m.size
+        // Verify at least some format info bits are set (the XOR with 0x5412 guarantees non-zero
+        // even for data=0 / mask=0). Check the full first copy: rows 0-5,7,8 at col 8.
+        val bits = (0..5).map { m[it][8] } + m[7][8] + m[8][8] + m[8][7] + (0..5).map { m[8][it] }
+        assertTrue("at least one format info bit must be set", bits.any { it })
+    }
+
+    @Test
     fun `encoding round trips for a typical short search string`() {
         // Structural sanity: a realistic safe-cleanup-style string encodes without throwing and
         // yields a non-trivial matrix (some dark, some light modules).

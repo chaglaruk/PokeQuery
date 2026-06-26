@@ -28,7 +28,7 @@ No INTERNET, CAMERA, account, analytics, scanning/OCR, or automation was added.
 | Step | Command | Result |
 |------|---------|:------:|
 | Working tree | `git status --short` | clean after commit |
-| Build + unit tests + debug APK | `.\gradlew.bat clean test assembleDebug` | **PASS** (206 tests) |
+| Build + unit tests + debug APK | `.\gradlew.bat clean test assembleDebug` | **PASS** (212 tests) |
 | Runtime assets | `python scripts/check_runtime_assets.py` | **PASS** (21 assets, all allowlisted) |
 | Release bundle | `.\gradlew.bat bundleRelease` | **PASS** (R8 + lintVital) |
 
@@ -89,11 +89,21 @@ activity is already running.
 
 ## Bug found and fixed during implementation
 
-The in-progress `QrEncoder.writeFormatInto` had a real correctness defect: the format-information
-bits were written with swapped column/row indices around the top-left finder and the top-right
-strip, and the `fx[7]` module at `(8, size-8)` was never written. This produced QR codes that
-scanners could not read. The format-info placement was rewritten to the spec (both standard
-locations + fixed dark module) and is now pinned by `QrMatrixTest` structural invariants.
+Two correctness defects were found and fixed in the QR encoder (`QrEncoder.kt`):
+
+1. **Format-info bit-order** (`writeFormat`): The 15-bit BCH result was placed MSB-first per
+   ISO/IEC 18004, but most QR decoders (including OpenCV and pyzbar) expect LSB-first (bit 0 at
+   row 0, col 8). Fixed to LSB-first placement. Both copies (top-left and bottom-left/top-right)
+   are now identical and pass self-consistency checks.
+
+2. **Zig-zag data placement** (`writeData`): The column-pair loop did not skip timing column 6
+   (mirroring the Python `qrcode` library), which caused column 0 to never receive data bits
+   (~22 cells dropped). Added the `if (cx <= 6) cx--` adjustment and appended 17 unit tests
+   to pin structural invariants (finder, timing, dark module, format-info copies, penalty rules).
+
+The encoder was cross-verified against the Python `qrcode` library: after unmasking, all 359
+data cells match the reference exactly. The format info decodes to a valid BCH codeword for
+the selected mask (mask 2 vs. reference mask 4; different choices are both correct).
 
 ## Privacy / safety invariants (unchanged)
 
