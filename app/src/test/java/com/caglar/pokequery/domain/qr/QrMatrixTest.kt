@@ -72,26 +72,24 @@ class QrMatrixTest {
     }
 
     @Test
-    fun `two format-info copies are identical`() {
-        // The QR standard places TWO identical copies of the 15-bit format info:
-        //   Copy 1 (top-left): around the top-left finder (col 8 rows 0-5,7,8; row 8 cols 0-7)
-        //   Copy 2 (bottom-left/right): col 8 rows size-1 down; row 8 cols size-8..size-1
+    fun `two format-info copies are bit-reversed per ISO standard`() {
+        // Copy 1 is LSB-first (bit 0 at row 0, bit 14 at row 8 col 0).
+        // Copy 2 is MSB-first (bit 14 at row size-1, bit 0 at col size-1).
+        // So copy2[i] must equal copy1[14 - i].
         val m = encode("format info test")
         val size = m.size
-        // Extract copy 1 bits (fx[0..14] per writeFormat placement, not yet de-XORed).
+        // Extract copy 1 bits.
         val copy1 = BooleanArray(15)
         for (i in 0..5) copy1[i] = m[i][8]
-        copy1[6] = m[7][8]
-        copy1[7] = m[8][8]
-        copy1[8] = m[8][7]
+        copy1[6] = m[7][8]; copy1[7] = m[8][8]; copy1[8] = m[8][7]
         for (i in 9..14) copy1[i] = m[8][14 - i]
-        // Extract copy 2 bits.
+        // Extract copy 2 bits (MSB-first vertical + horizontal).
         val copy2 = BooleanArray(15)
         for (i in 0..6) copy2[i] = m[size - 1 - i][8]
-        for (i in 7..14) copy2[i] = m[8][size - 15 + i]
-        // Both copies must match bit-for-bit.
+        for (i in 7..14) copy2[i] = m[8][size - 8 + (i - 7)]
+        // Copy 2 must be bit-reversed relative to copy 1.
         for (i in 0..14) {
-            assertEquals("format info bit $i must match between copies", copy1[i], copy2[i])
+            assertEquals("copy2 bit $i must equal copy1 bit ${14 - i}", copy1[14 - i], copy2[i])
         }
     }
 

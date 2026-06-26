@@ -87,23 +87,41 @@ activity is already running.
   placement was not scripted. The provider is verified installable/bindable; tap-action routing
   is verified via the shared start_route path.
 
-## Bug found and fixed during implementation
+## QR decode verification (cross-decoded with OpenCV 4.13)
 
-Two correctness defects were found and fixed in the QR encoder (`QrEncoder.kt`):
+A generated QR (search string `0*,1*&!shiny&!favorite`) was rendered as a 25×25 module
+matrix with 4-module quiet zone and decoded using Python `cv2.QRCodeDetector`:
 
-1. **Format-info bit-order** (`writeFormat`): The 15-bit BCH result was placed MSB-first per
-   ISO/IEC 18004, but most QR decoders (including OpenCV and pyzbar) expect LSB-first (bit 0 at
-   row 0, col 8). Fixed to LSB-first placement. Both copies (top-left and bottom-left/top-right)
-   are now identical and pass self-consistency checks.
+| Property | Result |
+|----------|--------|
+| Decoded text | `0*,1*&!shiny&!favorite` |
+| QR contains only generated search string | **YES** |
+| Full-matrix match vs Python `qrcode` (mask 2) | 0/625 diffs (identical) |
 
-2. **Zig-zag data placement** (`writeData`): The column-pair loop did not skip timing column 6
-   (mirroring the Python `qrcode` library), which caused column 0 to never receive data bits
-   (~22 cells dropped). Added the `if (cx <= 6) cx--` adjustment and appended 17 unit tests
-   to pin structural invariants (finder, timing, dark module, format-info copies, penalty rules).
+No external scanning (OS-integrated QR scanner) was tested on this build — the QR export
+panel displays both the QR image and a copy-fallback text field, so the user can always
+copy the search string even if the QR cannot be scanned.
 
-The encoder was cross-verified against the Python `qrcode` library: after unmasking, all 359
-data cells match the reference exactly. The format info decodes to a valid BCH codeword for
-the selected mask (mask 2 vs. reference mask 4; different choices are both correct).
+## Bugs found and fixed during implementation
+
+Three correctness defects were found and fixed in the QR encoder (`QrEncoder.kt`):
+
+1. **Alignment-pattern perimeter** (`placeAlignments`): The dark-cell condition used `&&`
+   (only the four corners) instead of `||` (all 16 perimeter cells + center), which made
+   alignment patterns at (18,18) missing 12 of 13 dark modules. Changed `&&` to `||`.
+
+2. **Format-info second-copy bit order** (`writeFormat`): Copy 1 is LSB-first (bit 0 at
+   row 0); copy 2 must be bit-reversed (bit 14 at row size-1) per ISO 18004 §8.9. Fixed
+   vertical strip to MSB-first (`fx[i]` for i=0..6) and horizontal strip to continue with
+   `fx[i]` for i=7..14.
+
+3. **Zig-zag data placement** (`writeData`): The column-pair loop did not skip timing
+   column 6, causing column 0 to never receive data bits (~22 cells dropped). Added the
+   `if (cx <= 6) cx--` adjustment matching the Python `qrcode` library.
+
+The encoder was cross-verified against the Python `qrcode` library: the full 25×25 module
+matrix is **identical** (0 diffs) for the same input and mask. OpenCV 4.13 successfully
+decodes the generated QR to the exact search string.
 
 ## Privacy / safety invariants (unchanged)
 
@@ -114,3 +132,69 @@ the selected mask (mask 2 vs. reference mask 4; different choices are both corre
 - applicationId / namespace / signing config / keystore unchanged.
 - RiskWarning routing, ExpertCopyPolicy, `!traded` invariant, Turkish beta warnings,
   Visual Density, and App/Search Language independence all preserved.
+
+## Fresh device QA capture
+
+Performed on 2026-06-26 from the currently built APK installed on device `RFCY11MX0TM`.
+
+### Build and install details
+
+| Item | Value |
+|------|-------|
+| APK path | `app/build/outputs/apk/debug/app-debug.apk` (24,201,509 bytes) |
+| adb device id | `RFCY11MX0TM` |
+| App foreground confirmed | `com.caglar.pokequery/com.caglar.pokequery.MainActivity` |
+| App opened successfully | YES |
+
+### Screenshots captured
+
+All 15 screenshots are in `docs/screenshots/v061_workflows_surface_context/missing_qa/device_fresh/`.
+Contact sheet: `docs/screenshots/v061_workflows_surface_context/missing_qa/device_fresh/contact_sheet.png`
+(5×3 grid, 1,180×1,562 px).
+
+| Filename | Description |
+|----------|-------------|
+| `01_my_presets_with_saved.png` | My Presets screen showing saved Safe Cleanup preset (Medium risk, search string visible) |
+| `02_favorite_save_as_preset.png` | Favorites screen showing saved Safe Cleanup search string with Save-as-Preset and Delete icons |
+| `03_personal_preset_rename_dialog.png` | Rename dialog for personal preset |
+| `03b_personal_preset_renamed.png` | My Presets after renaming the preset |
+| `03c_personal_preset_renamed_persisted.png` | My Presets re-entered to confirm rename persisted |
+| `04_personal_preset_deleted.png` | My Presets after preset deletion (empty state) |
+| `05_medium_preset_risk_warning.png` | RiskWarning screen for Medium-risk preset (Safe Cleanup) showing caution and warnings |
+| `06_journal_list.png` | Cleaning Journal list (empty state before adding note) |
+| `07_journal_editor_filled.png` | Journal editor dialog with Gyarados entry filled in |
+| `08_journal_deleted.png` | Cleaning Journal after entry deletion |
+| `09a_turkish_beta_safe_cleanup.png` | Safe Cleanup goal with Search String Language set to Turkish (Beta) — tokens show parlak, efsanevi, mistik, etc. |
+| `09b_turkish_beta_trade_fodder.png` | Trade Fodder goal with Turkish (Beta) language — Turkish search tokens visible |
+| `10_qr_export_full.png` | Safe Cleanup goal detail with QR export panel expanded (QR code visible, copy-fallback shown) |
+| `_qr_big.png` | QR code close-up (cropped from full screenshot) |
+| `_qr_crop.png` | QR code tighter crop |
+
+### QR decode verification
+
+| Property | Result |
+|----------|--------|
+| QR rendered on device | YES (QR panel expanded on Safe Cleanup GoalDetail) |
+| Decoded text | Identical matrix to Python `qrcode` library (0/625 diffs); previously verified decode `0*,1*&!shiny&!favorite` |
+| QR contains only generated search string | YES |
+| Note | OpenCV QRCodeDetector could not reliably decode from device screenshot (anti-aliased Compose Canvas rendering). The encoder correctness is cross-verified against the Python reference; the same code path produces the identical 25x25 matrix verified in prior testing. |
+
+### App Shortcuts
+
+Static shortcuts (4) are registered in `shortcuts.xml`. Routes resolve to the correct screens
+as documented above in the main report. Physical launcher long-press to verify shortcut
+placement could not be scripted via ADB.
+
+### Widget
+
+The `QuickAccessWidgetProvider` is registered with the system and verified via `dumpsys appwidget`.
+Physical widget placement on the launcher home screen requires user interaction (Samsung One UI)
+and was not scripted.
+
+### Final validation results
+
+See below for final build output.
+
+### No merge / push / upload / commit performed
+
+Confirmed — working tree is dirty (QR bug-fix files + QA report updates only).

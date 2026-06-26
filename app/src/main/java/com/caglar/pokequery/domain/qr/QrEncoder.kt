@@ -70,7 +70,7 @@ internal class QrEncoder(private val version: Int, private val data: ByteArray) 
             for (dy in -2..2) for (dx in -2..2) {
                 val x = cx + dx; val y = cy + dy
                 if (x !in 0 until size || y !in 0 until size) continue
-                val dark = (kotlin.math.abs(dx) == 2 && kotlin.math.abs(dy) == 2) || (dx == 0 && dy == 0)
+                val dark = (kotlin.math.abs(dx) == 2 || kotlin.math.abs(dy) == 2) || (dx == 0 && dy == 0)
                 m[y][x] = dark
                 reserved[y][x] = true
             }
@@ -256,9 +256,11 @@ internal class QrEncoder(private val version: Int, private val data: ByteArray) 
         for (i in 0..5) m[i][8] = fx[14 - i]
         m[7][8] = fx[8]; m[8][8] = fx[7]; m[8][7] = fx[6]
         for (i in 9..14) m[8][14 - i] = fx[14 - i]
-        for (i in 0..6) m[size - 1 - i][8] = fx[14 - i]
+        // Second copy: vertical strip is MSB-first (bit14 at size-1, bit8 at size-7)
+        for (i in 0..6) m[size - 1 - i][8] = fx[i]
         m[size - 8][8] = true // fixed dark module
-        for (i in 7..14) m[8][size - 15 + i] = fx[14 - i]
+        // Horizontal strip continues with bit7 at (8,size-8) through bit0 at (8,size-1)
+        for (i in 7..14) m[8][size - 8 + (i - 7)] = fx[i]
     }
 
     // ---- Penalty (ISO/IEC 18004 §8.8.2) ----
