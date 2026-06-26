@@ -170,7 +170,15 @@ fun FavoritesScreen(
         emptySubtitle = "Tap Save Favorite on a generated string.",
         onBack = onBack,
         onCopy = onCopy,
-        onDelete = { scope.launch { repository.removeFavorite(it.id) } }
+        onDelete = { scope.launch { repository.removeFavorite(it.id) } },
+        // v0.6.1: Favorites -> Personal Presets bridge. Converts a favorite into a LOCAL personal
+        // preset (risk level preserved, never downgraded). LOCAL ONLY — never synced/uploaded.
+        onSaveAsPreset = { template ->
+            scope.launch {
+                repository.addPersonalPreset(com.caglar.pokequery.data.model.PersonalPreset.fromFavorite(template))
+                Toast.makeText(context, "Saved to My Presets", Toast.LENGTH_SHORT).show()
+            }
+        }
     )
 }
 
@@ -599,7 +607,8 @@ private fun SavedTemplateScreen(
     emptySubtitle: String,
     onBack: () -> Unit,
     onCopy: (SavedTemplate) -> Unit,
-    onDelete: ((SavedTemplate) -> Unit)? = null
+    onDelete: ((SavedTemplate) -> Unit)? = null,
+    onSaveAsPreset: ((SavedTemplate) -> Unit)? = null
 ) {
     // v0.5.3 motion polish: staggered entrance — title bar fades in first. Empty-state icon gets
     // a subtle spring-pop. List rows appear at rest (no cascade while scrolling).
@@ -627,7 +636,12 @@ private fun SavedTemplateScreen(
                 }
             }
             else -> items(templates, key = { it.id }) { template ->
-                SavedTemplateRow(template, onCopy = { onCopy(template) }, onDelete = onDelete?.let { { it(template) } })
+                SavedTemplateRow(
+                    template,
+                    onCopy = { onCopy(template) },
+                    onDelete = onDelete?.let { { it(template) } },
+                    onSaveAsPreset = onSaveAsPreset?.let { { it(template) } }
+                )
             }
         }
     }
@@ -635,7 +649,12 @@ private fun SavedTemplateScreen(
 }
 
 @Composable
-private fun SavedTemplateRow(template: SavedTemplate, onCopy: () -> Unit, onDelete: (() -> Unit)? = null) {
+private fun SavedTemplateRow(
+    template: SavedTemplate,
+    onCopy: () -> Unit,
+    onDelete: (() -> Unit)? = null,
+    onSaveAsPreset: (() -> Unit)? = null
+) {
     // v0.5.5 (Fix 1): the inner element gaps (title → string box → copy button) follow the
     // Visual Density `innerElementGap` token so Compact tightens the saved-string cards.
     val density = currentDensity()
@@ -650,14 +669,25 @@ private fun SavedTemplateRow(template: SavedTemplate, onCopy: () -> Unit, onDele
         Spacer(Modifier.height(density.innerElementGap))
         com.caglar.pokequery.ui.pq.PqStringBox(template.rawSyntax)
         Spacer(Modifier.height(14.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             com.caglar.pokequery.ui.pq.PqPrimaryButton(
                 text = if (onDelete == null) "Copy again" else "Copy",
                 onClick = onCopy,
-                leadingIcon = Icons.Default.ContentCopy
+                leadingIcon = Icons.Default.ContentCopy,
+                modifier = Modifier.weight(1f)
             )
-            if (onDelete != null) {
+            if (onSaveAsPreset != null) {
                 Spacer(Modifier.width(8.dp))
+                IconButton(onClick = onSaveAsPreset) {
+                    Icon(
+                        Icons.Default.Star,
+                        contentDescription = "Save as preset",
+                        tint = TealPrimary
+                    )
+                }
+            }
+            if (onDelete != null) {
+                Spacer(Modifier.width(4.dp))
                 IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = CoralDanger) }
             }
         }

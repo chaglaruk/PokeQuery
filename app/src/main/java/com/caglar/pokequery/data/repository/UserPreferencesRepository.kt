@@ -8,6 +8,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.caglar.pokequery.data.model.CleaningJournalEntry
+import com.caglar.pokequery.data.model.PersonalPreset
 import com.caglar.pokequery.data.model.RiskLevel
 import com.caglar.pokequery.data.model.SavedTemplate
 import java.nio.charset.StandardCharsets
@@ -34,6 +36,10 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         // GAME_LANGUAGE controls the generated Pokémon GO search strings only. They are
         // independent — choosing a Turkish UI must NOT force Turkish search strings.
         val APP_LANGUAGE = stringPreferencesKey("app_language")
+        // v0.6.1: local-only personal presets and cleaning journal entries. LOCAL ONLY — never
+        // synced, never uploaded, never account-bound. Stored via the codecs in UserContentCodec.
+        val PERSONAL_PRESETS = stringSetPreferencesKey("personal_presets_v1")
+        val JOURNAL_ENTRIES = stringSetPreferencesKey("journal_entries_v1")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data.map { preferences ->
@@ -54,7 +60,9 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             // values default to System Default (not Turkish) so we never surprise the user.
             appLanguage = preferences[APP_LANGUAGE] ?: "System Default",
             favorites = readFavorites(preferences).sortedByDescending { it.createdAt },
-            history = readHistory(preferences).sortedByDescending { it.createdAt }
+            history = readHistory(preferences).sortedByDescending { it.createdAt },
+            personalPresets = readPersonalPresets(preferences).sortedByDescending { it.updatedAt },
+            journal = readJournal(preferences).sortedByDescending { it.updatedAt }
         )
     }
 
@@ -105,17 +113,93 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    // ---- v0.6.1: Personal Presets (local only) ----
+    /** Adds a personal preset. Duplicate handling: if a preset with the same query already exists,
+     *  it is replaced by this one (no endless duplicates). */
+    suspend fun addPersonalPreset(preset: PersonalPreset) {
+        dataStore.edit { preferences ->
+            val presets = readPersonalPresets(preferences)
+                .filterNot { it.queryString == preset.queryString } + preset
+            preferences[PERSONAL_PRESETS] = presets.map(PersonalPresetCodec::encode).toSet()
+        }
+    }
+
+    suspend fun renamePersonalPreset(id: String, newTitle: String) {
+        dataStore.edit { preferences ->
+            val presets = readPersonalPresets(preferences).map {
+                if (it.id == id) it.copy(title = newTitle, updatedAt = System.currentTimeMillis()) else it
+            }
+            preferences[PERSONAL_PRESETS] = presets.map(PersonalPresetCodec::encode).toSet()
+        }
+    }
+
+    suspend fun removePersonalPreset(id: String) {
+        dataStore.edit { preferences ->
+            preferences[PERSONAL_PRESETS] = readPersonalPresets(preferences)
+                .filterNot { it.id == id }
+                .map(PersonalPresetCodec::encode)
+                .toSet()
+        }
+    }
+
+    suspend fun clearPersonalPresets() {
+        dataStore.edit { it.remove(PERSONAL_PRESETS) }
+    }
+
+    fun hasPersonalPresetForQuery(preferences: Preferences, query: String): Boolean =
+        readPersonalPresets(preferences).any { it.queryString == query }
+
+    // ---- v0.6.1: Cleaning Journal (local only, user-entered) ----
+    suspend fun addJournal(entry: CleaningJournalEntry) {
+        dataStore.edit { preferences ->
+            val entries = (listOf(entry) + readJournal(preferences).filterNot { it.id == entry.id })
+            preferences[JOURNAL_ENTRIES] = entries.map(JournalCodec::encode).toSet()
+        }
+    }
+
+    suspend fun updateJournal(entry: CleaningJournalEntry) {
+        dataStore.edit { preferences ->
+            val entries = readJournal(preferences).map {
+                if (it.id == entry.id) entry.copy(updatedAt = System.currentTimeMillis()) else it
+            }
+            preferences[JOURNAL_ENTRIES] = entries.map(JournalCodec::encode).toSet()
+        }
+    }
+
+    suspend fun removeJournal(id: String) {
+        dataStore.edit { preferences ->
+            preferences[JOURNAL_ENTRIES] = readJournal(preferences)
+                .filterNot { it.id == id }
+                .map(JournalCodec::encode)
+                .toSet()
+        }
+    }
+
+    suspend fun clearJournal() {
+        dataStore.edit { it.remove(JOURNAL_ENTRIES) }
+    }
+
     suspend fun resetSettings() {
         dataStore.edit { preferences ->
             val favs = preferences[SAVED_TEMPLATES]
             val history = preferences[RECENT_HISTORY]
+            val presets = preferences[PERSONAL_PRESETS]
+            val journal = preferences[JOURNAL_ENTRIES]
             val firstUse = preferences[FIRST_USE_SEEN]
             preferences.clear()
             if (favs != null) preferences[SAVED_TEMPLATES] = favs
             if (history != null) preferences[RECENT_HISTORY] = history
+            if (presets != null) preferences[PERSONAL_PRESETS] = presets
+            if (journal != null) preferences[JOURNAL_ENTRIES] = journal
             if (firstUse != null) preferences[FIRST_USE_SEEN] = firstUse
         }
     }
+
+    private fun readPersonalPresets(preferences: Preferences): List<PersonalPreset> =
+        preferences[PERSONAL_PRESETS].orEmpty().mapNotNull(PersonalPresetCodec::decode)
+
+    private fun readJournal(preferences: Preferences): List<CleaningJournalEntry> =
+        preferences[JOURNAL_ENTRIES].orEmpty().mapNotNull(JournalCodec::decode)
 
     private fun readFavorites(preferences: Preferences): List<SavedTemplate> {
         val saved = preferences[SAVED_TEMPLATES].orEmpty().mapNotNull(SavedTemplateCodec::decode)
@@ -149,7 +233,10 @@ data class UserPreferences(
     // v0.5.2 (Fix 7): App UI language, independent from the search-string language.
     val appLanguage: String = "System Default",
     val favorites: List<SavedTemplate>,
-    val history: List<SavedTemplate> = emptyList()
+    val history: List<SavedTemplate> = emptyList(),
+    // v0.6.1: local-only personal presets and journal entries.
+    val personalPresets: List<PersonalPreset> = emptyList(),
+    val journal: List<CleaningJournalEntry> = emptyList()
 )
 
 object SavedTemplateCodec {

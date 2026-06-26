@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v0.6.1 shortcut icon — original artwork (swap), no copyrighted assets. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FF22D3EE">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M7,9L2,14L7,19V15H14V13H7V9M22,10L17,5V9H10V11H17V15L22,10Z" />
+</vector>

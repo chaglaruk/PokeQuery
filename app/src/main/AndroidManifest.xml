@@ -19,7 +19,28 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- v0.6.1: static launcher long-press shortcuts. They open MainActivity with a
+                 start_route extra (forwarded to startDestination). No permission, no network. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <!-- v0.6.1 Quick Access home screen widget. Tapping it opens MainActivity to the Safe
+             Cleanup review route. The widget does NOT silently copy and has no background work,
+             no network, and no new permission. exported="true" is REQUIRED by the Android app
+             widget contract: the system AppWidgetHost binds the provider so the widget can appear
+             on the user's home screen. It exposes no custom entry point of its own. -->
+        <receiver
+            android:name=".widget.QuickAccessWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quick_access_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

@@ -22,11 +22,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Diamond
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FolderSpecial
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.WaterDrop
@@ -77,6 +80,11 @@ private val homeGoals = listOf(
     HomeGoal("nundo_finder", "Nundo Finder", "Exact 0/0/0 IVs", Color(0xFF90A4AE), Icons.Default.WaterDrop),
     HomeGoal("pvp_candidates", "PvP Candidates", "Great & Ultra League", Color(0xFF4FC3F7), Icons.Default.Star),
     HomeGoal("untagged", "Untagged Cleanup", "Pokémon without tags", TealPrimary, Icons.Default.FilterList),
+    // v0.6.1: workflows + context surfaces.
+    HomeGoal("my_presets", "My Presets", "Your saved personal presets", CyanGlow, Icons.Default.Star),
+    HomeGoal("practice", "Practice Mode", "Fake inventory sandbox", Color(0xFF4FC3F7), Icons.Default.SportsEsports),
+    HomeGoal("journal", "Cleaning Journal", "Manual notes (local)", GoldCaution, Icons.Default.School),
+    HomeGoal("events", "Event Context", "Offline event notes", TealPrimary, Icons.Default.Event),
     HomeGoal("presets", "Popular Presets", "Ready-made strings", Color(0xFF64B5F6), Icons.Default.Search),
     HomeGoal("expert", "Expert Builder", "Build your own", CyanGlow, Icons.Default.Build),
     HomeGoal("favorites", "Favorites", "Saved strings", GoldCaution, Icons.Default.Favorite),

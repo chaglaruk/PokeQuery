@@ -97,6 +97,8 @@ fun GoalDetailScreen(
     var include0Star by remember { mutableStateOf(false) }
     var pvpLeague by remember { mutableStateOf("great") }
     var luckyMode by remember { mutableStateOf("age") }
+    // v0.6.1: QR export toggle (export-first, offline, no CAMERA permission).
+    var showQr by remember { mutableStateOf(false) }
 
     val generatedString = remember(
         goalId, excludeShiny, excludeLegendary, excludeCostume, excludeShadow,
@@ -201,6 +203,25 @@ fun GoalDetailScreen(
                     },
                     leadingIcon = Icons.Default.ContentCopy
                 )
+                Spacer(Modifier.height(8.dp))
+                // v0.6.1: QR export. Offline, dependency-free encoder; export-only (no scanning).
+                // Always offers a copy fallback so the string is never unreachable.
+                com.caglar.pokequery.ui.pq.PqSecondaryButton(
+                    text = if (showQr) "Hide QR" else "Show QR",
+                    onClick = { showQr = !showQr }
+                )
+                androidx.compose.animation.AnimatedVisibility(showQr) {
+                    Column(Modifier.padding(top = 12.dp)) {
+                        com.caglar.pokequery.ui.qr.QrExportPanel(
+                            searchString = generatedString.rawSyntax,
+                            onCopy = {
+                                clipboard.setText(AnnotatedString(generatedString.rawSyntax))
+                                scope.launch { repository.addHistory(SavedTemplate.from(generatedString)) }
+                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(density.sectionGap))

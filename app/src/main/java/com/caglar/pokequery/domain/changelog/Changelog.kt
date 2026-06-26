@@ -14,6 +14,37 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.6.1",
+            versionCode = 18,
+            releaseLabel = "Phase 2",
+            title = "Workflows, Surface & Context",
+            highlights = listOf(
+                "Personal Presets from favorites and history",
+                "Cleaning Journal notes (local-only)",
+                "Practice Mode with fake inventory sandbox",
+                "QR export for generated strings",
+                "Android App Shortcuts",
+                "Quick Access home screen widget",
+                "Offline manual event context"
+            ),
+            safetyNotes = listOf(
+                "No login, no tracking, no ads, no analytics",
+                "No Pokémon GO account access",
+                "No INTERNET permission, no CAMERA permission",
+                "Journal is user-entered memory only — the app never knows what changed in-game",
+                "Practice Mode uses a fake sandbox; it never reads your real inventory"
+            ),
+            testerNotes = listOf(
+                "Save a favorite as a Personal Preset",
+                "Add a journal note from History",
+                "Open Practice Mode and inspect matches/exclusions",
+                "Tap a generated string to show its QR",
+                "Long-press the app icon for shortcuts",
+                "Add the Quick Access widget"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.6.0",
             versionCode = 17,
             releaseLabel = "Phase 1",
@@ -21,7 +52,7 @@ object Changelog {
             highlights = listOf("Risk explanations", "Common misconceptions", "Changelog screen", "Inventory size context"),
             safetyNotes = listOf("No login", "No tracking", "No ads", "No analytics", "No Pokémon GO account access"),
             testerNotes = listOf("Check Why this risk?", "Try Common Misconceptions", "Change inventory size context"),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry("0.5.5", 16, "Hardening", "Audit hardening", listOf("Density consumption", "Turkish safety fallback", "Locale regression guard"), listOf("Count/background/Ultra Beast protections hardened"), listOf("Regression-test Turkish fallback"), false),
         ChangelogEntry("0.5.4", 15, "Polish", "Onboarding and layout polish", listOf("Onboarding fixes", "Layout fixes", "Radio polish"), listOf("No safety model changes"), listOf("Verify settings selections"), false),
