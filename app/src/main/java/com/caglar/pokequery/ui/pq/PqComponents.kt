@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -397,14 +398,12 @@ fun PqStringBox(text: String, accent: Color = TealPrimary, modifier: Modifier = 
 // ---------- Section header ----------
 
 /**
- * v0.5.2 (Fix 2 + Fix 3): the canonical PokeQuery wordmark, shared by onboarding and Home.
+ * Original PokeQuery wordmark — playful game-branding inspired vector treatment.
  *
- * Replaces the raster `logo_wordmark_source.webp` (which rendered as an opaque black block
- * because the WebP carried a solid background) with a pure vector treatment drawn in the
- * brand language: white "Poke" + electric-cyan "Query", heavy weight, a soft shadow for logo
- * depth, and a spark accent over the 'Q'. Original artwork — no Pokémon font, colors, layout,
- * Poké Ball, or creatures. Both screens now share ONE definition, so the wordmark is
- * consistent everywhere instead of diverging between onboarding and Home.
+ * White "Poke" + bright-cyan "Query" with a thick dark navy outline (8-direction
+ * offset), a 3D shadow layer, and two sparkle/star accents near the end. Uses
+ * layered Text composables so every letter is outlined cleanly. Original artwork
+ * — no Pokémon / Niantic / Nintendo fonts, colors, or assets.
  *
  * @param fontSize  wordmark size.
  * @param centered  horizontally center the wordmark (used by the onboarding hero).
@@ -415,43 +414,65 @@ fun PqWordmark(
     fontSize: androidx.compose.ui.unit.TextUnit = 30.sp,
     centered: Boolean = false
 ) {
-    val sparkSize = (fontSize.value * 0.55f).dp
-    val wordmark: @Composable () -> Unit = {
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-                "Poke",
-                color = TextPrimary,
-                fontSize = fontSize,
-                fontWeight = FontWeight.Black,
-                letterSpacing = (-0.5).sp,
-                modifier = Modifier.shadow(elevation = 4.dp, spotColor = Color.Black, ambientColor = Color.Black)
-            )
-            Box {
-                Text(
-                    "Query",
-                    color = TealPrimary,
-                    fontSize = fontSize,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = (-0.5).sp,
-                    modifier = Modifier.shadow(elevation = 4.dp, spotColor = Color.Black, ambientColor = Color.Black)
-                )
-                // Spark accent floating over the top-right of "Query".
-                Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Default.AutoAwesome,
-                    contentDescription = null,
-                    tint = CyanGlow,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 2.dp, y = (-6).dp)
-                        .size(sparkSize)
-                )
+    val outlineColor = Color(0xFF0D0D1A)
+    val shadowColor = Color(0xFF0A0A1A)
+    val outlineW = (fontSize.value * 0.08f).dp
+    val shadowOff = (fontSize.value * 0.07f).dp
+    val sparkSz = (fontSize.value * 0.35f).dp
+
+    val wordStyle = TextStyle(
+        fontWeight = FontWeight.Black,
+        fontSize = fontSize,
+        letterSpacing = (-0.3).sp
+    )
+
+    val content: @Composable () -> Unit = {
+        Box {
+            // 3D shadow layer
+            Row(Modifier.offset(shadowOff, shadowOff)) {
+                Text("PokeQuery", color = shadowColor, style = wordStyle)
+            }
+            // Outline layers (8 directions)
+            Row(Modifier.offset(outlineW, 0.dp)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
+            Row(Modifier.offset(-outlineW, 0.dp)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
+            Row(Modifier.offset(0.dp, outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
+            Row(Modifier.offset(0.dp, -outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
+            Row(Modifier.offset(outlineW, outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
+            Row(Modifier.offset(-outlineW, -outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
+            Row(Modifier.offset(outlineW, -outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
+            Row(Modifier.offset(-outlineW, outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
+            // Fill + sparkle layer
+            Row {
+                Text("Poke", color = Color.White, style = wordStyle)
+                Box {
+                    Text("Query", color = TealPrimary, style = wordStyle)
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = CyanGlow,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 2.dp, y = (-6).dp)
+                            .size(sparkSz)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = CyanGlow.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (-6).dp, y = (-2).dp)
+                            .size(sparkSz * 0.55f)
+                    )
+                }
             }
         }
     }
+
     if (centered) {
-        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { wordmark() }
+        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { content() }
     } else {
-        Box(modifier) { wordmark() }
+        Box(modifier) { content() }
     }
 }
 

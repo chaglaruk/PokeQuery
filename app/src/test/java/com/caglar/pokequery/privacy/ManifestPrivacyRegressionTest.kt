@@ -10,17 +10,19 @@ import java.io.File
 /**
  * Package 7 — manifest / privacy regression tests.
  *
- * These protect the Play Data Safety claims ("zero permissions", "no network") against
- * accidental regressions. They parse the source AndroidManifest.xml that all variants
- * merge from, so they run as plain unit tests (no device, no merged-manifest dependency).
+ * These protect the Play Data Safety claims against accidental regressions.
+ * They parse the source AndroidManifest.xml that all variants merge from, so they run as
+ * plain unit tests (no device, no merged-manifest dependency).
  *
- * If a future change adds INTERNET / location / storage / camera / mic / contacts, or
+ * v0.6.2: INTERNET permission is now declared for the optional daily event feed (opt-in only).
+ * No other permissions are allowed. See the manifest comment for the rationale.
+ *
+ * If a future change adds other permissions (location / storage / camera / mic / contacts), or
  * changes the applicationId, or weakens backup policy, these fail loudly.
  */
 class ManifestPrivacyRegressionTest {
 
     private val manifest: String by lazy {
-        // src/main/AndroidManifest.xml relative to the app module (working dir = project root).
         val candidates = listOf(
             File("app/src/main/AndroidManifest.xml"),
             File("src/main/AndroidManifest.xml")
@@ -31,21 +33,35 @@ class ManifestPrivacyRegressionTest {
     }
 
     @Test
-    fun `manifest declares zero permissions`() {
-        // No <uses-permission> elements at all.
-        assertFalse(
-            "Manifest must not declare any <uses-permission>, but found one.",
-            manifest.contains("<uses-permission", ignoreCase = true)
+    fun `only INTERNET permission is declared`() {
+        // v0.6.2: INTERNET is allowed for the optional daily event feed (opt-in).
+        // Verify it's present and that no OTHER permissions exist.
+        val permissionCount = Regex("""<uses-permission""", RegexOption.IGNORE_CASE).findAll(manifest).count()
+        assertEquals(
+            "Expected exactly one <uses-permission> (INTERNET), found $permissionCount",
+            1, permissionCount
+        )
+        assertTrue(
+            "The one permission must be INTERNET",
+            manifest.contains("android.permission.INTERNET", ignoreCase = true)
         )
     }
 
     @Test
-    fun `no INTERNET permission is present`() {
-        assertFalse(manifest.contains("android.permission.INTERNET", ignoreCase = true))
+    fun `internet permission has documented rationale`() {
+        val lines = manifest.lines()
+        val idx = lines.indexOfFirst { it.contains("android.permission.INTERNET", ignoreCase = true) }
+        assertTrue("INTERNET permission line not found", idx >= 0)
+        val preamble = lines.subList(0, idx).joinToString("\n")
+        assertTrue(
+            "INTERNET permission must have a rationale comment. Manifest preamble:\n$preamble",
+            preamble.contains("v0.6.2", ignoreCase = true) || preamble.contains("event feed", ignoreCase = true)
+        )
     }
 
     @Test
-    fun `no dangerous location storage camera mic or contacts permissions`() {
+    fun `no dangerous location storage camera mic contacts or other permissions beyond INTERNET`() {
+        val allowed = listOf("INTERNET")
         val forbidden = listOf(
             "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION",
             "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE",
@@ -56,6 +72,15 @@ class ManifestPrivacyRegressionTest {
             assertFalse(
                 "Manifest must not request $perm",
                 manifest.contains(perm, ignoreCase = true)
+            )
+        }
+        // v0.6.2: INTERNET is the only declared permission.
+        val manifested = Regex("""android\.permission\.(\w+)""", RegexOption.IGNORE_CASE)
+            .findAll(manifest).map { it.groupValues[1] }.toSet()
+        manifested.forEach { perm ->
+            assertTrue(
+                "Permission $perm is not in the allowed list: $allowed",
+                perm in allowed
             )
         }
     }

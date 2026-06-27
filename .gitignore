@@ -22,3 +22,4 @@ keystore.properties
 *.pem
 *.key
 .agent-reference/
+.env

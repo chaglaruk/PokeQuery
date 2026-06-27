@@ -60,16 +60,39 @@ class EventContextTest {
     @Test
     fun `event repository ships at least one note and a clear offline disclaimer`() {
         assertTrue("expected at least one bundled event note", EventContextRepository.all().isNotEmpty())
-        val disclaimer = EventContextRepository.disclaimer()
-        assertTrue(disclaimer.contains("manual", ignoreCase = true))
-        assertTrue(disclaimer.contains("outdated", ignoreCase = true))
-        assertTrue(disclaimer.contains("No live event data", ignoreCase = true))
+        val offlineDisclaimer = EventContextRepository.disclaimer(onlineEnabled = false)
+        assertTrue(offlineDisclaimer.contains("manual", ignoreCase = true))
+        assertTrue(offlineDisclaimer.contains("outdated", ignoreCase = true))
+        assertTrue(offlineDisclaimer.contains("No live event data", ignoreCase = true))
+        val onlineDisclaimer = EventContextRepository.disclaimer(onlineEnabled = true)
+        assertTrue(onlineDisclaimer.contains("online", ignoreCase = true))
+        assertTrue(onlineDisclaimer.contains("Pokémon GO", ignoreCase = true))
     }
 
     @Test
-    fun `every event note is manual and offline`() {
+    fun `bundled event notes are always marked manual`() {
         EventContextRepository.all().forEach { event ->
-            assertTrue("note ${event.id} must be manual", event.isManual)
+            assertTrue("bundled note ${event.id} must be manual", event.isManual)
         }
+    }
+
+    @Test
+    fun `feed entries are marked non-manual`() {
+        val feed = com.caglar.pokequery.domain.events.EventFeed(
+            notes = listOf(
+                com.caglar.pokequery.domain.events.EventFeedEntry("f1", "Test event", "GENERIC_EVENT", "A test note")
+            ),
+            fetchedAt = System.currentTimeMillis()
+        )
+        val entries = EventContextRepository.feedEntries(feed)
+        assertEquals(1, entries.size)
+        assertFalse("feed-based entry must not be manual", entries.first().isManual)
+    }
+
+    @Test
+    fun `combined offline state returns correct feed state`() {
+        val cacheDir = java.io.File(System.getProperty("java.io.tmpdir", "/tmp")!!)
+        val offline = EventContextRepository.combined(onlineEnabled = false, cacheDir = cacheDir)
+        assertTrue("offline state must be OfflineOnly", offline is com.caglar.pokequery.domain.events.ContextFeedState.OfflineOnly)
     }
 }

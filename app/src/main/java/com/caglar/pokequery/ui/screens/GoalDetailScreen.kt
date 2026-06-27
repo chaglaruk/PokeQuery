@@ -58,8 +58,6 @@ import com.caglar.pokequery.domain.engine.GoalStringBuilder
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
 import com.caglar.pokequery.domain.risk.RiskExplanation
 import com.caglar.pokequery.domain.risk.RiskExplanations
-import com.caglar.pokequery.domain.scope.InventorySizeProfile
-import com.caglar.pokequery.domain.scope.ScopeBreadthExplainer
 import com.caglar.pokequery.requiresRiskWarning
 import com.caglar.pokequery.theme.BackgroundDark
 import com.caglar.pokequery.theme.TealPrimary
@@ -97,8 +95,6 @@ fun GoalDetailScreen(
     var include0Star by remember { mutableStateOf(false) }
     var pvpLeague by remember { mutableStateOf("great") }
     var luckyMode by remember { mutableStateOf("age") }
-    // v0.6.1: QR export toggle (export-first, offline, no CAMERA permission).
-    var showQr by remember { mutableStateOf(false) }
 
     val generatedString = remember(
         goalId, excludeShiny, excludeLegendary, excludeCostume, excludeShadow,
@@ -131,12 +127,6 @@ fun GoalDetailScreen(
     }
     val riskExplanation = remember(generatedString.goalId, generatedString.riskLevel) {
         RiskExplanations.forGoal(generatedString.goalId, generatedString.riskLevel)
-    }
-    val scopeExplanation = remember(generatedString.scopeBreadth, userPrefs?.inventorySizeProfile) {
-        ScopeBreadthExplainer.explain(
-            generatedString.scopeBreadth,
-            InventorySizeProfile.fromStored(userPrefs?.inventorySizeProfile)
-        )
     }
 
     // v0.5.5 (Fix 1): Visual Density drives the section rhythm on this screen. The distinct
@@ -203,31 +193,11 @@ fun GoalDetailScreen(
                     },
                     leadingIcon = Icons.Default.ContentCopy
                 )
-                Spacer(Modifier.height(8.dp))
-                // v0.6.1: QR export. Offline, dependency-free encoder; export-only (no scanning).
-                // Always offers a copy fallback so the string is never unreachable.
-                com.caglar.pokequery.ui.pq.PqSecondaryButton(
-                    text = if (showQr) "Hide QR" else "Show QR",
-                    onClick = { showQr = !showQr }
-                )
-                androidx.compose.animation.AnimatedVisibility(showQr) {
-                    Column(Modifier.padding(top = 12.dp)) {
-                        com.caglar.pokequery.ui.qr.QrExportPanel(
-                            searchString = generatedString.rawSyntax,
-                            onCopy = {
-                                clipboard.setText(AnnotatedString(generatedString.rawSyntax))
-                                scope.launch { repository.addHistory(SavedTemplate.from(generatedString)) }
-                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    }
-                }
             }
 
             Spacer(Modifier.height(density.sectionGap))
             RiskExplanationCard(
                 explanation = riskExplanation,
-                scopeExplanation = scopeExplanation,
                 modifier = Modifier.pqStaggeredItem(visible, 2)
             )
 
@@ -298,7 +268,6 @@ fun GoalDetailScreen(
 @Composable
 private fun RiskExplanationCard(
     explanation: RiskExplanation,
-    scopeExplanation: String,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -324,8 +293,6 @@ private fun RiskExplanationCard(
             explanation.safetyChecklist.take(3).forEach { item ->
                 Text("• $item", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
             }
-            Spacer(Modifier.height(8.dp))
-            Text(scopeExplanation, color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
             if (explanation.relatedKnowledgeIds.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 Text(

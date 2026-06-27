@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">PokeQuery</string>
+
+    <!-- v0.6.2 Foundation Turkish translations for key UI strings -->
+    <string name="shortcut_safe_cleanup_short">Güvenli Temizlik</string>
+    <string name="shortcut_safe_cleanup_long">Güvenli Temizlik incelemesi</string>
+    <string name="shortcut_safe_cleanup_disabled">Güvenli Temizlik kullanılamıyor</string>
+
+    <string name="shortcut_candy_prep_short">Şeker Hazırlığı</string>
+    <string name="shortcut_candy_prep_long">2x Şeker Hazırlığı</string>
+    <string name="shortcut_candy_prep_disabled">Şeker Hazırlığı kullanılamıyor</string>
+
+    <string name="shortcut_trade_fodder_short">Takas Malzemesi</string>
+    <string name="shortcut_trade_fodder_long">Takas Malzemesi incelemesi</string>
+    <string name="shortcut_trade_fodder_disabled">Takas Malzemesi kullanılamıyor</string>
+
+    <string name="shortcut_expert_short">Uzman Oluşturucu</string>
+    <string name="shortcut_expert_long">Uzman Oluşturucu</string>
+    <string name="shortcut_expert_disabled">Uzman Oluşturucu kullanılamıyor</string>
+
+    <string name="widget_quick_access_title">PokeQuery</string>
+    <string name="widget_quick_access_subtitle">Güvenli Temizlik için dokunun</string>
+    <string name="widget_quick_access_description">PokeQuery\'yi hızlı inceleme ekranına açar.</string>
+
+    <!-- v0.6.2 Search Assistant -->
+    <string name="assistant_title">Arama Asistanı</string>
+    <string name="assistant_placeholder">ör. parlak efsanevi pokemon göster</string>
+    <string name="assistant_description">Ne bulmak istediğinizi düz cümleyle açıklayın.</string>
+    <string name="assistant_parse">Çözümle</string>
+    <string name="assistant_suggest">AI Öner</string>
+    <string name="assistant_copied">Panoya kopyalandı</string>
+
+    <!-- v0.6.2 Event Context -->
+    <string name="events_title">Etkinlik Bağlamı</string>
+    <string name="events_refresh">Şimdi yenile</string>
+    <string name="events_online_enabled">Çevrimiçi etkinlikler etkin</string>
+    <string name="events_offline_title">Etkinlik Bağlamı</string>
+</resources>

@@ -14,6 +14,41 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.6.2",
+            versionCode = 19,
+            releaseLabel = "Phase 3",
+            title = "Home Redesign, Events, Assistant & Explain",
+            highlights = listOf(
+                "Redesigned Home: 8 primary goals + collapsible More Tools",
+                "Favorites removed from Home (accessible via bottom nav)",
+                "Daily online event context with offline fallback",
+                "Local NL search-string assistant (SearchIntentParser)",
+                "Optional remote AI provider interface (disabled by default)",
+                "Search String Explain mode with token-by-token breakdown",
+                "Clipboard import detection in Explain",
+                "Risk precision labels: Exact / Shortlist / Approximate / NeedsVerification",
+                "SearchTokenCatalog for multi-language token research",
+                "Turkish string resources for shortcuts and widget"
+            ),
+            safetyNotes = listOf(
+                "INTERNET permission declared for optional daily event feed (opt-in via Settings)",
+                "No login, no tracking, no ads, no analytics",
+                "No Pokémon GO account access",
+                "AI provider is an interface only — no key shipped, disabled by default",
+                "Local parser output validated through Linter before copy",
+                "Turkish search terms remain BETA"
+            ),
+            testerNotes = listOf(
+                "Verify Home screen: 8 primary + More Tools collapse/expand",
+                "Enable Online Event Updates in Settings, verify cache/refresh flow",
+                "Open Search Assistant and type 'show me shiny legendaries'",
+                "Open Explain and paste a search string from clipboard",
+                "Check precision labels (Exact/Shortlist/Approximate) in Explain",
+                "Verify Turkish strings appear for shortcuts"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.6.1",
             versionCode = 18,
             releaseLabel = "Phase 2",
@@ -22,7 +57,6 @@ object Changelog {
                 "Personal Presets from favorites and history",
                 "Cleaning Journal notes (local-only)",
                 "Practice Mode with fake inventory sandbox",
-                "QR export for generated strings",
                 "Android App Shortcuts",
                 "Quick Access home screen widget",
                 "Offline manual event context"
@@ -38,11 +72,10 @@ object Changelog {
                 "Save a favorite as a Personal Preset",
                 "Add a journal note from History",
                 "Open Practice Mode and inspect matches/exclusions",
-                "Tap a generated string to show its QR",
                 "Long-press the app icon for shortcuts",
                 "Add the Quick Access widget"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.6.0",

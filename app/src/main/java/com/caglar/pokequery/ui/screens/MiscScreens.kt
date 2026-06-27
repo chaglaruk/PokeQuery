@@ -37,7 +37,6 @@ import com.caglar.pokequery.data.repository.KnowledgeBaseRepository
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.changelog.Changelog
-import com.caglar.pokequery.domain.scope.InventorySizeProfile
 import com.caglar.pokequery.theme.*
 import com.caglar.pokequery.theme.density.currentDensity
 import com.caglar.pokequery.ui.components.*
@@ -226,18 +225,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
             PremiumPanel {
                 Text("General", color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
-                Text("Visual Density", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Changes card padding, chip spacing and list gaps across the app. Comfortable is the default premium feel; Compact fits more on screen. Title sizes stay the same.",
-                    color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp
-                )
-                Spacer(Modifier.height(4.dp))
-                Row(Modifier.fillMaxWidth()) {
-                    Box(Modifier.weight(1f)) { RadioRow("Comfortable", userPrefs?.visualDensity == "Comfortable") { scope.launch { repository.setSetting(UserPreferencesRepository.VISUAL_DENSITY, "Comfortable") } } }
-                    Box(Modifier.weight(1f)) { RadioRow("Compact", userPrefs?.visualDensity == "Compact") { scope.launch { repository.setSetting(UserPreferencesRepository.VISUAL_DENSITY, "Compact") } } }
-                }
-                Spacer(Modifier.height(14.dp))
+
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).padding(end = 16.dp)) {
                         Text("First-use guide seen", color = TextPrimary, fontWeight = FontWeight.SemiBold)
@@ -249,6 +237,28 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
                     )
                 }
+                Spacer(Modifier.height(14.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f).padding(end = 16.dp)) {
+                        Text("Online event updates", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Text("Fetches daily event notes. Offline fallback preserved.", color = TextSecondary, fontSize = 12.sp)
+                    }
+                    Switch(
+                        checked = userPrefs?.onlineEventsEnabled ?: false,
+                        onCheckedChange = { scope.launch { repository.setOnlineEventsEnabled(it) } },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
+                    )
+                }
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    "Clear event cache",
+                    color = CoralDanger,
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        val cacheDir = context.cacheDir
+                        com.caglar.pokequery.domain.events.EventFeedClient.clearCache(cacheDir)
+                        Toast.makeText(context, "Event cache cleared", Toast.LENGTH_SHORT).show()
+                    }.padding(vertical = 8.dp)
+                )
             }
         }
 
@@ -317,17 +327,17 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 )
 
                 Spacer(Modifier.height(14.dp))
-                Text("Copy Behavior", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(4.dp))
-                RadioRow("Always Warn", userPrefs?.copyBehavior == "Always Warn") { scope.launch { repository.setSetting(UserPreferencesRepository.COPY_BEHAVIOR, "Always Warn") } }
-                RadioRow("Confirm Risky Copy", userPrefs?.copyBehavior == "Confirm Risky Copy") { scope.launch { repository.setSetting(UserPreferencesRepository.COPY_BEHAVIOR, "Confirm Risky Copy") } }
-
-                Spacer(Modifier.height(14.dp))
-                Text("Default Duplicate Threshold", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(4.dp))
-                RadioRow("Count 2 (Strict)", userPrefs?.duplicateThreshold == "Count 2 (Strict)") { scope.launch { repository.setSetting(UserPreferencesRepository.DUPLICATE_THRESHOLD, "Count 2 (Strict)") } }
-                RadioRow("Count 3 (Safe)", userPrefs?.duplicateThreshold == "Count 3 (Safe)") { scope.launch { repository.setSetting(UserPreferencesRepository.DUPLICATE_THRESHOLD, "Count 3 (Safe)") } }
-
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f).padding(end = 16.dp)) {
+                        Text("Clipboard import detection", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Text("Detect copied search strings for Explain mode.", color = TextSecondary, fontSize = 12.sp)
+                    }
+                    Switch(
+                        checked = userPrefs?.clipboardDetectionEnabled ?: true,
+                        onCheckedChange = { scope.launch { repository.setClipboardDetectionEnabled(it) } },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
+                    )
+                }
                 Spacer(Modifier.height(14.dp))
                 Text("Safety", color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
@@ -338,13 +348,30 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
 
         item {
             PremiumPanel {
-                Text("Data & privacy", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Text("About & Privacy", color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
+                Text(com.caglar.pokequery.AppVersion.aboutDisplayString, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 12.sp)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "What Changed / Changelog",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
+                )
+                Spacer(Modifier.height(12.dp))
                 Text("No account access. No scraping. Local favorites and history only.", color = TextPrimary)
                 Text("Privacy notes and third-party notices are in docs/release.", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-                Spacer(Modifier.height(16.dp))
-
-                // v0.4.2 (Fix 7): destructive actions require explicit confirmation.
+                Spacer(Modifier.height(12.dp))
+                // v0.4.2 (Fix 6): non-affiliation disclaimer.
+                Text(
+                    "PokeQuery is an independent helper app and is not affiliated with, endorsed by, or sponsored by Niantic, The Pokémon Company, or Nintendo.",
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp
+                )
+                Spacer(Modifier.height(12.dp))
+                // v0.4.2 (Fix 7): destructive data actions require explicit confirmation.
                 var pendingDestructive by remember { mutableStateOf<DestructiveAction?>(null) }
                 Text("Clear favorites", color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearFavorites }.padding(vertical = 8.dp))
                 Text("Clear history", color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearHistory }.padding(vertical = 8.dp))
@@ -373,78 +400,15 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                         containerColor = CardDark
                     )
                 }
-            }
-        }
 
-        item {
-            PremiumPanel(borderColor = BlueCTA) {
-                Text("Inventory size context", color = TealPrimary, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "This helps PokeQuery explain broad/narrow queries in context. PokeQuery cannot see your Pok\u00e9mon GO inventory. Estimates are educational only.",
-                    color = TextSecondary,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
-                )
-                Spacer(Modifier.height(8.dp))
-                val profile = InventorySizeProfile.fromStored(userPrefs?.inventorySizeProfile)
-                InventorySizeProfile.entries.forEach { option ->
-                    RadioRow(
-                        label = if (option == InventorySizeProfile.NOT_SET) option.label else "${option.label} \u00b7 ${option.description}",
-                        selected = profile == option
-                    ) {
-                        scope.launch {
-                            repository.setSetting(UserPreferencesRepository.INVENTORY_SIZE_PROFILE, option.name)
-                        }
-                    }
-                }
-            }
-        }
-
-        item {
-            // v0.5.0 Stitch: disabled "Coming Later" section. Explicitly unavailable to
-            // maintain trust in the offline-first model. Never active, never networked.
-            // v0.5.2 (Fix 10): "AI Assistant" is documented as coming-later and is strictly
-            // non-functional — see docs/ai/AI_FEASIBILITY.md + AI_ASSISTANT_ROADMAP.md. The
-            // offline-first app remains unchanged.
-            PremiumPanel {
-                Text("Coming Later", color = TextSecondary, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(10.dp))
-                com.caglar.pokequery.ui.pq.PqComingLaterCard("AI Assistant", "Coming later · Not available yet. The offline-first app remains unchanged.")
-                Spacer(Modifier.height(8.dp))
-                com.caglar.pokequery.ui.pq.PqComingLaterCard("Cloud Sync", "Offline-first. No cloud sync exists today.")
-                Spacer(Modifier.height(8.dp))
-                com.caglar.pokequery.ui.pq.PqComingLaterCard("Community Preset Packs", "Shareable preset packs are not available yet.")
-                Spacer(Modifier.height(8.dp))
-                com.caglar.pokequery.ui.pq.PqComingLaterCard("Import / Export", "Local favorites/history only; no import/export yet.")
-                Spacer(Modifier.height(8.dp))
-                com.caglar.pokequery.ui.pq.PqComingLaterCard("Automatic Database Updates", "The knowledge base is local and never auto-updates online.")
-            }
-        }
-
-        item {
-            PremiumPanel {
-                Text("About", color = TealPrimary, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(8.dp))
-                Text(com.caglar.pokequery.AppVersion.aboutDisplayString, color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 12.sp)
-                Text(
-                    "What Changed / Changelog",
-                    color = TealPrimary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
-                )
-                Spacer(Modifier.height(8.dp))
-                // v0.4.2 (Fix 6): non-affiliation disclaimer.
-                Text(
-                    "PokeQuery is an independent helper app and is not affiliated with, endorsed by, or sponsored by Niantic, The Pokémon Company, or Nintendo.",
-                    color = TextSecondary,
-                    fontSize = 11.sp,
-                    lineHeight = 15.sp
-                )
                 Spacer(Modifier.height(12.dp))
-                // Package 2: tester feedback via mailto (no network, no analytics).
-                // The user reviews and sends manually from their own email app.
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 2.dp),
+                    thickness = 1.dp,
+                    color = Color.White.copy(alpha = 0.08f)
+                )
+                Spacer(Modifier.height(8.dp))
+                // Tester feedback via mailto (no network, no analytics).
                 val feedbackContext = com.caglar.pokequery.feedback.FeedbackContext(
                     appVersion = com.caglar.pokequery.AppVersion.versionName,
                     androidVersion = android.os.Build.VERSION.RELEASE ?: "unknown",
@@ -721,5 +685,5 @@ private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
 private enum class DestructiveAction(val title: String, val message: String) {
     ClearFavorites("Clear favorites?", "This removes all saved search strings. This cannot be undone."),
     ClearHistory("Clear history?", "This removes all recently copied search strings. This cannot be undone."),
-    ResetSettings("Reset all settings?", "This restores language, copy, and threshold settings to defaults. Favorites and history are kept. This cannot be undone.")
+    ResetSettings("Reset all settings?", "This restores language settings to defaults. Favorites and history are kept. This cannot be undone.")
 }

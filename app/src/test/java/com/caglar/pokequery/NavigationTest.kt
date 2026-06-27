@@ -26,6 +26,14 @@ class NavigationTest {
         assertEquals(GoalDetail("safe_cleanup"), homeGoalDestination("safe_cleanup"))
     }
 
+    @Test
+    fun `v062 more tools cards map to dedicated non-goal destinations`() {
+        listOf("my_presets", "practice", "journal", "events", "presets", "expert", "knowledge", "assistant", "explain").forEach { card ->
+            val dest = homeGoalDestination(card)
+            assertFalse("More Tools card '$card' must not resolve to GoalDetail", dest is GoalDetail)
+        }
+    }
+
     // v0.5.2 (Fix 4): Knowledge Base navigation bug. The Home "Knowledge Base" card must
     // open KnowledgeBase — NOT GoalDetail("knowledge") which the detail screen's unknown-goal
     // fallback routed to Expert Builder. All non-goal Home cards are now explicitly mapped.
@@ -40,19 +48,17 @@ class NavigationTest {
     }
 
     @Test
-    fun `home favorites card opens favorites screen directly`() {
+    fun `favorites destination still resolves via route but is no longer a home card`() {
         val destination = homeGoalDestination("favorites")
         assertTrue(
-            "Home Favorites card must route to Favorites, got $destination",
+            "Favorites route must still resolve to Favorites, got $destination",
             destination is Favorites
         )
     }
 
     @Test
     fun `every home non-goal card maps to a non-goal-detail destination`() {
-        // The Home grid's non-detail cards. None of these may resolve to GoalDetail,
-        // otherwise the card opens the wrong screen (the original KB bug).
-        val nonGoalCards = listOf("expert", "presets", "knowledge", "favorites")
+        val nonGoalCards = listOf("expert", "presets", "knowledge", "my_presets", "practice", "journal", "events")
         nonGoalCards.forEach { card ->
             val dest = homeGoalDestination(card)
             assertFalse(
@@ -74,11 +80,13 @@ class NavigationTest {
     // v0.6.1: the new workflow + context surfaces resolve from a start_route (Home cards, app
     // shortcuts and the Quick Access widget all feed startDestination).
     @Test
-    fun `v061 surface routes resolve to their dedicated screens`() {
+    fun `v061 and v062 surface routes resolve to their dedicated screens`() {
         assertEquals(MyPresets, startDestination("my_presets", true))
         assertEquals(PracticeMode, startDestination("practice", true))
         assertEquals(CleaningJournal, startDestination("journal", true))
         assertEquals(EventContext, startDestination("events", true))
+        assertEquals(SearchAssistant, startDestination("assistant", true))
+        assertEquals(ExplainRoute(), startDestination("explain", true))
     }
 
     @Test

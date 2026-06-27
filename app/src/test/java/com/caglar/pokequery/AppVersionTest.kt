@@ -14,14 +14,13 @@ import org.junit.Test
 class AppVersionTest {
 
     @Test
-    fun `display version matches the v0-dot-6-dot-1 release`() {
-        assertEquals("0.6.1", AppVersion.versionName)
-        assertEquals(18, AppVersion.versionCode)
+    fun `display version matches the v0-dot-6-dot-2 release`() {
+        assertEquals("0.6.2", AppVersion.versionName)
+        assertEquals(19, AppVersion.versionCode)
     }
 
     @Test
     fun `display version is never the stale v0-dot-3-dot-4 string`() {
-        // Regression guard for BUG-008: About must never show the old hardcoded value.
         assertTrue(
             "About must not show stale 'v0.3.4'; got '${AppVersion.versionName}'",
             AppVersion.versionName != "0.3.4"
@@ -32,6 +31,6 @@ class AppVersionTest {
     fun `about display string starts with PokeQuery and includes the version`() {
         val display = AppVersion.aboutDisplayString
         assertTrue("Expected 'PokeQuery' in: $display", display.contains("PokeQuery"))
-        assertTrue("Expected '0.6.1' in: $display", display.contains("0.6.1"))
+        assertTrue("Expected '0.6.2' in: $display", display.contains("0.6.2"))
     }
 }

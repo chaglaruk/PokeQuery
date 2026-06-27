@@ -26,12 +26,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val SAVED_TEMPLATES = stringSetPreferencesKey("saved_templates_v1")
         val RECENT_HISTORY = stringSetPreferencesKey("recent_history_v1")
         val WARNING_BEHAVIOR = stringPreferencesKey("warning_behavior")
-        val DUPLICATE_THRESHOLD = stringPreferencesKey("duplicate_threshold")
         val SAFETY_STYLE = stringPreferencesKey("safety_style")
-        val COPY_BEHAVIOR = stringPreferencesKey("copy_behavior")
         val GAME_LANGUAGE = stringPreferencesKey("game_language")
-        val VISUAL_DENSITY = stringPreferencesKey("visual_density")
-        val INVENTORY_SIZE_PROFILE = stringPreferencesKey("inventory_size_profile")
         // v0.5.2 (Fix 7): two-layer localization. APP_LANGUAGE controls UI text only;
         // GAME_LANGUAGE controls the generated Pokémon GO search strings only. They are
         // independent — choosing a Turkish UI must NOT force Turkish search strings.
@@ -40,25 +36,24 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         // synced, never uploaded, never account-bound. Stored via the codecs in UserContentCodec.
         val PERSONAL_PRESETS = stringSetPreferencesKey("personal_presets_v1")
         val JOURNAL_ENTRIES = stringSetPreferencesKey("journal_entries_v1")
+        // v0.6.2: optional daily online event feed (opt-in via Settings).
+        val ONLINE_EVENTS_ENABLED = booleanPreferencesKey("online_events_enabled")
+        // v0.6.2 polish: clipboard import detection in Explain.
+        val CLIPBOARD_DETECTION_ENABLED = booleanPreferencesKey("clipboard_detection_enabled")
+        // v0.6.2 polish: expand risk limitations by default.
+        val LIMITATIONS_EXPANDED_BY_DEFAULT = booleanPreferencesKey("limitations_expanded_by_default")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data.map { preferences ->
         UserPreferences(
             firstUseSeen = preferences[FIRST_USE_SEEN] ?: false,
             warningBehavior = preferences[WARNING_BEHAVIOR] ?: "Always Warn",
-            duplicateThreshold = preferences[DUPLICATE_THRESHOLD] ?: "Count 3 (Safe)",
             safetyStyle = preferences[SAFETY_STYLE] ?: "Conservative",
-            copyBehavior = preferences[COPY_BEHAVIOR] ?: "Confirm Risky Copy",
-            // v0.5.4 (Fix 5): default Search String Language is "Auto" (Safe — English) to
-            // match LocalizationModel.SearchStringLanguage.DEFAULT. Was "English", which kept
-            // the selection correct but diverged from the documented model default. Output is
-            // unchanged: SearchTermMapper resolves Auto -> English at generation time.
             gameLanguage = preferences[GAME_LANGUAGE] ?: "Auto",
-            visualDensity = preferences[VISUAL_DENSITY] ?: "Comfortable",
-            inventorySizeProfile = preferences[INVENTORY_SIZE_PROFILE] ?: "NOT_SET",
-            // v0.5.2 (Fix 7): System Default = follow device locale for UI; empty/legacy
-            // values default to System Default (not Turkish) so we never surprise the user.
             appLanguage = preferences[APP_LANGUAGE] ?: "System Default",
+            onlineEventsEnabled = preferences[ONLINE_EVENTS_ENABLED] ?: false,
+            clipboardDetectionEnabled = preferences[CLIPBOARD_DETECTION_ENABLED] ?: true,
+            limitationsExpandedByDefault = preferences[LIMITATIONS_EXPANDED_BY_DEFAULT] ?: false,
             favorites = readFavorites(preferences).sortedByDescending { it.createdAt },
             history = readHistory(preferences).sortedByDescending { it.createdAt },
             personalPresets = readPersonalPresets(preferences).sortedByDescending { it.updatedAt },
@@ -72,6 +67,18 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setFirstUseSeen(seen: Boolean) {
         dataStore.edit { it[FIRST_USE_SEEN] = seen }
+    }
+
+    suspend fun setOnlineEventsEnabled(enabled: Boolean) {
+        dataStore.edit { it[ONLINE_EVENTS_ENABLED] = enabled }
+    }
+
+    suspend fun setClipboardDetectionEnabled(enabled: Boolean) {
+        dataStore.edit { it[CLIPBOARD_DETECTION_ENABLED] = enabled }
+    }
+
+    suspend fun setLimitationsExpandedByDefault(enabled: Boolean) {
+        dataStore.edit { it[LIMITATIONS_EXPANDED_BY_DEFAULT] = enabled }
     }
 
     suspend fun addFavorite(template: SavedTemplate) {
@@ -223,18 +230,14 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 data class UserPreferences(
     val firstUseSeen: Boolean,
     val warningBehavior: String = "Always Warn",
-    val duplicateThreshold: String = "Count 3 (Safe)",
     val safetyStyle: String = "Conservative",
-    val copyBehavior: String = "Confirm Risky Copy",
-    // v0.5.4 (Fix 5): align with LocalizationModel.SearchStringLanguage.DEFAULT (Auto).
     val gameLanguage: String = "Auto",
-    val visualDensity: String = "Comfortable",
-    val inventorySizeProfile: String = "NOT_SET",
-    // v0.5.2 (Fix 7): App UI language, independent from the search-string language.
     val appLanguage: String = "System Default",
+    val onlineEventsEnabled: Boolean = false,
+    val clipboardDetectionEnabled: Boolean = true,
+    val limitationsExpandedByDefault: Boolean = false,
     val favorites: List<SavedTemplate>,
     val history: List<SavedTemplate> = emptyList(),
-    // v0.6.1: local-only personal presets and journal entries.
     val personalPresets: List<PersonalPreset> = emptyList(),
     val journal: List<CleaningJournalEntry> = emptyList()
 )
