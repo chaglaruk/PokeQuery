@@ -48,15 +48,23 @@ object AppLocaleController {
 
     const val SYSTEM_DEFAULT = "System Default"
     const val ENGLISH = "English"
-    const val TURKISH = "Turkish"
+    const val TURKISH = "Türkçe"
+    const val DEUTSCH = "Deutsch"
+    const val FRANCAIS = "Français"
+    const val ESPANOL = "Español"
+    const val ITALIANO = "Italiano"
 
     /** The valid, selectable App Language labels in display order. */
-    val OPTIONS: List<String> = listOf(SYSTEM_DEFAULT, ENGLISH, TURKISH)
+    val OPTIONS: List<String> = listOf(SYSTEM_DEFAULT, ENGLISH, DEUTSCH, ESPANOL, FRANCAIS, ITALIANO, TURKISH)
 
     /** Maps the stored preference label to a language tag, or null for System Default. */
     fun localeTagFor(appLanguage: String): String? = when (appLanguage.trim()) {
         ENGLISH -> "en"
-        TURKISH -> "tr"
+        TURKISH, "Turkish" -> "tr"
+        DEUTSCH -> "de"
+        FRANCAIS -> "fr"
+        ESPANOL -> "es"
+        ITALIANO -> "it"
         else -> null // System Default / unknown
     }
 
@@ -69,17 +77,15 @@ object AppLocaleController {
      * implementation.
      */
     fun apply(context: Context, appLanguage: String) {
-        applyProcessLocale(localeTagFor(appLanguage))
+        val tag = localeTagFor(appLanguage)
+        // Set the process locale (fallback)
+        applyProcessLocale(tag)
+
+
     }
 
-    /**
-     * Sets the process-default [Locale] for the given tag. Pure JDK only: no Android locale
-     * service, no Activity recreation. A null/empty tag (System Default) is a no-op so the
-     * app follows the device locale. Kept public + context-free so the safety guarantee is
-     * directly unit-testable.
-     */
     fun applyProcessLocale(tag: String?) {
-        if (tag.isNullOrEmpty()) return // System Default: do not fight the device locale.
+        if (tag.isNullOrEmpty()) return
         val parts = tag.split("-")
         val locale = if (parts.size > 1) Locale(parts[0], parts[1]) else Locale(parts[0])
         Locale.setDefault(locale)
@@ -95,6 +101,10 @@ object AppLocaleController {
         when (Locale.getDefault().language) {
             "en" -> ENGLISH
             "tr" -> TURKISH
+            "de" -> DEUTSCH
+            "fr" -> FRANCAIS
+            "es" -> ESPANOL
+            "it" -> ITALIANO
             else -> SYSTEM_DEFAULT
         }
 }
@@ -107,6 +117,10 @@ object AppLocaleLabels {
     fun labelForLanguageTag(tag: String?): String = when (tag?.lowercase()?.substringBefore('-')) {
         "en" -> AppLocaleController.ENGLISH
         "tr" -> AppLocaleController.TURKISH
+        "de" -> AppLocaleController.DEUTSCH
+        "fr" -> AppLocaleController.FRANCAIS
+        "es" -> AppLocaleController.ESPANOL
+        "it" -> AppLocaleController.ITALIANO
         else -> AppLocaleController.SYSTEM_DEFAULT
     }
 }

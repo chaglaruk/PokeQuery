@@ -20,8 +20,7 @@ import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
-import com.caglar.pokequery.theme.density.DensityTokens
-import com.caglar.pokequery.theme.density.LocalDensityTokens
+
 import com.caglar.pokequery.ui.components.BottomNavBar
 import com.caglar.pokequery.ui.motion.PqMotionTokens
 import com.caglar.pokequery.ui.motion.ProvidePqMotion
@@ -42,15 +41,8 @@ fun MainNavigation(startRoute: String? = null) {
     val backStack = rememberNavBackStack(initialEntry)
     var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
 
-    // v0.5.2 (Fix 6): resolve Visual Density once from the live preference and provide the
-    // tokens to the whole UI. While the pref is still loading, default to Comfortable so the
-    // first frame matches the long-standing look (never Compact-by-accident).
-    val densityTokens = DensityTokens.resolve(userPrefs?.visualDensity)
-    // v0.5.3 motion polish: provide the resolved reduced-motion state + tokens to the whole UI.
-    // ProvidePqMotion resolves the OS animation scale ONCE (read-only, cached) — never writes a
-    // setting, never recreates the Activity, no repeated system reads. See ui/motion/ReduceMotion.
+    // v0.5.3 motion polish: provide the resolved reduced-motion state to the whole UI.
     ProvidePqMotion {
-    androidx.compose.runtime.CompositionLocalProvider(LocalDensityTokens provides densityTokens) {
 
     fun copyGenerated(generated: GeneratedString) {
         clipboard.setText(AnnotatedString(generated.rawSyntax))
@@ -142,9 +134,31 @@ fun MainNavigation(startRoute: String? = null) {
                     entry<CleaningJournal> {
                         CleaningJournalScreen(onBack = { backStack.removeLastOrNull() })
                     }
-                    // v0.6.1: Offline/manual Event Context (no network, no live data).
+                    // v0.6.2: Event Context.
                     entry<EventContext> {
-                        EventContextScreen(onBack = { backStack.removeLastOrNull() })
+                        EventContextScreen(
+                            onBack = { backStack.removeLastOrNull() }
+                        )
+                    }
+                    // v0.6.2: Safe NL search-string assistant.
+                    entry<SearchAssistant> {
+                        SearchAssistantScreen(
+                            onBack = { backStack.removeLastOrNull() },
+                            onCopyRaw = { rawSyntax ->
+                                clipboard.setText(AnnotatedString(rawSyntax))
+                                scope.launch { repository.addHistory(com.caglar.pokequery.data.model.SavedTemplate.from(com.caglar.pokequery.data.model.GeneratedString(rawSyntax, "Search Assistant suggestion", emptyList(), emptyList(), com.caglar.pokequery.data.model.RiskLevel.Medium))) }
+                            },
+                            onExplain = { query ->
+                                backStack.add(ExplainRoute(query))
+                            }
+                        )
+                    }
+                    // v0.6.2: Search String Explain mode.
+                    entry<ExplainRoute> { route ->
+                        ExplainScreen(
+                            onBack = { backStack.removeLastOrNull() },
+                            initialQuery = route.query
+                        )
                     }
                     entry<Favorites> {
                         FavoritesScreen(
@@ -192,6 +206,5 @@ fun MainNavigation(startRoute: String? = null) {
             )
         }
     }
-    } // end CompositionLocalProvider
     } // end ProvidePqMotion
 }

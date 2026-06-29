@@ -1,6 +1,13 @@
 package com.caglar.pokequery.domain.locale
 
 /**
+ * TODO(v0.7): remaining Turkish localization work
+ *   1. Verify `count` candidates (toplam/sayı/sayısı) against a live Turkish client
+ *   2. Verify compound protection tokens (background, locationbackground, specialbackground, ultrabeast)
+ *   3. Live-verify all BETA tokens
+ *   4. Resolve RISKY tokens: mistik (mythical), arıtılmış (purified)
+ * See: docs/localization/turkish_verification_matrix.md
+ *
  * v0.5.2 (Fix 8): dedicated search-token localization model with metadata.
  *
  * Pokémon GO search tokens are NOT translatable by generic machine translation — the game

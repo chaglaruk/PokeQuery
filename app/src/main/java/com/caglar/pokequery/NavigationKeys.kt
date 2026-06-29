@@ -21,6 +21,10 @@ import kotlinx.serialization.Serializable
 @Serializable data object PracticeMode : NavKey
 @Serializable data object CleaningJournal : NavKey
 @Serializable data object EventContext : NavKey
+// v0.6.2: Safe NL search-string assistant (local parser) + optional remote AI provider.
+@Serializable data object SearchAssistant : NavKey
+// v0.6.2: Search String Explain mode — token-by-token breakdown.
+@Serializable data class ExplainRoute(val query: String = "") : NavKey
 
 fun startDestination(startRoute: String?, firstUseSeen: Boolean?): NavKey? = when (startRoute) {
     "onboarding" -> Onboarding(0)
@@ -46,6 +50,8 @@ fun startDestination(startRoute: String?, firstUseSeen: Boolean?): NavKey? = whe
     "practice" -> PracticeMode
     "journal" -> CleaningJournal
     "events" -> EventContext
+    "assistant" -> SearchAssistant
+    "explain" -> ExplainRoute()
     null -> when (firstUseSeen) {
         null -> null
         true -> Home
@@ -74,6 +80,11 @@ fun homeGoalDestination(goalId: String): NavKey = when (goalId) {
     "practice" -> PracticeMode
     "journal" -> CleaningJournal
     "events" -> EventContext
+    // v0.6.2: Search Assistant (local NL parser).
+    "assistant" -> SearchAssistant
+    "explain" -> ExplainRoute()
+    "changelog" -> ChangelogRoute
+    "settings" -> Settings
     else -> GoalDetail(goalId)
 }
 

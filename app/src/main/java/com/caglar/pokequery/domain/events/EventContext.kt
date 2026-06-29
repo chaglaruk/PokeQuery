@@ -1,42 +1,43 @@
 package com.caglar.pokequery.domain.events
 
-/**
- * v0.6.1 — Offline/manual Event Context.
- *
- * Option A of the spec: a LOCAL, manually-maintained set of event context entries bundled with
- * the app. There is NO network: no INTERNET permission, no fetch, no ScrapedDuck/LeekDuck remote
- * provider. These notes can go stale; the UI always discloses "manually maintained and may be
- * outdated" and "No live event data is fetched."
- *
- * A `RemoteEventProvider` is intentionally NOT shipped. See docs for the future-provider plan.
- */
+import androidx.annotation.StringRes
+
 data class EventContext(
     val id: String,
-    val title: String,
+    @StringRes val titleRes: Int,
     val contextType: EventContextType,
-    val note: String,
+    @StringRes val noteRes: Int,
     val isManual: Boolean = true
 )
 
 enum class EventContextType { COMMUNITY_DAY, SPOTLIGHT_HOUR, GENERIC_EVENT }
 
 object EventContextRepository {
-    /**
-     * Manually maintained, local-only event notes. Kept deliberately generic and minimal to avoid
-     * implying live data or official status. Updated only in app releases.
-     */
     val entries: List<EventContext> = listOf(
         EventContext(
             id = "event_candy_prep_bonus",
-            title = "Candy events",
+            titleRes = com.caglar.pokequery.R.string.event_context_candy_events,
             contextType = EventContextType.GENERIC_EVENT,
-            note = "During candy-transfer-bonus events, extra candy can make Candy Prep goals more impactful. " +
-                "PokeQuery does not fetch live event data — confirm any active event in Pokémon GO itself."
+            noteRes = com.caglar.pokequery.R.string.event_context_candy_events_note
         )
     )
 
     fun all(): List<EventContext> = entries
 
-    fun disclaimer(): String =
-        "Event context is manually maintained and may be outdated. No live event data is fetched."
+    @StringRes
+    fun disclaimerRes(): Int = com.caglar.pokequery.R.string.event_context_disclaimer
+
+    fun combined(
+        manualMonthly: MonthlyContext? = MonthlyContextRepository.current
+    ): ContextFeedState {
+        return ContextFeedState.OfflineOnly(manualMonthly)
+    }
+}
+
+sealed class ContextFeedState {
+    abstract val monthly: MonthlyContext?
+
+    data class OfflineOnly(
+        override val monthly: MonthlyContext?
+    ) : ContextFeedState()
 }

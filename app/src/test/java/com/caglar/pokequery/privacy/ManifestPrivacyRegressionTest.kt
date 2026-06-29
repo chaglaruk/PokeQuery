@@ -2,7 +2,6 @@ package com.caglar.pokequery.privacy
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -10,17 +9,19 @@ import java.io.File
 /**
  * Package 7 — manifest / privacy regression tests.
  *
- * These protect the Play Data Safety claims ("zero permissions", "no network") against
- * accidental regressions. They parse the source AndroidManifest.xml that all variants
- * merge from, so they run as plain unit tests (no device, no merged-manifest dependency).
+ * These protect the Play Data Safety claims against accidental regressions.
+ * They parse the source AndroidManifest.xml that all variants merge from, so they run as
+ * plain unit tests (no device, no merged-manifest dependency).
  *
- * If a future change adds INTERNET / location / storage / camera / mic / contacts, or
- * changes the applicationId, or weakens backup policy, these fail loudly.
+ * v0.6.2 (offline-only): the optional event feed was removed and PokeQuery is fully offline.
+ * The manifest must declare NO permissions at all — not even INTERNET. Event context is manual.
+ *
+ * If a future change adds any permission (location / storage / camera / mic / contacts /
+ * INTERNET), or changes the applicationId, or weakens backup policy, these fail loudly.
  */
 class ManifestPrivacyRegressionTest {
 
     private val manifest: String by lazy {
-        // src/main/AndroidManifest.xml relative to the app module (working dir = project root).
         val candidates = listOf(
             File("app/src/main/AndroidManifest.xml"),
             File("src/main/AndroidManifest.xml")
@@ -31,22 +32,29 @@ class ManifestPrivacyRegressionTest {
     }
 
     @Test
-    fun `manifest declares zero permissions`() {
-        // No <uses-permission> elements at all.
-        assertFalse(
-            "Manifest must not declare any <uses-permission>, but found one.",
-            manifest.contains("<uses-permission", ignoreCase = true)
+    fun `no permissions are declared`() {
+        // Offline-only: the manifest must declare zero <uses-permission> elements. No INTERNET,
+        // no location, no storage — nothing.
+        val permissionCount = Regex("""<uses-permission""", RegexOption.IGNORE_CASE).findAll(manifest).count()
+        assertEquals(
+            "Expected ZERO <uses-permission> elements (offline-only), found $permissionCount",
+            0, permissionCount
         )
     }
 
     @Test
-    fun `no INTERNET permission is present`() {
-        assertFalse(manifest.contains("android.permission.INTERNET", ignoreCase = true))
+    fun `no INTERNET permission is declared`() {
+        // Offline-only contract: no network access is ever requested.
+        assertFalse(
+            "INTERNET permission must NOT be declared (offline-only app)",
+            manifest.contains("android.permission.INTERNET", ignoreCase = true)
+        )
     }
 
     @Test
-    fun `no dangerous location storage camera mic or contacts permissions`() {
+    fun `no dangerous location storage camera mic contacts or any other permissions`() {
         val forbidden = listOf(
+            "INTERNET",
             "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION",
             "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE",
             "CAMERA", "RECORD_AUDIO", "READ_CONTACTS", "WRITE_CONTACTS",
@@ -58,6 +66,13 @@ class ManifestPrivacyRegressionTest {
                 manifest.contains(perm, ignoreCase = true)
             )
         }
+        // Offline-only: no permissions whatsoever may be manifested.
+        val manifested = Regex("""android\.permission\.(\w+)""", RegexOption.IGNORE_CASE)
+            .findAll(manifest).map { it.groupValues[1] }.toSet()
+        assertTrue(
+            "No android.permission.* entries may appear (offline-only), found: $manifested",
+            manifested.isEmpty()
+        )
     }
 
     @Test
@@ -135,4 +150,3 @@ class ManifestPrivacyRegressionTest {
         )
     }
 }
-

@@ -14,6 +14,30 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.6.2",
+            versionCode = 19,
+            releaseLabel = "Phase 4",
+            title = "Final Polish & Turkish Localization",
+            highlights = listOf(
+                "Full Turkish UI localization (Event Context, Onboarding, Goal Detail, Home)",
+                "Search Assistant promoted to a primary Home card",
+                "Nundo Finder moved to More Tools",
+                "Offline manual event mode only — no live event data is fetched"
+            ),
+            safetyNotes = listOf(
+                "No INTERNET permission — offline event context is manually maintained",
+                "No login, no tracking, no ads, no analytics",
+                "No Pokémon GO account access",
+                "Turkish search tokens remain beta — verify results in Pokémon GO"
+            ),
+            testerNotes = listOf(
+                "Verify Turkish localization applies to all visible UI",
+                "Check Event Context shows manual offline notes only",
+                "Verify Search Assistant accepts Turkish input (e.g. 'parlak')"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.6.1",
             versionCode = 18,
             releaseLabel = "Phase 2",
@@ -22,7 +46,6 @@ object Changelog {
                 "Personal Presets from favorites and history",
                 "Cleaning Journal notes (local-only)",
                 "Practice Mode with fake inventory sandbox",
-                "QR export for generated strings",
                 "Android App Shortcuts",
                 "Quick Access home screen widget",
                 "Offline manual event context"
@@ -38,11 +61,10 @@ object Changelog {
                 "Save a favorite as a Personal Preset",
                 "Add a journal note from History",
                 "Open Practice Mode and inspect matches/exclusions",
-                "Tap a generated string to show its QR",
                 "Long-press the app icon for shortcuts",
                 "Add the Quick Access widget"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.6.0",

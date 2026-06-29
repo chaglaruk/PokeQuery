@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">PokeQuery</string>
+
+    <!-- v0.6.1 Android App Shortcuts -->
+    <string name="shortcut_safe_cleanup_short">Safe Cleanup</string>
+    <string name="shortcut_safe_cleanup_long">Safe Cleanup review</string>
+    <string name="shortcut_safe_cleanup_disabled">Safe Cleanup unavailable</string>
+
+    <string name="shortcut_candy_prep_short">Candy Prep</string>
+    <string name="shortcut_candy_prep_long">2x Candy Prep</string>
+    <string name="shortcut_candy_prep_disabled">Candy Prep unavailable</string>
+
+    <string name="shortcut_trade_fodder_short">Trade Fodder</string>
+    <string name="shortcut_trade_fodder_long">Trade Fodder review</string>
+    <string name="shortcut_trade_fodder_disabled">Trade Fodder unavailable</string>
+
+    <string name="shortcut_expert_short">Expert Builder</string>
+    <string name="shortcut_expert_long">Expert Builder</string>
+    <string name="shortcut_expert_disabled">Expert Builder unavailable</string>
+
+    <!-- v0.6.1 Quick Access widget -->
+    <string name="widget_quick_access_title">PokeQuery</string>
+    <string name="widget_quick_access_subtitle">Tap to open Safe Cleanup</string>
+    <string name="widget_quick_access_description">Opens PokeQuery to a quick review screen.</string>
+
+    <!-- v0.6.2 Search Assistant -->
+    <string name="assistant_title">Search Assistant</string>
+    <string name="assistant_placeholder">e.g. show me shiny legendary pokemon</string>
+    <string name="assistant_description">Describe what you want to find in plain English.</string>
+    <string name="assistant_parse">Parse</string>
+    <string name="assistant_suggest">AI Suggest</string>
+    <string name="assistant_copied">Copied to clipboard</string>
+
+    <!-- v0.6.2 Event Context -->
+    <string name="events_title">Event Context</string>
+    <string name="events_refresh">Refresh now</string>
+    <string name="events_online_enabled">Online events enabled</string>
+    <string name="events_offline_title">Event Context</string>
+</resources>

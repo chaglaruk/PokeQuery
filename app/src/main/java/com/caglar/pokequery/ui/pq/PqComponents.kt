@@ -43,7 +43,10 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -328,10 +331,10 @@ fun <T> PqSegmentedControl(
 @Composable
 fun PqRiskBadge(riskLevel: RiskLevel) {
     val (bg, fg, label) = when (riskLevel) {
-        RiskLevel.High -> Triple(CoralDanger.copy(alpha = 0.18f), CoralDanger, "HIGH")
-        RiskLevel.Medium -> Triple(GoldCaution.copy(alpha = 0.18f), GoldCaution, "MEDIUM")
-        RiskLevel.Low -> Triple(GreenVerified.copy(alpha = 0.18f), GreenVerified, "LOW")
-        RiskLevel.Info -> Triple(TealPrimary.copy(alpha = 0.18f), TealPrimary, "INFO")
+        RiskLevel.High -> Triple(CoralDanger.copy(alpha = 0.18f), CoralDanger, androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_high))
+        RiskLevel.Medium -> Triple(GoldCaution.copy(alpha = 0.18f), GoldCaution, androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_medium))
+        RiskLevel.Low -> Triple(GreenVerified.copy(alpha = 0.18f), GreenVerified, androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_low))
+        RiskLevel.Info -> Triple(TealPrimary.copy(alpha = 0.18f), TealPrimary, androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_info))
     }
     PqBadge(label, fg, bg)
 }
@@ -397,14 +400,12 @@ fun PqStringBox(text: String, accent: Color = TealPrimary, modifier: Modifier = 
 // ---------- Section header ----------
 
 /**
- * v0.5.2 (Fix 2 + Fix 3): the canonical PokeQuery wordmark, shared by onboarding and Home.
+ * Original PokeQuery wordmark — playful game-branding inspired vector treatment.
  *
- * Replaces the raster `logo_wordmark_source.webp` (which rendered as an opaque black block
- * because the WebP carried a solid background) with a pure vector treatment drawn in the
- * brand language: white "Poke" + electric-cyan "Query", heavy weight, a soft shadow for logo
- * depth, and a spark accent over the 'Q'. Original artwork — no Pokémon font, colors, layout,
- * Poké Ball, or creatures. Both screens now share ONE definition, so the wordmark is
- * consistent everywhere instead of diverging between onboarding and Home.
+ * White "Poke" + bright-cyan "Query" with a thick dark navy outline (8-direction
+ * offset), a 3D shadow layer, and two sparkle/star accents near the end. Uses
+ * layered Text composables so every letter is outlined cleanly. Original artwork
+ * — no Pokémon / Niantic / Nintendo fonts, colors, or assets.
  *
  * @param fontSize  wordmark size.
  * @param centered  horizontally center the wordmark (used by the onboarding hero).
@@ -412,46 +413,22 @@ fun PqStringBox(text: String, accent: Color = TealPrimary, modifier: Modifier = 
 @Composable
 fun PqWordmark(
     modifier: Modifier = Modifier,
-    fontSize: androidx.compose.ui.unit.TextUnit = 30.sp,
+    width: androidx.compose.ui.unit.Dp = 260.dp,
     centered: Boolean = false
 ) {
-    val sparkSize = (fontSize.value * 0.55f).dp
-    val wordmark: @Composable () -> Unit = {
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-                "Poke",
-                color = TextPrimary,
-                fontSize = fontSize,
-                fontWeight = FontWeight.Black,
-                letterSpacing = (-0.5).sp,
-                modifier = Modifier.shadow(elevation = 4.dp, spotColor = Color.Black, ambientColor = Color.Black)
-            )
-            Box {
-                Text(
-                    "Query",
-                    color = TealPrimary,
-                    fontSize = fontSize,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = (-0.5).sp,
-                    modifier = Modifier.shadow(elevation = 4.dp, spotColor = Color.Black, ambientColor = Color.Black)
-                )
-                // Spark accent floating over the top-right of "Query".
-                Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Default.AutoAwesome,
-                    contentDescription = null,
-                    tint = CyanGlow,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 2.dp, y = (-6).dp)
-                        .size(sparkSize)
-                )
-            }
-        }
+    val content: @Composable () -> Unit = {
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(com.caglar.pokequery.R.drawable.pokequery_wordmark),
+            contentDescription = "PokeQuery Logo",
+            modifier = Modifier.width(width).graphicsLayer { blendMode = BlendMode.Screen },
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit
+        )
     }
+
     if (centered) {
-        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { wordmark() }
+        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { content() }
     } else {
-        Box(modifier) { wordmark() }
+        Box(modifier) { content() }
     }
 }
 
@@ -541,7 +518,7 @@ fun PqComingLaterCard(title: String, description: String) {
             Text(title, color = TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             Text(description, color = TextTertiary, fontSize = 11.sp)
         }
-        PqBadge("Coming later", TextTertiary)
+        PqBadge(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_online_events_later), TextTertiary)
     }
 }
 
@@ -550,8 +527,9 @@ fun PqComingLaterCard(title: String, description: String) {
 @Composable
 fun PqManualReviewPanel(
     modifier: Modifier = Modifier,
-    text: String = "This is a review aid only. Always inspect matches in Pokémon GO before transferring or trading."
+    text: String? = null
 ) {
+    val actualText = text ?: androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.manual_review_panel_text)
     val shape = RoundedCornerShape(14.dp)
     Row(
         modifier.fillMaxWidth().clip(shape).background(GoldCaution.copy(alpha = 0.08f))
@@ -560,6 +538,6 @@ fun PqManualReviewPanel(
     ) {
         Box(Modifier.size(6.dp).background(GoldCaution, CircleShape).padding(top = 2.dp))
         Spacer(Modifier.width(10.dp))
-        Text(text, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+        Text(actualText, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
     }
 }

@@ -1,0 +1,303 @@
+<resources>
+    <string name="app_name">PokeQuery</string>
+
+    <!-- v0.6.1 Android App Shortcuts -->
+    <string name="shortcut_safe_cleanup_short">Güvenli Temizlik</string>
+    <string name="shortcut_safe_cleanup_long">Güvenli Temizlik incelemesi</string>
+    <string name="shortcut_safe_cleanup_disabled">Güvenli Temizlik kullanılamıyor</string>
+
+    <string name="shortcut_candy_prep_short">Şeker Hazırlığı</string>
+    <string name="shortcut_candy_prep_long">2x Şeker Hazırlığı</string>
+    <string name="shortcut_candy_prep_disabled">Şeker Hazırlığı kullanılamıyor</string>
+
+    <string name="shortcut_trade_fodder_short">Takas Malzemesi</string>
+    <string name="shortcut_trade_fodder_long">Takas Malzemesi incelemesi</string>
+    <string name="shortcut_trade_fodder_disabled">Takas Malzemesi kullanılamıyor</string>
+
+    <string name="shortcut_expert_short">Uzman Oluşturucu</string>
+    <string name="shortcut_expert_long">Uzman Oluşturucu</string>
+    <string name="shortcut_expert_disabled">Uzman Oluşturucu kullanılamıyor</string>
+
+    <!-- v0.6.1 Quick Access widget -->
+    <string name="widget_quick_access_title">PokeQuery</string>
+    <string name="widget_quick_access_subtitle">Güvenli Temizlik için dokunun</string>
+    <string name="widget_quick_access_description">PokeQuery\'yi hızlı inceleme ekranına açar.</string>
+
+    <!-- v0.6.2 Search Assistant -->
+    <string name="assistant_title">Arama Asistanı</string>
+    <string name="assistant_placeholder">ör. parlak efsanevi pokemon göster</string>
+    <string name="assistant_description">Ne bulmak istediğinizi düz cümleyle açıklayın.</string>
+    <string name="assistant_parse">Aramayı Oluştur</string>
+    <string name="assistant_suggest">AI Öner</string>
+    <string name="assistant_copied">Panoya kopyalandı</string>
+
+    <!-- Search Assistant (screen-scoped) -->
+    <string name="search_assistant_title">Arama Asistanı</string>
+    <string name="search_assistant_desc_text">Aradığınızı düz cümleyle açıklayın; asistan arama metnini sizin için oluştursun.</string>
+    <string name="search_assistant_placeholder">ör. parlak efsanevi pokemon göster</string>
+    <string name="search_assistant_parse">Aramayı Oluştur</string>
+    <string name="search_assistant_ai_suggest">AI Öner</string>
+    <string name="search_assistant_suggested_string">Önerilen arama metni</string>
+    <string name="search_assistant_copy_btn">Arama Metnini Kopyala</string>
+    <string name="search_assistant_explain_btn">Açıkla</string>
+    <string name="search_assistant_scope">Kapsam</string>
+    <string name="search_assistant_tokens">Terimler</string>
+    <string name="search_assistant_excluded">hariç</string>
+    <string name="search_assistant_explanation">Açıklama</string>
+    <string name="search_assistant_limitations">Sınırlamalar</string>
+    <string name="search_assistant_fix_errors">Kopyalamadan önce yukarıdaki hataları düzeltin.</string>
+    <string name="search_assistant_advisory_only">Yalnızca uyarı — kopyalama etkin kalır. İşlem yapmadan önce eşleşmeleri inceleyin.</string>
+    <string name="search_assistant_generated_explanation">Asistan, açıklamanızdan bu arama metnini oluşturdu. İşlem yapmadan önce Pokémon GO\'daki eşleşmeleri inceleyin.</string>
+    <string name="search_assistant_review_in_game">Transfer veya takastan önce tüm eşleşmeleri Pokémon GO\'da inceleyin.</string>
+    <string name="search_assistant_could_not_understand">Bu isteği anlayamadım. Parlak, hundo, temizlik, takas, PvP, şanslı, gölge, eski veya kostüm gibi kelimeler deneyin.</string>
+    <string name="search_assistant_lint_issue">Bu arama metninde kopyalamadan önce düzeltilmesi gereken bir sorun var.</string>
+    <string name="search_assistant_review_warning">Bu arama işlem yapmadan önce inceleme gerektirir.</string>
+
+    <!-- Explainer precision / scope labels -->
+    <string name="explainer_prec_exact">Tam eşleşme</string>
+    <string name="explainer_prec_shortlist">Kısa liste</string>
+    <string name="explainer_prec_approx">Yaklaşık</string>
+    <string name="explainer_prec_needs_verif">Doğrulama gerekli</string>
+    <string name="explainer_prec_unknown">Bilinmiyor</string>
+    <string name="explainer_scope_all">Tümü (filtre yok)</string>
+    <string name="explainer_scope_very_narrow">Çok Dar</string>
+    <string name="explainer_scope_narrow">Dar</string>
+    <string name="explainer_scope_moderate">Orta</string>
+    <string name="explainer_scope_broad">Geniş</string>
+
+    <!-- v0.6.2 Event Context -->
+    <string name="events_title">Etkinlik Bağlamı</string>
+    <string name="events_refresh">Şimdi yenile</string>
+    <string name="events_online_enabled">Çevrimiçi etkinlikler etkin</string>
+    <string name="events_offline_title">Etkinlik Bağlamı</string>
+    <string name="event_general_notes">Genel etkinlik notları</string>
+    <string name="event_context_community_day">Bu Ayın Topluluk Günü</string>
+    <string name="event_context_candy_events">Şeker etkinlikleri</string>
+    <string name="event_context_candy_events_note">Şeker transferi bonusu etkinliklerinde, ekstra şekerler 2x Şeker Hazırlığı hedeflerini daha etkili hale getirebilir. PokeQuery canlı etkinlik verisi çekmez — Pokémon GO\'nun kendisinde etkinlik olup olmadığını doğrulayın.</string>
+    <string name="event_context_disclaimer">Etkinlik bağlamı manuel olarak korunur ve güncelliğini yitirmiş olabilir. Canlı etkinlik verisi çekilmez.</string>
+    <string name="event_context_community_day_note">Topluluk Günü boyunca şeker ve evrim bonusları, Şeker Hazırlığı ve temizlik tarzı incelemeleri daha kullanışlı hale getirebilir. Bu manuel bir uygulama notudur — PokeQuery canlı etkinlik verisi çekmez ve not güncelliğini yitirmiş olabilir.</string>
+    <string name="event_context_no_note">Mevcut manuel etkinlik notu yok.</string>
+    <string name="event_context_disclaimer_stale">Manuel uygulama notu. Bu not güncelliğini yitirmiş olabilir. PokeQuery etkinlik verisi çekmez.</string>
+    <string name="event_context_disclaimer_fresh">Manuel uygulama notu. Bu canlı etkinlik verisi değildir. PokeQuery etkinlik verisi çekmez.</string>
+    <string name="event_context_offline_banner">PokeQuery şu anda manuel/çevrimdışı etkinlik notlarını kullanır. Hiçbir Pokémon GO hesap verisine erişilmez. Canlı etkinlik güncellemeleri bu sürümde etkin değildir. Aktif etkinlikleri her zaman Pokémon GO\'nun kendisinde doğrulayın.</string>
+    <string name="event_context_manual_note">Manuel not</string>
+    <string name="event_context_may_be_outdated">Güncelliğini yitirmiş olabilir</string>
+    <string name="event_context_online_note">Çevrimiçi not</string>
+    <string name="event_context_from_feed">akıştan</string>
+    <string name="event_context_online_feed_note">Çevrimiçi akış notu</string>
+
+    <!-- What Changed / Changelog -->
+    <string name="what_changed_v066_subtitle">Aşama 5 — Yerelleştirme Cilalaması</string>
+    <string name="what_changed_v066_b1">• Etkinlik Bağlamı, Başlangıç, Hedef Detayı ve Ana Sayfa için tam Türkçe çeviri</string>
+    <string name="what_changed_v066_b2">• Arama Asistanı Ana Sayfa kartına yükseltildi; Nundo Bulucu Diğer Araçlar\'a taşındı</string>
+    <string name="what_changed_v066_b3">• Yalnızca çevrimdışı manuel etkinlik modu — bu sürümde canlı etkinlik verisi çekilmez</string>
+    <string name="changelog_current">Mevcut</string>
+    <string name="changelog_safety_notes">Güvenlik notları</string>
+    <string name="changelog_tester_notes">Test notları</string>
+    <string name="what_changed_v066_safety1">INTERNET izni yok — çevrimdışı etkinlik bağlamı manuel olarak korunur.</string>
+    <string name="what_changed_v066_safety2">Giriş, izleme, reklam, analiz veya Pokémon GO hesap erişimi yoktur.</string>
+    <string name="what_changed_v066_safety3">Türkçe arama terimleri beta aşamasındadır — sonuçları Pokémon GO\'da doğrulayın.</string>
+    <string name="what_changed_v066_tester1">Türkçe çevirinin görünür arayüze uygulandığını doğrulayın.</string>
+    <string name="what_changed_v066_tester2">Etkinlik Bağlamı\'nın yalnızca manuel çevrimdışı notlar gösterdiğini kontrol edin.</string>
+    <string name="what_changed_v066_tester3">Arama Asistanı\'nın parlak gibi Türkçe girdileri kabul ettiğini doğrulayın.</string>
+
+    <!-- Goal titles -->
+    <string name="goal_safe_cleanup">Güvenli Temizlik</string>
+    <string name="goal_safe_cleanup_desc">Düşük değerli transfer adaylarını incele</string>
+    <string name="goal_candy_prep">2x Şeker Hazırlığı</string>
+    <string name="goal_candy_prep_desc">Transfer için fazlalıkları bul</string>
+    <string name="goal_trade_fodder">Takas Malzemesi</string>
+    <string name="goal_trade_fodder_desc">Takas edilmemiş kopyalar</string>
+    <string name="goal_hundo_check">Hundo Kontrolü</string>
+    <string name="goal_hundo_check_desc">Mükemmel 15/15/15 IV</string>
+    <string name="goal_untagged">Etiketsiz Temizlik</string>
+    <string name="goal_untagged_desc">Etiketi olmayan Pokémon</string>
+    <string name="goal_untagged_cleanup">Etiketsiz Temizlik</string>
+    <string name="goal_nundo_finder">Nundo Bulucu</string>
+    <string name="goal_nundo_finder_desc">Tam 0/0/0 IV</string>
+    <string name="goal_pvp_candidates">PvP IV Adayları</string>
+    <string name="goal_pvp_candidates_desc">Great &amp; Ultra League</string>
+    <string name="goal_lucky_trade">Şanslı Takas Hazırlığı</string>
+    <string name="goal_lucky_trade_desc">Daha eski / uzak Pokémon</string>
+    <string name="goal_custom_search">Özel Arama</string>
+    <string name="goal_assistant">Arama Asistanı</string>
+    <string name="goal_assistant_desc">Düz cümleyle açıklayın</string>
+    <string name="goal_events">Etkinlik Bağlamı</string>
+    <string name="goal_events_desc">Günlük etkinlik arama bağlamı</string>
+    <string name="goal_presets">Popüler Şablonlar</string>
+    <string name="goal_presets_desc">Hazır arama metinleri</string>
+    <string name="goal_my_presets">Şablonlarım</string>
+    <string name="goal_my_presets_desc">Kaydettiğiniz kişisel şablonlar</string>
+    <string name="goal_practice">Pratik Modu</string>
+    <string name="goal_practice_desc">Sahte envanter alanı</string>
+    <string name="goal_journal">Temizlik Günlüğü</string>
+    <string name="goal_journal_desc">Manuel notlar (yerel)</string>
+    <string name="goal_expert">Uzman Oluşturucu</string>
+    <string name="goal_expert_desc">Kendininkini oluştur</string>
+    <string name="goal_knowledge">Bilgi Bankası</string>
+    <string name="goal_knowledge_desc">Tüm arama terimleri</string>
+    <string name="goal_explain">Metni Açıkla</string>
+    <string name="goal_explain_desc">Terim terimi çözümleme</string>
+    <string name="goal_changelog">Yenilikler</string>
+    <string name="goal_changelog_desc">Sürüm geçmişi</string>
+    <string name="goal_settings">Ayarlar</string>
+    <string name="goal_settings_desc">Gizlilik, dil, güvenlik</string>
+
+    <!-- Goal explanations -->
+    <string name="goal_exp_safe_cleanup">Bu, düşük değerli adayları hedefleyen bir İNCELEME dizisidir. Otomatik bir transfer komutu değildir.</string>
+    <string name="goal_exp_candy_prep">Fazdalıkları bulur. Sayım, Pokédex tür numarasına dayanır ve parlak/form/kostüm farklılıklarını ayırt etmeyebilir.</string>
+    <string name="goal_exp_trade_fodder">Takas adaylarını bulur. Gerçek takas uygunluğu arkadaşlık seviyesine bağlıdır ve arama dizileri ile garanti edilemez.</string>
+    <string name="goal_exp_hundo_check">Tüm mükemmel IV / hundo Pokémon\'ları bulur. 4★ 15/15/15 anlamına gelir.</string>
+    <string name="goal_exp_untagged_cleanup">Herhangi bir etiketi olmayan Pokémon\'ları bulur.</string>
+    <string name="goal_exp_nundo_finder">Tam 0/0/0 IV Pokémon\'ları (Nundoları) bulur.</string>
+    <string name="goal_exp_pvp_candidates">Yalnızca aday aramasıdır. Son PvP sıralaması türe, seviyeye ve IV dağılımına bağlıdır.</string>
+    <string name="goal_exp_lucky_trade">Takas için incelenecek daha eski veya mesafe açısından uygun Pokémon\'ları bulur. Manuel olarak inceleyin. Değerli Pokémon\'lar çıkabilir. Takas uygunluğu ve Şanslı ihtimali arama dizileri ile garanti edilemez.</string>
+    <string name="goal_exp_expert">Özel arama dizisi. Harekete geçmeden önce oyundaki tüm eşleşmeleri inceleyin.</string>
+
+    <!-- Risk levels -->
+    <string name="risk_high">YÜKSEK</string>
+    <string name="risk_medium">ORTA</string>
+    <string name="risk_low">DÜŞÜK</string>
+    <string name="risk_info">BİLGİ</string>
+
+    <!-- Risk explanations -->
+    <string name="risk_info_title">Yalnızca inceleme</string>
+    <string name="risk_info_short">Bu bir inceleme sorgusudur. Eşleşmeleri gösterir ancak yıkıcı bir işlem önermez.</string>
+    <string name="risk_info_detailed">İnceleme sorguları çalıştırılması güvenlidir: yalnızca Pokémon\'ları görüntüler. Yine de depolamanızda ne olduğunu anlamak için eşleşmeleri inceleyin.</string>
+    <string name="risk_info_check1">Aramayı açın ve eşleşmeleri okuyun.</string>
+    <string name="risk_info_check2">Transfer veya takas önerilmez.</string>
+    <string name="risk_info_check3">Sahip olduğunuz Pokémon\'ları öğrenmek için kullanın.</string>
+
+    <string name="risk_low_title">Düşük risk — eşleşmeleri inceleyin</string>
+    <string name="risk_low_short">Dar kapsamlı bir sorgu. İşlem yapmadan önce yine de eşleşmeleri inceleyin.</string>
+    <string name="risk_low_detailed">Düşük riskli diziler bilerek dardır, ancak değerli bir Pokémon yine de çıkabilir. Transfer veya takastan önce sonuçları gözden geçirin.</string>
+    <string name="risk_low_check1">Her eşleşmeyi kaydırarak inceleyin.</string>
+    <string name="risk_low_check2">Emin olmadığınız her şeyi tutun.</string>
+    <string name="risk_low_check3">Değerli Pokémon\'ları korumak için etiketleyin.</string>
+
+    <string name="risk_medium_title">Orta risk — dikkatli olun</string>
+    <string name="risk_medium_short">Bu sorgu işleme yakındır. Transfer veya takastan önce dikkatlice inceleyin.</string>
+    <string name="risk_medium_detailed">Orta riskli diziler temizlik veya takas kararları içindir. Eşleşmelerde değerli Pokémon\'lar çıkabilir. Görünüşüne aldanıp işlem yapmayın.</string>
+    <string name="risk_medium_check1">İşlem yapmadan önce her eşleşmeyi inceleyin.</string>
+    <string name="risk_medium_check2">Parlak, efsanevi veya favori Pokémon\'ları yanlışlıkla transfer etmeyin.</string>
+    <string name="risk_medium_check3">Şüphede kaldığınızda Pokémon\'u tutun.</string>
+
+    <string name="risk_high_title">Yüksek risk — önce inceleyin</string>
+    <string name="risk_high_short">Geniş veya yüksek değerli bir sorgu. İşlem yapmadan önce her eşleşmeyi inceleyin.</string>
+    <string name="risk_high_detailed">Yüksek riskli diziler çok değerli Pokémon\'ları çıkarabilir. Her transfer veya takastan önce her eşleşmeyi incelemeye değer kabul edin.</string>
+    <string name="risk_high_check1">Tek tek her eşleşmeyi inceleyin.</string>
+    <string name="risk_high_check2">Sonuçları toplu transfer etmeyin.</string>
+    <string name="risk_high_check3">Değerli Pokémon\'ları etiket veya favorilerle koruyun.</string>
+
+    <!-- Manual review / warnings -->
+    <string name="manual_review_panel_text">Bu yalnızca bir inceleme aracıdır. Transfer veya takas yapmadan önce her zaman Pokémon GO\'daki eşleşmeleri inceleyin.</string>
+    <string name="warning_operator_replaced">\'|\' operatörü desteklenmiyor ve \',\' ile değiştirildi.</string>
+    <string name="warning_count_output">Sayım çıktısı: Sayım Pokédex tür numarasına dayanır ve parlak/form/kostüm farklılıklarını ayırt etmeyebilir.</string>
+    <string name="warning_trade_disclaimer">Takas uyarısı: Gerçek takas uygunluğu arkadaşlık seviyesine bağlıdır ve arama dizileri ile garanti edilemez.</string>
+
+    <!-- Goal detail labels -->
+    <string name="goal_detail_result">SONUÇ</string>
+    <string name="goal_detail_refine">RAFİNE ET</string>
+    <string name="goal_detail_protected">KORUMALI</string>
+    <string name="goal_detail_notes">NOTLAR</string>
+    <string name="goal_detail_details">DETAYLAR</string>
+    <string name="goal_detail_why_risk">Neden bu risk?</string>
+    <string name="goal_detail_copy_search_string">Arama Metnini Kopyala</string>
+    <string name="goal_detail_copied">Panoya kopyalandı</string>
+    <string name="goal_detail_saved_fav">Favorilere kaydedildi</string>
+    <string name="goal_detail_fix_errors">Kopyalamak için hataları düzeltin</string>
+    <string name="goal_detail_include_0star">0★ adaylarını dahil et</string>
+    <string name="goal_detail_collector_interest">0★ Pokémon tutmak isteyen koleksiyoncular için kullanışlıdır.</string>
+    <string name="goal_detail_exclude_shinies">Parlakları Hariç Tut</string>
+    <string name="goal_detail_protect_accidental">Parlakların yanlışlıkla transfer edilmesini engeller.</string>
+    <string name="goal_detail_exclude_legendaries">Efsanevileri Hariç Tut</string>
+    <string name="goal_detail_exclude_costumes">Kostümlüleri Hariç Tut</string>
+    <string name="goal_detail_exclude_favorites">Favorileri Hariç Tut</string>
+    <string name="goal_detail_exclude_traded">Takas Edilenleri Hariç Tut</string>
+    <string name="goal_detail_exclude_hundos">4★ (Hundo) Hariç Tut</string>
+    <string name="goal_detail_exclude_shadow">Gölge / Arındırılmış Hariç Tut</string>
+    <string name="goal_detail_traded_cannot">Takas edilmiş Pokémon transfer edilemez.</string>
+    <string name="goal_detail_choose_league">Bir lig seçin</string>
+    <string name="goal_detail_under_1500">Great League: 1500\'ün altında CP</string>
+    <string name="goal_detail_under_2500">Ultra League: 2500\'ün altında CP</string>
+    <string name="goal_detail_older_candidates">Daha eski adaylar (yaş)</string>
+    <string name="goal_detail_distance_candidates">Uzaklık adayları (100km+)</string>
+    <string name="goal_detail_must_untraded">Takas edilmemiş olmalı</string>
+    <string name="goal_detail_cannot_trade">Daha önce takas edilmiş Pokémon bir daha takasla Şanslı olamaz.</string>
+    <string name="goal_detail_no_options">Bu hedef için seçenek yok.</string>
+    <string name="goal_detail_review_aid">Bu bir inceleme aracıdır, bir emir değildir.</string>
+    <string name="goal_detail_review_matches">Tüm eşleşmeleri Pokémon GO\'da inceleyin.</string>
+    <string name="goal_detail_never_blind">Asla körü körüne transfer etmeyin.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Ana Sayfa</string>
+    <string name="nav_favorites">Favoriler</string>
+    <string name="nav_history">Geçmiş</string>
+    <string name="nav_knowledge">Bilgi</string>
+    <string name="nav_settings">Ayarlar</string>
+
+    <!-- Home -->
+    <string name="home_header_desc">Pokémon GO için güvenli arama dizileri</string>
+    <string name="home_more_tools">Diğer Araçlar</string>
+    <string name="home_more_tools_subtitle">Ek inceleme ve öğrenme araçları</string>
+    <string name="home_chip_offline">Çevrimdışı</string>
+    <string name="home_chip_nologin">Giriş yok</string>
+    <string name="home_chip_notracking">İzleme yok</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Atla</string>
+    <string name="onboarding_next">İleri</string>
+    <string name="onboarding_start_building">Oluşturmaya başla</string>
+    <string name="onboarding_hero_tagline">Pokémon GO için güvenli arama dizileri</string>
+    <string name="onboarding_trust_powerful">Güçlü</string>
+    <string name="onboarding_trust_searches">Aramalar</string>
+    <string name="onboarding_trust_protected">Korumalı</string>
+    <string name="onboarding_trust_defaults">Varsayılanlar</string>
+    <string name="onboarding_trust_keep">Koru</string>
+    <string name="onboarding_trust_value">Değer</string>
+    <string name="onboarding_card2_title">Sadece kopyala — çevrimdışı öncelikli</string>
+    <string name="onboarding_card2_desc">PokeQuery sadece metin oluşturur. Hesap girişi, veri kazıma veya oyuna bağlantı yoktur.</string>
+    <string name="onboarding_trust_strip_private">Özel</string>
+    <string name="onboarding_trust_strip_offline">Çevrimdışı</string>
+    <string name="onboarding_trust_strip_copy">Sadece kopyala</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_general">Genel</string>
+    <string name="settings_first_use_guide">İlk kullanım kılavuzunu göster</string>
+    <string name="settings_first_use_guide_desc">Başlangıç tanıtımını tekrar görüntüle.</string>
+    <string name="settings_online_events">Çevrimiçi etkinlik güncellemeleri</string>
+    <string name="settings_online_events_desc">Daha sonra eklenecek. Etkinlik bağlamı şu an için manuel ve çevrimdışıdır.</string>
+    <string name="settings_search_language">Dil</string>
+    <string name="settings_app_language">Uygulama Dili</string>
+    <string name="settings_app_language_desc">Yalnızca bu uygulamanın metnini denetler. Pokémon GO etkilenmez.</string>
+    <string name="settings_search_string_lang">Arama Metni Dili</string>
+    <string name="settings_search_string_lang_desc">Pokémon GO\'ya yapıştırdığınız metnin dilini denetler.</string>
+    <string name="settings_clipboard_detect">Pano algılama</string>
+    <string name="settings_clipboard_detect_desc">Panonuzdaki arama dizisini açıklamayı öner.</string>
+    <string name="settings_safety">Güvenlik</string>
+    <string name="settings_safety_desc1">PokeQuery sadece metin oluşturur. Kopyalayıp kendiniz yapıştırırsınız.</string>
+    <string name="settings_safety_desc2">Giriş, izleme, reklam, analiz veya Pokémon GO hesap erişimi yoktur.</string>
+    <string name="settings_about_privacy">Hakkında ve Gizlilik</string>
+    <string name="settings_about_desc1">PokeQuery bağımsız bir yardımcı uygulamadır.</string>
+    <string name="settings_about_desc2">Yalnızca arama dizileri oluşturur. Asla Pokémon GO\'ya bağlanmaz.</string>
+    <string name="settings_about_desc3">Giriş, izleme, reklam veya analiz yoktur.</string>
+    <string name="settings_safety_stance">Güvenlik yaklaşımı</string>
+    <string name="settings_safety_disclaimer">Oluşturulan her dizi bir inceleme aracıdır. Transfer veya takastan önce her zaman Pokémon GO\'daki eşleşmeleri inceleyin.</string>
+    <string name="settings_app_language_footnote">Uygulama Dili yalnızca bu uygulamayı etkiler ve gelecekteki çeviriler için bir temeldir. Pokémon GO etkilenmez.</string>
+    <string name="settings_search_lang_auto">Otomatik (Güvenli — İngilizce)</string>
+    <string name="settings_search_lang_turkish">Türkçe (Beta — kullanmadan önce doğrulayın)</string>
+    <string name="settings_search_lang_beta_warning">Türkçe arama terimleri beta aşamasındadır. Transfer veya takastan önce Pokémon GO\'da sonuçları doğrulayın. Otomatik (Güvenli) modu asla otomatik olarak Türkçeye geçmez.</string>
+    <string name="settings_changelog_label">Değişiklikler / Sürüm Notları</string>
+    <string name="settings_disclaimer">PokeQuery bağımsız bir yardımcı uygulamadır ve Niantic, The Pokémon Company veya Nintendo ile bağlantılı, onaylı veya sponsorlu değildir.</string>
+    <string name="settings_feedback">Test geri bildirimi gönder</string>
+    <string name="settings_email_fallback">E-posta uygulaması bulunamadı. Lütfen caglar@caglardinc.com adresine manuel olarak e-posta gönderin.</string>
+    <string name="settings_online_events_later">Daha sonra</string>
+    <string name="settings_system_default">Sistem Varsayılanı</string>
+    <string name="settings_clear_fav">Favorileri temizle</string>
+    <string name="settings_clear_hist">Geçmişi temizle</string>
+    <string name="settings_reset_all">Tüm ayarları sıfırla</string>
+    <string name="settings_confirm">Onayla</string>
+    <string name="settings_cancel">İptal</string>
+    <string name="settings_email_desc">E-posta ile geri bildirim gönderin. E-postayı siz göndermedikçe cihazınızdan hiçbir veri çıkmaz.</string>
+</resources>

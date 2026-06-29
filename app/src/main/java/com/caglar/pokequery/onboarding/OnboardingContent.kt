@@ -39,26 +39,12 @@ object OnboardingContent {
 
     val pages: List<Page> = listOf(
         Page(
-            title = "Safe search strings for Pokémon GO",
-            description = "Build review-ready search strings offline. No login, no scraping, no connection to the game."
-        ),
-        Page(
-            title = "How to use a search string",
-            bullets = pasteFlowSteps,
-            description = "PokeQuery only creates text. You copy it and paste it into Pokémon GO yourself."
-        ),
-        Page(
-            title = "Understand the risk colors",
-            bullets = riskLegend,
-            description = "Colors help you decide how carefully to review before acting."
-        ),
-        Page(
-            title = "Build the right search in seconds",
+            title = "Build safer Pokémon GO search strings",
             description = "Safe defaults for cleanup, candy prep, trading, PvP checks, Hundos and Nundos."
         ),
         Page(
-            title = "Copy-only and offline-first",
-            description = "PokeQuery creates text only. No account login, no scraping, no connection to the game."
+            title = "How it works",
+            description = "PokeQuery only creates text. You copy it and paste it into Pokémon GO yourself. No login, no scraping, no connection to the game."
         )
     )
 

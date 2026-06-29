@@ -1,5 +1,10 @@
 package com.caglar.pokequery.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +32,7 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FolderSpecial
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Search
@@ -37,9 +44,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -60,46 +72,47 @@ import com.caglar.pokequery.ui.motion.PqMotionTokens
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqTrustChip
 
-// v0.5.0 Stitch Home: header + 3 trust chips (horizontal scroll) + 2-col goal grid.
-// Public HomeScreen(onGoalSelected) signature unchanged so Navigation.kt is untouched.
+// v0.6.2 polish Home: header + 3 trust chips (horizontal scroll) + 8 primary goal cards (2-col grid)
+// + collapsible "More Tools" section. Favorites removed from Home (accessible via bottom nav).
 
 private data class HomeGoal(
     val id: String,
-    val title: String,
-    val subtitle: String,
+    val titleRes: Int,
+    val subtitleRes: Int,
     val accent: Color,
     val icon: ImageVector
 )
 
-private val homeGoals = listOf(
-    HomeGoal("safe_cleanup", "Safe Cleanup", "Review low-value candidates", TealPrimary, Icons.Default.CleaningServices),
-    HomeGoal("candy_prep", "2x Candy Prep", "Find extras to transfer", GoldCaution, Icons.Default.FolderSpecial),
-    HomeGoal("trade_fodder", "Trade Fodder", "Untraded duplicates", CyanGlow, Icons.Default.SwapHoriz),
-    HomeGoal("lucky_trade", "Lucky Trade", "Older / distance Pokémon", GoldCaution, Icons.Default.Favorite),
-    HomeGoal("hundo_check", "Hundo Check", "Perfect 15/15/15 IVs", PurpleIV, Icons.Default.Diamond),
-    HomeGoal("nundo_finder", "Nundo Finder", "Exact 0/0/0 IVs", Color(0xFF90A4AE), Icons.Default.WaterDrop),
-    HomeGoal("pvp_candidates", "PvP Candidates", "Great & Ultra League", Color(0xFF4FC3F7), Icons.Default.Star),
-    HomeGoal("untagged", "Untagged Cleanup", "Pokémon without tags", TealPrimary, Icons.Default.FilterList),
-    // v0.6.1: workflows + context surfaces.
-    HomeGoal("my_presets", "My Presets", "Your saved personal presets", CyanGlow, Icons.Default.Star),
-    HomeGoal("practice", "Practice Mode", "Fake inventory sandbox", Color(0xFF4FC3F7), Icons.Default.SportsEsports),
-    HomeGoal("journal", "Cleaning Journal", "Manual notes (local)", GoldCaution, Icons.Default.School),
-    HomeGoal("events", "Event Context", "Offline event notes", TealPrimary, Icons.Default.Event),
-    HomeGoal("presets", "Popular Presets", "Ready-made strings", Color(0xFF64B5F6), Icons.Default.Search),
-    HomeGoal("expert", "Expert Builder", "Build your own", CyanGlow, Icons.Default.Build),
-    HomeGoal("favorites", "Favorites", "Saved strings", GoldCaution, Icons.Default.Favorite),
-    HomeGoal("knowledge", "Knowledge Base", "All search tokens", TealPrimary, Icons.Default.MenuBook)
+// v0.6.2 polish: 8 primary search goals (Safe, 2x, Lucky, Nundo, PvP, Event, Popular, My Presets)
+// + remaining tools in collapsible "More Tools" (Favorites removed from Home cards).
+private val primaryGoals = listOf(
+    HomeGoal("safe_cleanup", com.caglar.pokequery.R.string.goal_safe_cleanup, com.caglar.pokequery.R.string.goal_safe_cleanup_desc, TealPrimary, Icons.Default.CleaningServices),
+    HomeGoal("candy_prep", com.caglar.pokequery.R.string.goal_candy_prep, com.caglar.pokequery.R.string.goal_candy_prep_desc, GoldCaution, Icons.Default.FolderSpecial),
+    HomeGoal("lucky_trade", com.caglar.pokequery.R.string.goal_lucky_trade, com.caglar.pokequery.R.string.goal_lucky_trade_desc, GoldCaution, Icons.Default.Favorite),
+    HomeGoal("assistant", com.caglar.pokequery.R.string.goal_assistant, com.caglar.pokequery.R.string.goal_assistant_desc, PurpleIV, Icons.Default.Search),
+    HomeGoal("pvp_candidates", com.caglar.pokequery.R.string.goal_pvp_candidates, com.caglar.pokequery.R.string.goal_pvp_candidates_desc, Color(0xFF4FC3F7), Icons.Default.Star),
+    HomeGoal("events", com.caglar.pokequery.R.string.goal_events, com.caglar.pokequery.R.string.goal_events_desc, TealPrimary, Icons.Default.Event),
+    HomeGoal("presets", com.caglar.pokequery.R.string.goal_presets, com.caglar.pokequery.R.string.goal_presets_desc, Color(0xFF64B5F6), Icons.Default.Search),
+    HomeGoal("my_presets", com.caglar.pokequery.R.string.goal_my_presets, com.caglar.pokequery.R.string.goal_my_presets_desc, CyanGlow, Icons.Default.Star)
+)
+
+private val toolGoals = listOf(
+    HomeGoal("nundo_finder", com.caglar.pokequery.R.string.goal_nundo_finder, com.caglar.pokequery.R.string.goal_nundo_finder_desc, Color(0xFF90A4AE), Icons.Default.WaterDrop),
+    HomeGoal("hundo_check", com.caglar.pokequery.R.string.goal_hundo_check, com.caglar.pokequery.R.string.goal_hundo_check_desc, PurpleIV, Icons.Default.Diamond),
+    HomeGoal("trade_fodder", com.caglar.pokequery.R.string.goal_trade_fodder, com.caglar.pokequery.R.string.goal_trade_fodder_desc, CyanGlow, Icons.Default.SwapHoriz),
+    HomeGoal("untagged", com.caglar.pokequery.R.string.goal_untagged, com.caglar.pokequery.R.string.goal_untagged_desc, TealPrimary, Icons.Default.FilterList),
+    HomeGoal("practice", com.caglar.pokequery.R.string.goal_practice, com.caglar.pokequery.R.string.goal_practice_desc, Color(0xFF4FC3F7), Icons.Default.SportsEsports),
+    HomeGoal("journal", com.caglar.pokequery.R.string.goal_journal, com.caglar.pokequery.R.string.goal_journal_desc, GoldCaution, Icons.Default.School),
+    HomeGoal("expert", com.caglar.pokequery.R.string.goal_expert, com.caglar.pokequery.R.string.goal_expert_desc, CyanGlow, Icons.Default.Build),
+    HomeGoal("knowledge", com.caglar.pokequery.R.string.goal_knowledge, com.caglar.pokequery.R.string.goal_knowledge_desc, TealPrimary, Icons.Default.MenuBook),
+    HomeGoal("explain", com.caglar.pokequery.R.string.goal_explain, com.caglar.pokequery.R.string.goal_explain_desc, TealPrimary, Icons.Default.FilterList),
+    HomeGoal("changelog", com.caglar.pokequery.R.string.goal_changelog, com.caglar.pokequery.R.string.goal_changelog_desc, TealPrimary, Icons.Default.MenuBook),
+    HomeGoal("settings", com.caglar.pokequery.R.string.goal_settings, com.caglar.pokequery.R.string.goal_settings_desc, TextSecondary, Icons.Default.Build)
 )
 
 @Composable
 fun HomeScreen(onGoalSelected: (String) -> Unit) {
-    // v0.5.2 (Fix 6): goal-grid vertical gaps and trust-chip spacing follow Visual Density.
     val density = currentDensity()
-    // v0.5.3 motion polish: staggered entrance driven by ONE hoisted `visible` flag. Per C1,
-    // only the header + first couple of goal rows (the part painted on the first frame) are
-    // tagged — rows that first compose after the entrance is complete animate instantly from
-    // rest, so scrolling never replays the cascade. The top-level `pqStaggeredItem(visible, i)`
-    // modifier works inside LazyColumn item blocks without a scope receiver.
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Scaffold(containerColor = BackgroundDark) { paddingValues ->
         LazyColumn(
@@ -116,19 +129,13 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
                         .pqStaggeredItem(visible, 1),
                     horizontalArrangement = Arrangement.spacedBy(density.chipSpacing)
                 ) {
-                    PqTrustChip("Offline-First")
-                    PqTrustChip("No Login")
-                    PqTrustChip("No Tracking")
+                    PqTrustChip(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.home_chip_offline))
+                    PqTrustChip(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.home_chip_nologin))
+                    PqTrustChip(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.home_chip_notracking))
                 }
             }
-            homeGoals.chunked(2).forEachIndexed { rowIndex, row ->
+            primaryGoals.chunked(2).forEachIndexed { rowIndex, row ->
                 item {
-                    // v0.5.4 (Fix 3): EVERY goal row animates once on the screen entrance, not
-                    // just the first two. Each row gets a stable stagger index (header=0, chips=1,
-                    // rows start at 2) capped at MAX_STAGGER_INDEX so the cascade stays subtle and
-                    // rows beyond the cap share the final (longest) delay. The screen-level `visible`
-                    // flag flips once and never resets, so scrolling never replays the entrance
-                    // (C1); an item composed after entrance animates instantly to its at-rest state.
                     val staggerIndex = (2 + rowIndex).coerceAtMost(PqMotionTokens.MAX_STAGGER_INDEX)
                     Row(
                         Modifier.fillMaxWidth()
@@ -143,6 +150,7 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
                     }
                 }
             }
+            item { MoreToolsSection(onGoalSelected) }
         }
     }
     }
@@ -150,13 +158,70 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
 
 @Composable
 private fun HomeHeader(entranceModifier: Modifier = Modifier) {
-    // v0.5.2 (Fix 3): Home now uses the SAME vector PqWordmark as onboarding, so the brand
-    // logo is consistent across the two screens instead of diverging. Original artwork — no
-    // Pokémon logo font, colors, Poké Ball, or creatures.
     Column(Modifier.fillMaxWidth().then(entranceModifier).padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 6.dp)) {
-        com.caglar.pokequery.ui.pq.PqWordmark(fontSize = 30.sp)
+        com.caglar.pokequery.ui.pq.PqWordmark(width = 160.dp)
         Spacer(Modifier.height(6.dp))
-        Text("Build safer search strings for Pokémon GO", color = TextSecondary, fontSize = 14.sp)
+        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.home_header_desc), color = TextSecondary, fontSize = 14.sp)
+    }
+}
+
+@Composable
+private fun MoreToolsSection(onGoalSelected: (String) -> Unit) {
+    val density = currentDensity()
+    var expanded by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(300)
+    )
+
+    Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.home_more_tools),
+                    color = TextSecondary.copy(alpha = 0.8f),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.home_more_tools_subtitle),
+                    color = TextSecondary.copy(alpha = 0.6f),
+                    fontSize = 11.sp
+                )
+            }
+            Icon(
+                Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Collapse" else "Expand",
+                tint = TextSecondary.copy(alpha = 0.6f),
+                modifier = Modifier.size(22.dp).rotate(rotation)
+            )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(animationSpec = tween(350)),
+            exit = shrinkVertically(animationSpec = tween(250))
+        ) {
+            Column {
+                toolGoals.chunked(2).forEachIndexed { rowIndex, row ->
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = (density.listGap.value / 2).dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        row.forEach { goal ->
+                            StitchGoalCard(goal, Modifier.weight(1f)) { onGoalSelected(goal.id) }
+                        }
+                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -170,6 +235,7 @@ private fun StitchGoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClic
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = 120.dp)
             .clip(shape)
             .background(Brush.verticalGradient(listOf(CardPremium, CardDark)))
             .border(1.dp, goal.accent.copy(alpha = 0.3f), shape)
@@ -185,8 +251,8 @@ private fun StitchGoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClic
             }
         }
         Spacer(Modifier.height(density.innerElementGap))
-        Text(goal.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1)
+        Text(androidx.compose.ui.res.stringResource(goal.titleRes), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
         Spacer(Modifier.height(2.dp))
-        Text(goal.subtitle, color = TextSecondary, fontSize = 12.sp, maxLines = 2)
+        Text(androidx.compose.ui.res.stringResource(goal.subtitleRes), color = TextSecondary, fontSize = 12.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }

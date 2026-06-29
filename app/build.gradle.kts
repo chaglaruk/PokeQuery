@@ -14,8 +14,8 @@ android {
         applicationId = "com.caglar.pokequery"
         minSdk = 24
         targetSdk = 36
-        versionCode = 18
-        versionName = "0.6.1"
+        versionCode = 19
+        versionName = "0.6.2"
     }
 
     val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -87,6 +87,7 @@ dependencies {
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.compose.material3)
   implementation("androidx.compose.material:material-icons-extended")
+  implementation("androidx.appcompat:appcompat:1.6.1")
   implementation("androidx.datastore:datastore-preferences:1.0.0")
   // Tooling
   debugImplementation(libs.androidx.compose.ui.tooling)

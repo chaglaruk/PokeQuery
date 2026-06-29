@@ -46,63 +46,36 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 14.dp)
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onStart) { Text("Skip", color = TextSecondary, fontWeight = FontWeight.Bold) }
+            Box(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 24.dp, vertical = 14.dp), contentAlignment = Alignment.TopEnd) {
+                TextButton(onClick = onStart) { Text(androidx.compose.ui.res.stringResource(R.string.onboarding_skip), color = TextSecondary, fontWeight = FontWeight.Bold) }
             }
 
             HorizontalPager(state = pagerState, modifier = Modifier.weight(1f).fillMaxWidth()) { page ->
-                // Package 3: pages 1 (paste flow) and 2 (risk legend) come from the tested
-                // OnboardingContent model. Pages 0/3/4 keep their original rich layouts.
+                // Simplified to 2 pages
                 when (page) {
                     0 -> OnboardingHeroPage()
-                    1 -> OnboardingBulletsPage(
-                        title = com.caglar.pokequery.onboarding.OnboardingContent.pages[1].title,
-                        bullets = com.caglar.pokequery.onboarding.OnboardingContent.pages[1].bullets,
-                        description = com.caglar.pokequery.onboarding.OnboardingContent.pages[1].description,
-                        accent = TealPrimary
-                    )
-                    2 -> OnboardingBulletsPage(
-                        title = com.caglar.pokequery.onboarding.OnboardingContent.pages[2].title,
-                        bullets = com.caglar.pokequery.onboarding.OnboardingContent.pages[2].bullets,
-                        description = com.caglar.pokequery.onboarding.OnboardingContent.pages[2].description,
-                        accent = AmberWarning
-                    )
-                    3 -> OnboardingLargeCardPage(
-                        title = "Build the right search in seconds",
-                        description = "Use safe defaults for cleanup, candy prep, trading, PvP checks, Hundos and Nundos.",
-                        goalId = "candy_prep",
-                        accent = AmberWarning,
-                        imageRes = R.drawable.candy_prep_header
-                    )
                     else -> OnboardingLargeCardPage(
-                        title = "Copy-only and offline-first",
-                        description = "PokeQuery creates text only. No account login, no scraping, no connection to the game.",
+                        title = androidx.compose.ui.res.stringResource(R.string.onboarding_card2_title),
+                        description = androidx.compose.ui.res.stringResource(R.string.onboarding_card2_desc),
                         goalId = "safe_cleanup",
                         accent = TealPrimary,
                         imageRes = R.drawable.safe_cleanup_header,
-                        showTrustRows = true
+                        showTrustRows = false
                     )
                 }
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 18.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    repeat(pageCount) { index ->
-                        Box(
-                            modifier = Modifier
-                                .size(if (pagerState.currentPage == index) 10.dp else 8.dp)
-                                .clip(CircleShape)
-                                .background(if (pagerState.currentPage == index) BlueCTA else TextSecondary.copy(alpha = 0.45f))
-                        )
-                    }
+                    // Removed dots to make it cleaner since it's just 2 pages
                 }
 
                 Button(
@@ -117,7 +90,7 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
                     shape = RoundedCornerShape(18.dp),
                     modifier = Modifier.height(58.dp).widthIn(min = 152.dp)
                 ) {
-                    Text(if (pagerState.currentPage == pageCount - 1) "Start building" else "Next", fontWeight = FontWeight.Bold)
+                    Text(if (pagerState.currentPage == pageCount - 1) androidx.compose.ui.res.stringResource(R.string.onboarding_start_building) else androidx.compose.ui.res.stringResource(R.string.onboarding_next), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -130,7 +103,7 @@ private fun OnboardingHeroPage() {
     // subtle spring-pop (icons/illustrations only); the tagline and trust chips fade+slide. The
     // entrance is driven by ONE hoisted `visible` flag, so it runs once and never replays.
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.height(18.dp))
         // v0.5.2 (Fix 2): use the vector PqWordmark instead of the raster logo_wordmark_source
         // WebP, which rendered as an opaque black block. Same brand treatment as Home (Fix 3).
@@ -138,12 +111,12 @@ private fun OnboardingHeroPage() {
             modifier = Modifier.fillMaxWidth()
                 .pqStaggeredItem(visible, 0)
                 .pqSpringPop(visible),
-            fontSize = 34.sp,
+            width = 340.dp,
             centered = true
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Safe search strings for Pokémon GO",
+            androidx.compose.ui.res.stringResource(R.string.onboarding_hero_tagline),
             color = TextSecondary,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
@@ -163,7 +136,6 @@ private fun OnboardingHeroPage() {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
                     .background(SlateBlack)
             ) {
                 Image(
@@ -186,9 +158,9 @@ private fun OnboardingHeroPage() {
             Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp).pqStaggeredItem(visible, 2),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TrustFeature(Icons.Default.Search, "Powerful", "Searches", Modifier.weight(1f))
-            TrustFeature(Icons.Default.Lock, "Protected", "Defaults", Modifier.weight(1f))
-            TrustFeature(Icons.Default.CheckCircle, "Keep", "Value", Modifier.weight(1f))
+            TrustFeature(Icons.Default.Search, androidx.compose.ui.res.stringResource(R.string.onboarding_trust_powerful), androidx.compose.ui.res.stringResource(R.string.onboarding_trust_searches), Modifier.weight(1f))
+            TrustFeature(Icons.Default.Lock, androidx.compose.ui.res.stringResource(R.string.onboarding_trust_protected), androidx.compose.ui.res.stringResource(R.string.onboarding_trust_defaults), Modifier.weight(1f))
+            TrustFeature(Icons.Default.CheckCircle, androidx.compose.ui.res.stringResource(R.string.onboarding_trust_keep), androidx.compose.ui.res.stringResource(R.string.onboarding_trust_value), Modifier.weight(1f))
         }
     }
     }
@@ -203,17 +175,19 @@ private fun OnboardingBulletsPage(
     description: String,
     accent: Color
 ) {
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        com.caglar.pokequery.ui.components.PremiumPanel(borderColor = accent, modifier = Modifier.fillMaxWidth()) {
-            Text(title, color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 26.sp, lineHeight = 30.sp)
-            Spacer(Modifier.height(12.dp))
-            bullets.forEach { step ->
-                Text("•  $step", color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(vertical = 3.dp))
+    Column(Modifier.fillMaxSize().padding(horizontal = 32.dp), horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Center) {
+        Text(title, color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp, lineHeight = 34.sp)
+        Spacer(Modifier.height(24.dp))
+        bullets.forEach { step ->
+            Row(modifier = Modifier.padding(vertical = 8.dp), verticalAlignment = Alignment.Top) {
+                Box(Modifier.padding(top = 8.dp).size(6.dp).clip(CircleShape).background(accent))
+                Spacer(Modifier.width(16.dp))
+                Text(step, color = TextSecondary, fontSize = 16.sp, lineHeight = 24.sp)
             }
-            if (description.isNotBlank()) {
-                Spacer(Modifier.height(10.dp))
-                Text(description, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
-            }
+        }
+        if (description.isNotBlank()) {
+            Spacer(Modifier.height(24.dp))
+            Text(description, color = TextPrimary, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(start = 22.dp))
         }
     }
 }
@@ -231,22 +205,43 @@ private fun OnboardingLargeCardPage(
     // spring-pops when the page is swiped in. Driven by a per-page hoisted flag (one page = one
     // entrance), so swiping back and forth replays cleanly and never loops.
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        PremiumPanel(borderColor = accent, modifier = Modifier.fillMaxWidth().pqStaggeredItem(visible, 0)) {
-            Image(
-                painter = painterResource(imageRes),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().height(250.dp).clip(RoundedCornerShape(22.dp)).pqSpringPop(visible)
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(title, color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, textAlign = TextAlign.Center, lineHeight = 34.sp)
-            Spacer(Modifier.height(10.dp))
-            Text(description, color = TextSecondary, fontSize = 16.sp, textAlign = TextAlign.Center, lineHeight = 22.sp)
-        }
-        if (showTrustRows) {
-            Spacer(Modifier.height(16.dp))
-            TrustStrip("Private", "Offline-first", "Copy-only")
+    Box(Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(imageRes),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize().pqSpringPop(visible)
+        )
+        // Dark gradient overlay
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, BackgroundDark.copy(alpha = 0.6f), BackgroundDark),
+                        startY = 0f,
+                        endY = Float.POSITIVE_INFINITY
+                    )
+                )
+        )
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(title, color = TextPrimary, fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, textAlign = TextAlign.Center, lineHeight = 36.sp, modifier = Modifier.pqStaggeredItem(visible, 0))
+            Spacer(Modifier.height(14.dp))
+            Text(description, color = TextSecondary, fontSize = 17.sp, textAlign = TextAlign.Center, lineHeight = 24.sp, modifier = Modifier.pqStaggeredItem(visible, 1))
+            if (showTrustRows) {
+                Spacer(Modifier.height(24.dp))
+                TrustStrip(
+                    androidx.compose.ui.res.stringResource(R.string.onboarding_trust_strip_private),
+                    androidx.compose.ui.res.stringResource(R.string.onboarding_trust_strip_offline),
+                    androidx.compose.ui.res.stringResource(R.string.onboarding_trust_strip_copy)
+                )
+            }
         }
     }
     }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,15 +18,26 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.domain.events.ContextFeedState
 import com.caglar.pokequery.domain.events.EventContextRepository
+
 import com.caglar.pokequery.domain.events.MonthlyContextRepository
 import com.caglar.pokequery.domain.events.MonthlyContextView
 import com.caglar.pokequery.theme.AmberWarning
@@ -33,6 +45,7 @@ import com.caglar.pokequery.theme.BackgroundDark
 import com.caglar.pokequery.theme.BorderSubtle
 import com.caglar.pokequery.theme.CardDark
 import com.caglar.pokequery.theme.CyanGlow
+import com.caglar.pokequery.theme.PurpleIV
 import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
@@ -41,61 +54,46 @@ import com.caglar.pokequery.theme.density.currentDensity
 import com.caglar.pokequery.ui.components.ScreenTitleBar
 import com.caglar.pokequery.ui.motion.PqStaggeredEntrance
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-/**
- * v0.6.1 — Offline/manual Event Context.
- *
- * A LOCAL, manually-maintained set of event context notes bundled with the app. There is NO
- * network: no INTERNET permission, no fetch, no remote provider. The notes can go stale, so every
- * section discloses "manually maintained and may be outdated" and "No live event data is fetched."
- *
- * There is no live calendar integration and no event logos/assets — text only.
- */
 @Composable
-fun EventContextScreen(onBack: () -> Unit) {
-    val monthly = MonthlyContextRepository.currentWithStaleness()
-    val events = EventContextRepository.all()
+fun EventContextScreen(
+    onBack: () -> Unit
+) {
     val density = currentDensity()
+    val feedState = EventContextRepository.combined()
 
     PqStaggeredEntrance { visible ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(density.listGap),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
+            contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             item {
-                ScreenTitleBar("Event Context", onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
-            }
-            item { OfflineBanner(Modifier.pqStaggeredItem(visible, 1)) }
-
-            monthly?.let { view ->
-                item {
-                    MonthlyNoteCard(view, Modifier.pqStaggeredItem(visible, 2))
-                }
-            } ?: item {
-                val shape = RoundedCornerShape(14.dp)
-                Column(Modifier.fillMaxWidth().clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
-                    Text("This month's Community Day", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Spacer(Modifier.height(6.dp))
-                    Text(MonthlyContextRepository.noNoteMessage(), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
-                }
+                ScreenTitleBar(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.events_title), onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
             }
 
             item {
-                Text("General event notes", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+                OfflineBanner(Modifier.pqStaggeredItem(visible, 1))
             }
-            items(events, key = { it.id }) { event ->
-                val shape = RoundedCornerShape(14.dp)
-                Column(Modifier.fillMaxWidth().clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
-                    Text(event.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(Modifier.height(6.dp))
-                    Text(event.note, color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
-                }
+
+            val monthly = feedState.monthly
+            val view = monthly?.let { MonthlyContextView(it, it.isManual) }
+            item {
+                MonthlyNoteCardInner(view, Modifier.pqStaggeredItem(visible, 2))
+            }
+            item {
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_general_notes), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+            }
+            items(EventContextRepository.all(), key = { it.id }) { event ->
+                EventNoteCard(event)
             }
 
             item {
                 Text(
-                    EventContextRepository.disclaimer(),
+                    androidx.compose.ui.res.stringResource(EventContextRepository.disclaimerRes()),
                     color = TextTertiary, fontSize = 11.sp, lineHeight = 15.sp,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -115,31 +113,54 @@ private fun OfflineBanner(modifier: Modifier = Modifier) {
         Box(Modifier.size(6.dp).background(CyanGlow, CircleShape))
         Spacer(Modifier.width(10.dp))
         Text(
-            "Offline and manual. PokeQuery does not fetch live event data. Notes are maintained in app " +
-                "releases and may be outdated — always confirm any active event in Pokémon GO itself.",
+            androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_offline_banner),
             color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp
         )
     }
 }
 
 @Composable
-private fun MonthlyNoteCard(view: MonthlyContextView, modifier: Modifier = Modifier) {
-    val note = view.note
+private fun MonthlyNoteCardInner(view: MonthlyContextView?, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(14.dp)
-    Column(modifier.fillMaxWidth().clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
+    if (view == null) {
+        Column(Modifier.fillMaxWidth().then(modifier).clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
+            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_community_day), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Spacer(Modifier.height(6.dp))
+            Text(androidx.compose.ui.res.stringResource(MonthlyContextRepository.noNoteMessageRes()), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+        }
+        return
+    }
+    val note = view.note
+    Column(Modifier.fillMaxWidth().then(modifier).clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("This month's Community Day", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_community_day), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             val tone = if (view.isStale) AmberWarning else CyanGlow
-            val label = if (view.isStale) "May be outdated" else "Manual note"
+            val label = if (view.isStale) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_may_be_outdated) else if (note.confidence.name == "MANUAL") androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_manual_note) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_online_note)
             Row(
                 Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.16f)).padding(horizontal = 8.dp, vertical = 3.dp)
             ) { Text(label, color = tone, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
         }
         Spacer(Modifier.height(6.dp))
-        Text("${note.month}/${note.year} · updated in app v${note.lastUpdatedInAppVersion}", color = TextSecondary, fontSize = 11.sp)
+        val feedStr = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_from_feed)
+        val sourceLabel = if (note.lastUpdatedInAppVersion == "feed") feedStr else "v${note.lastUpdatedInAppVersion}"
+        Text("${note.month}/${note.year} · $sourceLabel", color = TextSecondary, fontSize = 11.sp)
         Spacer(Modifier.height(6.dp))
-        Text(note.note, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+        Text(androidx.compose.ui.res.stringResource(note.noteRes), color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
         Spacer(Modifier.height(8.dp))
-        Text(view.disclaimer, color = AmberWarning, fontSize = 11.sp, lineHeight = 15.sp)
+        Text(androidx.compose.ui.res.stringResource(view.disclaimerRes), color = AmberWarning, fontSize = 11.sp, lineHeight = 15.sp)
+    }
+}
+
+@Composable
+private fun EventNoteCard(event: com.caglar.pokequery.domain.events.EventContext) {
+    val shape = RoundedCornerShape(14.dp)
+    Column(Modifier.fillMaxWidth().clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
+        Text(androidx.compose.ui.res.stringResource(event.titleRes), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Spacer(Modifier.height(6.dp))
+        Text(androidx.compose.ui.res.stringResource(event.noteRes), color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
+        if (!event.isManual) {
+            Spacer(Modifier.height(4.dp))
+            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_online_feed_note), color = PurpleIV, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }

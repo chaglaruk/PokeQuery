@@ -106,10 +106,10 @@ fun RiskWarningScreen(
         ) {
             Column {
                 Text("Why this risk?", color = riskColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                Text(riskExplanation.shortReason, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+                Text(androidx.compose.ui.res.stringResource(riskExplanation.shortReasonRes), color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
                 Spacer(Modifier.height(6.dp))
-                riskExplanation.safetyChecklist.take(3).forEach { item ->
-                    Text("• $item", color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
+                riskExplanation.safetyChecklistRes.take(3).forEach { itemRes ->
+                    Text("• ${androidx.compose.ui.res.stringResource(itemRes)}", color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
                 }
                 if (riskExplanation.relatedKnowledgeIds.isNotEmpty()) {
                     Spacer(Modifier.height(6.dp))
