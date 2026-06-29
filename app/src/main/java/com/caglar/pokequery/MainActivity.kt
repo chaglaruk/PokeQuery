@@ -41,12 +41,32 @@ class MainActivity : ComponentActivity() {
         val repository = UserPreferencesRepository(applicationContext.dataStore)
         setContent {
             val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
-            val appLanguage = userPrefs?.appLanguage ?: "System Default"
+            if (userPrefs == null) {
+                // Wait for preferences to load from DataStore to avoid resetting locale to System Default
+                return@setContent
+            }
+
+            val appLanguage = userPrefs!!.appLanguage
+
+            // Deterministic in-app localization layer
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val tag = AppLocaleController.localeTagFor(appLanguage)
+            val locale = if (!tag.isNullOrEmpty()) java.util.Locale.forLanguageTag(tag) else java.util.Locale.getDefault()
+            val configuration = android.content.res.Configuration(context.resources.configuration)
+            configuration.setLocale(locale)
+            val localizedContext = context.createConfigurationContext(configuration)
+
             LaunchedEffect(appLanguage) { AppLocaleController.apply(applicationContext, appLanguage) }
-            PokeQueryTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    // Keyed on startRoute so a new shortcut/widget intent recomposes navigation.
-                    MainNavigation(startRoute)
+
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalContext provides localizedContext,
+                androidx.compose.ui.platform.LocalConfiguration provides configuration
+            ) {
+                PokeQueryTheme {
+                    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        // Keyed on startRoute so a new shortcut/widget intent recomposes navigation.
+                        MainNavigation(startRoute)
+                    }
                 }
             }
         }

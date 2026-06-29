@@ -28,6 +28,7 @@ def check_runtime_assets():
         'onboarding_hero.webp',
         'onboarding_hero_scene.webp',
         'onboarding_hero_wide.webp',
+        'pokequery_wordmark.png',
         'pvp_header.webp',
         'safe_cleanup_header.webp',
         'trade_fodder_header.webp',

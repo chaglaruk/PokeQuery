@@ -94,10 +94,10 @@ class LocalizationModelTest {
 
     @Test
     fun `app language options include system default english and turkish`() {
-        assertEquals(listOf("System Default", "English", "Turkish"), AppLanguage.OPTIONS)
+        assertEquals(listOf("System Default", "English", "Deutsch", "Español", "Français", "Italiano", "Türkçe"), AppLanguage.OPTIONS)
         assertTrue(AppLanguage.isValid("System Default"))
         assertTrue(AppLanguage.isValid("English"))
-        assertTrue(AppLanguage.isValid("Turkish"))
+        assertTrue(AppLanguage.isValid("Türkçe"))
         assertFalse(AppLanguage.isValid("Auto"))
         assertFalse(AppLanguage.isValid(""))
     }
@@ -105,7 +105,7 @@ class LocalizationModelTest {
     @Test
     fun `app language locale tags map correctly`() {
         assertEquals("en", AppLocaleController.localeTagFor("English"))
-        assertEquals("tr", AppLocaleController.localeTagFor("Turkish"))
+        assertEquals("tr", AppLocaleController.localeTagFor("Türkçe"))
         assertEquals(null, AppLocaleController.localeTagFor("System Default"))
         assertEquals(null, AppLocaleController.localeTagFor("unknown"))
     }

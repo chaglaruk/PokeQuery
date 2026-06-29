@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.domain.events.ContextFeedState
 import com.caglar.pokequery.domain.events.EventContextRepository
-import com.caglar.pokequery.domain.events.EventFeedClient
+
 import com.caglar.pokequery.domain.events.MonthlyContextRepository
 import com.caglar.pokequery.domain.events.MonthlyContextView
 import com.caglar.pokequery.theme.AmberWarning
@@ -60,24 +60,10 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun EventContextScreen(
-    onBack: () -> Unit,
-    onlineEventsEnabled: Boolean = false
+    onBack: () -> Unit
 ) {
-    val context = LocalContext.current
-    val cacheDir = context.cacheDir
     val density = currentDensity()
-    val scope = rememberCoroutineScope()
-
-    val feedState = EventContextRepository.combined(onlineEventsEnabled, cacheDir)
-    var isFetching by remember { mutableStateOf(false) }
-    var feedError by remember { mutableStateOf<String?>(null) }
-    var manualRefresh by remember { mutableStateOf(0L) }
-
-    val currentFeedState = remember(feedState, manualRefresh) {
-        if (manualRefresh > 0L) {
-            EventContextRepository.combined(onlineEventsEnabled, cacheDir)
-        } else feedState
-    }
+    val feedState = EventContextRepository.combined()
 
     PqStaggeredEntrance { visible ->
         LazyColumn(
@@ -86,94 +72,28 @@ fun EventContextScreen(
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             item {
-                ScreenTitleBar("Event Context", onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
+                ScreenTitleBar(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.events_title), onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
             }
 
             item {
-                val bannerMod = Modifier.pqStaggeredItem(visible, 1)
-                when (currentFeedState) {
-                    is ContextFeedState.OfflineOnly -> OfflineBanner(bannerMod)
-                    is ContextFeedState.OnlineAvailable -> {
-                        if (currentFeedState.isFresh) {
-                            OnlineFreshBanner(bannerMod, currentFeedState.ageMinutes)
-                        } else {
-                            OnlineStaleBanner(bannerMod, currentFeedState.ageMinutes)
-                        }
-                    }
-                }
+                OfflineBanner(Modifier.pqStaggeredItem(visible, 1))
             }
 
-            when (currentFeedState) {
-                is ContextFeedState.OfflineOnly -> {
-                    val monthly = currentFeedState.monthly
-                    val view = monthly?.let { MonthlyContextView(it, it.isManual) }
-                    item {
-                        MonthlyNoteCardInner(view, Modifier.pqStaggeredItem(visible, 2))
-                    }
-                    item {
-                        Text("General event notes", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
-                    }
-                    items(EventContextRepository.all(), key = { it.id }) { event ->
-                        EventNoteCard(event)
-                    }
-                }
-                is ContextFeedState.OnlineAvailable -> {
-                    val monthly = currentFeedState.monthly
-                    val view = monthly?.let { m ->
-                        MonthlyContextView(m, m.isManual)
-                    }
-                    item {
-                        MonthlyNoteCardInner(view, Modifier.pqStaggeredItem(visible, 2))
-                    }
-                    item {
-                        Text("Event notes", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
-                    }
-                    items(currentFeedState.notes, key = { it.id }) { event ->
-                        EventNoteCard(event)
-                    }
-                }
-            }
-
+            val monthly = feedState.monthly
+            val view = monthly?.let { MonthlyContextView(it, it.isManual) }
             item {
-                when {
-                    isFetching -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = TealPrimary, modifier = Modifier.padding(vertical = 8.dp).size(24.dp))
-                    }
-                    feedError != null -> Text(
-                        feedError!!, color = AmberWarning, fontSize = 11.sp,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
-                }
+                MonthlyNoteCardInner(view, Modifier.pqStaggeredItem(visible, 2))
             }
-
-            if (onlineEventsEnabled) {
-                item {
-                    Button(
-                        onClick = {
-                            isFetching = true
-                            feedError = null
-                            scope.launch {
-                                val result = withContext(Dispatchers.IO) {
-                                    EventFeedClient.fetch(cacheDir)
-                                }
-                                isFetching = false
-                                result.fold(
-                                    onSuccess = { manualRefresh = System.currentTimeMillis() },
-                                    onFailure = { feedError = "Could not refresh: ${it.message}" }
-                                )
-                            }
-                        },
-                        enabled = !isFetching,
-                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Refresh now", color = TextPrimary, fontWeight = FontWeight.Bold) }
-                }
+            item {
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_general_notes), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+            }
+            items(EventContextRepository.all(), key = { it.id }) { event ->
+                EventNoteCard(event)
             }
 
             item {
                 Text(
-                    EventContextRepository.disclaimer(onlineEventsEnabled),
+                    androidx.compose.ui.res.stringResource(EventContextRepository.disclaimerRes()),
                     color = TextTertiary, fontSize = 11.sp, lineHeight = 15.sp,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -193,42 +113,7 @@ private fun OfflineBanner(modifier: Modifier = Modifier) {
         Box(Modifier.size(6.dp).background(CyanGlow, CircleShape))
         Spacer(Modifier.width(10.dp))
         Text(
-            "Offline and manual. PokeQuery does not fetch live event data. Notes are maintained in app " +
-                "releases and may be outdated — always confirm any active event in Pokémon GO itself.",
-            color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp
-        )
-    }
-}
-
-@Composable
-private fun OnlineFreshBanner(modifier: Modifier = Modifier, ageMinutes: Long) {
-    val shape = RoundedCornerShape(14.dp)
-    Row(
-        modifier.fillMaxWidth().clip(shape).background(PurpleIV.copy(alpha = 0.08f))
-            .border(1.dp, PurpleIV.copy(alpha = 0.35f), shape).padding(12.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Box(Modifier.size(6.dp).background(PurpleIV, CircleShape))
-        Spacer(Modifier.width(10.dp))
-        Text(
-            "Online events enabled. Last updated ${ageMinutes}m ago. Always confirm any active event in Pokémon GO itself.",
-            color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp
-        )
-    }
-}
-
-@Composable
-private fun OnlineStaleBanner(modifier: Modifier = Modifier, ageMinutes: Long) {
-    val shape = RoundedCornerShape(14.dp)
-    Row(
-        modifier.fillMaxWidth().clip(shape).background(AmberWarning.copy(alpha = 0.08f))
-            .border(1.dp, AmberWarning.copy(alpha = 0.35f), shape).padding(12.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Box(Modifier.size(6.dp).background(AmberWarning, CircleShape))
-        Spacer(Modifier.width(10.dp))
-        Text(
-            "Event data may be stale (${ageMinutes}m old). Tap Refresh to update.",
+            androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_offline_banner),
             color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp
         )
     }
@@ -239,29 +124,30 @@ private fun MonthlyNoteCardInner(view: MonthlyContextView?, modifier: Modifier =
     val shape = RoundedCornerShape(14.dp)
     if (view == null) {
         Column(Modifier.fillMaxWidth().then(modifier).clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
-            Text("This month's Community Day", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_community_day), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             Spacer(Modifier.height(6.dp))
-            Text(MonthlyContextRepository.noNoteMessage(), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+            Text(androidx.compose.ui.res.stringResource(MonthlyContextRepository.noNoteMessageRes()), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
         }
         return
     }
     val note = view.note
     Column(Modifier.fillMaxWidth().then(modifier).clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("This month's Community Day", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_community_day), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             val tone = if (view.isStale) AmberWarning else CyanGlow
-            val label = if (view.isStale) "May be outdated" else if (note.confidence.name == "MANUAL") "Manual note" else "Online note"
+            val label = if (view.isStale) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_may_be_outdated) else if (note.confidence.name == "MANUAL") androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_manual_note) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_online_note)
             Row(
                 Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.16f)).padding(horizontal = 8.dp, vertical = 3.dp)
             ) { Text(label, color = tone, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
         }
         Spacer(Modifier.height(6.dp))
-        val sourceLabel = if (note.lastUpdatedInAppVersion == "feed") "from feed" else "v${note.lastUpdatedInAppVersion}"
+        val feedStr = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_from_feed)
+        val sourceLabel = if (note.lastUpdatedInAppVersion == "feed") feedStr else "v${note.lastUpdatedInAppVersion}"
         Text("${note.month}/${note.year} · $sourceLabel", color = TextSecondary, fontSize = 11.sp)
         Spacer(Modifier.height(6.dp))
-        Text(note.note, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+        Text(androidx.compose.ui.res.stringResource(note.noteRes), color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
         Spacer(Modifier.height(8.dp))
-        Text(view.disclaimer, color = AmberWarning, fontSize = 11.sp, lineHeight = 15.sp)
+        Text(androidx.compose.ui.res.stringResource(view.disclaimerRes), color = AmberWarning, fontSize = 11.sp, lineHeight = 15.sp)
     }
 }
 
@@ -269,12 +155,12 @@ private fun MonthlyNoteCardInner(view: MonthlyContextView?, modifier: Modifier =
 private fun EventNoteCard(event: com.caglar.pokequery.domain.events.EventContext) {
     val shape = RoundedCornerShape(14.dp)
     Column(Modifier.fillMaxWidth().clip(shape).background(CardDark).border(1.dp, BorderSubtle, shape).padding(12.dp)) {
-        Text(event.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text(androidx.compose.ui.res.stringResource(event.titleRes), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Spacer(Modifier.height(6.dp))
-        Text(event.note, color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
+        Text(androidx.compose.ui.res.stringResource(event.noteRes), color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
         if (!event.isManual) {
             Spacer(Modifier.height(4.dp))
-            Text("Online feed note", color = PurpleIV, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.event_context_online_feed_note), color = PurpleIV, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

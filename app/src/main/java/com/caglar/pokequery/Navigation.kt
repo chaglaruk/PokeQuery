@@ -134,11 +134,10 @@ fun MainNavigation(startRoute: String? = null) {
                     entry<CleaningJournal> {
                         CleaningJournalScreen(onBack = { backStack.removeLastOrNull() })
                     }
-                    // v0.6.2: Event Context with optional online feed.
+                    // v0.6.2: Event Context.
                     entry<EventContext> {
                         EventContextScreen(
-                            onBack = { backStack.removeLastOrNull() },
-                            onlineEventsEnabled = userPrefs?.onlineEventsEnabled ?: false
+                            onBack = { backStack.removeLastOrNull() }
                         )
                     }
                     // v0.6.2: Safe NL search-string assistant.

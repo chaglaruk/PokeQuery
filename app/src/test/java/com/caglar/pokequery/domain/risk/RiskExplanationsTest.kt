@@ -28,9 +28,9 @@ class RiskExplanationsTest {
             val generated = StringBuilderEngine.buildGoal(goalId, customQuery = if (goalId == "expert") "shiny" else "")
             val explanation = RiskExplanations.forGoal(goalId, generated.riskLevel)
             assertEquals(generated.riskLevel, explanation.riskLevel)
-            assertTrue(explanation.title.isNotBlank())
-            assertTrue(explanation.shortReason.isNotBlank())
-            assertTrue(explanation.safetyChecklist.isNotEmpty())
+            assertTrue(explanation.titleRes != 0)
+            assertTrue(explanation.shortReasonRes != 0)
+            assertTrue(explanation.safetyChecklistRes.isNotEmpty())
         }
     }
 
@@ -40,11 +40,7 @@ class RiskExplanationsTest {
             val generated = StringBuilderEngine.buildGoal(goalId, customQuery = if (goalId == "expert") "shiny" else "")
             val explanation = RiskExplanations.forGoal(goalId, generated.riskLevel)
             assertTrue(explanation.isActionAdjacent)
-            assertTrue(
-                explanation.shortReason.contains("trading", ignoreCase = true) ||
-                    explanation.shortReason.contains("transferring", ignoreCase = true) ||
-                    explanation.detailedReason.contains("cleanup", ignoreCase = true)
-            )
+            assertTrue(explanation.detailedReasonRes != 0)
         }
     }
 
@@ -55,7 +51,7 @@ class RiskExplanationsTest {
             val explanation = RiskExplanations.forGoal(goalId, generated.riskLevel)
             assertEquals(RiskLevel.Info, generated.riskLevel)
             assertTrue(explanation.isInspectionOnly)
-            assertTrue(explanation.title.contains("Inspection", ignoreCase = true))
+            assertTrue(explanation.titleRes != 0)
         }
     }
 

@@ -78,6 +78,15 @@ class SearchIntentParserTest {
     }
 
     @Test
+    fun testTurkishIntentPhrases() {
+        assertTrue(SearchIntentParser.parse("parlak pokemon bul").tokens.contains("shiny"))
+        assertTrue(SearchIntentParser.parse("güçlü pokemon bul").tokens.contains("4*"))
+        assertTrue(SearchIntentParser.parse("şanslı takas").tokens.contains("age365-"))
+        assertTrue(SearchIntentParser.parse("etiketlenmemiş pokemon").exclusions.contains("#"))
+        assertTrue(SearchIntentParser.parse("pvp adayı").tokens.contains("0-1attack"))
+    }
+
+    @Test
     fun testShinyLegendary() {
         val result = SearchIntentParser.parse("shiny legendary")
         assertTrue(result.canBuild)

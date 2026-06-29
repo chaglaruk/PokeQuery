@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- v0.6.2: INTERNET permission for optional daily event feed updates. The user must opt in
-         via Settings > Event Context > Online event updates. Fetches a single JSON payload from
-         a configured URL once per day. No other network access. Offline manual fallback preserved. -->
-    <uses-permission android:name="android.permission.INTERNET" />
-
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"

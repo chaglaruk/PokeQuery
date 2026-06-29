@@ -36,8 +36,6 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         // synced, never uploaded, never account-bound. Stored via the codecs in UserContentCodec.
         val PERSONAL_PRESETS = stringSetPreferencesKey("personal_presets_v1")
         val JOURNAL_ENTRIES = stringSetPreferencesKey("journal_entries_v1")
-        // v0.6.2: optional daily online event feed (opt-in via Settings).
-        val ONLINE_EVENTS_ENABLED = booleanPreferencesKey("online_events_enabled")
         // v0.6.2 polish: clipboard import detection in Explain.
         val CLIPBOARD_DETECTION_ENABLED = booleanPreferencesKey("clipboard_detection_enabled")
         // v0.6.2 polish: expand risk limitations by default.
@@ -51,7 +49,6 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             safetyStyle = preferences[SAFETY_STYLE] ?: "Conservative",
             gameLanguage = preferences[GAME_LANGUAGE] ?: "Auto",
             appLanguage = preferences[APP_LANGUAGE] ?: "System Default",
-            onlineEventsEnabled = preferences[ONLINE_EVENTS_ENABLED] ?: false,
             clipboardDetectionEnabled = preferences[CLIPBOARD_DETECTION_ENABLED] ?: true,
             limitationsExpandedByDefault = preferences[LIMITATIONS_EXPANDED_BY_DEFAULT] ?: false,
             favorites = readFavorites(preferences).sortedByDescending { it.createdAt },
@@ -67,10 +64,6 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setFirstUseSeen(seen: Boolean) {
         dataStore.edit { it[FIRST_USE_SEEN] = seen }
-    }
-
-    suspend fun setOnlineEventsEnabled(enabled: Boolean) {
-        dataStore.edit { it[ONLINE_EVENTS_ENABLED] = enabled }
     }
 
     suspend fun setClipboardDetectionEnabled(enabled: Boolean) {
@@ -233,7 +226,6 @@ data class UserPreferences(
     val safetyStyle: String = "Conservative",
     val gameLanguage: String = "Auto",
     val appLanguage: String = "System Default",
-    val onlineEventsEnabled: Boolean = false,
     val clipboardDetectionEnabled: Boolean = true,
     val limitationsExpandedByDefault: Boolean = false,
     val favorites: List<SavedTemplate>,

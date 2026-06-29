@@ -2,7 +2,6 @@ package com.caglar.pokequery.privacy
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -14,11 +13,11 @@ import java.io.File
  * They parse the source AndroidManifest.xml that all variants merge from, so they run as
  * plain unit tests (no device, no merged-manifest dependency).
  *
- * v0.6.2: INTERNET permission is now declared for the optional daily event feed (opt-in only).
- * No other permissions are allowed. See the manifest comment for the rationale.
+ * v0.6.2 (offline-only): the optional event feed was removed and PokeQuery is fully offline.
+ * The manifest must declare NO permissions at all — not even INTERNET. Event context is manual.
  *
- * If a future change adds other permissions (location / storage / camera / mic / contacts), or
- * changes the applicationId, or weakens backup policy, these fail loudly.
+ * If a future change adds any permission (location / storage / camera / mic / contacts /
+ * INTERNET), or changes the applicationId, or weakens backup policy, these fail loudly.
  */
 class ManifestPrivacyRegressionTest {
 
@@ -33,36 +32,29 @@ class ManifestPrivacyRegressionTest {
     }
 
     @Test
-    fun `only INTERNET permission is declared`() {
-        // v0.6.2: INTERNET is allowed for the optional daily event feed (opt-in).
-        // Verify it's present and that no OTHER permissions exist.
+    fun `no permissions are declared`() {
+        // Offline-only: the manifest must declare zero <uses-permission> elements. No INTERNET,
+        // no location, no storage — nothing.
         val permissionCount = Regex("""<uses-permission""", RegexOption.IGNORE_CASE).findAll(manifest).count()
         assertEquals(
-            "Expected exactly one <uses-permission> (INTERNET), found $permissionCount",
-            1, permissionCount
+            "Expected ZERO <uses-permission> elements (offline-only), found $permissionCount",
+            0, permissionCount
         )
-        assertTrue(
-            "The one permission must be INTERNET",
+    }
+
+    @Test
+    fun `no INTERNET permission is declared`() {
+        // Offline-only contract: no network access is ever requested.
+        assertFalse(
+            "INTERNET permission must NOT be declared (offline-only app)",
             manifest.contains("android.permission.INTERNET", ignoreCase = true)
         )
     }
 
     @Test
-    fun `internet permission has documented rationale`() {
-        val lines = manifest.lines()
-        val idx = lines.indexOfFirst { it.contains("android.permission.INTERNET", ignoreCase = true) }
-        assertTrue("INTERNET permission line not found", idx >= 0)
-        val preamble = lines.subList(0, idx).joinToString("\n")
-        assertTrue(
-            "INTERNET permission must have a rationale comment. Manifest preamble:\n$preamble",
-            preamble.contains("v0.6.2", ignoreCase = true) || preamble.contains("event feed", ignoreCase = true)
-        )
-    }
-
-    @Test
-    fun `no dangerous location storage camera mic contacts or other permissions beyond INTERNET`() {
-        val allowed = listOf("INTERNET")
+    fun `no dangerous location storage camera mic contacts or any other permissions`() {
         val forbidden = listOf(
+            "INTERNET",
             "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION",
             "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE",
             "CAMERA", "RECORD_AUDIO", "READ_CONTACTS", "WRITE_CONTACTS",
@@ -74,15 +66,13 @@ class ManifestPrivacyRegressionTest {
                 manifest.contains(perm, ignoreCase = true)
             )
         }
-        // v0.6.2: INTERNET is the only declared permission.
+        // Offline-only: no permissions whatsoever may be manifested.
         val manifested = Regex("""android\.permission\.(\w+)""", RegexOption.IGNORE_CASE)
             .findAll(manifest).map { it.groupValues[1] }.toSet()
-        manifested.forEach { perm ->
-            assertTrue(
-                "Permission $perm is not in the allowed list: $allowed",
-                perm in allowed
-            )
-        }
+        assertTrue(
+            "No android.permission.* entries may appear (offline-only), found: $manifested",
+            manifested.isEmpty()
+        )
     }
 
     @Test
@@ -160,4 +150,3 @@ class ManifestPrivacyRegressionTest {
         )
     }
 }
-

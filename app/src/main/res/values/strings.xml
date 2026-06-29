@@ -31,9 +31,276 @@
     <string name="assistant_suggest">AI Suggest</string>
     <string name="assistant_copied">Copied to clipboard</string>
 
+    <!-- Search Assistant (screen-scoped) -->
+    <string name="search_assistant_title">Search Assistant</string>
+    <string name="search_assistant_desc_text">Describe what you want to find in plain English. The assistant builds the search string for you.</string>
+    <string name="search_assistant_placeholder">e.g. show me shiny legendary pokemon</string>
+    <string name="search_assistant_parse">Parse</string>
+    <string name="search_assistant_ai_suggest">AI Suggest</string>
+    <string name="search_assistant_suggested_string">Suggested search string</string>
+    <string name="search_assistant_copy_btn">Copy Search String</string>
+    <string name="search_assistant_explain_btn">Explain</string>
+    <string name="search_assistant_scope">Scope</string>
+    <string name="search_assistant_tokens">Tokens</string>
+    <string name="search_assistant_excluded">excluded</string>
+    <string name="search_assistant_explanation">Explanation</string>
+    <string name="search_assistant_limitations">Limitations</string>
+    <string name="search_assistant_fix_errors">Fix the errors above before copying.</string>
+    <string name="search_assistant_advisory_only">Advisory only — copy stays enabled. Review matches before acting.</string>
+    <string name="search_assistant_generated_explanation">The assistant built this search string from your description. Review the matches in Pokémon GO before acting.</string>
+    <string name="search_assistant_review_in_game">Review all matches in Pokémon GO before transferring or trading.</string>
+    <string name="search_assistant_could_not_understand">Could not understand that request. Try words like shiny, hundo, cleanup, trade, PvP, lucky, shadow, old, or costume.</string>
+    <string name="search_assistant_lint_issue">This search string has an issue that must be fixed before copying.</string>
+    <string name="search_assistant_review_warning">This search requires review before acting.</string>
+
+    <!-- Explainer precision / scope labels -->
+    <string name="explainer_prec_exact">Exact match</string>
+    <string name="explainer_prec_shortlist">Shortlist</string>
+    <string name="explainer_prec_approx">Approximate</string>
+    <string name="explainer_prec_needs_verif">Needs verification</string>
+    <string name="explainer_prec_unknown">Unknown</string>
+    <string name="explainer_scope_all">All (no filter)</string>
+    <string name="explainer_scope_very_narrow">Very Narrow</string>
+    <string name="explainer_scope_narrow">Narrow</string>
+    <string name="explainer_scope_moderate">Moderate</string>
+    <string name="explainer_scope_broad">Broad</string>
+
     <!-- v0.6.2 Event Context -->
     <string name="events_title">Event Context</string>
     <string name="events_refresh">Refresh now</string>
     <string name="events_online_enabled">Online events enabled</string>
     <string name="events_offline_title">Event Context</string>
+    <string name="event_general_notes">General event notes</string>
+    <string name="event_context_community_day">This month\'s Community Day</string>
+    <string name="event_context_candy_events">Candy events</string>
+    <string name="event_context_candy_events_note">During Candy transfer bonus events, extra candies can make 2x Candy Prep goals more effective. PokeQuery does not pull live event data — verify if an event is active in Pokémon GO itself.</string>
+    <string name="event_context_disclaimer">Event context is manually maintained and may be outdated. No live event data is pulled.</string>
+    <string name="event_context_community_day_note">During Community Day, candy and evolution bonuses can make Candy Prep and cleanup-style reviews more useful. This is a manual app note — PokeQuery does not pull live event data and the note may be outdated.</string>
+    <string name="event_context_no_note">No current manual event note.</string>
+    <string name="event_context_disclaimer_stale">Manual app note. This note may be outdated. PokeQuery does not pull event data.</string>
+    <string name="event_context_disclaimer_fresh">Manual app note. This is not live event data. PokeQuery does not pull event data.</string>
+    <string name="event_context_offline_banner">PokeQuery currently uses manual/offline event notes. No Pokémon GO account data is accessed. Live event updates are disabled for this release. Always verify any active events in Pokémon GO itself.</string>
+    <string name="event_context_manual_note">Manual note</string>
+    <string name="event_context_may_be_outdated">May be outdated</string>
+    <string name="event_context_online_note">Online note</string>
+    <string name="event_context_from_feed">from feed</string>
+    <string name="event_context_online_feed_note">Online feed note</string>
+
+    <!-- What Changed / Changelog -->
+    <string name="what_changed_v066_subtitle">Phase 5 — Localization Polish</string>
+    <string name="what_changed_v066_b1">• Full Turkish localization for Event Context, Onboarding, Goal Detail, and Home</string>
+    <string name="what_changed_v066_b2">• Search Assistant promoted to a primary Home card; Nundo Finder moved to More Tools</string>
+    <string name="what_changed_v066_b3">• Offline manual event mode only — no live event data is fetched in this release</string>
+    <string name="changelog_current">Current</string>
+    <string name="changelog_safety_notes">Safety notes</string>
+    <string name="changelog_tester_notes">Tester notes</string>
+    <string name="what_changed_v066_safety1">No INTERNET permission — offline event context is manually maintained.</string>
+    <string name="what_changed_v066_safety2">No login, tracking, ads, analytics, or Pokémon GO account access.</string>
+    <string name="what_changed_v066_safety3">Turkish search tokens remain beta — verify results in Pokémon GO.</string>
+    <string name="what_changed_v066_tester1">Verify Turkish localization applies to visible UI.</string>
+    <string name="what_changed_v066_tester2">Check Event Context shows manual offline notes only.</string>
+    <string name="what_changed_v066_tester3">Verify Search Assistant accepts Turkish input such as parlak.</string>
+
+    <!-- Goal titles -->
+    <string name="goal_safe_cleanup">Safe Cleanup</string>
+    <string name="goal_safe_cleanup_desc">Review low-value transfer candidates</string>
+    <string name="goal_candy_prep">2x Candy Prep</string>
+    <string name="goal_candy_prep_desc">Find extras to transfer</string>
+    <string name="goal_trade_fodder">Trade Fodder</string>
+    <string name="goal_trade_fodder_desc">Untraded duplicates</string>
+    <string name="goal_hundo_check">Hundo Check</string>
+    <string name="goal_hundo_check_desc">Perfect 15/15/15 IVs</string>
+    <string name="goal_untagged">Untagged Cleanup</string>
+    <string name="goal_untagged_desc">Pokémon without tags</string>
+    <string name="goal_untagged_cleanup">Untagged Cleanup</string>
+    <string name="goal_nundo_finder">Nundo Finder</string>
+    <string name="goal_nundo_finder_desc">Exact 0/0/0 IVs</string>
+    <string name="goal_pvp_candidates">PvP IV Candidates</string>
+    <string name="goal_pvp_candidates_desc">Great &amp; Ultra League</string>
+    <string name="goal_lucky_trade">Lucky Trade Prep</string>
+    <string name="goal_lucky_trade_desc">Older / distance Pokémon</string>
+    <string name="goal_custom_search">Custom Search</string>
+    <string name="goal_assistant">Search Assistant</string>
+    <string name="goal_assistant_desc">Describe it in plain language</string>
+    <string name="goal_events">Event Context</string>
+    <string name="goal_events_desc">Daily event search context</string>
+    <string name="goal_presets">Popular Presets</string>
+    <string name="goal_presets_desc">Ready-made search strings</string>
+    <string name="goal_my_presets">My Presets</string>
+    <string name="goal_my_presets_desc">Your saved personal presets</string>
+    <string name="goal_practice">Practice Mode</string>
+    <string name="goal_practice_desc">Fake inventory sandbox</string>
+    <string name="goal_journal">Cleaning Journal</string>
+    <string name="goal_journal_desc">Manual notes (local)</string>
+    <string name="goal_expert">Expert Builder</string>
+    <string name="goal_expert_desc">Build your own</string>
+    <string name="goal_knowledge">Knowledge Base</string>
+    <string name="goal_knowledge_desc">All search tokens</string>
+    <string name="goal_explain">Explain String</string>
+    <string name="goal_explain_desc">Token-by-token breakdown</string>
+    <string name="goal_changelog">What Changed</string>
+    <string name="goal_changelog_desc">Version history</string>
+    <string name="goal_settings">Settings</string>
+    <string name="goal_settings_desc">Privacy, language, safety</string>
+
+    <!-- Goal explanations -->
+    <string name="goal_exp_safe_cleanup">This is a REVIEW string targeting low-value candidates. It is not an automatic transfer command.</string>
+    <string name="goal_exp_candy_prep">Finds extras. Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.</string>
+    <string name="goal_exp_trade_fodder">Finds candidates for trading. Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.</string>
+    <string name="goal_exp_hundo_check">Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15.</string>
+    <string name="goal_exp_untagged_cleanup">Finds Pokémon without any tags.</string>
+    <string name="goal_exp_nundo_finder">Finds exact 0/0/0 IV Pokémon (Nundos).</string>
+    <string name="goal_exp_pvp_candidates">Candidate search only. Final PvP rank depends on species, level, and IV spread.</string>
+    <string name="goal_exp_lucky_trade">Finds older or distance-relevant Pokémon to review for trades. Review manually. Valuable Pokémon may appear. Trade eligibility and Lucky chance are not guaranteed by search strings.</string>
+    <string name="goal_exp_expert">Custom search string. Review all matches in the game before acting.</string>
+
+    <!-- Risk levels -->
+    <string name="risk_high">HIGH</string>
+    <string name="risk_medium">MEDIUM</string>
+    <string name="risk_low">LOW</string>
+    <string name="risk_info">INFO</string>
+
+    <!-- Risk explanations -->
+    <string name="risk_info_title">Inspection only</string>
+    <string name="risk_info_short">This is an inspection query. It shows matches but does not suggest a destructive action.</string>
+    <string name="risk_info_detailed">Inspection queries are safe to run: they only display Pokémon. Still review the matches so you understand what is in your storage.</string>
+    <string name="risk_info_check1">Open the search and read the matches.</string>
+    <string name="risk_info_check2">No transfer or trade is suggested.</string>
+    <string name="risk_info_check3">Use it to learn what you own.</string>
+
+    <string name="risk_low_title">Low risk — review matches</string>
+    <string name="risk_low_short">A narrow query. Still review the matches before acting.</string>
+    <string name="risk_low_detailed">Low-risk strings are deliberately narrow, but a valuable Pokémon can still appear. Skim the results before transferring or trading.</string>
+    <string name="risk_low_check1">Scroll through every match.</string>
+    <string name="risk_low_check2">Keep anything you are unsure about.</string>
+    <string name="risk_low_check3">Tag valuable Pokémon to protect them.</string>
+
+    <string name="risk_medium_title">Medium risk — act carefully</string>
+    <string name="risk_medium_short">This query is action-adjacent. Review carefully before transferring or trading.</string>
+    <string name="risk_medium_detailed">Medium-risk strings are designed for cleanup or trading decisions. Valuable Pokémon may appear in the matches. Do not act on them blindly.</string>
+    <string name="risk_medium_check1">Inspect every match before acting.</string>
+    <string name="risk_medium_check2">Never transfer shiny, legendary, or favorite Pokémon by accident.</string>
+    <string name="risk_medium_check3">When in doubt, keep the Pokémon.</string>
+
+    <string name="risk_high_title">High risk — inspect first</string>
+    <string name="risk_high_short">A broad or high-value query. Inspect every match before acting.</string>
+    <string name="risk_high_detailed">High-risk strings can surface very valuable Pokémon. Treat every match as worth checking before any transfer or trade.</string>
+    <string name="risk_high_check1">Inspect every single match.</string>
+    <string name="risk_high_check2">Do not bulk-transfer the results.</string>
+    <string name="risk_high_check3">Protect valuable Pokémon with tags or favorites.</string>
+
+    <!-- Manual review / warnings -->
+    <string name="manual_review_panel_text">This is a review aid only. Always inspect matches in Pokémon GO before transferring or trading.</string>
+    <string name="warning_operator_replaced">The \'|\' operator is unsupported and was replaced with \',\'.</string>
+    <string name="warning_count_output">Count output: Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.</string>
+    <string name="warning_trade_disclaimer">Trade disclaimer: Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.</string>
+
+    <!-- Goal detail labels -->
+    <string name="goal_detail_result">RESULT</string>
+    <string name="goal_detail_refine">REFINE</string>
+    <string name="goal_detail_protected">PROTECTED</string>
+    <string name="goal_detail_notes">NOTES</string>
+    <string name="goal_detail_details">DETAILS</string>
+    <string name="goal_detail_why_risk">Why this risk?</string>
+    <string name="goal_detail_copy_search_string">Copy Search String</string>
+    <string name="goal_detail_copied">Copied to clipboard</string>
+    <string name="goal_detail_saved_fav">Saved to favorites</string>
+    <string name="goal_detail_fix_errors">Fix errors to copy</string>
+    <string name="goal_detail_include_0star">Include 0★ candidates</string>
+    <string name="goal_detail_collector_interest">Useful for collectors who want to keep 0★ Pokémon.</string>
+    <string name="goal_detail_exclude_shinies">Exclude Shinies</string>
+    <string name="goal_detail_protect_accidental">Protects against accidental transfer of shinies.</string>
+    <string name="goal_detail_exclude_legendaries">Exclude Legendaries</string>
+    <string name="goal_detail_exclude_costumes">Exclude Costumes</string>
+    <string name="goal_detail_exclude_favorites">Exclude Favorites</string>
+    <string name="goal_detail_exclude_traded">Exclude Traded</string>
+    <string name="goal_detail_exclude_hundos">Exclude 4★ (Hundos)</string>
+    <string name="goal_detail_exclude_shadow">Exclude Shadow / Purified</string>
+    <string name="goal_detail_traded_cannot">Traded Pokémon cannot be transferred.</string>
+    <string name="goal_detail_choose_league">Choose a league</string>
+    <string name="goal_detail_under_1500">Great League: CP under 1500</string>
+    <string name="goal_detail_under_2500">Ultra League: CP under 2500</string>
+    <string name="goal_detail_older_candidates">Older candidates (age)</string>
+    <string name="goal_detail_distance_candidates">Distance candidates (100km+)</string>
+    <string name="goal_detail_must_untraded">Must be untraded</string>
+    <string name="goal_detail_cannot_trade">Already-traded Pokémon cannot become Lucky via trade again.</string>
+    <string name="goal_detail_no_options">No options for this goal.</string>
+    <string name="goal_detail_review_aid">This is a review aid, not a command.</string>
+    <string name="goal_detail_review_matches">Review all matches in Pokémon GO.</string>
+    <string name="goal_detail_never_blind">Never transfer blindly.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_history">History</string>
+    <string name="nav_knowledge">Knowledge</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home -->
+    <string name="home_header_desc">Safer search strings for Pokémon GO</string>
+    <string name="home_subtitle">Safer search strings for Pokémon GO</string>
+    <string name="home_more_tools">More Tools</string>
+    <string name="home_more_tools_subtitle">Additional review and learning tools</string>
+    <string name="home_chip_offline">Offline</string>
+    <string name="home_chip_nologin">No login</string>
+    <string name="home_chip_notracking">No tracking</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start_building">Start building</string>
+    <string name="onboarding_hero_tagline">Safer search strings for Pokémon GO</string>
+    <string name="onboarding_card1_title">Build the right search in seconds</string>
+    <string name="onboarding_card1_desc">Use safe defaults for cleanup, candy, trades, PvP, Hundos, and Nundos.</string>
+    <string name="onboarding_trust_powerful">Powerful</string>
+    <string name="onboarding_trust_searches">Searches</string>
+    <string name="onboarding_trust_protected">Protected</string>
+    <string name="onboarding_trust_defaults">Defaults</string>
+    <string name="onboarding_trust_keep">Keep</string>
+    <string name="onboarding_trust_value">Value</string>
+    <string name="onboarding_card2_title">Copy only — offline first</string>
+    <string name="onboarding_card2_desc">PokeQuery only creates text. No login, no scraping, no connection to the game.</string>
+    <string name="onboarding_trust_strip_private">Private</string>
+    <string name="onboarding_trust_strip_offline">Offline</string>
+    <string name="onboarding_trust_strip_copy">Copy only</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_general">General</string>
+    <string name="settings_first_use_guide">Show first-use guide</string>
+    <string name="settings_first_use_guide_desc">Display the onboarding intro again.</string>
+    <string name="settings_online_events">Online event updates</string>
+    <string name="settings_online_events_desc">Coming later. Event context stays manual and offline for now.</string>
+    <string name="settings_search_language">Language</string>
+    <string name="settings_app_language">App Language</string>
+    <string name="settings_app_language_desc">Controls the text of this app only. Pokémon GO itself is not affected.</string>
+    <string name="settings_search_string_lang">Search String Language</string>
+    <string name="settings_search_string_lang_desc">Controls the language of the text you paste into Pokémon GO.</string>
+    <string name="settings_clipboard_detect">Clipboard detection</string>
+    <string name="settings_clipboard_detect_desc">Offer to explain a search string found on your clipboard.</string>
+    <string name="settings_safety">Safety</string>
+    <string name="settings_safety_desc1">PokeQuery only creates text. You copy and paste it yourself.</string>
+    <string name="settings_safety_desc2">No login, no tracking, no ads, no analytics, no Pokémon GO account access.</string>
+    <string name="settings_about_privacy">About &amp; Privacy</string>
+    <string name="settings_about_desc1">PokeQuery is an independent helper app.</string>
+    <string name="settings_about_desc2">It only generates search strings. It never connects to Pokémon GO.</string>
+    <string name="settings_about_desc3">No login, no tracking, no ads, no analytics.</string>
+    <string name="settings_safety_stance">Safety stance</string>
+    <string name="settings_safety_disclaimer">Every generated string is a review aid. Always inspect matches in Pokémon GO before transferring or trading.</string>
+    <string name="settings_app_language_footnote">App Language applies to this app only and is a foundation for future translation. Pokémon GO itself is not affected.</string>
+    <string name="settings_search_lang_auto">Auto (Safe — English)</string>
+    <string name="settings_search_lang_turkish">Turkish (Beta — verify before use)</string>
+    <string name="settings_search_lang_beta_warning">Turkish search terms are beta. Please verify results in Pokémon GO before transferring or trading. Auto (Safe) never switches to Turkish automatically.</string>
+    <string name="settings_changelog_label">What Changed / Changelog</string>
+    <string name="settings_disclaimer">PokeQuery is an independent helper app and is not affiliated with, endorsed by, or sponsored by Niantic, The Pokémon Company, or Nintendo.</string>
+    <string name="settings_feedback">Send tester feedback</string>
+    <string name="settings_email_fallback">No email app found. Please email caglar@caglardinc.com manually.</string>
+    <string name="settings_online_events_later">Coming later</string>
+    <string name="settings_system_default">System Default</string>
+    <string name="settings_clear_fav">Clear favorites</string>
+    <string name="settings_clear_hist">Clear history</string>
+    <string name="settings_reset_all">Reset all settings</string>
+    <string name="settings_confirm">Confirm</string>
+    <string name="settings_cancel">Cancel</string>
+    <string name="settings_email_desc">Send feedback by email. No data leaves your device unless you send the email.</string>
 </resources>

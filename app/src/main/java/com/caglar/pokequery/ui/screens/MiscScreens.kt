@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -219,17 +220,17 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
         verticalArrangement = Arrangement.spacedBy(density.sectionGap),
         contentPadding = PaddingValues(bottom = 22.dp)
     ) {
-        item { ScreenTitleBar("Settings", onBack, Modifier.pqStaggeredItem(visible, 0)) }
+        item { ScreenTitleBar(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_title), onBack, Modifier.pqStaggeredItem(visible, 0)) }
 
         item {
             PremiumPanel {
-                Text("General", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_general), color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).padding(end = 16.dp)) {
-                        Text("First-use guide seen", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                        Text("Turn off to show onboarding again.", color = TextSecondary, fontSize = 12.sp)
+                        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_first_use_guide), color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_first_use_guide_desc), color = TextSecondary, fontSize = 12.sp)
                     }
                     Switch(
                         checked = userPrefs?.firstUseSeen ?: false,
@@ -238,33 +239,16 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     )
                 }
                 Spacer(Modifier.height(14.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f).padding(end = 16.dp)) {
-                        Text("Online event updates", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                        Text("Fetches daily event notes. Offline fallback preserved.", color = TextSecondary, fontSize = 12.sp)
-                    }
-                    Switch(
-                        checked = userPrefs?.onlineEventsEnabled ?: false,
-                        onCheckedChange = { scope.launch { repository.setOnlineEventsEnabled(it) } },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
-                    )
-                }
-                Spacer(Modifier.height(14.dp))
-                Text(
-                    "Clear event cache",
-                    color = CoralDanger,
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        val cacheDir = context.cacheDir
-                        com.caglar.pokequery.domain.events.EventFeedClient.clearCache(cacheDir)
-                        Toast.makeText(context, "Event cache cleared", Toast.LENGTH_SHORT).show()
-                    }.padding(vertical = 8.dp)
+                com.caglar.pokequery.ui.pq.PqComingLaterCard(
+                    title = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_online_events),
+                    description = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_online_events_desc)
                 )
             }
         }
 
         item {
             PremiumPanel(borderColor = TealPrimary) {
-                Text("Search & Language", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_language), color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
 
                 // v0.5.2 (Fix 7): LAYER A — App Language (UI text only).
@@ -278,16 +262,20 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 // does not actually translate the interface today. The preference is recorded and
                 // ready for a future localization sprint, but we must not imply full translation
                 // exists. The "(Foundation)" labels make that explicit.
-                Text("App Language (Foundation)", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Text("This sets a language preference for the interface. Full UI translations are coming later and are not fully available yet — most of the interface stays in English today. This does NOT change generated search strings. Selecting a language never black-screens the app.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_app_language), color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_app_language_desc), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
                 Spacer(Modifier.height(4.dp))
                 val appLang = userPrefs?.appLanguage ?: "System Default"
-                RadioRow("System Default (Foundation)", appLang == "System Default") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "System Default") } }
-                RadioRow("English (Foundation)", appLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "English") } }
-                RadioRow("Turkish (Foundation — coming later)", appLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Turkish") } }
+                RadioRow("System Default", appLang == "System Default") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "System Default") } }
+                RadioRow("English", appLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "English") } }
+                RadioRow("Deutsch", appLang == "Deutsch") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Deutsch") } }
+                RadioRow("Español", appLang == "Español") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Español") } }
+                RadioRow("Français", appLang == "Français") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Français") } }
+                RadioRow("Italiano", appLang == "Italiano") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Italiano") } }
+                RadioRow("Türkçe", appLang == "Turkish" || appLang == "Türkçe") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Türkçe") } }
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "App Language applies to this app only and is a foundation for future translation. Pokémon GO itself is not affected.",
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_app_language_footnote),
                     color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp
                 )
 
@@ -303,8 +291,8 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 // This controls the language of the text you paste into Pokémon GO. It is
                 // independent of App Language: a Turkish UI can still emit safe English
                 // strings, and vice-versa. Auto (Safe) stays English (conservative).
-                Text("Search String Language", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Text("Controls the language of the generated search strings you copy into Pokémon GO.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_string_lang), color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_string_lang_desc), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
                 Spacer(Modifier.height(4.dp))
                 // v0.5.4 (Fix 5): exactly one Search String Language option may be selected.
                 // Previously the Auto predicate also matched "English" (conflating the
@@ -314,13 +302,13 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 // are exact equality, matching the (working) App Language pattern above.
                 val searchLang = userPrefs?.gameLanguage ?: "Auto"
                 val searchAuto = searchLang == "Auto" || searchLang.isBlank()
-                RadioRow("Auto (Safe — English)", searchAuto) { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Auto") } }
+                RadioRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_lang_auto), searchAuto) { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Auto") } }
                 RadioRow("English", searchLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "English") } }
-                RadioRow("Turkish (Beta — verify before use)", searchLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Turkish") } }
+                RadioRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_lang_turkish), searchLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Turkish") } }
                 Spacer(Modifier.height(10.dp))
                 // v0.4.2 (Fix 3) / v0.5.2 (Fix 9): Turkish tokens are community-sourced and unverified.
                 Text(
-                    "Turkish search terms are beta. Please verify results in Pokémon GO before transferring or trading. Auto (Safe) never switches to Turkish automatically.",
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_lang_beta_warning),
                     color = AmberWarning,
                     fontSize = 12.sp,
                     lineHeight = 16.sp
@@ -329,8 +317,8 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).padding(end = 16.dp)) {
-                        Text("Clipboard import detection", color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                        Text("Detect copied search strings for Explain mode.", color = TextSecondary, fontSize = 12.sp)
+                        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clipboard_detect), color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clipboard_detect_desc), color = TextSecondary, fontSize = 12.sp)
                     }
                     Switch(
                         checked = userPrefs?.clipboardDetectionEnabled ?: true,
@@ -339,33 +327,33 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     )
                 }
                 Spacer(Modifier.height(14.dp))
-                Text("Safety", color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_safety), color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
-                Text("Medium and High risk copies always show confirmation first.", color = TextSecondary, fontSize = 13.sp)
-                Text("The app generates text only. It never connects to Pokémon GO.", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_safety_desc1), color = TextSecondary, fontSize = 13.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_safety_desc2), color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
             }
         }
 
         item {
             PremiumPanel {
-                Text("About & Privacy", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_about_privacy), color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Text(com.caglar.pokequery.AppVersion.aboutDisplayString, color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                Text("Safe search strings for Pokémon GO", color = TextSecondary, fontSize = 12.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_about_desc1), color = TextSecondary, fontSize = 12.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "What Changed / Changelog",
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_changelog_label),
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
                 )
                 Spacer(Modifier.height(12.dp))
-                Text("No account access. No scraping. Local favorites and history only.", color = TextPrimary)
-                Text("Privacy notes and third-party notices are in docs/release.", color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_about_desc2), color = TextPrimary)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_about_desc3), color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                 Spacer(Modifier.height(12.dp))
                 // v0.4.2 (Fix 6): non-affiliation disclaimer.
                 Text(
-                    "PokeQuery is an independent helper app and is not affiliated with, endorsed by, or sponsored by Niantic, The Pokémon Company, or Nintendo.",
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_disclaimer),
                     color = TextSecondary,
                     fontSize = 11.sp,
                     lineHeight = 15.sp
@@ -373,9 +361,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 Spacer(Modifier.height(12.dp))
                 // v0.4.2 (Fix 7): destructive data actions require explicit confirmation.
                 var pendingDestructive by remember { mutableStateOf<DestructiveAction?>(null) }
-                Text("Clear favorites", color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearFavorites }.padding(vertical = 8.dp))
-                Text("Clear history", color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearHistory }.padding(vertical = 8.dp))
-                Text("Reset all settings", color = CoralDanger, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ResetSettings }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_fav), color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearFavorites }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_hist), color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearHistory }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_reset_all), color = CoralDanger, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ResetSettings }.padding(vertical = 8.dp))
 
                 pendingDestructive?.let { action ->
                     AlertDialog(
@@ -392,10 +380,10 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                                     }
                                 }
                                 pendingDestructive = null
-                            }) { Text("Confirm", color = CoralDanger, fontWeight = FontWeight.Bold) }
+                            }) { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_confirm), color = CoralDanger, fontWeight = FontWeight.Bold) }
                         },
                         dismissButton = {
-                            TextButton(onClick = { pendingDestructive = null }) { Text("Cancel", color = TextSecondary) }
+                            TextButton(onClick = { pendingDestructive = null }) { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_cancel), color = TextSecondary) }
                         },
                         containerColor = CardDark
                     )
@@ -416,7 +404,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     gameLanguage = userPrefs?.gameLanguage ?: "English"
                 )
                 Text(
-                    "Send tester feedback",
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_feedback),
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().clickable {
@@ -425,11 +413,11 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                         if (intent.resolveActivity(context.packageManager) != null) {
                             context.startActivity(intent)
                         } else {
-                            Toast.makeText(context, "No email app found. Please email caglar@caglardinc.com manually.", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, context.getString(com.caglar.pokequery.R.string.settings_email_fallback), Toast.LENGTH_LONG).show()
                         }
                     }.padding(vertical = 8.dp)
                 )
-                Text("Opens your email app with a pre-filled template. Nothing is sent automatically.", color = TextSecondary, fontSize = 11.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_email_desc), color = TextSecondary, fontSize = 11.sp)
             }
         }
     }
@@ -439,46 +427,68 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
 @Composable
 fun ChangelogScreen(onBack: () -> Unit) {
     val density = currentDensity()
+    val isTurkishUi = LocalConfiguration.current.locales[0]?.language == "tr"
+    val entries = if (isTurkishUi) Changelog.entries.filter { it.isCurrent } else Changelog.entries
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(density.listGap),
         contentPadding = PaddingValues(bottom = 22.dp)
     ) {
-        item { ScreenTitleBar("What Changed", onBack) }
+        item { ScreenTitleBar(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_changelog), onBack) }
         item {
             PremiumPanel(borderColor = TealPrimary) {
-                Text("Safety and privacy stance", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_safety_stance), color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "No login. No tracking. No ads. No analytics. No Pok\u00e9mon GO account access. PokeQuery is unofficial and not affiliated with Pok\u00e9mon GO, Niantic, Nintendo, or The Pok\u00e9mon Company.",
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_safety_disclaimer),
                     color = TextPrimary,
                     fontSize = 13.sp,
                     lineHeight = 18.sp
                 )
             }
         }
-        items(Changelog.entries, key = { it.versionName }) { entry ->
+        items(entries, key = { it.versionName }) { entry ->
             PremiumPanel(borderColor = if (entry.isCurrent) TealPrimary else BorderDark) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("v${entry.versionName} (${entry.versionCode})", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text("${entry.releaseLabel} \u2022 ${entry.title}", color = TextSecondary, fontSize = 12.sp)
+                        if (entry.isCurrent) {
+                            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_subtitle), color = TextSecondary, fontSize = 12.sp)
+                        } else {
+                            Text("${entry.releaseLabel} \u2022 ${entry.title}", color = TextSecondary, fontSize = 12.sp)
+                        }
                     }
                     if (entry.isCurrent) {
-                        Text("Current", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.changelog_current), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                 }
                 Spacer(Modifier.height(density.innerElementGap))
-                entry.highlights.forEach { Text("\u2022 $it", color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp) }
+                if (entry.isCurrent) {
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_b1), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_b2), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_b3), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                } else {
+                    entry.highlights.forEach { Text("\u2022 $it", color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp) }
+                }
                 if (entry.safetyNotes.isNotEmpty()) {
                     Spacer(Modifier.height(8.dp))
-                    Text("Safety notes", color = AmberWarning, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    entry.safetyNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.changelog_safety_notes), color = AmberWarning, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    val safetyNotes = if (entry.isCurrent) listOf(
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_safety1),
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_safety2),
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_safety3)
+                    ) else entry.safetyNotes
+                    safetyNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
                 }
                 if (entry.testerNotes.isNotEmpty()) {
                     Spacer(Modifier.height(8.dp))
-                    Text("Tester notes", color = TealPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    entry.testerNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.changelog_tester_notes), color = TealPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    val testerNotes = if (entry.isCurrent) listOf(
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_tester1),
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_tester2),
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_tester3)
+                    ) else entry.testerNotes
+                    testerNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
                 }
             }
         }

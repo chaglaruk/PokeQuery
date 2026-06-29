@@ -83,6 +83,8 @@ fun homeGoalDestination(goalId: String): NavKey = when (goalId) {
     // v0.6.2: Search Assistant (local NL parser).
     "assistant" -> SearchAssistant
     "explain" -> ExplainRoute()
+    "changelog" -> ChangelogRoute
+    "settings" -> Settings
     else -> GoalDetail(goalId)
 }
 

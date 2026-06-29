@@ -25,14 +25,14 @@ import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.CardPremium
 
-private data class NavTab(val route: String, val label: String, val icon: ImageVector)
+private data class NavTab(val route: String, val labelRes: Int, val icon: ImageVector)
 
 private val tabs = listOf(
-    NavTab("builder", "Home", Icons.Default.Home),
-    NavTab("favorites", "Favorites", Icons.Default.Favorite),
-    NavTab("history", "History", Icons.Default.History),
-    NavTab("knowledge", "Knowledge", Icons.Default.Info),
-    NavTab("settings", "Settings", Icons.Default.Settings)
+    NavTab("builder", com.caglar.pokequery.R.string.nav_home, Icons.Default.Home),
+    NavTab("favorites", com.caglar.pokequery.R.string.nav_favorites, Icons.Default.Favorite),
+    NavTab("history", com.caglar.pokequery.R.string.nav_history, Icons.Default.History),
+    NavTab("knowledge", com.caglar.pokequery.R.string.nav_knowledge, Icons.Default.Info),
+    NavTab("settings", com.caglar.pokequery.R.string.nav_settings, Icons.Default.Settings)
 )
 
 @Composable
@@ -45,8 +45,8 @@ fun BottomNavBar(
             NavigationBarItem(
                 selected = currentRoute == tab.route,
                 onClick = { onNavigate(tab.route) },
-                icon = { Icon(tab.icon, contentDescription = tab.label, modifier = Modifier.size(26.dp)) },
-                label = { Text(tab.label, fontSize = 11.sp, fontWeight = if (currentRoute == tab.route) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium) },
+                icon = { Icon(tab.icon, contentDescription = androidx.compose.ui.res.stringResource(tab.labelRes), modifier = Modifier.size(26.dp)) },
+                label = { Text(androidx.compose.ui.res.stringResource(tab.labelRes), fontSize = 11.sp, fontWeight = if (currentRoute == tab.route) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = TealPrimary,
                     unselectedIconColor = TextSecondary,

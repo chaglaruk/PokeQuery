@@ -43,6 +43,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -329,10 +331,10 @@ fun <T> PqSegmentedControl(
 @Composable
 fun PqRiskBadge(riskLevel: RiskLevel) {
     val (bg, fg, label) = when (riskLevel) {
-        RiskLevel.High -> Triple(CoralDanger.copy(alpha = 0.18f), CoralDanger, "HIGH")
-        RiskLevel.Medium -> Triple(GoldCaution.copy(alpha = 0.18f), GoldCaution, "MEDIUM")
-        RiskLevel.Low -> Triple(GreenVerified.copy(alpha = 0.18f), GreenVerified, "LOW")
-        RiskLevel.Info -> Triple(TealPrimary.copy(alpha = 0.18f), TealPrimary, "INFO")
+        RiskLevel.High -> Triple(CoralDanger.copy(alpha = 0.18f), CoralDanger, androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_high))
+        RiskLevel.Medium -> Triple(GoldCaution.copy(alpha = 0.18f), GoldCaution, androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_medium))
+        RiskLevel.Low -> Triple(GreenVerified.copy(alpha = 0.18f), GreenVerified, androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_low))
+        RiskLevel.Info -> Triple(TealPrimary.copy(alpha = 0.18f), TealPrimary, androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_info))
     }
     PqBadge(label, fg, bg)
 }
@@ -411,62 +413,16 @@ fun PqStringBox(text: String, accent: Color = TealPrimary, modifier: Modifier = 
 @Composable
 fun PqWordmark(
     modifier: Modifier = Modifier,
-    fontSize: androidx.compose.ui.unit.TextUnit = 30.sp,
+    width: androidx.compose.ui.unit.Dp = 260.dp,
     centered: Boolean = false
 ) {
-    val outlineColor = Color(0xFF0D0D1A)
-    val shadowColor = Color(0xFF0A0A1A)
-    val outlineW = (fontSize.value * 0.08f).dp
-    val shadowOff = (fontSize.value * 0.07f).dp
-    val sparkSz = (fontSize.value * 0.35f).dp
-
-    val wordStyle = TextStyle(
-        fontWeight = FontWeight.Black,
-        fontSize = fontSize,
-        letterSpacing = (-0.3).sp
-    )
-
     val content: @Composable () -> Unit = {
-        Box {
-            // 3D shadow layer
-            Row(Modifier.offset(shadowOff, shadowOff)) {
-                Text("PokeQuery", color = shadowColor, style = wordStyle)
-            }
-            // Outline layers (8 directions)
-            Row(Modifier.offset(outlineW, 0.dp)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
-            Row(Modifier.offset(-outlineW, 0.dp)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
-            Row(Modifier.offset(0.dp, outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
-            Row(Modifier.offset(0.dp, -outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
-            Row(Modifier.offset(outlineW, outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
-            Row(Modifier.offset(-outlineW, -outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
-            Row(Modifier.offset(outlineW, -outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
-            Row(Modifier.offset(-outlineW, outlineW)) { Text("PokeQuery", color = outlineColor, style = wordStyle) }
-            // Fill + sparkle layer
-            Row {
-                Text("Poke", color = Color.White, style = wordStyle)
-                Box {
-                    Text("Query", color = TealPrimary, style = wordStyle)
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = null,
-                        tint = CyanGlow,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = 2.dp, y = (-6).dp)
-                            .size(sparkSz)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = null,
-                        tint = CyanGlow.copy(alpha = 0.5f),
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = (-6).dp, y = (-2).dp)
-                            .size(sparkSz * 0.55f)
-                    )
-                }
-            }
-        }
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(com.caglar.pokequery.R.drawable.pokequery_wordmark),
+            contentDescription = "PokeQuery Logo",
+            modifier = Modifier.width(width).graphicsLayer { blendMode = BlendMode.Screen },
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit
+        )
     }
 
     if (centered) {
@@ -562,7 +518,7 @@ fun PqComingLaterCard(title: String, description: String) {
             Text(title, color = TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             Text(description, color = TextTertiary, fontSize = 11.sp)
         }
-        PqBadge("Coming later", TextTertiary)
+        PqBadge(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_online_events_later), TextTertiary)
     }
 }
 
@@ -571,8 +527,9 @@ fun PqComingLaterCard(title: String, description: String) {
 @Composable
 fun PqManualReviewPanel(
     modifier: Modifier = Modifier,
-    text: String = "This is a review aid only. Always inspect matches in Pokémon GO before transferring or trading."
+    text: String? = null
 ) {
+    val actualText = text ?: androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.manual_review_panel_text)
     val shape = RoundedCornerShape(14.dp)
     Row(
         modifier.fillMaxWidth().clip(shape).background(GoldCaution.copy(alpha = 0.08f))
@@ -581,6 +538,6 @@ fun PqManualReviewPanel(
     ) {
         Box(Modifier.size(6.dp).background(GoldCaution, CircleShape).padding(top = 2.dp))
         Spacer(Modifier.width(10.dp))
-        Text(text, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+        Text(actualText, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
     }
 }

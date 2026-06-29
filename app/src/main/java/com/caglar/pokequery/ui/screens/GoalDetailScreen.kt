@@ -129,6 +129,33 @@ fun GoalDetailScreen(
         RiskExplanations.forGoal(generatedString.goalId, generatedString.riskLevel)
     }
 
+    val localizedTitle = when(generatedString.goalId) {
+        "safe_cleanup" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_safe_cleanup)
+        "candy_prep" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_candy_prep)
+        "trade_fodder" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_trade_fodder)
+        "hundo_check" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_hundo_check)
+        "nundo_finder" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_nundo_finder)
+        "pvp_candidates" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_pvp_candidates)
+        "lucky_trade" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_lucky_trade)
+        "untagged" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_untagged_cleanup)
+        "expert" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_custom_search)
+        else -> generatedString.title
+    }
+
+    val localizedExplanation = when(generatedString.goalId) {
+        "safe_cleanup" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_safe_cleanup)
+        "candy_prep" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_candy_prep)
+        "trade_fodder" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_trade_fodder)
+        "hundo_check" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_hundo_check)
+        "nundo_finder" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_nundo_finder)
+        "pvp_candidates" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_pvp_candidates)
+        "lucky_trade" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_lucky_trade)
+        "untagged" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_untagged_cleanup)
+        "expert" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_exp_expert)
+        else -> generatedString.plainLanguageExplanation
+    }
+
+
     // v0.5.5 (Fix 1): Visual Density drives the section rhythm on this screen. The distinct
     // blocks (RESULT, REFINE, PROTECTED, NOTES, DETAILS) are separated by `sectionGap`; the
     // gaps between elements inside the RESULT card (badge→string→copy) use `innerElementGap`.
@@ -151,11 +178,23 @@ fun GoalDetailScreen(
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
                 }
-                Text(generatedString.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.weight(1f))
+                val localizedTitle = when(generatedString.goalId) {
+                    "safe_cleanup" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_safe_cleanup)
+                    "candy_prep" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_candy_prep)
+                    "trade_fodder" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_trade_fodder)
+                    "hundo_check" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_hundo_check)
+                    "nundo_finder" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_nundo_finder)
+                    "pvp_candidates" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_pvp_candidates)
+                    "lucky_trade" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_lucky_trade)
+                    "untagged" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_untagged_cleanup)
+                    "expert" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_custom_search)
+                    else -> generatedString.title
+                }
+                Text(localizedTitle, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.weight(1f))
                 IconButton(onClick = {
                     if (favorite == null) {
                         scope.launch { repository.addFavorite(SavedTemplate.from(generatedString)) }
-                        Toast.makeText(context, "Saved to favorites", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(com.caglar.pokequery.R.string.goal_detail_saved_fav), Toast.LENGTH_SHORT).show()
                     } else {
                         scope.launch { repository.removeFavorite(favorite.id) }
                     }
@@ -171,24 +210,24 @@ fun GoalDetailScreen(
             Spacer(Modifier.height(density.sectionGap))
 
             // RESULT block: risk badge + string hero + copy CTA.
-            PqSectionHeader("RESULT", Modifier.pqStaggeredItem(visible, 1))
+            PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_result), Modifier.pqStaggeredItem(visible, 1))
             PqGlowCard(modifier = Modifier.pqStaggeredItem(visible, 1)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(generatedString.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f))
+                    Text(localizedTitle, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp, modifier = Modifier.weight(1f))
                     PqRiskBadge(generatedString.riskLevel)
                 }
                 Spacer(Modifier.height(density.innerElementGap))
                 PqStringBox(generatedString.rawSyntax)
                 Spacer(Modifier.height(14.dp))
                 PqPrimaryButton(
-                    text = "Copy Search String",
+                    text = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_copy_search_string),
                     onClick = {
                         if (requiresRiskWarning(generatedString.riskLevel)) {
                             onNavigateRisk(generatedString)
                         } else {
                             clipboard.setText(AnnotatedString(generatedString.rawSyntax))
                             scope.launch { repository.addHistory(SavedTemplate.from(generatedString)) }
-                            Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(com.caglar.pokequery.R.string.goal_detail_copied), Toast.LENGTH_SHORT).show()
                         }
                     },
                     leadingIcon = Icons.Default.ContentCopy
@@ -210,7 +249,7 @@ fun GoalDetailScreen(
             }
 
             // REFINE block: options.
-            PqSectionHeader("REFINE", Modifier.pqStaggeredItem(visible, 2))
+            PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_refine), Modifier.pqStaggeredItem(visible, 2))
             PqCard(modifier = Modifier.pqStaggeredItem(visible, 2)) {
                 OptionsPanel(
                     goalId = goalId,
@@ -230,7 +269,7 @@ fun GoalDetailScreen(
             // Protected categories chips (when relevant).
             if (generatedString.protectedCategories.isNotEmpty()) {
                 Spacer(Modifier.height(density.sectionGap))
-                PqSectionHeader("PROTECTED", Modifier.pqStaggeredItem(visible, 4))
+                PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_protected), Modifier.pqStaggeredItem(visible, 4))
                 PqCard(modifier = Modifier.pqStaggeredItem(visible, 4)) {
                     Text(
                         generatedString.protectedCategories.joinToString("  ") { "!$it" },
@@ -242,22 +281,26 @@ fun GoalDetailScreen(
             // Warnings (goal-specific, e.g. count caveat).
             if (generatedString.warnings.isNotEmpty()) {
                 Spacer(Modifier.height(density.sectionGap))
-                PqSectionHeader("NOTES", Modifier.pqStaggeredItem(visible, 5))
+                PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_notes), Modifier.pqStaggeredItem(visible, 5))
                 PqCard(modifier = Modifier.pqStaggeredItem(visible, 5)) {
                     // v0.5.1 (Fix 4): explicit vertical spacing between note rows so the
                     // Trade Fodder card (count caveat + trade disclaimer) no longer overlaps.
-                    generatedString.warnings.forEachIndexed { index, warning ->
+                                        generatedString.warnings.forEachIndexed { index, warning ->
                         if (index > 0) Spacer(Modifier.height(density.innerElementGap))
-                        Text("• $warning", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+                        val locWarning = if (warning.contains("The '|' operator")) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.warning_operator_replaced)
+                        else if (warning.contains("Count is based on Pokédex")) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.warning_count_output)
+                        else if (warning.contains("Real trade eligibility depends")) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.warning_trade_disclaimer)
+                        else warning
+                        Text("• $locWarning", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
                     }
                 }
             }
 
             // DETAILS block: explanation.
             Spacer(Modifier.height(density.sectionGap))
-            PqSectionHeader("DETAILS", Modifier.pqStaggeredItem(visible, 6))
+            PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_details), Modifier.pqStaggeredItem(visible, 6))
             PqCard(modifier = Modifier.pqStaggeredItem(visible, 6)) {
-                Text(generatedString.plainLanguageExplanation, color = TextSecondary, fontSize = 13.sp, lineHeight = 19.sp)
+                Text(localizedExplanation, color = TextSecondary, fontSize = 13.sp, lineHeight = 19.sp)
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -275,8 +318,8 @@ private fun RiskExplanationCard(
     PqCard(modifier = modifier.clickable { expanded = !expanded }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Why this risk?", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                Text(explanation.shortReason, color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_why_risk), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(androidx.compose.ui.res.stringResource(explanation.shortReasonRes), color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
             }
             Icon(
                 if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -286,12 +329,12 @@ private fun RiskExplanationCard(
         }
         if (expanded) {
             Spacer(Modifier.height(density.innerElementGap))
-            Text(explanation.title, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            Text(androidx.compose.ui.res.stringResource(explanation.titleRes), color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             Spacer(Modifier.height(6.dp))
-            Text(explanation.detailedReason, color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
+            Text(androidx.compose.ui.res.stringResource(explanation.detailedReasonRes), color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
             Spacer(Modifier.height(8.dp))
-            explanation.safetyChecklist.take(3).forEach { item ->
-                Text("• $item", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
+            explanation.safetyChecklistRes.take(3).forEach { itemRes ->
+                Text("• ${androidx.compose.ui.res.stringResource(itemRes)}", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
             }
             if (explanation.relatedKnowledgeIds.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
@@ -322,19 +365,19 @@ private fun OptionsPanel(
 ) {
     when (goalId) {
         "safe_cleanup", "candy_prep", "trade_fodder", "untagged" -> {
-            if (goalId == "safe_cleanup") SwitchRow("Include 0★ candidates", "May include collector interest", include0Star, onInclude0Star)
-            SwitchRow("Exclude Shinies", "Protect from accidental transfer", excludeShiny, onExcludeShiny)
-            SwitchRow("Exclude Legendaries / Ultra Beasts", "", excludeLegendary, onExcludeLegendary)
-            SwitchRow("Exclude Costumes / Backgrounds", "", excludeCostume, onExcludeCostume)
-            SwitchRow("Exclude Favorites & Tags", "", excludeFavorite, onExcludeFavorite)
-            if (goalId != "trade_fodder") SwitchRow("Exclude Traded", "Already traded Pokémon cannot be traded again", excludeTraded, onExcludeTraded)
-            SwitchRow("Exclude Hundos (4★)", "", excludeHundos, onExcludeHundos)
-            if (goalId == "safe_cleanup" || goalId == "untagged") SwitchRow("Exclude Shadow / Purified", "", excludeShadow, onExcludeShadow)
+            if (goalId == "safe_cleanup") SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_include_0star), androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_collector_interest), include0Star, onInclude0Star)
+            SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_exclude_shinies), androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_protect_accidental), excludeShiny, onExcludeShiny)
+            SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_exclude_legendaries), "", excludeLegendary, onExcludeLegendary)
+            SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_exclude_costumes), "", excludeCostume, onExcludeCostume)
+            SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_exclude_favorites), "", excludeFavorite, onExcludeFavorite)
+            if (goalId != "trade_fodder") SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_exclude_traded), androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_traded_cannot), excludeTraded, onExcludeTraded)
+            SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_exclude_hundos), "", excludeHundos, onExcludeHundos)
+            if (goalId == "safe_cleanup" || goalId == "untagged") SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_exclude_shadow), "", excludeShadow, onExcludeShadow)
         }
         "pvp_candidates" -> {
             // v0.5.1 (Fix 5): Segmented control so each league shows its own concrete
             // search string. The selected league drives `config` -> StringBuilderEngine.
-            Text("Choose a league. The generated string updates instantly.", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_choose_league), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
             Spacer(Modifier.height(10.dp))
             com.caglar.pokequery.ui.pq.PqSegmentedControl(
                 options = listOf("great" to "Great League", "ultra" to "Ultra League"),
@@ -343,16 +386,16 @@ private fun OptionsPanel(
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                if (pvpLeague == "ultra") "Under 2500 CP" else "Under 1500 CP",
+                if (pvpLeague == "ultra") androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_under_2500) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_under_1500),
                 color = TealPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium
             )
         }
         "lucky_trade" -> {
-            RadioRow("Older candidates (Age > 365 days)", luckyMode == "age") { onLuckyMode("age") }
-            RadioRow("Distance candidates (> 100km)", luckyMode == "distance") { onLuckyMode("distance") }
-            SwitchRow("Must be untraded", "Cannot trade a traded Pokémon", excludeTraded, onExcludeTraded)
+            RadioRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_older_candidates), luckyMode == "age") { onLuckyMode("age") }
+            RadioRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_distance_candidates), luckyMode == "distance") { onLuckyMode("distance") }
+            SwitchRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_must_untraded), androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_cannot_trade), excludeTraded, onExcludeTraded)
         }
-        else -> Text("No configurable options for this goal.", color = TextSecondary, fontSize = 13.sp)
+        else -> Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_no_options), color = TextSecondary, fontSize = 13.sp)
     }
 }
 
