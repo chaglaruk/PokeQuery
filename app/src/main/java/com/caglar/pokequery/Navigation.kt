@@ -43,11 +43,23 @@ fun MainNavigation(startRoute: String? = null) {
 
     // v0.5.3 motion polish: provide the resolved reduced-motion state to the whole UI.
     ProvidePqMotion {
+    val copiedToClipboard = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_copied)
+    val assistantExplanation = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_generated_explanation)
 
     fun copyGenerated(generated: GeneratedString) {
         clipboard.setText(AnnotatedString(generated.rawSyntax))
         scope.launch { repository.addHistory(SavedTemplate.from(generated)) }
-        android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+        android.widget.Toast.makeText(context, copiedToClipboard, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    val safePop: () -> Unit = {
+        if (backStack.size > 1) {
+            backStack.removeLastOrNull()
+        } else if (backStack.lastOrNull() != Home) {
+            currentTab = "builder"
+            backStack.clear()
+            backStack.add(Home)
+        }
     }
 
     Scaffold(
@@ -70,7 +82,7 @@ fun MainNavigation(startRoute: String? = null) {
             // PqMotionTokens so the "reduce until premium" dial lives in one place.
             NavDisplay(
                 backStack = backStack,
-                onBack = { backStack.removeLastOrNull() },
+                onBack = { safePop() },
                 transitionSpec = { fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
                 popTransitionSpec = { fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
                 predictivePopTransitionSpec = { _ -> fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
@@ -84,14 +96,14 @@ fun MainNavigation(startRoute: String? = null) {
                         }
                     }
                     entry<Home> {
-                        HomeScreen { goalId -> 
+                        HomeScreen { goalId ->
                             backStack.add(homeGoalDestination(goalId))
                         }
                     }
                     entry<GoalDetail> { route ->
                         GoalDetailScreen(
                             goalId = route.goalId,
-                            onBack = { backStack.removeLastOrNull() },
+                            onBack = { safePop() },
                             onNavigateRisk = { generatedString ->
                                 backStack.add(RiskWarning(generatedString))
                             }
@@ -104,12 +116,12 @@ fun MainNavigation(startRoute: String? = null) {
                                 val generated = StringBuilderEngine.buildGoal("expert", customQuery = query, language = language)
                                 if (requiresRiskWarning(generated.riskLevel)) backStack.add(RiskWarning(generated)) else copyGenerated(generated)
                             },
-                            onBack = { backStack.removeLastOrNull() }
+                            onBack = { safePop() }
                         )
                     }
                     entry<Presets> {
                         PresetsScreen(
-                            onBack = { backStack.removeLastOrNull() },
+                            onBack = { safePop() },
                             onCopy = ::copyGenerated,
                             onNavigateRisk = { generatedString ->
                                 backStack.add(RiskWarning(generatedString))
@@ -119,7 +131,7 @@ fun MainNavigation(startRoute: String? = null) {
                     // v0.6.1: Personal Presets (local only). Risk gating preserved.
                     entry<MyPresets> {
                         MyPresetsScreen(
-                            onBack = { backStack.removeLastOrNull() },
+                            onBack = { safePop() },
                             onCopy = ::copyGenerated,
                             onNavigateRisk = { generatedString ->
                                 backStack.add(RiskWarning(generatedString))
@@ -128,25 +140,25 @@ fun MainNavigation(startRoute: String? = null) {
                     }
                     // v0.6.1: Practice Mode (fake inventory sandbox, conceptual only).
                     entry<PracticeMode> {
-                        PracticeModeScreen(onBack = { backStack.removeLastOrNull() })
+                        PracticeModeScreen(onBack = { safePop() })
                     }
                     // v0.6.1: Cleaning Journal (user-entered memory only, local).
                     entry<CleaningJournal> {
-                        CleaningJournalScreen(onBack = { backStack.removeLastOrNull() })
+                        CleaningJournalScreen(onBack = { safePop() })
                     }
-                    // v0.6.2: Event Context.
+                    // v0.6.8: Event Guide.
                     entry<EventContext> {
                         EventContextScreen(
-                            onBack = { backStack.removeLastOrNull() }
+                            onBack = { safePop() }
                         )
                     }
                     // v0.6.2: Safe NL search-string assistant.
                     entry<SearchAssistant> {
                         SearchAssistantScreen(
-                            onBack = { backStack.removeLastOrNull() },
+                            onBack = { safePop() },
                             onCopyRaw = { rawSyntax ->
                                 clipboard.setText(AnnotatedString(rawSyntax))
-                                scope.launch { repository.addHistory(com.caglar.pokequery.data.model.SavedTemplate.from(com.caglar.pokequery.data.model.GeneratedString(rawSyntax, "Search Assistant suggestion", emptyList(), emptyList(), com.caglar.pokequery.data.model.RiskLevel.Medium))) }
+                                scope.launch { repository.addHistory(com.caglar.pokequery.data.model.SavedTemplate.from(com.caglar.pokequery.data.model.GeneratedString(rawSyntax, assistantExplanation, emptyList(), emptyList(), com.caglar.pokequery.data.model.RiskLevel.Medium))) }
                             },
                             onExplain = { query ->
                                 backStack.add(ExplainRoute(query))
@@ -156,7 +168,7 @@ fun MainNavigation(startRoute: String? = null) {
                     // v0.6.2: Search String Explain mode.
                     entry<ExplainRoute> { route ->
                         ExplainScreen(
-                            onBack = { backStack.removeLastOrNull() },
+                            onBack = { safePop() },
                             initialQuery = route.query
                         )
                     }
@@ -169,7 +181,7 @@ fun MainNavigation(startRoute: String? = null) {
                                     copyGenerated(favorite.asGeneratedString())
                                 }
                             },
-                            onBack = { backStack.removeLastOrNull() }
+                            onBack = { safePop() }
                         )
                     }
                     entry<History> {
@@ -181,25 +193,25 @@ fun MainNavigation(startRoute: String? = null) {
                                     copyGenerated(history.asGeneratedString())
                                 }
                             },
-                            onBack = { backStack.removeLastOrNull() }
+                            onBack = { safePop() }
                         )
                     }
                     entry<Settings> {
                         SettingsScreen(
-                            onBack = { backStack.removeLastOrNull() },
+                            onBack = { safePop() },
                             onOpenChangelog = { backStack.add(ChangelogRoute) }
                         )
                     }
-                    entry<ChangelogRoute> { ChangelogScreen { backStack.removeLastOrNull() } }
-                    entry<KnowledgeBase> { route -> KnowledgeBaseScreen(startExpanded = route.startExpanded) { backStack.removeLastOrNull() } }
+                    entry<ChangelogRoute> { ChangelogScreen { safePop() } }
+                    entry<KnowledgeBase> { route -> KnowledgeBaseScreen(startExpanded = route.startExpanded) { safePop() } }
                     entry<RiskWarning> { route ->
                         RiskWarningScreen(
                             generatedString = route.generatedString,
                             onConfirmCopy = {
                                 copyGenerated(route.generatedString)
-                                backStack.removeLastOrNull()
+                                safePop()
                             },
-                            onBack = { backStack.removeLastOrNull() }
+                            onBack = { safePop() }
                         )
                     }
                 }

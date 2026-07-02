@@ -40,6 +40,11 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val CLIPBOARD_DETECTION_ENABLED = booleanPreferencesKey("clipboard_detection_enabled")
         // v0.6.2 polish: expand risk limitations by default.
         val LIMITATIONS_EXPANDED_BY_DEFAULT = booleanPreferencesKey("limitations_expanded_by_default")
+        val EVENT_GUIDE_UPDATES_ENABLED = booleanPreferencesKey("event_guide_updates_enabled")
+        val EVENT_GUIDE_REFRESH_ON_OPEN = booleanPreferencesKey("event_guide_refresh_on_open")
+        val EVENT_GUIDE_PREFER_SAVED_OFFLINE = booleanPreferencesKey("event_guide_prefer_saved_offline")
+        val EVENT_GUIDE_SHOW_PLANNING_HINTS = booleanPreferencesKey("event_guide_show_planning_hints")
+        val EXTRA_ACTION_SAFETY_WARNINGS = booleanPreferencesKey("extra_action_safety_warnings")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = dataStore.data.map { preferences ->
@@ -51,6 +56,11 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             appLanguage = preferences[APP_LANGUAGE] ?: "System Default",
             clipboardDetectionEnabled = preferences[CLIPBOARD_DETECTION_ENABLED] ?: true,
             limitationsExpandedByDefault = preferences[LIMITATIONS_EXPANDED_BY_DEFAULT] ?: false,
+            eventGuideUpdatesEnabled = preferences[EVENT_GUIDE_UPDATES_ENABLED] ?: true,
+            eventGuideRefreshOnOpen = preferences[EVENT_GUIDE_REFRESH_ON_OPEN] ?: true,
+            eventGuidePreferSavedOffline = preferences[EVENT_GUIDE_PREFER_SAVED_OFFLINE] ?: true,
+            eventGuideShowPlanningHints = preferences[EVENT_GUIDE_SHOW_PLANNING_HINTS] ?: true,
+            extraActionSafetyWarnings = preferences[EXTRA_ACTION_SAFETY_WARNINGS] ?: true,
             favorites = readFavorites(preferences).sortedByDescending { it.createdAt },
             history = readHistory(preferences).sortedByDescending { it.createdAt },
             personalPresets = readPersonalPresets(preferences).sortedByDescending { it.updatedAt },
@@ -72,6 +82,10 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setLimitationsExpandedByDefault(enabled: Boolean) {
         dataStore.edit { it[LIMITATIONS_EXPANDED_BY_DEFAULT] = enabled }
+    }
+
+    suspend fun setBooleanSetting(key: Preferences.Key<Boolean>, value: Boolean) {
+        dataStore.edit { it[key] = value }
     }
 
     suspend fun addFavorite(template: SavedTemplate) {
@@ -228,6 +242,11 @@ data class UserPreferences(
     val appLanguage: String = "System Default",
     val clipboardDetectionEnabled: Boolean = true,
     val limitationsExpandedByDefault: Boolean = false,
+    val eventGuideUpdatesEnabled: Boolean = true,
+    val eventGuideRefreshOnOpen: Boolean = true,
+    val eventGuidePreferSavedOffline: Boolean = true,
+    val eventGuideShowPlanningHints: Boolean = true,
+    val extraActionSafetyWarnings: Boolean = true,
     val favorites: List<SavedTemplate>,
     val history: List<SavedTemplate> = emptyList(),
     val personalPresets: List<PersonalPreset> = emptyList(),

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- v0.6.1 Quick Access widget layout. Original branding only; no copyrighted assets. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -15,7 +16,7 @@
         android:layout_marginEnd="12dp"
         android:contentDescription="@null"
         android:src="@drawable/ic_shortcut_safe_cleanup"
-        android:tint="#FFFFFFFF" />
+        app:tint="#FFFFFFFF" />
 
     <LinearLayout
         android:layout_width="0dp"

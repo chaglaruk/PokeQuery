@@ -74,21 +74,13 @@ class SearchTermMapperTest {
     }
 
     // -------------------------------------------------------------------------
-    // v0.5.5 safety hotfix — compound parser-sensitive PROTECTION tokens fall back to English.
-    //
-    // The multi-word Turkish candidates (background / locationbackground / specialbackground /
-    // ultrabeast) are unverified against a live Turkish client. A wrong multi-word form silently
-    // breaks a PROTECTION token — the kind that must work to keep a valuable Pokémon out of a
-    // cleanup/transfer/trade list. So generated Turkish strings keep these tokens in English,
-    // exactly like `count` already does. Candidate forms stay visible in the KB/registry for
-    // verification, not as emitted tokens.
+    // Official Help Center-backed tokens translate; unsafe or unverified tokens fall back.
     // -------------------------------------------------------------------------
 
     @Test
-    fun `Turkish count cleanup keeps compound protection tokens in English fallback`() {
+    fun `Turkish count cleanup translates only officially verified safe tokens`() {
         // A Safe Cleanup / count-cleanup string builds the base in English (with mandatory
-        // protections incl. the background variants + !traded), then translates. The compound
-        // parser-sensitive protections MUST stay English; only verified-ish tokens translate.
+        // protections incl. the background variants + !traded), then translates.
         val base = "count2-&!shiny&!lucky&!legendary&!mythical&!shadow&!purified&!favorite&" +
             "!traded&!costume&!ultrabeast&!background&!locationbackground&!specialbackground&!#&!4*"
         val result = SearchTermMapper.translateSyntax(base, "Turkish")
@@ -97,64 +89,44 @@ class SearchTermMapperTest {
         assertTrue("count must stay English (fallback): $result", result.contains("count2-"))
         assertFalse("must not emit 'toplam': $result", result.contains("toplam"))
 
-        // !traded invariant stays present (Turkish: takaslanan is a BETA single-word candidate).
-        assertTrue("!traded invariant (takaslanan) must remain: $result", result.contains("!takaslanan"))
+        // Multi-word/uncertain safety terms stay English.
+        assertTrue("!traded must stay English fallback: $result", result.contains("!traded"))
+        assertTrue("!specialbackground must stay English fallback: $result", result.contains("!specialbackground"))
 
-        // The OTHER mapped tokens still translate (sanity that translation still runs).
-        assertTrue("shiny→parlak expected: $result", result.contains("!parlak"))
-        assertTrue("legendary→efsanevi expected: $result", result.contains("!efsanevi"))
-
-        // The compound PARSER-SENSITIVE protections MUST stay English (fallback).
-        assertTrue("!ultrabeast must stay English (fallback): $result", result.contains("!ultrabeast"))
-        assertTrue("!background must stay English (fallback): $result", result.contains("!background"))
-        assertTrue("!locationbackground must stay English (fallback): $result", result.contains("!locationbackground"))
-        assertTrue("!specialbackground must stay English (fallback): $result", result.contains("!specialbackground"))
-
-        // And MUST NOT emit the unverified multi-word candidate forms.
-        assertFalse("must not emit 'ultra canavar' (unverified multi-word): $result", result.contains("ultra canavar"))
-        assertFalse("must not emit 'arka planlı' (unverified multi-word): $result", result.contains("arka planlı"))
-        assertFalse("must not emit 'konum arka planlı' (unverified multi-word): $result", result.contains("konum arka planlı"))
-        assertFalse("must not emit 'özel arka planlı' (unverified multi-word): $result", result.contains("özel arka planlı"))
+        // Official single-token Turkish terms translate.
+        assertTrue("shiny -> parlak expected: $result", result.contains("!parlak"))
+        assertTrue("legendary -> efsanevi expected: $result", result.contains("!efsanevi"))
+        assertTrue("costume -> kostüm expected: $result", result.contains("!kostüm"))
+        assertTrue("ultrabeast -> ultracanavar expected: $result", result.contains("!ultracanavar"))
+        assertTrue("background -> arkaplan expected: $result", result.contains("!arkaplan"))
+        assertTrue("locationbackground -> konumarkaplanı expected: $result", result.contains("!konumarkaplanı"))
     }
 
     @Test
-    fun `Turkish safe cleanup string keeps valuable-item exclusions in English fallback`() {
+    fun `Turkish safe cleanup string keeps only unverified valuable-item exclusions in English fallback`() {
         // safe_cleanup base = "1*" + DEFAULT_PROTECTIONS, which include the background variants.
         val base = "1*&!shiny&!legendary&!mythical&!ultrabeast&!costume&!background&" +
             "!locationbackground&!specialbackground&!shadow&!purified&!favorite&!lucky&!#&!traded&!4*"
         val result = SearchTermMapper.translateSyntax(base, "Turkish")
 
-        // Compound valuable-item exclusions stay English (fallback) — not the multi-word candidates.
-        assertTrue("!ultrabeast stays English: $result", result.contains("!ultrabeast"))
-        assertTrue("!background stays English: $result", result.contains("!background"))
-        assertTrue("!locationbackground stays English: $result", result.contains("!locationbackground"))
         assertTrue("!specialbackground stays English: $result", result.contains("!specialbackground"))
-        assertFalse("no 'arka planlı' candidate in generated string: $result", result.contains("arka planlı"))
-        assertFalse("no 'ultra canavar' candidate in generated string: $result", result.contains("ultra canavar"))
+        assertTrue("!traded stays English: $result", result.contains("!traded"))
 
-        // The rest still translates (the cleanup is visibly Turkish beta, not silently English).
-        assertTrue("shiny→parlak expected: $result", result.contains("!parlak"))
-        assertTrue("costume→kostümlü expected: $result", result.contains("!kostümlü"))
+        // The rest still translates using official single-token forms.
+        assertTrue("shiny -> parlak expected: $result", result.contains("!parlak"))
+        assertTrue("costume -> kostüm expected: $result", result.contains("!kostüm"))
+        assertTrue("background -> arkaplan expected: $result", result.contains("!arkaplan"))
     }
 
     @Test
-    fun `Turkish generated string never outputs unverified multi-word protection tokens`() {
-        // Exhaustive guard: NONE of the unverified multi-word candidate forms may appear in any
-        // translated output, regardless of which English protection token produced them.
-        val candidateForms = listOf("arka planlı", "konum arka planlı", "özel arka planlı", "ultra canavar")
-        val bases = listOf(
-            "count2-&!ultrabeast&!background&!locationbackground&!specialbackground",
-            "1*&!ultrabeast&!background&!locationbackground&!specialbackground",
-            "age365-&!ultrabeast&!background&!locationbackground&!specialbackground"
-        )
-        bases.forEach { base ->
-            val result = SearchTermMapper.translateSyntax(base, "Turkish")
-            candidateForms.forEach { candidate ->
-                assertFalse(
-                    "Unverified multi-word candidate '$candidate' must NEVER be emitted (base=$base, result=$result)",
-                    result.contains(candidate)
-                )
-            }
-        }
+    fun `operators remain canonical while tokens translate`() {
+        val result = SearchTermMapper.translateSyntax("shiny,!legendary&cp1500-", "Turkish")
+        assertEquals("parlak,!efsanevi&dg1500-", result)
+    }
+
+    @Test
+    fun `unverified tokens are reported for localized output`() {
+        val unverified = SearchTermMapper.findUnverifiedTokens("count2-&!traded&!specialbackground", "Turkish")
+        assertEquals(listOf("count", "traded", "specialbackground"), unverified)
     }
 }

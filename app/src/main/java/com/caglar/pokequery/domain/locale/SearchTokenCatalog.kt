@@ -7,7 +7,7 @@ package com.caglar.pokequery.domain.locale
  * and are NOT emitted in generated search strings unless the user explicitly opts into
  * Turkish output via Settings → Search & Language.
  *
- * TODO(v0.7): remaining Turkish localization work
+ * v0.7 verification backlog: remaining Turkish localization work
  *   1. Verify `count` candidates (toplam/sayı/sayısı) against a live Turkish Pokémon GO client
  *   2. Verify compound protection tokens (background, locationbackground, specialbackground, ultrabeast)
  *   3. Live-verify all BETA tokens: parlak, efsanevi, gölge, favori, şanslı, takaslanan, kostümlü,

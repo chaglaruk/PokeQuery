@@ -1,7 +1,7 @@
 package com.caglar.pokequery.domain.locale
 
 /**
- * TODO(v0.7): remaining Turkish localization work
+ * v0.7 verification backlog: remaining Turkish localization work
  *   1. Verify `count` candidates (toplam/sayı/sayısı) against a live Turkish client
  *   2. Verify compound protection tokens (background, locationbackground, specialbackground, ultrabeast)
  *   3. Live-verify all BETA tokens

@@ -14,7 +14,7 @@ import org.junit.Test
  *
  * Locks down the product safety guarantees:
  *  - App Language and Search String Language are independent.
- *  - Auto (Safe) never resolves to Turkish.
+ *  - Auto resolves from a supported device locale, otherwise English.
  *  - Turkish is emitted only when explicitly chosen for search strings.
  */
 class LocalizationModelTest {
@@ -22,24 +22,26 @@ class LocalizationModelTest {
     // ---- Layer B: Search String Language ----
 
     @Test
-    fun `auto safe resolves to english never turkish`() {
-        assertEquals("English", SearchStringLanguage.resolve("Auto"))
+    fun `auto safe follows verified device locale`() {
+        assertEquals("English", SearchStringLanguage.resolve("Auto", deviceLocale = Locale("en")))
+        assertEquals("Turkish", SearchStringLanguage.resolve("Auto", deviceLocale = Locale("tr")))
+        assertEquals("German", SearchStringLanguage.resolve("Auto", deviceLocale = Locale("de")))
         assertTrue(SearchStringLanguage.autoSafeNeverBecomesTurkish())
     }
 
     @Test
     fun `blank auto and null search language fall back to english not turkish`() {
         // The core safety guarantee: the safe/default paths never resolve to Turkish.
-        assertEquals("English", SearchStringLanguage.resolve(null))
-        assertEquals("English", SearchStringLanguage.resolve(""))
-        assertEquals("English", SearchStringLanguage.resolve("   "))
-        assertEquals("English", SearchStringLanguage.resolve("Auto"))
+        assertEquals("English", SearchStringLanguage.resolve(null, deviceLocale = Locale("ja")))
+        assertEquals("English", SearchStringLanguage.resolve("", deviceLocale = Locale("ja")))
+        assertEquals("English", SearchStringLanguage.resolve("   ", deviceLocale = Locale("ja")))
+        assertEquals("English", SearchStringLanguage.resolve("Auto", deviceLocale = Locale("ja")))
         // Unknown non-blank values are passed through by the mapper (existing behavior), but
         // they must NEVER resolve to Turkish — that is the invariant that matters.
-        assertFalse(SearchStringLanguage.resolvesToTurkish(null))
-        assertFalse(SearchStringLanguage.resolvesToTurkish(""))
-        assertFalse(SearchStringLanguage.resolvesToTurkish("Auto"))
-        assertFalse(SearchStringLanguage.resolvesToTurkish("spaghetti"))
+        assertFalse(SearchStringLanguage.resolvesToTurkish(null, deviceLocale = Locale("ja")))
+        assertFalse(SearchStringLanguage.resolvesToTurkish("", deviceLocale = Locale("ja")))
+        assertFalse(SearchStringLanguage.resolvesToTurkish("Auto", deviceLocale = Locale("ja")))
+        assertFalse(SearchStringLanguage.resolvesToTurkish("spaghetti", deviceLocale = Locale("ja")))
     }
 
     @Test
@@ -63,10 +65,7 @@ class LocalizationModelTest {
     @Test
     fun `app language turkish does not force search strings to turkish`() {
         // Turkish UI + Auto search → search must stay English (safe).
-        val resolved = LocalizationModel.resolveSearchStringLanguageIndependentOf(
-            searchStringLengthPref = "Auto",
-            appLanguagePref = "Turkish"
-        )
+        val resolved = SearchStringLanguage.resolve("Auto", appLanguage = "Turkish", deviceLocale = Locale("en"))
         assertEquals("English", resolved)
     }
 
@@ -82,9 +81,9 @@ class LocalizationModelTest {
 
     @Test
     fun `changing app language has zero effect on resolved search language`() {
-        val autoWithEnglishUi = LocalizationModel.resolveSearchStringLanguageIndependentOf("Auto", "English")
-        val autoWithTurkishUi = LocalizationModel.resolveSearchStringLanguageIndependentOf("Auto", "Turkish")
-        val autoWithSystemUi = LocalizationModel.resolveSearchStringLanguageIndependentOf("Auto", "System Default")
+        val autoWithEnglishUi = SearchStringLanguage.resolve("Auto", "English", Locale("en"))
+        val autoWithTurkishUi = SearchStringLanguage.resolve("Auto", "Turkish", Locale("en"))
+        val autoWithSystemUi = SearchStringLanguage.resolve("Auto", "System Default", Locale("en"))
         assertEquals(autoWithEnglishUi, autoWithTurkishUi)
         assertEquals(autoWithEnglishUi, autoWithSystemUi)
         assertEquals("English", autoWithEnglishUi)
@@ -108,6 +107,19 @@ class LocalizationModelTest {
         assertEquals("tr", AppLocaleController.localeTagFor("Türkçe"))
         assertEquals(null, AppLocaleController.localeTagFor("System Default"))
         assertEquals(null, AppLocaleController.localeTagFor("unknown"))
+    }
+
+    @Test
+    fun `system default resolves to supported device locale or english`() {
+        assertEquals("tr", AppLocaleController.resolvedLocaleTagFor("System Default", Locale("tr")))
+        assertEquals("de", AppLocaleController.resolvedLocaleTagFor("System Default", Locale("de")))
+        assertEquals("en", AppLocaleController.resolvedLocaleTagFor("System Default", Locale("ja")))
+    }
+
+    @Test
+    fun `manual app language overrides device locale`() {
+        assertEquals("en", AppLocaleController.resolvedLocaleTagFor("English", Locale("tr")))
+        assertEquals("tr", AppLocaleController.resolvedLocaleTagFor("Türkçe", Locale("en")))
     }
 
     // ---- v0.5.2.1 hotfix: recreation-free, in-process locale apply ----
@@ -138,20 +150,18 @@ class LocalizationModelTest {
     }
 
     @Test
-    fun `applyProcessLocale is idempotent and System Default is a no-op`() {
-        // System Default must not fight the device locale, and applying the same locale twice
-        // must be stable (no loop). We capture the current default, set "en" twice, then
-        // restore — the key assertion is the call returns normally both times with the same
-        // resulting locale.
+    fun `applyProcessLocale is idempotent and System Default restores startup locale`() {
         val before = Locale.getDefault()
         try {
-            // System Default (null/blank) must not change the current locale at all.
+            AppLocaleController.applyProcessLocale("tr")
+            assertEquals("tr", Locale.getDefault().language)
             AppLocaleController.applyProcessLocale(null)
             assertEquals(before, Locale.getDefault())
+            AppLocaleController.applyProcessLocale("tr")
+            assertEquals("tr", Locale.getDefault().language)
             AppLocaleController.applyProcessLocale("")
             assertEquals(before, Locale.getDefault())
 
-            // English twice is stable and equal.
             AppLocaleController.applyProcessLocale("en")
             val first = Locale.getDefault()
             AppLocaleController.applyProcessLocale("en")
@@ -179,5 +189,86 @@ class LocalizationModelTest {
         } finally {
             Locale.setDefault(before)
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // v0.6.8 — Search String Language: explicit per-language + Match App Language.
+    //
+    // Phase 4 expanded the vocabulary beyond Auto/English/Turkish to also offer German,
+    // Spanish, French and Italian as direct choices, plus "Match App Language" (which
+    // derives the output language from the App Language layer while keeping the two layers
+    // independent at the preference level). These tests lock the token-generation language
+    // resolution for the new options, including the safety guarantee that the safe paths
+    // still resolve to English and never silently to Turkish.
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `each explicit search string language resolves to itself`() {
+        // Direct selections are passed through verbatim — the user gets the language they pick.
+        assertEquals("English", SearchStringLanguage.resolve("English"))
+        assertEquals("German", SearchStringLanguage.resolve("German"))
+        assertEquals("Spanish", SearchStringLanguage.resolve("Spanish"))
+        assertEquals("French", SearchStringLanguage.resolve("French"))
+        assertEquals("Italian", SearchStringLanguage.resolve("Italian"))
+        assertEquals("Turkish", SearchStringLanguage.resolve("Turkish"))
+    }
+
+    @Test
+    fun `match app language follows an explicit app language for each supported language`() {
+        // Match App Language must derive the output from the App Language layer, mapping the
+        // display labels used by AppLocaleController.OPTIONS onto SearchStringLanguage values.
+        assertEquals("English", SearchStringLanguage.resolve("Match App Language", AppLocaleController.ENGLISH))
+        assertEquals("German", SearchStringLanguage.resolve("Match App Language", AppLocaleController.DEUTSCH))
+        assertEquals("Spanish", SearchStringLanguage.resolve("Match App Language", AppLocaleController.ESPANOL))
+        assertEquals("French", SearchStringLanguage.resolve("Match App Language", AppLocaleController.FRANCAIS))
+        assertEquals("Italian", SearchStringLanguage.resolve("Match App Language", AppLocaleController.ITALIANO))
+        assertEquals("Turkish", SearchStringLanguage.resolve("Match App Language", AppLocaleController.TURKISH))
+    }
+
+    @Test
+    fun `match app language with system default follows the device locale`() {
+        // When App Language is "System Default", Match App Language follows the supported
+        // device locale, with English as the fallback for unsupported locales.
+        for ((tag, expected) in listOf(
+            "de" to "German",
+            "es" to "Spanish",
+            "fr" to "French",
+            "it" to "Italian",
+            "tr" to "Turkish",
+            "en" to "English",
+            "ja" to "English" // unsupported -> English safe default
+        )) {
+            assertEquals(
+                "System Default + device '$tag' should resolve to '$expected'",
+                expected,
+                SearchStringLanguage.resolve("Match App Language", "System Default", Locale(tag))
+            )
+        }
+    }
+
+    @Test
+    fun `match app language never silently becomes turkish on a non-turkish device`() {
+        // Even under Match App Language the safe invariant holds: a device that is not Turkish
+        // (here, English) must never resolve to Turkish output.
+        assertFalse(SearchStringLanguage.resolvesToTurkish("Match App Language", "System Default", Locale("en")))
+        assertFalse(SearchStringLanguage.resolvesToTurkish("Match App Language", "English", Locale("en")))
+    }
+
+    @Test
+    fun `search string language options include the new languages and match app`() {
+        // Vocabulary completeness — the selector must surface all of these, in display order.
+        assertEquals(
+            listOf(
+                SearchStringLanguage.AUTO_SAFE,
+                SearchStringLanguage.MATCH_APP,
+                SearchStringLanguage.ENGLISH,
+                SearchStringLanguage.GERMAN,
+                SearchStringLanguage.SPANISH,
+                SearchStringLanguage.FRENCH,
+                SearchStringLanguage.ITALIAN,
+                SearchStringLanguage.TURKISH
+            ),
+            SearchStringLanguage.OPTIONS
+        )
     }
 }

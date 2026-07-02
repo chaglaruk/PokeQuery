@@ -13,11 +13,10 @@ import java.io.File
  * They parse the source AndroidManifest.xml that all variants merge from, so they run as
  * plain unit tests (no device, no merged-manifest dependency).
  *
- * v0.6.2 (offline-only): the optional event feed was removed and PokeQuery is fully offline.
- * The manifest must declare NO permissions at all — not even INTERNET. Event context is manual.
+ * v0.6.8: Event Guide may fetch a public JSON feed. INTERNET is the only allowed permission.
  *
- * If a future change adds any permission (location / storage / camera / mic / contacts /
- * INTERNET), or changes the applicationId, or weakens backup policy, these fail loudly.
+ * If a future change adds any other permission (location / storage / camera / mic / contacts),
+ * changes the applicationId, or weakens backup policy, these fail loudly.
  */
 class ManifestPrivacyRegressionTest {
 
@@ -32,29 +31,15 @@ class ManifestPrivacyRegressionTest {
     }
 
     @Test
-    fun `no permissions are declared`() {
-        // Offline-only: the manifest must declare zero <uses-permission> elements. No INTERNET,
-        // no location, no storage — nothing.
-        val permissionCount = Regex("""<uses-permission""", RegexOption.IGNORE_CASE).findAll(manifest).count()
-        assertEquals(
-            "Expected ZERO <uses-permission> elements (offline-only), found $permissionCount",
-            0, permissionCount
-        )
-    }
-
-    @Test
-    fun `no INTERNET permission is declared`() {
-        // Offline-only contract: no network access is ever requested.
-        assertFalse(
-            "INTERNET permission must NOT be declared (offline-only app)",
-            manifest.contains("android.permission.INTERNET", ignoreCase = true)
-        )
+    fun `only INTERNET permission is declared`() {
+        val permissions = Regex("""android\.permission\.(\w+)""", RegexOption.IGNORE_CASE)
+            .findAll(manifest).map { it.groupValues[1] }.toSet()
+        assertEquals("Only INTERNET is allowed for the documented event feed", setOf("INTERNET"), permissions)
     }
 
     @Test
     fun `no dangerous location storage camera mic contacts or any other permissions`() {
         val forbidden = listOf(
-            "INTERNET",
             "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION",
             "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE",
             "CAMERA", "RECORD_AUDIO", "READ_CONTACTS", "WRITE_CONTACTS",
@@ -66,13 +51,9 @@ class ManifestPrivacyRegressionTest {
                 manifest.contains(perm, ignoreCase = true)
             )
         }
-        // Offline-only: no permissions whatsoever may be manifested.
         val manifested = Regex("""android\.permission\.(\w+)""", RegexOption.IGNORE_CASE)
             .findAll(manifest).map { it.groupValues[1] }.toSet()
-        assertTrue(
-            "No android.permission.* entries may appear (offline-only), found: $manifested",
-            manifested.isEmpty()
-        )
+        assertEquals("No permissions except INTERNET may appear", setOf("INTERNET"), manifested)
     }
 
     @Test

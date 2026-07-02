@@ -19,7 +19,7 @@ import com.caglar.pokequery.R
  * Safety contract (do not regress):
  *  - The widget NEVER writes to the clipboard. It opens the app, where Copy + RiskWarning apply
  *    exactly as they do from any other entry point.
- *  - No network, no INTERNET permission, no analytics, no background work, no periodic updates
+ *  - No widget network work, no analytics, no background work, no periodic updates
  *    (`updatePeriodMillis = 0`). There is nothing for onUpdate to fetch.
  *  - The widget is registered only via the Android app-widget contract (the system
  *    AppWidgetHost binds it); it is not a privileged entry point.

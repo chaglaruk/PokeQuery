@@ -9,7 +9,7 @@ object StringBuilderEngine {
         "shiny", "legendary", "mythical", "ultrabeast", "costume", "background", "locationbackground", "specialbackground",
         "shadow", "purified", "favorite", "lucky", "#", "traded", "4*"
     )
-    
+
     val COUNT_MANDATORY_PROTECTIONS = listOf(
         "shiny", "lucky", "legendary", "mythical", "shadow", "purified", "favorite", "traded", "costume",
         // v0.5.5 (Fix 6): count/duplicate-cleanup queries must also protect the valuable
@@ -29,10 +29,10 @@ object StringBuilderEngine {
         title: String = "Custom Search",
         language: String = "English"
     ): GeneratedString {
-        
+
         var query = baseQuery
         val generatedWarnings = mutableListOf<String>()
-        
+
         // Safety check: Never generate |
         if (query.contains("|")) {
             query = query.replace("|", ",")
@@ -54,10 +54,15 @@ object StringBuilderEngine {
             }
             generatedWarnings.add("Count output: Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.")
         }
-        
+
         // Trade warning check
         if (goalId == "trade_fodder") {
             generatedWarnings.add("Trade disclaimer: Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.")
+        }
+
+        val unverified = SearchTermMapper.findUnverifiedTokens(query, language)
+        if (unverified.isNotEmpty()) {
+            generatedWarnings.add("Some search terms are unverified and will fall back to English.")
         }
 
         val protectedCategories = (DEFAULT_PROTECTIONS + COUNT_MANDATORY_PROTECTIONS)

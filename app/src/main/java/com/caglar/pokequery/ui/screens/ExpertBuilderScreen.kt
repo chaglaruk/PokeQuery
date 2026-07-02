@@ -45,6 +45,7 @@ import com.caglar.pokequery.theme.GoldCaution
 import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
+import com.caglar.pokequery.ui.clearFocusOnTap
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqChip
 import com.caglar.pokequery.ui.pq.PqPrimaryButton
@@ -80,29 +81,29 @@ fun ExpertBuilderScreen(
     // copy button sit below the entrance fold and appear at rest (no cascade while scrolling).
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Column(
-        modifier = Modifier.fillMaxSize().background(BackgroundDark).verticalScroll(rememberScrollState()).padding(16.dp)
+        modifier = Modifier.fillMaxSize().background(BackgroundDark).clearFocusOnTap().verticalScroll(rememberScrollState()).padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().pqStaggeredItem(visible, 0)) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.common_back), tint = TextPrimary)
             }
-            Text("Expert Builder", color = TextPrimary, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.3).sp, fontSize = 22.sp, modifier = Modifier.weight(1f))
+            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_expert), color = TextPrimary, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.sp, fontSize = 22.sp, modifier = Modifier.weight(1f))
             TextButton(onClick = { advancedMode = !advancedMode; if (!advancedMode) rawOverride = "" }) {
                 Icon(Icons.Default.Code, contentDescription = null, tint = if (advancedMode) TealPrimary else TextSecondary, modifier = Modifier.padding(end = 6.dp))
-                Text(if (advancedMode) "Chips" else "Raw", color = if (advancedMode) TealPrimary else TextSecondary, fontWeight = FontWeight.Bold)
+                Text(if (advancedMode) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_chips) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_raw), color = if (advancedMode) TealPrimary else TextSecondary, fontWeight = FontWeight.Bold)
             }
         }
 
         Spacer(Modifier.height(16.dp))
 
         if (advancedMode) {
-            PqSectionHeader("RAW QUERY")
+            PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_raw_query))
             OutlinedTextField(
                 value = rawOverride,
                 onValueChange = { rawOverride = it },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(fontFamily = FontFamily.Monospace, color = TealPrimary, fontSize = 14.sp),
-                placeholder = { Text("e.g. 4*&!shiny", color = TextSecondary) }
+                placeholder = { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_placeholder), color = TextSecondary) }
             )
         } else {
             ExpertChipBuilder(
@@ -113,12 +114,12 @@ fun ExpertBuilderScreen(
 
         Spacer(Modifier.height(18.dp))
 
-        PqSectionHeader("LIVE PREVIEW", Modifier.pqStaggeredItem(visible, 1))
+        PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_live_preview), Modifier.pqStaggeredItem(visible, 1))
         PqStringBox(rawQuery.ifEmpty { "—" })
 
         if (warnings.isNotEmpty()) {
             Spacer(Modifier.height(14.dp))
-            PqSectionHeader("LINTER ASSISTANT")
+            PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_linter))
             val shape = RoundedCornerShape(14.dp)
             Column(
                 Modifier.fillMaxWidth().clip(shape).background(CardDark)
@@ -126,8 +127,12 @@ fun ExpertBuilderScreen(
                     .padding(14.dp)
             ) {
                 warnings.forEach { w ->
+                    val message = androidx.compose.ui.res.stringResource(
+                        if (w.isError) com.caglar.pokequery.R.string.expert_linter_error
+                        else com.caglar.pokequery.R.string.expert_linter_warning
+                    )
                     Text(
-                        "• ${w.message}",
+                        "• $message",
                         color = if (w.isError) CoralDanger else GoldCaution,
                         fontSize = 12.sp,
                         lineHeight = 17.sp,
@@ -136,10 +141,10 @@ fun ExpertBuilderScreen(
                 }
                 if (copyBlocked) {
                     Spacer(Modifier.height(6.dp))
-                    Text("Fix the errors above before copying.", color = CoralDanger, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_fix_errors), color = CoralDanger, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 } else if (hasAdvisoryOnly) {
                     Spacer(Modifier.height(6.dp))
-                    Text("Advisory only — copy stays enabled. Review matches before acting.", color = GoldCaution, fontWeight = FontWeight.Bold, fontSize = 12.sp, lineHeight = 16.sp)
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_advisory_only), color = GoldCaution, fontWeight = FontWeight.Bold, fontSize = 12.sp, lineHeight = 16.sp)
                 }
             }
         }
@@ -147,7 +152,7 @@ fun ExpertBuilderScreen(
         Spacer(Modifier.height(24.dp))
 
         PqPrimaryButton(
-            text = if (copyBlocked) "Fix errors to copy" else "Copy Custom String",
+            text = if (copyBlocked) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_fix_errors) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_copy_custom),
             onClick = { if (!copyBlocked) onGenerate(rawQuery) },
             enabled = !copyBlocked
         )
@@ -162,7 +167,7 @@ private fun ExpertChipBuilder(
     onModelChange: (ExpertQueryModel) -> Unit
 ) {
     // ----- INCLUDE: status / tags -----
-    PqSectionHeader("INCLUDE (STATUS / TAGS)")
+    PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_include_status))
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -180,7 +185,7 @@ private fun ExpertChipBuilder(
     Spacer(Modifier.height(16.dp))
 
     // ----- IV FILTERS -----
-    PqSectionHeader("IV FLOOR — ATTACK")
+    PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_iv_attack))
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -195,7 +200,7 @@ private fun ExpertChipBuilder(
         }
     }
     Spacer(Modifier.height(10.dp))
-    PqSectionHeader("IV FLOOR — DEFENSE")
+    PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_iv_defense))
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -210,7 +215,7 @@ private fun ExpertChipBuilder(
         }
     }
     Spacer(Modifier.height(10.dp))
-    PqSectionHeader("IV FLOOR — HP")
+    PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_iv_hp))
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -228,7 +233,7 @@ private fun ExpertChipBuilder(
     Spacer(Modifier.height(16.dp))
 
     // ----- COUNT / AGE / DISTANCE -----
-    PqSectionHeader("DUPLICATE COUNT")
+    PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_duplicate_count))
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -243,7 +248,7 @@ private fun ExpertChipBuilder(
         }
     }
     Spacer(Modifier.height(10.dp))
-    PqSectionHeader("AGE / DISTANCE")
+    PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_age_distance))
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -256,7 +261,7 @@ private fun ExpertChipBuilder(
     Spacer(Modifier.height(16.dp))
 
     // ----- EXCLUDE (PROTECT) -----
-    PqSectionHeader("EXCLUDE (PROTECT)")
+    PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_exclude_protect))
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),

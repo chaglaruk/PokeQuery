@@ -4,9 +4,13 @@ import androidx.annotation.StringRes
 
 data class EventContext(
     val id: String,
-    @StringRes val titleRes: Int,
+    @StringRes val titleRes: Int? = null,
+    val titleText: String? = null,
     val contextType: EventContextType,
-    @StringRes val noteRes: Int,
+    @StringRes val noteRes: Int? = null,
+    val noteText: String? = null,
+    val month: Int? = null,
+    val year: Int? = null,
     val isManual: Boolean = true
 )
 
@@ -27,17 +31,38 @@ object EventContextRepository {
     @StringRes
     fun disclaimerRes(): Int = com.caglar.pokequery.R.string.event_context_disclaimer
 
-    fun combined(
-        manualMonthly: MonthlyContext? = MonthlyContextRepository.current
-    ): ContextFeedState {
-        return ContextFeedState.OfflineOnly(manualMonthly)
-    }
+    fun combined(manualMonthly: MonthlyContext? = MonthlyContextRepository.current): ContextFeedState =
+        ContextFeedState.OfflineOnly(manualMonthly)
 }
 
 sealed class ContextFeedState {
     abstract val monthly: MonthlyContext?
+    abstract val events: List<EventContext>
 
     data class OfflineOnly(
-        override val monthly: MonthlyContext?
+        override val monthly: MonthlyContext?,
+        override val events: List<EventContext> = EventContextRepository.entries
+    ) : ContextFeedState()
+
+    data class Loading(
+        override val monthly: MonthlyContext? = MonthlyContextRepository.current,
+        override val events: List<EventContext> = EventContextRepository.entries
+    ) : ContextFeedState()
+
+    data class Online(
+        override val monthly: MonthlyContext?,
+        override val events: List<EventContext>,
+        val lastUpdated: String
+    ) : ContextFeedState()
+
+    data class StaleCache(
+        override val monthly: MonthlyContext?,
+        override val events: List<EventContext>,
+        val lastUpdated: String
+    ) : ContextFeedState()
+
+    data class Invalid(
+        override val monthly: MonthlyContext?,
+        override val events: List<EventContext> = EventContextRepository.entries
     ) : ContextFeedState()
 }

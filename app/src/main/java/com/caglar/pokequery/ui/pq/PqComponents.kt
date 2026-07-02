@@ -498,30 +498,6 @@ fun PqEmptyState(
     }
 }
 
-// ---------- Coming Later (disabled feature) ----------
-
-@Composable
-fun PqComingLaterCard(title: String, description: String) {
-    val shape = RoundedCornerShape(16.dp)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(CardDark.copy(alpha = 0.6f))
-            .border(1.dp, BorderSubtle, shape)
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Default.Lock, contentDescription = null, tint = TextTertiary, modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, color = TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-            Text(description, color = TextTertiary, fontSize = 11.sp)
-        }
-        PqBadge(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_online_events_later), TextTertiary)
-    }
-}
-
 // ---------- Manual review panel ----------
 
 @Composable

@@ -33,6 +33,7 @@ def check_runtime_assets():
         'safe_cleanup_header.webp',
         'trade_fodder_header.webp',
     }
+    intentional_raster_icons = set()
 
     suspicious_keywords = ['target', 'mockup', 'screenshot', 'contact', 'screen', 'crop', 'full']
 
@@ -53,7 +54,7 @@ def check_runtime_assets():
                 failed = True
 
         # Check icon properties (applies to both .png and .webp icons — not weakened by the conversion).
-        if "icon" in filename and filename != 'app_icon_source.webp' and filename != 'app_icon_source.png':
+        if "icon" in filename and filename != 'app_icon_source.webp' and filename != 'app_icon_source.png' and filename not in intentional_raster_icons:
             try:
                 img = Image.open(asset).convert("RGBA")
                 w, h = img.size

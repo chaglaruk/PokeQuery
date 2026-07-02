@@ -3,111 +3,201 @@ package com.caglar.pokequery.domain.engine
 object SearchTermMapper {
 
     // ---------------------------------------------------------------------------
-    // Turkish search-term map (BETA — verify before relying on these tokens).
+    // Official Help Center-backed search-term maps.
     //
-    // v0.4.2 safety patch (Fix 3, audit BUG-002/003): Turkish output is treated as
-    // BETA. The map below is community-sourced and NOT verified against the live
-    // Pokémon GO Turkish client. Per docs/research/turkish_localization_plan.md the
-    // spot-check matrix for these terms is still "Pending". Do not enable Auto→Turkish.
-    //
-    // v0.5.5 (Fix 4) — token truth is centralized and aligned across code/registry/KB/docs:
-    //   - count        : CONTESTED across sources ("toplam" in the old map, "sayı" in the
-    //                    localization plan, "sayısı" in the KB). It is also parser-sensitive
-    //                    numeric syntax (countN-). Until ONE candidate is confirmed live, we
-    //                    DO NOT translate it — the English `count` is emitted even in Turkish
-    //                    output (English fallback). Candidates remain in the verification
-    //                    matrix as hypotheses to test. See SearchTokenRegistry.countMeta.
-    //   - traded       : map uses "takaslanan"; KB description_tr "Takas edilmiş" (contested)
-    //   - mythical     : map "mistik" — verify
-    //   - purified     : map "arıtılmış" — verify
-    //   - hp           : "can" per explicit user requirement; KB notes variable localization
-    //
-    // v0.5.5 safety hotfix — compound parser-sensitive tokens fall back to English. The multi-word
-    // candidates (background / locationbackground / specialbackground / ultrabeast) are deliberately
-    // NOT mapped here. Their exact spacing/form is unverified against a live Turkish client, and a
-    // wrong multi-word form silently breaks a PROTECTION token — the kind of token that must work to
-    // keep a valuable Pokémon out of a cleanup/transfer/trade list. Until one candidate per token is
-    // confirmed live, generated protection strings emit the English token even in Turkish output
-    // (English fallback). Candidate forms remain visible in the Knowledge Base descriptions_tr and in
-    // SearchTokenRegistry.compoundCandidates as hypotheses to verify. This mirrors the existing
-    // `count` English-fallback policy.
+    // Source: Niantic Help Center FAQ 1486, locale paths en/de/es/fr/it/tr.
+    // Conservative rule: only map single parser-safe tokens visible in the official pages.
+    // `count`, `specialbackground`, and multi-word terms such as Turkish/Spanish traded stay English.
     // ---------------------------------------------------------------------------
     private val turkishMap = mapOf(
         "shiny" to "parlak",
         "legendary" to "efsanevi",
-        "mythical" to "mistik",
+        "mythical" to "mitolojik",
         "shadow" to "gölge",
-        "purified" to "arıtılmış",
+        "purified" to "arınmış",
         "favorite" to "favori",
         "lucky" to "şanslı",
-        "traded" to "takaslanan",
-        "costume" to "kostümlü",
-
-        // IV and Stats
+        "costume" to "kostüm",
         "attack" to "saldırı",
         "defense" to "savunma",
-        "hp" to "can",
-
-        // Distance and age terms sometimes localize, sometimes not.
-        // We map them just in case based on standard localized prefixes.
+        "hp" to "sp",
         "distance" to "mesafe",
-        "age" to "yaş"
-        // NOTE: "count" is deliberately NOT mapped. See the block comment above — the Turkish
-        // candidate is contested (toplam/sayı/sayısı) and the token is parser-sensitive numeric
-        // syntax, so the English "count" is emitted even in Turkish output until a candidate is
-        // confirmed live. SearchTokenRegistry.COUNT_CANDIDATES lists the hypotheses to test.
-        //
-        // NOTE: the compound parser-sensitive protection tokens ("background",
-        // "locationbackground", "specialbackground", "ultrabeast") are ALSO deliberately NOT
-        // mapped (v0.5.5 safety hotfix). Their multi-word Turkish candidates are unverified and a
-        // broken protection token is dangerous. They fall back to English in generated strings.
-        // Candidate forms are tracked in SearchTokenRegistry.compoundCandidates.
+        "age" to "yaş",
+        "year" to "yıl",
+        "evolve" to "evrim",
+        "dynamax" to "dinamaks",
+        "gigantamax" to "gigantamaks",
+        "fusion" to "füzyon",
+        "cp" to "dg",
+        "defender" to "savunucu",
+        "background" to "arkaplan",
+        "locationbackground" to "konumarkaplanı",
+        "ultrabeast" to "ultracanavar"
     )
+
+    private val germanMap = mapOf(
+        "shiny" to "schillernd",
+        "legendary" to "legendär",
+        "mythical" to "mysteriös",
+        "shadow" to "crypto",
+        "purified" to "erlöst",
+        "favorite" to "favorit",
+        "lucky" to "glücks",
+        "costume" to "kostümiert",
+        "attack" to "angriff",
+        "defense" to "verteidigung",
+        "hp" to "kp",
+        "distance" to "entfernung",
+        "age" to "alter",
+        "year" to "jahr",
+        "evolve" to "entwickeln",
+        "dynamax" to "dynamax",
+        "gigantamax" to "gigadynamax",
+        "fusion" to "fusion",
+        "cp" to "wp",
+        "defender" to "verteidiger",
+        "background" to "hintergrund",
+        "locationbackground" to "ortshintergrund",
+        "ultrabeast" to "ultrabestie"
+    )
+
+    private val spanishMap = mapOf(
+        "shiny" to "variocolor",
+        "legendary" to "legendario",
+        "mythical" to "singular",
+        "shadow" to "oscuro",
+        "purified" to "purificado",
+        "favorite" to "favorito",
+        "costume" to "disfraz",
+        "attack" to "ataque",
+        "defense" to "defensa",
+        "hp" to "ps",
+        "distance" to "distancia",
+        "age" to "edad",
+        "year" to "año",
+        "evolve" to "evolucionar",
+        "dynamax" to "dinamax",
+        "gigantamax" to "gigamax",
+        "fusion" to "fusión",
+        "cp" to "pc",
+        "defender" to "defensor",
+        "background" to "fondo",
+        "locationbackground" to "fondolugar",
+        "ultrabeast" to "ultraentes"
+    )
+
+    private val frenchMap = mapOf(
+        "shiny" to "chromatique",
+        "legendary" to "légendaire",
+        "mythical" to "fabuleux",
+        "shadow" to "obscur",
+        "purified" to "purifié",
+        "favorite" to "favoris",
+        "lucky" to "chanceux",
+        "costume" to "costume",
+        "attack" to "attaque",
+        "defense" to "défense",
+        "hp" to "pv",
+        "distance" to "distance",
+        "age" to "âge",
+        "year" to "année",
+        "evolve" to "évoluer",
+        "dynamax" to "dynamax",
+        "gigantamax" to "gigamax",
+        "fusion" to "fusion",
+        "cp" to "pc",
+        "defender" to "défenseur",
+        "background" to "fond",
+        "locationbackground" to "fondlieu",
+        "ultrabeast" to "ultra-chimère"
+    )
+
+    private val italianMap = mapOf(
+        "shiny" to "cromatico",
+        "legendary" to "leggendario",
+        "mythical" to "misterioso",
+        "shadow" to "ombra",
+        "purified" to "purificato",
+        "favorite" to "preferiti",
+        "lucky" to "fortunato",
+        "costume" to "costume",
+        "attack" to "attacco",
+        "defense" to "difesa",
+        "hp" to "ps",
+        "distance" to "distanza",
+        "age" to "età",
+        "year" to "anno",
+        "dynamax" to "dynamax",
+        "gigantamax" to "gigamax",
+        "fusion" to "fusione",
+        "cp" to "pl",
+        "defender" to "difensore",
+        "background" to "sfondo",
+        "locationbackground" to "sfondodiposizione",
+        "ultrabeast" to "ultracreatura"
+    )
+
+    private val knownTokenKeys = setOf(
+        "cp", "hp", "attack", "defense", "age", "distance", "year",
+        "shiny", "legendary", "mythical", "ultrabeast", "shadow", "purified",
+        "favorite", "lucky", "traded", "defender", "costume",
+        "background", "locationbackground", "specialbackground",
+        "mega", "evolve", "dynamax", "gigantamax", "fusion", "count"
+    )
+
+    fun getMapFor(language: String): Map<String, String> = when (language) {
+        "Turkish" -> turkishMap
+        "German" -> germanMap
+        "Spanish" -> spanishMap
+        "French" -> frenchMap
+        "Italian" -> italianMap
+        else -> emptyMap()
+    }
 
     /**
      * Resolves the effective output language from the stored setting.
-     *
-     * v0.4.2 (Fix 3): "Auto" and blank values resolve to the safe default (English),
-     * NOT to the device locale. Turkish is available only as an explicit manual choice
-     * because its tokens are unverified (BETA).
      */
     fun resolveLanguage(language: String): String =
         if (language.isBlank() || language.equals("Auto", ignoreCase = true)) "English" else language
 
     /**
      * Heuristic: does this generated string look like Turkish output?
-     * Used by the RiskWarning screen to show the Turkish-beta caution (Fix 3).
-     * Detects either any mapped Turkish value or distinct Turkish-only letters.
      */
     fun looksTurkish(rawSyntax: String): Boolean {
         if (rawSyntax.isBlank()) return false
         if (turkishMap.values.any { it.isNotBlank() && rawSyntax.contains(it, ignoreCase = true) }) return true
-        // Turkish-specific letters that never appear in English output.
         return rawSyntax.any { it.lowercaseChar() in setOf('ı', 'ş', 'ğ', 'İ', 'Ş', 'Ğ') }
+    }
+
+    /** Returns any unverified tokens present in the query for the given language. */
+    fun findUnverifiedTokens(query: String, language: String): List<String> {
+        val resolvedLanguage = resolveLanguage(language)
+        if (resolvedLanguage == "English" || query.isBlank()) return emptyList()
+        val map = getMapFor(resolvedLanguage)
+
+        // Find all tokens in the query
+        val tokens = query.split(Regex("[&!,;:|\\s]+"))
+            .map { it.replace(Regex("[0-9\\-*]"), "").trim() }
+            .filter { it.isNotEmpty() }
+
+        return tokens.filter { token -> token in knownTokenKeys && !map.containsKey(token) }.distinct()
     }
 
     fun translateSyntax(rawSyntax: String, language: String): String {
         val resolvedLanguage = resolveLanguage(language)
+        val map = getMapFor(resolvedLanguage)
 
-        if (resolvedLanguage != "Turkish" || rawSyntax.isBlank()) return rawSyntax
-
-        // Safe replacement to avoid substring clashing.
-        // Example: "count2-&!traded" -> "count2-&!takaslanan" (count stays English, fallback).
-        // "distance100-&!shiny" -> "mesafe100-&!parlak"
-        // Protection tokens NOT in the map (background, ultrabeast, ...) are left in English
-        // (English fallback) — see the v0.5.5 safety hotfix note above.
+        if (map.isEmpty() || rawSyntax.isBlank()) return rawSyntax
 
         var translated = rawSyntax
 
         // Sort keys by length descending so we match longest prefixes first.
-        val keys = turkishMap.keys.sortedByDescending { it.length }
+        val keys = map.keys.sortedByDescending { it.length }
 
         for (key in keys) {
-            val tr = turkishMap[key]!!
+            val tr = map[key]!!
 
             // Regex to match the key as a word/prefix (handles cases like distance100-)
-            // It matches the key if it's preceded by start of string, &, !, or ,
-            // and followed by end of string, number, &, or ,
             val regex = Regex("(?<=^|[&!,])($key)(?=[0-9\\-&,]|\$)")
             translated = regex.replace(translated, tr)
         }
