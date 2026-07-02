@@ -19,20 +19,20 @@ object Changelog {
             releaseLabel = "Phase 4",
             title = "Final Polish & Turkish Localization",
             highlights = listOf(
-                "Full Turkish UI localization (Event Context, Onboarding, Goal Detail, Home)",
+                "Full Turkish UI localization (Event Guide, Onboarding, Goal Detail, Home)",
                 "Search Assistant promoted to a primary Home card",
                 "Nundo Finder moved to More Tools",
-                "Offline manual event mode only — no live event data is fetched"
+                "Public Event Guide notes with cache and safe bundled fallback"
             ),
             safetyNotes = listOf(
-                "No INTERNET permission — offline event context is manually maintained",
+                "INTERNET is used only for public Event Guide notes with cache and safe fallback",
                 "No login, no tracking, no ads, no analytics",
                 "No Pokémon GO account access",
                 "Turkish search tokens remain beta — verify results in Pokémon GO"
             ),
             testerNotes = listOf(
                 "Verify Turkish localization applies to all visible UI",
-                "Check Event Context shows manual offline notes only",
+                "Check Event Guide refresh and fallback notes",
                 "Verify Search Assistant accepts Turkish input (e.g. 'parlak')"
             ),
             isCurrent = true
@@ -48,7 +48,7 @@ object Changelog {
                 "Practice Mode with fake inventory sandbox",
                 "Android App Shortcuts",
                 "Quick Access home screen widget",
-                "Offline manual event context"
+                "Offline manual Event Guide context"
             ),
             safetyNotes = listOf(
                 "No login, no tracking, no ads, no analytics",

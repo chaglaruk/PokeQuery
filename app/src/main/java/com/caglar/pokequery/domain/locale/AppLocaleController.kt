@@ -45,6 +45,7 @@ import java.util.Locale
  * process-locale set here makes them resolve correctly within the run.
  */
 object AppLocaleController {
+    private val startupDefaultLocale: Locale = Locale.getDefault()
 
     const val SYSTEM_DEFAULT = "System Default"
     const val ENGLISH = "English"
@@ -60,13 +61,27 @@ object AppLocaleController {
     /** Maps the stored preference label to a language tag, or null for System Default. */
     fun localeTagFor(appLanguage: String): String? = when (appLanguage.trim()) {
         ENGLISH -> "en"
-        TURKISH, "Turkish" -> "tr"
+        TURKISH, "Turkish", "Türkçe" -> "tr"
         DEUTSCH -> "de"
-        FRANCAIS -> "fr"
-        ESPANOL -> "es"
+        FRANCAIS, "Français" -> "fr"
+        ESPANOL, "Español" -> "es"
         ITALIANO -> "it"
         else -> null // System Default / unknown
     }
+
+    fun supportedTagFor(locale: Locale): String = when (locale.language.lowercase()) {
+        "tr" -> "tr"
+        "de" -> "de"
+        "es" -> "es"
+        "fr" -> "fr"
+        "it" -> "it"
+        else -> "en"
+    }
+
+    fun resolvedLocaleTagFor(appLanguage: String, deviceLocale: Locale = startupDefaultLocale): String =
+        localeTagFor(appLanguage) ?: supportedTagFor(deviceLocale)
+
+    fun deviceLocale(): Locale = startupDefaultLocale
 
     /**
      * Applies the App Language preference as an in-process, **recreation-free** locale hint.
@@ -77,19 +92,21 @@ object AppLocaleController {
      * implementation.
      */
     fun apply(context: Context, appLanguage: String) {
-        val tag = localeTagFor(appLanguage)
-        // Set the process locale (fallback)
-        applyProcessLocale(tag)
-
-
+        applyProcessLocale(resolvedLocaleTagFor(appLanguage))
     }
 
     fun applyProcessLocale(tag: String?) {
-        if (tag.isNullOrEmpty()) return
+        if (tag.isNullOrEmpty()) {
+            Locale.setDefault(startupDefaultLocale)
+            return
+        }
         val parts = tag.split("-")
         val locale = if (parts.size > 1) Locale(parts[0], parts[1]) else Locale(parts[0])
         Locale.setDefault(locale)
     }
+
+    fun localeFor(appLanguage: String): Locale =
+        Locale.forLanguageTag(resolvedLocaleTagFor(appLanguage))
 
     /**
      * Reads back the currently applied App Language label (System Default if unset).

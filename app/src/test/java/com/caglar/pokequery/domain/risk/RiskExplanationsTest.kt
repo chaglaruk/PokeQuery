@@ -19,7 +19,8 @@ class RiskExplanationsTest {
         "nundo_finder",
         "pvp_candidates",
         "lucky_trade",
-        "expert"
+        "expert",
+        "assistant"
     )
 
     @Test
@@ -76,5 +77,11 @@ class RiskExplanationsTest {
         assertEquals(RiskLevel.Info, StringBuilderEngine.buildGoal("nundo_finder").riskLevel)
         assertEquals(RiskLevel.Info, StringBuilderEngine.buildGoal("pvp_candidates").riskLevel)
         assertFalse(com.caglar.pokequery.requiresRiskWarning(StringBuilderEngine.buildGoal("hundo_check").riskLevel))
+    }
+
+    @Test
+    fun `unknown goal falls back to risk level explanation`() {
+        val explanation = RiskExplanations.forGoal("missing_goal", RiskLevel.Medium)
+        assertEquals("risk_medium_action_adjacent", explanation.id)
     }
 }

@@ -63,6 +63,7 @@ import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.ui.components.ScreenTitleBar
 import com.caglar.pokequery.ui.motion.PqStaggeredEntrance
+import com.caglar.pokequery.ui.clearFocusOnTap
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqCard
 import com.caglar.pokequery.ui.pq.PqPrimaryButton
@@ -92,7 +93,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
 
     PqStaggeredEntrance { visible ->
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
+        modifier = Modifier.fillMaxSize().background(BackgroundDark).clearFocusOnTap().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
@@ -256,7 +257,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                             onClick = {
                                 clipboard.setText(AnnotatedString(result.rawQuery))
                                 onCopyRaw(result.rawQuery)
-                                Toast.makeText(context, context.getString(com.caglar.pokequery.R.string.assistant_copied), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.resources.getString(com.caglar.pokequery.R.string.assistant_copied), Toast.LENGTH_SHORT).show()
                             },
                             enabled = !copyBlocked,
                             leadingIcon = Icons.Default.ContentCopy,

@@ -31,6 +31,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import com.caglar.pokequery.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +55,7 @@ import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.theme.TextTertiary
 import com.caglar.pokequery.theme.density.currentDensity
+import com.caglar.pokequery.ui.clearFocusOnTap
 import com.caglar.pokequery.ui.components.ScreenTitleBar
 import com.caglar.pokequery.ui.motion.PqStaggeredEntrance
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
@@ -80,23 +84,23 @@ fun PracticeModeScreen(onBack: () -> Unit) {
 
     PqStaggeredEntrance { visible ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
+            modifier = Modifier.fillMaxSize().background(BackgroundDark).clearFocusOnTap().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(density.listGap),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
         ) {
             item {
-                ScreenTitleBar("Practice Mode", onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
+                ScreenTitleBar(stringResource(R.string.goal_practice), onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
             }
             item {
                 ConceptualBanner(Modifier.pqStaggeredItem(visible, 1))
             }
             item {
-                Text("Type or paste a search string to see how it behaves.", color = TextSecondary, fontSize = 12.sp)
+                Text(stringResource(R.string.practice_intro), color = TextSecondary, fontSize = 12.sp)
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                    placeholder = { Text("e.g. 0*,1*&!shiny&!favorite", color = TextTertiary, fontFamily = FontFamily.Monospace) },
+                    placeholder = { Text(stringResource(R.string.practice_placeholder), color = TextTertiary, fontFamily = FontFamily.Monospace) },
                     textStyle = androidx.compose.ui.text.TextStyle(
                         color = TealPrimary, fontFamily = FontFamily.Monospace, fontSize = 13.sp
                     ),
@@ -110,7 +114,7 @@ fun PracticeModeScreen(onBack: () -> Unit) {
                 )
             }
             item {
-                PqStringBox(if (query.isBlank()) "(empty)" else query)
+                PqStringBox(if (query.isBlank()) stringResource(R.string.practice_empty) else query)
             }
             item {
                 ResultSummary(results, Modifier.fillMaxWidth())
@@ -133,12 +137,10 @@ private fun ConceptualBanner(modifier: Modifier = Modifier) {
         Box(Modifier.size(6.dp).background(CyanGlow, androidx.compose.foundation.shape.CircleShape))
         Spacer(Modifier.width(10.dp))
         Column {
-            Text("Conceptual sandbox — not your real inventory", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(stringResource(R.string.practice_banner_title), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             Spacer(Modifier.height(4.dp))
             Text(
-                "These Pokémon are fictional. Practice Mode is not connected to Pokémon GO: no API, no " +
-                    "screenshots, no OCR, no account access. Real in-game results will differ. Use it to " +
-                    "learn how & , and ! exclusions behave.",
+                stringResource(R.string.practice_banner_body),
                 color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp
             )
         }
@@ -154,12 +156,14 @@ private fun ResultSummary(results: List<com.caglar.pokequery.domain.practice.Pra
     Column(
         modifier.clip(shape).background(SlateBlack).border(1.dp, BorderSubtle, shape).padding(12.dp)
     ) {
-        Text("How this string behaves on the fake set", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Text(stringResource(R.string.practice_summary_title), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
         Spacer(Modifier.height(8.dp))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SummaryChip("$matched matched", GreenVerified)
-            SummaryChip("$protected protected", AmberWarning)
-            SummaryChip("$notMatched not matched", TextTertiary)
+            SummaryChip(stringResource(R.string.practice_matched, matched), GreenVerified)
+            Spacer(Modifier.width(8.dp))
+            SummaryChip(stringResource(R.string.practice_protected, protected), AmberWarning)
+            Spacer(Modifier.width(8.dp))
+            SummaryChip(stringResource(R.string.practice_not_matched, notMatched), TextTertiary)
         }
     }
 }
@@ -174,11 +178,13 @@ private fun SummaryChip(label: String, color: androidx.compose.ui.graphics.Color
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun PracticeItemRow(result: com.caglar.pokequery.domain.practice.PracticeMatchResult) {
+    val appLanguage = LocalConfiguration.current.locales[0]?.language ?: "en"
+    val taggedLabel = stringResource(R.string.kb_cat_tag)
     val (tone, label) = when (result.status) {
-        PracticeStatus.MATCHED -> GreenVerified to "Matched"
-        PracticeStatus.PROTECTED -> AmberWarning to "Protected"
-        PracticeStatus.EXCLUDED -> CoralDanger to "Excluded"
-        PracticeStatus.NOT_MATCHED -> TextTertiary to "Not matched"
+        PracticeStatus.MATCHED -> GreenVerified to stringResource(R.string.practice_status_matched)
+        PracticeStatus.PROTECTED -> AmberWarning to stringResource(R.string.practice_status_protected)
+        PracticeStatus.EXCLUDED -> CoralDanger to stringResource(R.string.practice_status_excluded)
+        PracticeStatus.NOT_MATCHED -> TextTertiary to stringResource(R.string.practice_status_not_matched)
     }
     val item = result.item
     val shape = RoundedCornerShape(14.dp)
@@ -207,7 +213,7 @@ private fun PracticeItemRow(result: com.caglar.pokequery.domain.practice.Practic
                             if (item.specialbackground) "specialbackground" else null
                         )
                         if (flags.isNotEmpty()) append(" · ").append(flags.joinToString(" "))
-                        if (item.tagged) append(" · tagged: ").append(item.tags.joinToString(",").ifEmpty { "#" })
+                        if (item.tagged) append(" · ").append(taggedLabel).append(": ").append(item.tags.joinToString(",").ifEmpty { "#" })
                     },
                     color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp
                 )
@@ -220,7 +226,8 @@ private fun PracticeItemRow(result: com.caglar.pokequery.domain.practice.Practic
         if (result.reasons.isNotEmpty()) {
             Spacer(Modifier.height(6.dp))
             result.reasons.forEach { reason ->
-                Text("• $reason", color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp)
+                val displayReason = if (appLanguage == "en") reason else label
+                Text("• $displayReason", color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp)
             }
         }
     }

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "lastUpdated": "2026-07-01",
+  "events": [
+    {
+      "id": "fixture-community-day",
+      "title": "This month's Community Day preparation",
+      "kind": "COMMUNITY_DAY",
+      "note": "Bundled fallback guidance: use Candy Prep and Safe Cleanup as review aids while an event is active. Verify the bonus in Pokemon GO before acting.",
+      "month": 7,
+      "year": 2026
+    },
+    {
+      "id": "fixture-upcoming-prep",
+      "title": "Upcoming event prep",
+      "kind": "GENERIC_EVENT",
+      "note": "Bundled fallback guidance: review duplicates, tags, favorites, costumes, and traded status before cleanup or trade planning. PokeQuery never transfers anything.",
+      "month": 7,
+      "year": 2026
+    }
+  ]
+}

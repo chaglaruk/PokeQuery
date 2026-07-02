@@ -10,9 +10,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.caglar.pokequery.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -39,32 +42,34 @@ data class Preset(
     val description: String,
     val syntax: String,
     val risk: RiskLevel,
-    val warnings: List<String> = emptyList()
+    val warnings: List<String> = emptyList(),
+    @StringRes val titleRes: Int? = null,
+    @StringRes val descriptionRes: Int? = null
 )
 
 val POPULAR_PRESETS = listOf(
-    Preset("Recent Catches", "Cleanup", "Find Pokémon caught in the last 7 days", "age0-7", RiskLevel.Low),
-    Preset("Low IV Cleanup Candidate", "Cleanup", "Find 0★ and 1★ candidates (excludes protected categories)", "0*,1*&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!#&!traded&!costume&!background&!locationbackground&!specialbackground", RiskLevel.Medium, listOf("Review manually before transfer.")),
-    Preset("Duplicate Cleanup", "Cleanup", "Find species you have more than 2 of (excludes protected categories)", "count2-&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!#&!traded&!costume&!background&!locationbackground&!specialbackground", RiskLevel.Medium, listOf("Count is species-wide. Check for forms.")),
-    Preset("Untagged Review", "Cleanup", "Find untagged Pokémon (excludes protected categories)", "!#&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!traded&!costume&!background&!locationbackground&!specialbackground", RiskLevel.Low),
-    
-    Preset("Evolve Ready", "Candy/Event", "Find Pokémon that can be evolved right now", "evolve", RiskLevel.Low),
-    Preset("Recent Event Review", "Candy/Event", "Find Pokémon caught in the last 3 days", "age0-3", RiskLevel.Low),
-    
-    Preset("Untraded Duplicates", "Trading", "Find untraded duplicates", "count2-&!traded", RiskLevel.Medium),
-    Preset("Older Untraded", "Trading", "Find untraded Pokémon over a year old", "age365-&!traded", RiskLevel.Medium),
-    Preset("Distance Trade Candidates", "Trading", "Find untraded Pokémon caught >100km away", "distance100-&!traded", RiskLevel.Medium),
-    Preset("Special Trade Review", "Trading", "Find shiny, legendary, or mythical Pokémon", "shiny,legendary,mythical", RiskLevel.Info, listOf("Special trades are limited to 1 per day.")),
-    
-    Preset("Hundo", "Battle/IV", "Find perfect 4★ Pokémon", "4*", RiskLevel.Info),
-    Preset("Nundo", "Battle/IV", "Find exact 0% IV Pokémon", "0attack&0defense&0hp", RiskLevel.Info),
-    Preset("Great League Candidate", "Battle/IV", "Find low attack / high bulk candidates under 1500 CP", "0-1attack&3-4defense&3-4hp&cp-1500", RiskLevel.Info),
-    Preset("Ultra League Candidate", "Battle/IV", "Find low attack / high bulk candidates under 2500 CP", "0-1attack&3-4defense&3-4hp&cp-2500", RiskLevel.Info),
-    Preset("Perfect Shadows", "Battle/IV", "Find 4★ shadows", "shadow&4*", RiskLevel.Info),
-    
-    Preset("Shiny Review", "Collection", "Find all shiny Pokémon", "shiny", RiskLevel.Info),
-    Preset("Costume Review", "Collection", "Find all costume Pokémon", "costume", RiskLevel.Info),
-    Preset("Lucky Review", "Collection", "Find all lucky Pokémon", "lucky", RiskLevel.Info)
+    Preset("Recent Catches", "Cleanup", "Find Pokémon caught in the last 7 days", "age0-7", RiskLevel.Low, titleRes = R.string.preset_recent_catches, descriptionRes = R.string.preset_desc_recent_catches),
+    Preset("Low IV Cleanup Candidate", "Cleanup", "Find 0★ and 1★ candidates (excludes protected categories)", "0*,1*&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!#&!traded&!costume&!background&!locationbackground&!specialbackground", RiskLevel.Medium, listOf("Review manually before transfer."), R.string.preset_low_iv_cleanup, R.string.preset_desc_low_iv_cleanup),
+    Preset("Duplicate Cleanup", "Cleanup", "Find species you have more than 2 of (excludes protected categories)", "count2-&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!#&!traded&!costume&!background&!locationbackground&!specialbackground", RiskLevel.Medium, listOf("Count is species-wide. Check for forms."), R.string.preset_duplicate_cleanup, R.string.preset_desc_duplicate_cleanup),
+    Preset("Untagged Review", "Cleanup", "Find untagged Pokémon (excludes protected categories)", "!#&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!traded&!costume&!background&!locationbackground&!specialbackground", RiskLevel.Low, titleRes = R.string.preset_untagged_review, descriptionRes = R.string.preset_desc_untagged_review),
+
+    Preset("Evolve Ready", "Candy/Event", "Find Pokémon that can be evolved right now", "evolve", RiskLevel.Low, titleRes = R.string.preset_evolve_ready, descriptionRes = R.string.preset_desc_evolve_ready),
+    Preset("Recent Event Review", "Candy/Event", "Find Pokémon caught in the last 3 days", "age0-3", RiskLevel.Low, titleRes = R.string.preset_recent_event_review, descriptionRes = R.string.preset_desc_recent_event_review),
+
+    Preset("Untraded Duplicates", "Trading", "Find untraded duplicates", "count2-&!traded", RiskLevel.Medium, titleRes = R.string.preset_untraded_duplicates, descriptionRes = R.string.preset_desc_untraded_duplicates),
+    Preset("Older Untraded", "Trading", "Find untraded Pokémon over a year old", "age365-&!traded", RiskLevel.Medium, titleRes = R.string.preset_older_untraded, descriptionRes = R.string.preset_desc_older_untraded),
+    Preset("Distance Trade Candidates", "Trading", "Find untraded Pokémon caught >100km away", "distance100-&!traded", RiskLevel.Medium, titleRes = R.string.preset_distance_trade, descriptionRes = R.string.preset_desc_distance_trade),
+    Preset("Special Trade Review", "Trading", "Find shiny, legendary, or mythical Pokémon", "shiny,legendary,mythical", RiskLevel.Info, listOf("Special trades are limited to 1 per day."), R.string.preset_special_trade, R.string.preset_desc_special_trade),
+
+    Preset("Hundo", "Battle/IV", "Find perfect 4★ Pokémon", "4*", RiskLevel.Info, titleRes = R.string.preset_hundo, descriptionRes = R.string.preset_desc_hundo),
+    Preset("Nundo", "Battle/IV", "Find exact 0% IV Pokémon", "0attack&0defense&0hp", RiskLevel.Info, titleRes = R.string.preset_nundo, descriptionRes = R.string.preset_desc_nundo),
+    Preset("Great League Candidate", "Battle/IV", "Find low attack / high bulk candidates under 1500 CP", "0-1attack&3-4defense&3-4hp&cp-1500", RiskLevel.Info, titleRes = R.string.preset_great_league, descriptionRes = R.string.preset_desc_great_league),
+    Preset("Ultra League Candidate", "Battle/IV", "Find low attack / high bulk candidates under 2500 CP", "0-1attack&3-4defense&3-4hp&cp-2500", RiskLevel.Info, titleRes = R.string.preset_ultra_league, descriptionRes = R.string.preset_desc_ultra_league),
+    Preset("Perfect Shadows", "Battle/IV", "Find 4★ shadows", "shadow&4*", RiskLevel.Info, titleRes = R.string.preset_perfect_shadows, descriptionRes = R.string.preset_desc_perfect_shadows),
+
+    Preset("Shiny Review", "Collection", "Find all shiny Pokémon", "shiny", RiskLevel.Info, titleRes = R.string.preset_shiny_review, descriptionRes = R.string.preset_desc_shiny_review),
+    Preset("Costume Review", "Collection", "Find all costume Pokémon", "costume", RiskLevel.Info, titleRes = R.string.preset_costume_review, descriptionRes = R.string.preset_desc_costume_review),
+    Preset("Lucky Review", "Collection", "Find all lucky Pokémon", "lucky", RiskLevel.Info, titleRes = R.string.preset_lucky_review, descriptionRes = R.string.preset_desc_lucky_review)
 )
 
 @Composable
@@ -97,16 +102,16 @@ fun PresetsScreen(
         contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
     ) {
         item {
-            ScreenTitleBar("Popular Presets", onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
+            ScreenTitleBar(stringResource(R.string.goal_presets), onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
             Text(
-                "Tap a preset to preview, customize and copy. Risk badges show how careful to be.",
+                stringResource(R.string.presets_intro),
                 color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp
             )
         }
         grouped.forEach { (category, presets) ->
             item {
                 com.caglar.pokequery.ui.pq.PqSectionHeader(
-                    category.uppercase(),
+                    localizedPresetCategory(category).uppercase(),
                     Modifier.padding(top = 8.dp)
                 )
             }
@@ -144,6 +149,8 @@ private fun CompactPresetCard(
     // v0.5.5 (Fix 1): preset card padding and the expanded inner element gaps (string box →
     // copy button) follow the Visual Density tokens so Compact tightens the preset list.
     val density = com.caglar.pokequery.theme.density.currentDensity()
+    val title = preset.titleRes?.let { stringResource(it) } ?: preset.title
+    val description = preset.descriptionRes?.let { stringResource(it) } ?: preset.description
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -155,8 +162,8 @@ private fun CompactPresetCard(
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(preset.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
-                Text(preset.description, color = TextSecondary, fontSize = 11.sp, maxLines = if (isExpanded) 3 else 1)
+                Text(title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
+                Text(description, color = TextSecondary, fontSize = 11.sp, maxLines = if (isExpanded) 3 else 1)
             }
             Spacer(Modifier.width(8.dp))
             com.caglar.pokequery.ui.pq.PqRiskBadge(preset.risk)
@@ -166,24 +173,24 @@ private fun CompactPresetCard(
             Column(Modifier.padding(top = density.innerElementGap)) {
                 com.caglar.pokequery.ui.pq.PqStringBox(preset.syntax)
                 preset.warnings.forEach { warning ->
-                    Text("• $warning", color = AmberWarning, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+                    Text("• ${localizedPresetWarning(warning)}", color = AmberWarning, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
                 }
                 if (preset.risk == RiskLevel.Medium || preset.risk == RiskLevel.High) {
                     Spacer(Modifier.height(6.dp))
-                    com.caglar.pokequery.ui.pq.PqManualReviewPanel(text = "Review matches in Pokémon GO before transferring or trading.")
+                    com.caglar.pokequery.ui.pq.PqManualReviewPanel(text = stringResource(R.string.presets_review_matches))
                 }
                 Spacer(Modifier.height(density.innerElementGap))
                 com.caglar.pokequery.ui.pq.PqPrimaryButton(
-                    text = "Preview & Copy",
+                    text = stringResource(R.string.action_preview_copy),
                     leadingIcon = Icons.Default.ContentCopy,
                     onClick = {
                         val generated = StringBuilderEngine.buildString(
                             baseQuery = preset.syntax,
                             protections = emptyList(), // Built-in; preset safety contract tested.
-                            explanation = preset.description,
+                            explanation = description,
                             riskLevel = preset.risk,
                             goalId = "preset",
-                            title = preset.title,
+                            title = title,
                             language = language
                         )
                         if (preset.risk == RiskLevel.High || preset.risk == RiskLevel.Medium) {
@@ -196,4 +203,22 @@ private fun CompactPresetCard(
             }
         }
     }
+}
+
+@Composable
+private fun localizedPresetCategory(category: String): String = when (category) {
+    "Cleanup" -> stringResource(R.string.preset_cat_cleanup)
+    "Candy/Event" -> stringResource(R.string.preset_cat_candy_event)
+    "Trading" -> stringResource(R.string.preset_cat_trading)
+    "Battle/IV" -> stringResource(R.string.preset_cat_battle_iv)
+    "Collection" -> stringResource(R.string.preset_cat_collection)
+    else -> category
+}
+
+@Composable
+private fun localizedPresetWarning(warning: String): String = when (warning) {
+    "Review manually before transfer." -> stringResource(R.string.preset_warning_review_transfer)
+    "Count is species-wide. Check for forms." -> stringResource(R.string.preset_warning_count_forms)
+    "Special trades are limited to 1 per day." -> stringResource(R.string.preset_warning_special_trade)
+    else -> warning
 }

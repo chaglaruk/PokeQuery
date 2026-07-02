@@ -23,7 +23,7 @@
                 android:endColor="#070B16" />
         </aapt:attr>
     </path>
-    <!-- Faint cyan glow halo behind the shield. -->
-    <path android:fillColor="#1800E5FF" android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" />
-    <path android:fillColor="#0C00E5FF" android:pathData="M54,54m-30,0a30,30 0,1 1,60 0a30,30 0,1 1,-60 0" />
+    <!-- Stronger radar glow for the v0.6.8 launcher refresh. -->
+    <path android:fillColor="#2200E5FF" android:pathData="M54,54m-44,0a44,44 0,1 1,88 0a44,44 0,1 1,-88 0" />
+    <path android:fillColor="#1400E5FF" android:pathData="M54,54m-29,0a29,29 0,1 1,58 0a29,29 0,1 1,-58 0" />
 </vector>

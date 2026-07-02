@@ -20,6 +20,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.caglar.pokequery.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,6 +58,12 @@ fun RiskWarningScreen(
         com.caglar.pokequery.data.model.RiskLevel.High -> CoralDanger
         else -> GoldCaution
     }
+    val riskLabel = when (generatedString.riskLevel) {
+        com.caglar.pokequery.data.model.RiskLevel.High -> stringResource(R.string.risk_high)
+        com.caglar.pokequery.data.model.RiskLevel.Medium -> stringResource(R.string.risk_medium)
+        com.caglar.pokequery.data.model.RiskLevel.Low -> stringResource(R.string.risk_low)
+        com.caglar.pokequery.data.model.RiskLevel.Info -> stringResource(R.string.risk_info)
+    }
 
     // v0.5.3 motion polish: staggered entrance. The risk icon gets a subtle spring-pop
     // (illustration only); title/explanation/buttons fade+slide. One hoisted flag → once only.
@@ -71,11 +79,11 @@ fun RiskWarningScreen(
                 .pqSpringPop(visible),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.Warning, contentDescription = "Warning", tint = riskColor, modifier = Modifier.size(46.dp))
+            Icon(Icons.Default.Warning, contentDescription = stringResource(R.string.common_warning), tint = riskColor, modifier = Modifier.size(46.dp))
         }
         Spacer(Modifier.height(18.dp))
         Text(
-            "${generatedString.riskLevel} Risk",
+            stringResource(R.string.risk_warning_title, riskLabel),
             color = riskColor,
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -83,7 +91,7 @@ fun RiskWarningScreen(
         )
         Spacer(Modifier.height(14.dp))
         Text(
-            "Review the search and its warnings before copying. PokeQuery only creates text — always inspect matches in Pokémon GO before acting.",
+            stringResource(R.string.risk_warning_review_before_copy),
             color = TextSecondary,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
@@ -105,7 +113,7 @@ fun RiskWarningScreen(
                 .pqStaggeredItem(visible, 2)
         ) {
             Column {
-                Text("Why this risk?", color = riskColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_why_risk), color = riskColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 Text(androidx.compose.ui.res.stringResource(riskExplanation.shortReasonRes), color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
                 Spacer(Modifier.height(6.dp))
                 riskExplanation.safetyChecklistRes.take(3).forEach { itemRes ->
@@ -113,17 +121,17 @@ fun RiskWarningScreen(
                 }
                 if (riskExplanation.relatedKnowledgeIds.isNotEmpty()) {
                     Spacer(Modifier.height(6.dp))
-                    Text("Learn more in Knowledge Base: ${riskExplanation.relatedKnowledgeIds.joinToString()}", color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp)
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.risk_learn_more, riskExplanation.relatedKnowledgeIds.joinToString()), color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp)
                 }
             }
         }
         Spacer(Modifier.height(28.dp))
         Box(Modifier.pqStaggeredItem(visible, 3)) {
-            PqPrimaryButton(text = "Accept & Copy", onClick = onConfirmCopy)
+            PqPrimaryButton(text = stringResource(R.string.risk_warning_accept_copy), onClick = onConfirmCopy)
         }
         Spacer(Modifier.height(10.dp))
         Box(Modifier.pqStaggeredItem(visible, 4)) {
-            PqSecondaryButton(text = "Review Query", onClick = onBack)
+            PqSecondaryButton(text = stringResource(R.string.risk_warning_review_query), onClick = onBack)
         }
     }
     }

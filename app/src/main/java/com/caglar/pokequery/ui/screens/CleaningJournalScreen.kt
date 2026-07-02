@@ -60,6 +60,7 @@ import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.theme.TextTertiary
 import com.caglar.pokequery.theme.density.currentDensity
+import com.caglar.pokequery.ui.clearFocusOnTap
 import com.caglar.pokequery.ui.components.ScreenTitleBar
 import com.caglar.pokequery.ui.motion.PqStaggeredEntrance
 import com.caglar.pokequery.ui.motion.pqSpringPop
@@ -95,18 +96,18 @@ fun CleaningJournalScreen(onBack: () -> Unit) {
     PqStaggeredEntrance { visible ->
         Box(Modifier.fillMaxSize().background(BackgroundDark)) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+                modifier = Modifier.fillMaxSize().clearFocusOnTap().padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(density.listGap),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 96.dp)
             ) {
                 item {
-                    ScreenTitleBar("Cleaning Journal", onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
+                    ScreenTitleBar(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_journal), onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
                 }
                 item { HonestyBanner(Modifier.pqStaggeredItem(visible, 1)) }
                 item {
                     // FAB-like primary button at the top of the list so it is reachable above the fold.
                     PqPrimaryButton(
-                        text = "Add a journal note",
+                        text = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_add),
                         onClick = { editing = null; showEditor = true },
                         leadingIcon = Icons.Default.Add
                     )
@@ -121,8 +122,8 @@ fun CleaningJournalScreen(onBack: () -> Unit) {
                         Box(Modifier.pqStaggeredItem(visible, 2).pqSpringPop(visible)) {
                             PqEmptyState(
                                 icon = Icons.Default.EditNote,
-                                title = "No journal notes yet",
-                                subtitle = "Keep a manual note when you use a query in Pokémon GO."
+                                title = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_empty_title),
+                                subtitle = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_empty_subtitle)
                             )
                         }
                     }
@@ -163,12 +164,7 @@ private fun HonestyBanner(modifier: Modifier = Modifier) {
     ) {
         Box(Modifier.size(6.dp).background(AmberWarning, androidx.compose.foundation.shape.CircleShape))
         Spacer(Modifier.width(10.dp))
-        Text(
-            "This is your manual memory only. PokeQuery does not know what you deleted, traded, or " +
-                "transferred — copying a string never records an \"applied\" action here. Choose the " +
-                "action type yourself.",
-            color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp
-        )
+        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_banner), color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
     }
 }
 
@@ -187,8 +183,8 @@ private fun JournalEntryRow(
                 Text(entry.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 ActionChip(entry.actionType)
             }
-            IconButton(onClick = onEdit) { Icon(Icons.Default.EditNote, contentDescription = "Edit", tint = TextSecondary) }
-            IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = CoralDanger) }
+            IconButton(onClick = onEdit) { Icon(Icons.Default.EditNote, contentDescription = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.action_edit), tint = TextSecondary) }
+            IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.action_delete), tint = CoralDanger) }
         }
         Spacer(Modifier.height(6.dp))
         Text(entry.queryString, color = TealPrimary, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontSize = 12.sp)
@@ -216,6 +212,7 @@ private fun JournalEditorDialog(
     onDismiss: () -> Unit,
     onSave: (CleaningJournalEntry) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var title by remember { mutableStateOf(existing?.title ?: "") }
     var queryString by remember { mutableStateOf(existing?.queryString ?: "") }
     var note by remember { mutableStateOf(existing?.note ?: "") }
@@ -224,25 +221,25 @@ private fun JournalEditorDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = CardDark,
-        title = { Text(if (existing == null) "Add journal note" else "Edit note", color = TextPrimary, fontWeight = FontWeight.Bold) },
+        title = { Text(if (existing == null) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_add_title) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_edit_title), color = TextPrimary, fontWeight = FontWeight.Bold) },
         text = {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                LabeledField("Title", title) { title = it }
+                LabeledField(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_title_label), title) { title = it }
                 Spacer(Modifier.height(10.dp))
-                LabeledField("Search string", queryString, mono = true) { queryString = it }
+                LabeledField(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_search_string_label), queryString, mono = true) { queryString = it }
                 Spacer(Modifier.height(10.dp))
-                Text("Note", color = TextSecondary, fontSize = 12.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_note_label), color = TextSecondary, fontSize = 12.sp)
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                    placeholder = { Text("What did you do? (your words only)", color = TextTertiary) },
+                    placeholder = { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_note_placeholder), color = TextTertiary) },
                     colors = outlineColors(),
                     shape = RoundedCornerShape(12.dp),
                     minLines = 2
                 )
                 Spacer(Modifier.height(10.dp))
-                Text("Action type (you choose)", color = TextSecondary, fontSize = 12.sp)
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.journal_action_type), color = TextSecondary, fontSize = 12.sp)
                 Spacer(Modifier.height(4.dp))
                 JournalAction.entries.forEach { a ->
                     Row(
@@ -258,17 +255,17 @@ private fun JournalEditorDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                val finalTitle = title.ifBlank { "Journal note" }
-                val finalQuery = queryString.ifBlank { "(no string)" }
+                val finalTitle = title.ifBlank { context.resources.getString(com.caglar.pokequery.R.string.journal_default_title) }
+                val finalQuery = queryString.ifBlank { context.resources.getString(com.caglar.pokequery.R.string.journal_no_string) }
                 val entry = if (existing == null) {
                     CleaningJournalEntry.new(finalQuery, finalTitle, note, action)
                 } else {
                     existing.copy(title = finalTitle, queryString = finalQuery, note = note, actionType = action)
                 }
                 onSave(entry)
-            }) { Text("Save", color = TealPrimary, fontWeight = FontWeight.Bold) }
+            }) { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.action_save), color = TealPrimary, fontWeight = FontWeight.Bold) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = TextSecondary) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.action_cancel), color = TextSecondary) } }
     )
 }
 

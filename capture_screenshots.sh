@@ -3,10 +3,10 @@ mkdir -p docs/screenshots
 
 # Wait for activity to be completely ready
 function capture() {
-    adb shell am start -S -n com.caglar.pokequery/.MainActivity --es start_route $1
+    adb -s emulator-5554 shell am start -S -n com.caglar.pokequery/.MainActivity --es start_route $1
     sleep 2
-    adb shell screencap -p /sdcard/$2.png
-    adb pull /sdcard/$2.png docs/screenshots/$2.png
+    adb -s emulator-5554 shell screencap -p /sdcard/$2.png
+    adb -s emulator-5554 pull /sdcard/$2.png docs/screenshots/$2.png
 }
 
 capture "onboarding" "1_Onboarding"

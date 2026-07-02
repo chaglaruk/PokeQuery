@@ -1,20 +1,22 @@
 # Manifest Permission Audit
 
-**App Label:** PokeQuery (from strings.xml)
+**App Label:** PokeQuery
 **Application ID / Namespace:** `com.caglar.pokequery`
 
 ## Requested Permissions
 
-**INTERNET** (v0.6.2 — optional, opt-in only)
+**INTERNET** (v0.6.8, Event Guide feed only)
 
 The `AndroidManifest.xml` declares exactly one permission: `android.permission.INTERNET`.
-This is used exclusively for the **optional daily event feed**:
-- The user must opt in via Settings > Event Context.
-- Fetches a single JSON payload from a configured URL once per day.
-- No other network access. Offline manual fallback preserved.
-- OFF by default.
+It is used only for the Event Guide JSON feed:
+
+- The app fetches only when the Event Guide screen is opened or refreshed.
+- The feed is schema-validated JSON documented at `docs/event-feed/pokequery-events.json`.
+- Failed, invalid, or unavailable feeds are ignored in favor of cached/stale/manual fallback.
+- No login, tracking, analytics, scraping, Pokemon GO account access, or user API key is used.
 
 ## Not Requested
+
 - No ACCESS_FINE_LOCATION.
 - No ACCESS_COARSE_LOCATION.
 - No READ_EXTERNAL_STORAGE.
@@ -24,11 +26,10 @@ This is used exclusively for the **optional daily event feed**:
 - No POST_NOTIFICATIONS.
 
 ## Exported Components
+
 - **Activities:** `MainActivity` (launcher).
 - **Receivers:** `QuickAccessWidgetProvider` (AppWidget contract, exported by system requirement).
 
 ## Privacy Verification
-PokeQuery operates primarily offline. The INTERNET permission is used solely for the optional event feed, which is opt-in and documentable in Play Data Safety.
 
-## Action Taken
-INTERNET permission added for v0.6.2 with documented rationale and opt-in toggle. No other permissions introduced.
+PokeQuery operates primarily offline. `INTERNET` is documented solely for Event Guide feed updates. No dangerous permissions are introduced.

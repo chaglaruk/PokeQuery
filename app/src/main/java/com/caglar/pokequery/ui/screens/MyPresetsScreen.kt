@@ -39,6 +39,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.caglar.pokequery.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -102,7 +104,7 @@ fun MyPresetsScreen(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
         ) {
             item {
-                ScreenTitleBar("My Presets", onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
+                ScreenTitleBar(stringResource(R.string.goal_my_presets), onBack, Modifier.pqStaggeredItem(visible, 0).padding(bottom = 4.dp))
             }
             item { LocalOnlyBanner(Modifier.pqStaggeredItem(visible, 1)) }
             when {
@@ -115,13 +117,13 @@ fun MyPresetsScreen(
                     Box(Modifier.pqStaggeredItem(visible, 2)) {
                         PqEmptyState(
                             icon = Icons.Default.Bookmark,
-                            title = "No personal presets yet",
-                            subtitle = "Save a favorite or a generated string as your own preset."
+                            title = stringResource(R.string.my_presets_empty_title),
+                            subtitle = stringResource(R.string.goal_my_presets_desc)
                         )
                     }
                 }
                 else -> {
-                    item { PqSectionHeader("MY PRESETS") }
+                    item { PqSectionHeader(stringResource(R.string.goal_my_presets).uppercase()) }
                     items(presets, key = { it.id }) { preset ->
                         PersonalPresetRow(
                             preset = preset,
@@ -161,8 +163,7 @@ private fun LocalOnlyBanner(modifier: Modifier = Modifier) {
         Box(Modifier.size(6.dp).background(CyanGlow, androidx.compose.foundation.shape.CircleShape))
         Spacer(Modifier.width(10.dp))
         Text(
-            "Local only. Personal presets never leave this device — no sync, no account, no upload. " +
-                "Risk levels are preserved: Medium/High presets still warn before copy.",
+            stringResource(R.string.my_presets_local_banner),
             color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp
         )
     }
@@ -183,17 +184,17 @@ private fun PersonalPresetRow(
             Column(Modifier.weight(1f)) {
                 Text(preset.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
-                    PqBadge(text = "Local", color = CyanGlow)
+                    PqBadge(text = stringResource(R.string.my_presets_local), color = CyanGlow)
                     PqBadge(text = preset.riskLevel.name, color = AmberWarning)
                 }
             }
-            IconButton(onClick = onRename) { Icon(Icons.Default.Edit, contentDescription = "Rename", tint = TextSecondary) }
-            IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = CoralDanger) }
+            IconButton(onClick = onRename) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.my_presets_rename), tint = TextSecondary) }
+            IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = CoralDanger) }
         }
         Spacer(Modifier.height(density.innerElementGap))
         PqStringBox(preset.queryString)
         Spacer(Modifier.height(12.dp))
-        PqPrimaryButton(text = "Use preset", onClick = onCopy)
+        PqPrimaryButton(text = stringResource(R.string.action_use_preset), onClick = onCopy)
     }
 }
 
@@ -210,7 +211,7 @@ private fun RenameDialog(currentTitle: String, onDismiss: () -> Unit, onConfirm:
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = CardDark,
-        title = { Text("Rename preset", color = TextPrimary, fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.my_presets_rename), color = TextPrimary, fontWeight = FontWeight.Bold) },
         text = {
             OutlinedTextField(
                 value = title,
@@ -229,10 +230,10 @@ private fun RenameDialog(currentTitle: String, onDismiss: () -> Unit, onConfirm:
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(title.ifBlank { currentTitle }) }) {
-                Text("Save", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.action_save), color = TealPrimary, fontWeight = FontWeight.Bold)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = TextSecondary) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel), color = TextSecondary) } }
     )
 }
 

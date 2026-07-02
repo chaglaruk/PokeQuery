@@ -22,7 +22,7 @@ enum class MonthlyConfidence { MANUAL, UNVERIFIED, CONFIRMED }
 
 object MonthlyContextRepository {
     val current: MonthlyContext? = MonthlyContext(
-        month = 6,
+        month = 7,
         year = 2026,
         titleRes = com.caglar.pokequery.R.string.event_context_community_day,
         contextType = MonthlyContextType.COMMUNITY_DAY,

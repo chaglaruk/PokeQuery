@@ -7,8 +7,10 @@ import com.caglar.pokequery.data.model.VerificationStatus
 import org.json.JSONArray
 
 class KnowledgeBaseRepository(private val context: Context) {
-    fun load(): Result<List<Term>> = runCatching {
-        context.assets.open("knowledgebase.json").bufferedReader().use { parse(it.readText()) }
+    suspend fun load(): Result<List<Term>> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        runCatching {
+            context.assets.open("knowledgebase.json").bufferedReader().use { parse(it.readText()) }
+        }
     }
 
     companion object {
@@ -48,4 +50,3 @@ class KnowledgeBaseRepository(private val context: Context) {
         }
     }
 }
-

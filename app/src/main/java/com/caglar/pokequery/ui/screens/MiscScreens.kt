@@ -1,6 +1,7 @@
 package com.caglar.pokequery.ui.screens
 
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,19 +28,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.R
 import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.model.Term
 import com.caglar.pokequery.data.repository.KnowledgeBaseRepository
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.changelog.Changelog
+import com.caglar.pokequery.domain.locale.AppLocaleController
+import com.caglar.pokequery.domain.locale.LocalizationModel
 import com.caglar.pokequery.theme.*
 import com.caglar.pokequery.theme.density.currentDensity
+import com.caglar.pokequery.ui.clearFocusOnTap
 import com.caglar.pokequery.ui.components.*
 import com.caglar.pokequery.ui.motion.pqSpringPop
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
@@ -54,6 +60,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
     var result by remember { mutableStateOf<Result<List<Term>>?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("All") }
+    val knowledgeCopied = stringResource(R.string.knowledge_copied)
 
     LaunchedEffect(Unit) { result = repository.load() }
 
@@ -64,11 +71,11 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
     val density = currentDensity()
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundDark).padding(16.dp),
+        modifier = Modifier.fillMaxSize().background(BackgroundDark).clearFocusOnTap().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(density.listGap),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
-        item { ScreenTitleBar("Knowledge Base", onBack, Modifier.pqStaggeredItem(visible, 0)) }
+        item { ScreenTitleBar(stringResource(R.string.knowledge_title), onBack, Modifier.pqStaggeredItem(visible, 0)) }
         // v0.5.2 (Fix 9): Turkish guardrail banner. Turkish tokens are beta/unverified; the
         // "Language-sensitive" / "Beta" / "Risky" badges below come from the per-term metadata.
         item {
@@ -81,7 +88,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
                 Box(Modifier.size(6.dp).background(AmberWarning, androidx.compose.foundation.shape.CircleShape))
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "Turkish search tokens are BETA and language-sensitive. A wrong localized form can silently return no results. Verify in Pokémon GO before relying on a Turkish search.",
+                    stringResource(R.string.knowledge_beta_warning),
                     color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp
                 )
             }
@@ -91,7 +98,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search terms (e.g. shiny, distance)", color = TextSecondary) },
+                placeholder = { Text(stringResource(R.string.knowledge_search_placeholder), color = TextSecondary) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = TealPrimary,
@@ -106,7 +113,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
         val terms = result?.getOrNull()
         when {
             result == null -> item { CircularProgressIndicator(color = TealPrimary, modifier = Modifier.padding(20.dp)) }
-            terms == null -> item { Text("Knowledge base could not be loaded. The local data may be damaged.", color = CoralDanger) }
+            terms == null -> item { Text(stringResource(R.string.knowledge_load_error), color = CoralDanger) }
             else -> {
                 val categories = listOf("All") + terms.map { it.category }.distinct().sorted()
                 item {
@@ -115,7 +122,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
                             FilterChip(
                                 selected = category == cat,
                                 onClick = { category = cat },
-                                label = { Text(cat) },
+                                label = { Text(localizedKnowledgeCategory(cat)) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = TealPrimary.copy(alpha = 0.18f),
                                     selectedLabelColor = TealPrimary,
@@ -134,8 +141,8 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
                     item {
                         com.caglar.pokequery.ui.pq.PqEmptyState(
                             icon = Icons.Default.Search,
-                            title = "No search terms found",
-                            subtitle = "Try another term or category."
+                            title = stringResource(R.string.knowledge_empty_title),
+                            subtitle = stringResource(R.string.knowledge_empty_subtitle)
                         )
                     }
                 } else {
@@ -143,7 +150,7 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
                         var expanded by remember { mutableStateOf(startExpanded && term == filtered.firstOrNull()) }
                         KnowledgeTermRow(term, expanded, onToggle = { expanded = !expanded }) {
                             clipboard.setText(AnnotatedString(term.syntax))
-                            Toast.makeText(context, "Copied ${term.syntax}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, knowledgeCopied, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -162,12 +169,13 @@ fun FavoritesScreen(
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
+    val savedToPresets = stringResource(R.string.favorites_saved_to_presets)
 
     SavedTemplateScreen(
-        title = "Favorites",
+        title = stringResource(R.string.nav_favorites),
         templates = userPrefs?.favorites,
-        emptyTitle = "No saved search strings",
-        emptySubtitle = "Tap Save Favorite on a generated string.",
+        emptyTitle = stringResource(R.string.favorites_empty_title),
+        emptySubtitle = stringResource(R.string.favorites_empty_subtitle),
         onBack = onBack,
         onCopy = onCopy,
         onDelete = { scope.launch { repository.removeFavorite(it.id) } },
@@ -176,7 +184,7 @@ fun FavoritesScreen(
         onSaveAsPreset = { template ->
             scope.launch {
                 repository.addPersonalPreset(com.caglar.pokequery.data.model.PersonalPreset.fromFavorite(template))
-                Toast.makeText(context, "Saved to My Presets", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, savedToPresets, Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -192,10 +200,10 @@ fun HistoryScreen(
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
 
     SavedTemplateScreen(
-        title = "History",
+        title = stringResource(R.string.nav_history),
         templates = userPrefs?.history,
-        emptyTitle = "No recent copies yet",
-        emptySubtitle = "Copied search strings will appear here.",
+        emptyTitle = stringResource(R.string.history_empty_title),
+        emptySubtitle = stringResource(R.string.history_empty_subtitle),
         onBack = onBack,
         onCopy = onCopy
     )
@@ -207,6 +215,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
+    val emailFallback = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_email_fallback)
 
     // v0.5.3 motion polish: staggered entrance — title bar + first panel fade in; subsequent
     // panels appear at rest (no cascade while scrolling). One hoisted flag → runs once only.
@@ -239,10 +248,41 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     )
                 }
                 Spacer(Modifier.height(14.dp))
-                com.caglar.pokequery.ui.pq.PqComingLaterCard(
-                    title = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_online_events),
-                    description = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_online_events_desc)
-                )
+                PremiumPanel(borderColor = TealPrimary) {
+                    Text(stringResource(R.string.settings_online_events_toggle), color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.settings_online_events_toggle_desc), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+                    Spacer(Modifier.height(8.dp))
+                    SettingsSwitchRow(
+                        title = stringResource(R.string.event_setting_updates),
+                        description = stringResource(R.string.event_setting_updates_desc),
+                        checked = userPrefs?.eventGuideUpdatesEnabled ?: true,
+                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_UPDATES_ENABLED, it) } }
+                    )
+                    SettingsSwitchRow(
+                        title = stringResource(R.string.event_setting_refresh_open),
+                        description = stringResource(R.string.event_setting_refresh_open_desc),
+                        checked = userPrefs?.eventGuideRefreshOnOpen ?: true,
+                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_REFRESH_ON_OPEN, it) } }
+                    )
+                    SettingsSwitchRow(
+                        title = stringResource(R.string.event_setting_saved_offline),
+                        description = stringResource(R.string.event_setting_saved_offline_desc),
+                        checked = userPrefs?.eventGuidePreferSavedOffline ?: true,
+                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_PREFER_SAVED_OFFLINE, it) } }
+                    )
+                    SettingsSwitchRow(
+                        title = stringResource(R.string.event_setting_planning_hints),
+                        description = stringResource(R.string.event_setting_planning_hints_desc),
+                        checked = userPrefs?.eventGuideShowPlanningHints ?: true,
+                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_SHOW_PLANNING_HINTS, it) } }
+                    )
+                    SettingsSwitchRow(
+                        title = stringResource(R.string.event_setting_extra_warnings),
+                        description = stringResource(R.string.event_setting_extra_warnings_desc),
+                        checked = userPrefs?.extraActionSafetyWarnings ?: true,
+                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EXTRA_ACTION_SAFETY_WARNINGS, it) } }
+                    )
+                }
             }
         }
 
@@ -265,14 +305,64 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_app_language), color = TextPrimary, fontWeight = FontWeight.SemiBold)
                 Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_app_language_desc), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
                 Spacer(Modifier.height(4.dp))
-                val appLang = userPrefs?.appLanguage ?: "System Default"
-                RadioRow("System Default", appLang == "System Default") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "System Default") } }
-                RadioRow("English", appLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "English") } }
-                RadioRow("Deutsch", appLang == "Deutsch") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Deutsch") } }
-                RadioRow("Español", appLang == "Español") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Español") } }
-                RadioRow("Français", appLang == "Français") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Français") } }
-                RadioRow("Italiano", appLang == "Italiano") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Italiano") } }
-                RadioRow("Türkçe", appLang == "Turkish" || appLang == "Türkçe") { scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, "Türkçe") } }
+                val appLang = userPrefs?.appLanguage ?: AppLocaleController.SYSTEM_DEFAULT
+                var showAppLanguageDialog by remember { mutableStateOf(false) }
+                val appLangLabel = if (appLang == AppLocaleController.SYSTEM_DEFAULT) {
+                    localizedSystemDefaultLabel(appLang)
+                } else {
+                    appLang
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(CardDark)
+                        .border(1.dp, TealPrimary.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+                        .clickable { showAppLanguageDialog = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_change_language), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(TealPrimary.copy(alpha = 0.15f))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(text = appLangLabel, color = TealPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = TextSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                if (showAppLanguageDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showAppLanguageDialog = false },
+                        title = { Text(localizedChooseLanguageLabel(appLang)) },
+                        text = {
+                            Column {
+                                AppLocaleController.OPTIONS.forEach { option ->
+                                    val label = if (option == AppLocaleController.SYSTEM_DEFAULT) localizedSystemDefaultLabel(appLang) else option
+                                    RadioRow(label, appLang == option) {
+                                        scope.launch { repository.setSetting(UserPreferencesRepository.APP_LANGUAGE, option) }
+                                        showAppLanguageDialog = false
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {},
+                        containerColor = CardDark
+                    )
+                }
                 Spacer(Modifier.height(10.dp))
                 Text(
                     androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_app_language_footnote),
@@ -300,13 +390,66 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 // state), so choosing English lit both Auto and English. Auto is now selected
                 // ONLY when the stored value is "Auto" (or blank/unset). English and Turkish
                 // are exact equality, matching the (working) App Language pattern above.
-                val searchLang = userPrefs?.gameLanguage ?: "Auto"
-                val searchAuto = searchLang == "Auto" || searchLang.isBlank()
-                RadioRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_lang_auto), searchAuto) { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Auto") } }
-                RadioRow("English", searchLang == "English") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "English") } }
-                RadioRow(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_lang_turkish), searchLang == "Turkish") { scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, "Turkish") } }
+                val searchLang = userPrefs?.gameLanguage ?: LocalizationModel.SearchStringLanguage.DEFAULT
+                var showSearchLanguageDialog by remember { mutableStateOf(false) }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(CardDark)
+                        .border(1.dp, TealPrimary.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+                        .clickable { showSearchLanguageDialog = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_change_language), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(TealPrimary.copy(alpha = 0.15f))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(text = localizedSearchLanguageLabel(searchLang, appLang), color = TealPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = TextSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                if (showSearchLanguageDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showSearchLanguageDialog = false },
+                        title = { Text(localizedSearchStringLanguageTitle(appLang)) },
+                        text = {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.settings_search_lang_beta_warning),
+                                    color = AmberWarning,
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                LocalizationModel.SearchStringLanguage.OPTIONS.forEach { option ->
+                                    RadioRow(localizedSearchLanguageLabel(option, appLang), searchLang == option || (searchLang.isBlank() && option == LocalizationModel.SearchStringLanguage.DEFAULT)) {
+                                        scope.launch { repository.setSetting(UserPreferencesRepository.GAME_LANGUAGE, option) }
+                                        showSearchLanguageDialog = false
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {},
+                        containerColor = CardDark
+                    )
+                }
                 Spacer(Modifier.height(10.dp))
-                // v0.4.2 (Fix 3) / v0.5.2 (Fix 9): Turkish tokens are community-sourced and unverified.
                 Text(
                     androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_lang_beta_warning),
                     color = AmberWarning,
@@ -368,8 +511,8 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 pendingDestructive?.let { action ->
                     AlertDialog(
                         onDismissRequest = { pendingDestructive = null },
-                        title = { Text(action.title) },
-                        text = { Text(action.message, color = TextSecondary) },
+                        title = { Text(stringResource(action.titleRes)) },
+                        text = { Text(stringResource(action.messageRes), color = TextSecondary) },
                         confirmButton = {
                             TextButton(onClick = {
                                 scope.launch {
@@ -413,7 +556,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                         if (intent.resolveActivity(context.packageManager) != null) {
                             context.startActivity(intent)
                         } else {
-                            Toast.makeText(context, context.getString(com.caglar.pokequery.R.string.settings_email_fallback), Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, emailFallback, Toast.LENGTH_LONG).show()
                         }
                     }.padding(vertical = 8.dp)
                 )
@@ -497,6 +640,8 @@ fun ChangelogScreen(onBack: () -> Unit) {
 
 @Composable
 private fun KnowledgeTermRow(term: Term, expanded: Boolean, onToggle: () -> Unit, onCopy: () -> Unit) {
+    val isTurkishUi = LocalConfiguration.current.locales[0]?.language == "tr"
+    val description = if (isTurkishUi && term.descriptionTr.isNotBlank()) term.descriptionTr else term.descriptionEn
     PremiumPanel(borderColor = term.riskLevel.toneColor()) {
         Row(Modifier.fillMaxWidth().clickable(onClick = onToggle), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -504,7 +649,7 @@ private fun KnowledgeTermRow(term: Term, expanded: Boolean, onToggle: () -> Unit
                 if (term.title != null) {
                     Text(term.syntax, color = TextSecondary, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
                 }
-                Text("${term.category} • Tier ${term.tier} • Risk: ${term.riskLevel}", color = TextSecondary, fontSize = 12.sp)
+                Text(stringResource(R.string.knowledge_tier_risk, localizedKnowledgeCategory(term.category), term.tier, localizedRiskLabel(term.riskLevel)), color = TextSecondary, fontSize = 12.sp)
                 // Package 8: compact verification/safety/language badges.
                 KbBadges(term)
             }
@@ -512,23 +657,23 @@ private fun KnowledgeTermRow(term: Term, expanded: Boolean, onToggle: () -> Unit
         }
         AnimatedVisibility(expanded) {
             Column(Modifier.padding(top = 12.dp)) {
-                Text(term.descriptionEn, color = TextPrimary, fontSize = 14.sp)
+                Text(description, color = TextPrimary, fontSize = 14.sp)
                 // Package 8: example + common-mistake when present.
                 term.example?.let {
-                    Text("Example: $it", color = TealPrimary, fontSize = 12.sp, fontFamily = FontFamily.Monospace, modifier = Modifier.padding(top = 8.dp))
+                    Text(stringResource(R.string.knowledge_example, it), color = TealPrimary, fontSize = 12.sp, fontFamily = FontFamily.Monospace, modifier = Modifier.padding(top = 8.dp))
                 }
-                term.commonMistake?.let {
-                    Text("Common mistake: $it", color = AmberWarning, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+                if (!isTurkishUi) term.commonMistake?.let {
+                    Text(stringResource(R.string.knowledge_common_mistake, it), color = AmberWarning, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
                 }
-                if (!term.knownQuirks.isNullOrEmpty()) {
-                    Text("Note: ${term.knownQuirks}", color = AmberWarning, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                if (!isTurkishUi && !term.knownQuirks.isNullOrEmpty()) {
+                    Text(stringResource(R.string.knowledge_note, term.knownQuirks), color = AmberWarning, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
                 }
-                Text("Source: ${term.sourceUrl}", color = TextSecondary, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp))
-                Text("Last verified: ${term.lastVerified}", color = TextSecondary, fontSize = 11.sp)
+                Text(stringResource(R.string.knowledge_source, term.sourceUrl), color = TextSecondary, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp))
+                Text(stringResource(R.string.knowledge_last_verified, term.lastVerified), color = TextSecondary, fontSize = 11.sp)
                 OutlinedButton(onClick = onCopy, modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(12.dp)) {
                     Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Copy token")
+                    Text(stringResource(R.string.knowledge_copy_token))
                 }
             }
         }
@@ -546,19 +691,98 @@ private fun KbBadges(term: Term) {
     ) {
         val status = term.verificationStatus
         val (statusLabel, statusColor) = when (status) {
-            com.caglar.pokequery.data.model.VerificationStatus.VERIFIED -> "Verified" to TealPrimary
-            com.caglar.pokequery.data.model.VerificationStatus.BETA -> "Beta" to AmberWarning
-            com.caglar.pokequery.data.model.VerificationStatus.NEEDS_VERIFICATION -> "Needs verification" to TextSecondary
+            com.caglar.pokequery.data.model.VerificationStatus.VERIFIED -> stringResource(R.string.badge_verified) to TealPrimary
+            com.caglar.pokequery.data.model.VerificationStatus.BETA -> stringResource(R.string.badge_beta) to AmberWarning
+            com.caglar.pokequery.data.model.VerificationStatus.NEEDS_VERIFICATION -> stringResource(R.string.badge_needs_verification) to TextSecondary
         }
         KbBadge(statusLabel, statusColor)
         if (status == com.caglar.pokequery.data.model.VerificationStatus.BETA ||
             term.safetyLevel?.lowercase() == "risky") {
-            KbBadge("Risky", CoralDanger)
+            KbBadge(stringResource(R.string.badge_risky), CoralDanger)
         }
         if (term.languageSensitive == true) {
-            KbBadge("Language-sensitive", BlueCTA)
+            KbBadge(stringResource(R.string.badge_language_sensitive), BlueCTA)
         }
     }
+}
+
+@Composable
+private fun localizedKnowledgeCategory(category: String): String = when (category.trim().lowercase()) {
+    "all" -> stringResource(R.string.knowledge_all)
+    "common misconception", "common misconceptions", "common mistake" -> stringResource(R.string.kb_cat_common_mistake)
+    "counter" -> stringResource(R.string.kb_cat_counter)
+    "encounter" -> stringResource(R.string.kb_cat_encounter)
+    "evolution" -> stringResource(R.string.kb_cat_evolution)
+    "iv" -> stringResource(R.string.kb_cat_iv)
+    "max" -> stringResource(R.string.kb_cat_max)
+    "move", "moves" -> stringResource(R.string.kb_cat_move)
+    "numeric" -> stringResource(R.string.kb_cat_numeric)
+    "operator", "operators" -> stringResource(R.string.kb_cat_operator)
+    "size" -> stringResource(R.string.kb_cat_size)
+    "status" -> stringResource(R.string.kb_cat_status)
+    "tag", "tags" -> stringResource(R.string.kb_cat_tag)
+    else -> category
+}
+
+@Composable
+private fun localizedRiskLabel(riskLevel: com.caglar.pokequery.data.model.RiskLevel): String = when (riskLevel) {
+    com.caglar.pokequery.data.model.RiskLevel.Info -> stringResource(R.string.risk_info)
+    com.caglar.pokequery.data.model.RiskLevel.Low -> stringResource(R.string.risk_low)
+    com.caglar.pokequery.data.model.RiskLevel.Medium -> stringResource(R.string.risk_medium)
+    com.caglar.pokequery.data.model.RiskLevel.High -> stringResource(R.string.risk_high)
+}
+
+private fun localizedChooseLanguageLabel(appLang: String): String = when (AppLocaleController.resolvedLocaleTagFor(appLang)) {
+    "tr" -> "Dil Seçin"
+    "de" -> "Sprache wählen"
+    "es" -> "Elegir idioma"
+    "fr" -> "Choisir la langue"
+    "it" -> "Scegli la lingua"
+    else -> "Choose Language"
+}
+
+private fun localizedSystemDefaultLabel(appLang: String): String = when (AppLocaleController.resolvedLocaleTagFor(appLang)) {
+    "tr" -> "Sistem varsayılanı"
+    "de" -> "Systemstandard"
+    "es" -> "Predeterminado del sistema"
+    "fr" -> "Paramètre système"
+    "it" -> "Predefinito di sistema"
+    else -> "System Default"
+}
+
+private fun localizedSearchStringLanguageTitle(appLang: String): String = when (AppLocaleController.resolvedLocaleTagFor(appLang)) {
+    "tr" -> "Arama Dizgisi Dili"
+    "de" -> "Suchstring-Sprache"
+    "es" -> "Idioma de cadena de búsqueda"
+    "fr" -> "Langue des chaînes de recherche"
+    "it" -> "Lingua delle stringhe di ricerca"
+    else -> "Search String Language"
+}
+
+private fun localizedSearchLanguageLabel(option: String, appLang: String): String = when (option) {
+    LocalizationModel.SearchStringLanguage.AUTO_SAFE -> when (AppLocaleController.resolvedLocaleTagFor(appLang)) {
+        "tr" -> "Otomatik (Güvenli)"
+        "de" -> "Auto (Sicher)"
+        "es" -> "Auto (Seguro)"
+        "fr" -> "Auto (Sécurisé)"
+        "it" -> "Auto (Sicuro)"
+        else -> "Auto"
+    }
+    LocalizationModel.SearchStringLanguage.MATCH_APP -> when (AppLocaleController.resolvedLocaleTagFor(appLang)) {
+        "tr" -> "Uygulama Diliyle Eşleştir"
+        "de" -> "App-Sprache übernehmen"
+        "es" -> "Coincidir con idioma de la app"
+        "fr" -> "Suivre la langue de l’appli"
+        "it" -> "Usa la lingua dell’app"
+        else -> "Match App Language"
+    }
+    LocalizationModel.SearchStringLanguage.ENGLISH -> "English"
+    LocalizationModel.SearchStringLanguage.GERMAN -> "Deutsch"
+    LocalizationModel.SearchStringLanguage.SPANISH -> "Español"
+    LocalizationModel.SearchStringLanguage.FRENCH -> "Français"
+    LocalizationModel.SearchStringLanguage.ITALIAN -> "Italiano"
+    LocalizationModel.SearchStringLanguage.TURKISH -> "Türkçe"
+    else -> option.ifBlank { localizedSearchLanguageLabel(LocalizationModel.SearchStringLanguage.AUTO_SAFE, appLang) }
 }
 
 @Composable
@@ -645,7 +869,7 @@ private fun SavedTemplateRow(
         Spacer(Modifier.height(14.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             com.caglar.pokequery.ui.pq.PqPrimaryButton(
-                text = if (onDelete == null) "Copy again" else "Copy",
+                text = if (onDelete == null) stringResource(R.string.saved_template_copy_again) else stringResource(R.string.saved_template_copy),
                 onClick = onCopy,
                 leadingIcon = Icons.Default.ContentCopy,
                 modifier = Modifier.weight(1f)
@@ -655,14 +879,14 @@ private fun SavedTemplateRow(
                 IconButton(onClick = onSaveAsPreset) {
                     Icon(
                         Icons.Default.Star,
-                        contentDescription = "Save as preset",
+                        contentDescription = stringResource(R.string.saved_template_save_preset),
                         tint = TealPrimary
                     )
                 }
             }
             if (onDelete != null) {
                 Spacer(Modifier.width(4.dp))
-                IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = CoralDanger) }
+                IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = CoralDanger) }
             }
         }
     }
@@ -691,9 +915,28 @@ private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
+@Composable
+private fun SettingsSwitchRow(title: String, description: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f).padding(end = 16.dp)) {
+            Text(title, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+            Text(description, color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp)
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
+        )
+    }
+}
+
 // v0.4.2 (Fix 7): models the pending destructive Settings action awaiting confirmation.
-private enum class DestructiveAction(val title: String, val message: String) {
-    ClearFavorites("Clear favorites?", "This removes all saved search strings. This cannot be undone."),
-    ClearHistory("Clear history?", "This removes all recently copied search strings. This cannot be undone."),
-    ResetSettings("Reset all settings?", "This restores language settings to defaults. Favorites and history are kept. This cannot be undone.")
+private enum class DestructiveAction(@StringRes val titleRes: Int, @StringRes val messageRes: Int) {
+    ClearFavorites(R.string.destructive_clear_fav_title, R.string.destructive_clear_fav_msg),
+    ClearHistory(R.string.destructive_clear_hist_title, R.string.destructive_clear_hist_msg),
+    ResetSettings(R.string.destructive_reset_title, R.string.destructive_reset_msg)
 }

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "lastUpdated": "2026-06-29",
+  "events": [
+    {
+      "id": "community-day-planning",
+      "title": "Community Day planning window",
+      "kind": "COMMUNITY_DAY",
+      "note": "Use Candy Prep and Safe Cleanup goals as review aids while the event is active. Verify the event bonus in Pokemon GO before acting.",
+      "month": 6,
+      "year": 2026
+    },
+    {
+      "id": "transfer-candy-review",
+      "title": "Transfer candy review",
+      "kind": "GENERIC_EVENT",
+      "note": "If a transfer-candy bonus is active, review duplicates carefully before transferring. PokeQuery never transfers anything.",
+      "month": 6,
+      "year": 2026
+    }
+  ]
+}

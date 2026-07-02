@@ -23,3 +23,15 @@ keystore.properties
 *.key
 .agent-reference/
 .env
+
+# Dev-only visual/reference artifacts
+/window_dump.xml
+/ChatGPT Image*.png
+/reference_full_mockup.png
+/pokequery_gemini_visual_asset_pack/
+/pokequery_ui_refinement_asset_pack/
+docs/assets/pquery_ccc_clean_asset_pack*/
+docs/assets/pquery_clean_ui_assets*/
+*_contact_sheet_tmp.*
+scratch_*.py
+temp_*.py

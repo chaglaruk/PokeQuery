@@ -2,6 +2,7 @@ package com.caglar.pokequery.domain.locale
 
 import com.caglar.pokequery.domain.locale.LocalizationModel.AppLanguage
 import com.caglar.pokequery.domain.locale.LocalizationModel.SearchStringLanguage
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -73,13 +74,33 @@ class SearchStringLanguageSelectionTest {
         assertFalse("English must NOT be selected when null", isSelectedEnglish(null))
     }
 
+    private fun isSelectedGerman(storedGameLanguage: String?): Boolean =
+        (storedGameLanguage ?: SearchStringLanguage.DEFAULT) == SearchStringLanguage.GERMAN
+
+    private fun isSelectedSpanish(storedGameLanguage: String?): Boolean =
+        (storedGameLanguage ?: SearchStringLanguage.DEFAULT) == SearchStringLanguage.SPANISH
+
+    private fun isSelectedFrench(storedGameLanguage: String?): Boolean =
+        (storedGameLanguage ?: SearchStringLanguage.DEFAULT) == SearchStringLanguage.FRENCH
+
+    private fun isSelectedItalian(storedGameLanguage: String?): Boolean =
+        (storedGameLanguage ?: SearchStringLanguage.DEFAULT) == SearchStringLanguage.ITALIAN
+
+    private fun isSelectedMatchApp(storedGameLanguage: String?): Boolean =
+        (storedGameLanguage ?: SearchStringLanguage.DEFAULT) == SearchStringLanguage.MATCH_APP
+
     @Test
     fun `exactly one Search String Language option is selected for every valid value`() {
         SearchStringLanguage.OPTIONS.forEach { value ->
             val auto = isSelectedAuto(value)
+            val matchApp = isSelectedMatchApp(value)
             val english = isSelectedEnglish(value)
+            val german = isSelectedGerman(value)
+            val spanish = isSelectedSpanish(value)
+            val french = isSelectedFrench(value)
+            val italian = isSelectedItalian(value)
             val turkish = isSelectedTurkish(value)
-            val count = listOf(auto, english, turkish).count { it }
+            val count = listOf(auto, matchApp, english, german, spanish, french, italian, turkish).count { it }
             assertEquals("exactly one option selected for '$value' (got $count)", 1, count)
         }
     }
@@ -100,9 +121,11 @@ class SearchStringLanguageSelectionTest {
     }
 
     @Test
-    fun `Auto still resolves to English for generation output (safety invariant unchanged)`() {
-        // Fix 5 changed UI SELECTION only; the generation-time Auto->English mapping is
-        // untouched. Assert the safety contract still holds.
-        assertEquals(SearchStringLanguage.ENGLISH, SearchStringLanguage.resolve(SearchStringLanguage.AUTO_SAFE))
+    fun `Auto resolves from supported device locale with english fallback`() {
+        // Selection remains independent; generation resolves Auto from verified supported
+        // device locales only, otherwise English.
+        assertEquals(SearchStringLanguage.ENGLISH, SearchStringLanguage.resolve(SearchStringLanguage.AUTO_SAFE, deviceLocale = Locale("en")))
+        assertEquals(SearchStringLanguage.TURKISH, SearchStringLanguage.resolve(SearchStringLanguage.AUTO_SAFE, deviceLocale = Locale("tr")))
+        assertEquals(SearchStringLanguage.ENGLISH, SearchStringLanguage.resolve(SearchStringLanguage.AUTO_SAFE, deviceLocale = Locale("ja")))
     }
 }
