@@ -2,6 +2,7 @@ package com.caglar.pokequery.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,10 +39,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,6 +64,7 @@ import com.caglar.pokequery.theme.BorderSubtle
 import com.caglar.pokequery.theme.CardDark
 import com.caglar.pokequery.theme.CardPremium
 import com.caglar.pokequery.theme.CyanGlow
+import com.caglar.pokequery.theme.GoldCaution
 import com.caglar.pokequery.theme.PurpleIV
 import com.caglar.pokequery.theme.SlateBlack
 import com.caglar.pokequery.theme.TealPrimary
@@ -156,11 +162,6 @@ fun EventContextScreen(
                 FeedStatusBanner(feedState, refreshing, lastChecked, onRefresh = { refresh() }, Modifier.pqStaggeredItem(visible, 1))
             }
 
-            val monthly = feedState.monthly
-            val view = monthly?.let { MonthlyContextView(it, it.isManual) }
-            item {
-                MonthlyNoteCardInner(view, Modifier.pqStaggeredItem(visible, 2))
-            }
             if (userPrefs?.eventGuideShowPlanningHints != false) {
                 val eventSourceLabelRes = when (feedState) {
                     is ContextFeedState.Online -> R.string.event_status_live_feed
@@ -175,7 +176,7 @@ fun EventContextScreen(
                         fontSize = 14.sp,
                         modifier = Modifier
                             .padding(top = 8.dp)
-                            .pqStaggeredItem(visible, 3)
+                            .pqStaggeredItem(visible, 2)
                     )
                 }
                 items(feedState.events, key = { it.id }) { event ->
@@ -363,37 +364,60 @@ private fun EventNoteCard(
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(16.dp)
-    val now = Calendar.getInstance()
-    val eventMonthIndex = event.year?.let { year -> event.month?.let { month -> year * 12 + (month - 1) } }
-    val nowMonthIndex = now.get(Calendar.YEAR) * 12 + now.get(Calendar.MONTH)
-    val timingLabel = if (eventMonthIndex != null && eventMonthIndex > nowMonthIndex) {
-        stringResource(R.string.event_label_upcoming)
-    } else {
-        stringResource(R.string.event_label_current)
+    val clipboard = LocalClipboardManager.current
+    val useTurkish = Locale.getDefault().language == "tr"
+    fun choose(en: String?, tr: String?): String = if (useTurkish && !tr.isNullOrBlank()) tr else en.orEmpty()
+    val timingLabel = when (event.status) {
+        com.caglar.pokequery.domain.events.EventStatus.UPCOMING -> stringResource(R.string.event_label_upcoming)
+        com.caglar.pokequery.domain.events.EventStatus.CURRENT -> stringResource(R.string.event_label_current)
+    }
+    val tone = when (event.themeKey) {
+        "candy_bonus" -> AmberWarning
+        "trade_bonus" -> PurpleIV
+        "raid" -> GoldCaution
+        "spotlight_hour" -> CyanGlow
+        "community_day" -> TealPrimary
+        else -> CyanGlow
     }
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(Brush.verticalGradient(listOf(CyanGlow.copy(alpha = 0.12f), CardDark)))
-            .border(1.dp, CyanGlow.copy(alpha = 0.22f), shape)
+            .background(Brush.verticalGradient(listOf(tone.copy(alpha = 0.14f), CardDark)))
+            .border(1.dp, tone.copy(alpha = 0.25f), shape)
             .padding(14.dp)
     ) {
         val title = event.titleText ?: event.titleRes?.let { stringResource(it) }.orEmpty()
-        val note = event.noteText ?: event.noteRes?.let { stringResource(it) }.orEmpty()
+        val displayTitle = if (useTurkish && !event.titleTextTr.isNullOrBlank()) event.titleTextTr else title
+        val note = choose(event.noteText ?: event.noteRes?.let { stringResource(it) }, event.noteTextTr)
+        val summary = choose(event.summaryText, event.summaryTextTr)
+        val prep = choose(event.prepText, event.prepTextTr)
+        val eventNotes = choose(event.eventNotesText, event.eventNotesTextTr)
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                EventThemeMark(event.themeKey, tone, Modifier.size(44.dp))
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = timingLabel,
+                        color = tone,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 11.sp
+                    )
+                    Text(
+                        text = stringResource(sourceLabelRes),
+                        color = TextSecondary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
             Text(
-                text = timingLabel,
-                color = CyanGlow,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 11.sp
-            )
-            Text(
-                text = stringResource(sourceLabelRes),
+                text = event.themeKey.replace('_', ' '),
                 color = TextSecondary,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
@@ -405,20 +429,38 @@ private fun EventNoteCard(
         }
         Spacer(Modifier.height(8.dp))
         Text(
-            text = title,
+            text = displayTitle,
             color = TextPrimary,
             fontWeight = FontWeight.Bold,
             fontSize = 15.sp
         )
         Spacer(Modifier.height(6.dp))
-        if (event.month != null && event.year != null) {
+        val dateText = when {
+            !event.startText.isNullOrBlank() && !event.endText.isNullOrBlank() -> stringResource(R.string.event_date_range, event.startText, event.endText)
+            !event.startText.isNullOrBlank() -> stringResource(R.string.event_date_starts, event.startText)
+            !event.endText.isNullOrBlank() -> stringResource(R.string.event_date_ends, event.endText)
+            event.month != null && event.year != null -> stringResource(R.string.event_month_year, event.month, event.year)
+            else -> null
+        }
+        if (dateText != null) {
             Text(
-                text = stringResource(R.string.event_month_year, event.month, event.year),
+                text = dateText,
                 color = TextTertiary,
                 fontSize = 11.sp
             )
             Spacer(Modifier.height(8.dp))
         }
+        Text(note, color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = stringResource(R.string.event_card_summary),
+            color = TealPrimary,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(summary, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+        Spacer(Modifier.height(10.dp))
         Text(
             text = stringResource(R.string.event_prep_guidance),
             color = TealPrimary,
@@ -426,18 +468,84 @@ private fun EventNoteCard(
             fontWeight = FontWeight.Bold
         )
         Spacer(Modifier.height(4.dp))
+        Text(prep, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
+        val search = event.suggestedSearch.orEmpty()
+        if (search.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.event_card_search),
+                color = TealPrimary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(4.dp))
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SlateBlack.copy(alpha = 0.55f))
+                    .border(1.dp, tone.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(search, color = TextPrimary, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                Spacer(Modifier.width(8.dp))
+                Button(
+                    onClick = { clipboard.setText(AnnotatedString(search)) },
+                    colors = ButtonDefaults.buttonColors(containerColor = tone, contentColor = SlateBlack),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(stringResource(R.string.event_card_copy_search), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        Spacer(Modifier.height(10.dp))
         Text(
-            text = note,
-            color = TextSecondary,
-            fontSize = 13.sp,
-            lineHeight = 18.sp
+            text = stringResource(R.string.event_card_notes),
+            color = TealPrimary,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
+        Text(eventNotes, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
+        Spacer(Modifier.height(10.dp))
         Text(
             text = stringResource(R.string.event_safety_note),
             color = AmberWarning,
             fontSize = 11.sp,
             lineHeight = 15.sp
         )
+    }
+}
+
+@Composable
+private fun EventThemeMark(themeKey: String, tone: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier.clip(RoundedCornerShape(14.dp)).background(tone.copy(alpha = 0.12f))) {
+        val stroke = Stroke(width = size.minDimension * 0.08f)
+        val w = size.width
+        val h = size.height
+        when (themeKey) {
+            "community_day" -> {
+                drawCircle(tone.copy(alpha = 0.28f), radius = w * 0.28f, center = Offset(w * 0.5f, h * 0.5f), style = stroke)
+                drawLine(tone, Offset(w * 0.5f, h * 0.18f), Offset(w * 0.5f, h * 0.82f), strokeWidth = w * 0.07f)
+                drawLine(tone, Offset(w * 0.18f, h * 0.5f), Offset(w * 0.82f, h * 0.5f), strokeWidth = w * 0.07f)
+            }
+            "candy_bonus" -> {
+                drawCircle(tone.copy(alpha = 0.35f), radius = w * 0.20f, center = Offset(w * 0.42f, h * 0.5f))
+                drawCircle(tone.copy(alpha = 0.18f), radius = w * 0.20f, center = Offset(w * 0.60f, h * 0.5f), style = stroke)
+                drawLine(tone, Offset(w * 0.18f, h * 0.35f), Offset(w * 0.30f, h * 0.65f), strokeWidth = w * 0.06f)
+                drawLine(tone, Offset(w * 0.82f, h * 0.35f), Offset(w * 0.70f, h * 0.65f), strokeWidth = w * 0.06f)
+            }
+            "trade_bonus" -> {
+                drawLine(tone, Offset(w * 0.22f, h * 0.38f), Offset(w * 0.78f, h * 0.38f), strokeWidth = w * 0.07f)
+                drawLine(tone, Offset(w * 0.78f, h * 0.38f), Offset(w * 0.62f, h * 0.24f), strokeWidth = w * 0.07f)
+                drawLine(tone, Offset(w * 0.22f, h * 0.62f), Offset(w * 0.78f, h * 0.62f), strokeWidth = w * 0.07f)
+                drawLine(tone, Offset(w * 0.22f, h * 0.62f), Offset(w * 0.38f, h * 0.76f), strokeWidth = w * 0.07f)
+            }
+            else -> {
+                drawCircle(tone.copy(alpha = 0.20f), radius = w * 0.28f, center = Offset(w * 0.5f, h * 0.5f), style = stroke)
+                drawCircle(tone, radius = w * 0.08f, center = Offset(w * 0.5f, h * 0.5f))
+            }
+        }
     }
 }

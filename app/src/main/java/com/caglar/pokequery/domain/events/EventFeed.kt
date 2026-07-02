@@ -48,6 +48,19 @@ data class EventFeed(
 )
 
 object EventFeedParser {
+    private val allowedThemeKeys = setOf(
+        "electric",
+        "dragon",
+        "community_day",
+        "candy_bonus",
+        "trade_bonus",
+        "raid",
+        "spotlight_hour",
+        "hatch",
+        "research",
+        "generic_event"
+    )
+
     fun parse(json: String): Result<EventFeed> = runCatching {
         val schema = intField(json, "schemaVersion")
         require(schema == 1) { "unsupported schema" }
@@ -57,18 +70,41 @@ object EventFeedParser {
             .find(json)?.groupValues?.get(1) ?: error("missing events")
         val events = Regex("""\{([^{}]+)}""").findAll(eventsBody).map { match ->
             val body = match.groupValues[1]
+            val themeKey = optionalStringField(body, "themeKey") ?: "generic_event"
+            require(themeKey in allowedThemeKeys) { "unsupported themeKey" }
             EventContext(
                 id = stringField(body, "id"),
                 titleText = stringField(body, "title"),
+                titleTextTr = optionalStringField(body, "titleTr"),
                 contextType = EventContextType.valueOf(stringField(body, "kind")),
+                status = EventStatus.valueOf(stringField(body, "status").uppercase()),
                 noteText = stringField(body, "note"),
+                noteTextTr = optionalStringField(body, "noteTr"),
                 month = intField(body, "month"),
                 year = intField(body, "year"),
+                startText = optionalStringField(body, "start"),
+                endText = optionalStringField(body, "end"),
+                summaryText = stringField(body, "summary"),
+                summaryTextTr = optionalStringField(body, "summaryTr"),
+                prepText = stringField(body, "prep"),
+                prepTextTr = optionalStringField(body, "prepTr"),
+                suggestedSearch = stringField(body, "suggestedSearch"),
+                eventNotesText = stringField(body, "eventNotes"),
+                eventNotesTextTr = optionalStringField(body, "eventNotesTr"),
+                themeKey = themeKey,
                 isManual = false
             )
         }.toList()
         require(events.isNotEmpty()) { "empty events" }
-        require(events.all { it.id.isNotBlank() && it.titleText?.isNotBlank() == true && it.noteText?.isNotBlank() == true }) {
+        require(events.all {
+            it.id.isNotBlank() &&
+                it.titleText?.isNotBlank() == true &&
+                it.noteText?.isNotBlank() == true &&
+                it.summaryText?.isNotBlank() == true &&
+                it.prepText?.isNotBlank() == true &&
+                it.suggestedSearch?.isNotBlank() == true &&
+                it.eventNotesText?.isNotBlank() == true
+        }) {
             "blank event field"
         }
         EventFeed(lastUpdated, events)
@@ -77,6 +113,9 @@ object EventFeedParser {
     private fun stringField(json: String, name: String): String =
         Regex(""""$name"\s*:\s*"([^"]+)"""").find(json)?.groupValues?.get(1)?.trim()
             ?: error("missing $name")
+
+    private fun optionalStringField(json: String, name: String): String? =
+        Regex(""""$name"\s*:\s*"([^"]*)"""").find(json)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() }
 
     private fun intField(json: String, name: String): Int =
         Regex(""""$name"\s*:\s*(\d+)""").find(json)?.groupValues?.get(1)?.toInt()
@@ -117,7 +156,8 @@ object EventFeedLoader {
                 return ContextFeedState.Online(manualMonthly, feed.events, feed.lastUpdated)
             }
             val cached = if (preferCachedOnFailure) EventFeedCache.read(context) else null
-            return decideAfterParseFailure(manualMonthly, cached)
+            val bundled = if (cached == null) bundledFallback(context) else null
+            return decideAfterParseFailure(manualMonthly, cached, bundled)
         }
         val cached = if (preferCachedOnFailure) EventFeedCache.read(context) else null
         val bundled = if (cached == null) bundledFallback(context) else null
@@ -131,12 +171,15 @@ object EventFeedLoader {
      */
     fun decideAfterParseFailure(
         manualMonthly: MonthlyContext?,
-        cached: EventFeed?
+        cached: EventFeed?,
+        bundled: EventFeed? = null
     ): ContextFeedState =
         if (cached != null) {
             ContextFeedState.StaleCache(manualMonthly, cached.events, cached.lastUpdated)
+        } else if (bundled != null) {
+            ContextFeedState.OfflineOnly(manualMonthly, bundled.events)
         } else {
-            ContextFeedState.Invalid(manualMonthly)
+            ContextFeedState.OfflineOnly(manualMonthly)
         }
 
     /**

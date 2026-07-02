@@ -105,10 +105,23 @@ class EventContextTest {
                 {
                   "id": "community",
                   "title": "Community Day",
+                  "titleTr": "Topluluk Günü",
                   "kind": "COMMUNITY_DAY",
+                  "status": "CURRENT",
                   "note": "Verify in Pokemon GO before acting.",
+                  "noteTr": "İşlem yapmadan önce Pokemon GO içinde doğrula.",
                   "month": 6,
-                  "year": 2026
+                  "year": 2026,
+                  "start": "Event day",
+                  "end": "After event",
+                  "summary": "Useful event planning card.",
+                  "summaryTr": "Yararlı etkinlik hazırlık kartı.",
+                  "prep": "Tag keepers first.",
+                  "prepTr": "Önce saklanacakları etiketle.",
+                  "suggestedSearch": "age0-2",
+                  "eventNotes": "Review protected categories.",
+                  "eventNotesTr": "Korunan kategorileri incele.",
+                  "themeKey": "community_day"
                 }
               ]
             }
@@ -120,6 +133,10 @@ class EventContextTest {
         assertEquals(1, feed.events.size)
         assertFalse(feed.events.single().isManual)
         assertEquals(EventContextType.COMMUNITY_DAY, feed.events.single().contextType)
+        assertEquals(EventStatus.CURRENT, feed.events.single().status)
+        assertEquals("age0-2", feed.events.single().suggestedSearch)
+        assertEquals("community_day", feed.events.single().themeKey)
+        assertEquals("Topluluk Günü", feed.events.single().titleTextTr)
     }
 
     @Test
@@ -128,9 +145,18 @@ class EventContextTest {
 
         val feed = EventFeedParser.parse(json).getOrThrow()
 
-        assertEquals("2026-07-01", feed.lastUpdated)
-        assertEquals(2, feed.events.size)
+        assertEquals("2026-07-02", feed.lastUpdated)
+        assertTrue(feed.events.size >= 3)
         assertTrue(feed.events.none { it.isManual })
+        feed.events.forEach { event ->
+            assertTrue(event.titleText.orEmpty().isNotBlank())
+            assertTrue(event.noteText.orEmpty().contains("fallback", ignoreCase = true))
+            assertTrue(event.summaryText.orEmpty().isNotBlank())
+            assertTrue(event.prepText.orEmpty().isNotBlank())
+            assertTrue(event.suggestedSearch.orEmpty().isNotBlank())
+            assertTrue(event.eventNotesText.orEmpty().isNotBlank())
+            assertTrue(event.themeKey.isNotBlank())
+        }
     }
 
     @Test
@@ -149,11 +175,27 @@ class EventContextTest {
               "schemaVersion": 1,
               "lastUpdated": "2026-06-29",
               "events": [
-                { "id": "x", "title": "", "kind": "GENERIC_EVENT", "note": "", "month": 6, "year": 2026 }
+                { "id": "x", "title": "", "kind": "GENERIC_EVENT", "status": "CURRENT", "note": "", "month": 6, "year": 2026,
+                  "summary": "", "prep": "", "suggestedSearch": "", "eventNotes": "", "themeKey": "generic_event" }
               ]
             }
         """.trimIndent()
         assertTrue(EventFeedParser.parse(blankNote).isFailure)
+    }
+
+    @Test
+    fun `event feed parser fails closed on unsupported theme`() {
+        val invalid = """
+            {
+              "schemaVersion": 1,
+              "lastUpdated": "2026-06-29",
+              "events": [
+                { "id": "x", "title": "X", "kind": "GENERIC_EVENT", "status": "CURRENT", "note": "Note", "month": 6, "year": 2026,
+                  "summary": "Summary", "prep": "Prep", "suggestedSearch": "age0-1", "eventNotes": "Notes", "themeKey": "official_creature" }
+              ]
+            }
+        """.trimIndent()
+        assertTrue(EventFeedParser.parse(invalid).isFailure)
     }
 }
 
@@ -172,7 +214,8 @@ private val VALID_FEED_JSON = """
       "lastUpdated": "2026-06-29",
       "events": [
         { "id": "community", "title": "Community Day", "kind": "COMMUNITY_DAY",
-          "note": "Verify in Pokemon GO before acting.", "month": 6, "year": 2026 }
+          "status": "CURRENT", "note": "Verify in Pokemon GO before acting.", "month": 6, "year": 2026,
+          "summary": "Summary", "prep": "Prep", "suggestedSearch": "age0-2", "eventNotes": "Notes", "themeKey": "community_day" }
       ]
     }
 """.trimIndent()
@@ -185,9 +228,15 @@ private val sampleCachedFeed: EventFeed = EventFeed(
             id = "cached-event",
             titleText = "Cached Community Day",
             contextType = EventContextType.COMMUNITY_DAY,
+            status = EventStatus.CURRENT,
             noteText = "Old note from cache.",
             month = 6,
             year = 2026,
+            summaryText = "Cached summary.",
+            prepText = "Cached prep.",
+            suggestedSearch = "age0-2",
+            eventNotesText = "Cached notes.",
+            themeKey = "community_day",
             isManual = false
         )
     )
@@ -225,10 +274,21 @@ class EventFeedLoaderTest {
     }
 
     @Test
-    fun `unparseable successful fetch with no cache resolves to Invalid`() {
+    fun `unparseable successful fetch with no cache resolves to OfflineOnly`() {
         // Fail-closed: a 2xx body that fails schema validation must not become a garbled Online.
         val state = EventFeedLoader.decideAfterParseFailure(manualMonthly = null, cached = null)
-        assertTrue("expected Invalid, was $state", state is ContextFeedState.Invalid)
+        assertTrue("expected OfflineOnly, was $state", state is ContextFeedState.OfflineOnly)
+    }
+
+    @Test
+    fun `unparseable successful fetch with bundled fallback keeps useful event cards`() {
+        val bundled = sampleCachedFeed.copy(lastUpdated = "2026-07-02")
+
+        val state = EventFeedLoader.decideAfterParseFailure(manualMonthly = null, cached = null, bundled = bundled)
+
+        val offline = state as ContextFeedState.OfflineOnly
+        assertEquals(1, offline.events.size)
+        assertEquals("cached-event", offline.events.single().id)
     }
 
     @Test
