@@ -3,24 +3,20 @@ import glob
 from PIL import Image
 
 def create_contact_sheet():
-    screenshot_dir = os.path.join("docs", "screenshots")
+    screenshot_dir = os.path.join("docs", "screenshots", "v069_onboarding_event_guide")
     allowed_list = [
-        "1_onboarding_step_1.png",
-        "2_onboarding_step_2.png",
-        "3_onboarding_step_3.png",
-        "4_home.png",
-        "5_safe_cleanup_detail.png",
-        "6_candy_prep_detail.png",
-        "7_trade_fodder_detail.png",
-        "8_nundo_detail.png",
-        "9_pvp_detail.png",
-        "10_lucky_trade_detail.png",
-        "11_popular_presets.png",
-        "12_knowledge_search.png",
-        "13_knowledge_expanded.png",
-        "14_favorites.png",
-        "15_history.png",
-        "16_settings.png"
+        "onboarding_step_1_en.png",
+        "onboarding_step_2_en.png",
+        "onboarding_step_1_tr.png",
+        "onboarding_step_2_tr.png",
+        "home_en.png",
+        "event_guide_before_refresh_en.png",
+        "event_guide_after_refresh_en.png",
+        "event_guide_before_refresh_tr.png",
+        "event_guide_after_refresh_tr.png",
+        "event_detail_or_expanded_card_if_available.png",
+        "settings_en.png",
+        "search_assistant_tr.png",
     ]
     
     files = []

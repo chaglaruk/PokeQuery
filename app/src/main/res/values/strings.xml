@@ -88,7 +88,7 @@
     <string name="events_refresh">Refresh now</string>
     <string name="events_online_enabled">Online events enabled</string>
     <string name="events_offline_title">Event Guide</string>
-    <string name="event_general_notes">General event notes</string>
+    <string name="event_general_notes">Event prep cards</string>
     <string name="event_context_community_day">This month\'s Community Day</string>
     <string name="event_context_candy_events">Candy events</string>
     <string name="event_context_candy_events_note">During Candy transfer bonus events, extra candies can make 2x Candy Prep goals more effective. PokeQuery does not pull live event data — verify if an event is active in Pokémon GO itself.</string>
@@ -104,13 +104,20 @@
     <string name="event_context_from_feed">from feed</string>
     <string name="event_context_online_feed_note">Online feed note</string>
     <string name="event_context_last_checked">Last checked: %1$s</string>
-    <string name="event_status_live_feed">Live feed</string>
-    <string name="event_status_saved_guide">Saved guide</string>
-    <string name="event_status_bundled_fallback">Bundled guide</string>
+    <string name="event_status_live_feed">Live public feed</string>
+    <string name="event_status_saved_guide">Saved feed</string>
+    <string name="event_status_bundled_fallback">Bundled fallback guidance</string>
     <string name="event_label_current">Current</string>
     <string name="event_label_upcoming">Upcoming</string>
     <string name="event_month_year">%1$d/%2$d</string>
     <string name="event_prep_guidance">Search / prep guidance</string>
+    <string name="event_card_summary">Why this matters</string>
+    <string name="event_card_search">Suggested search</string>
+    <string name="event_card_notes">Prep notes</string>
+    <string name="event_card_copy_search">Copy search</string>
+    <string name="event_date_range">%1$s – %2$s</string>
+    <string name="event_date_starts">Starts %1$s</string>
+    <string name="event_date_ends">Ends %1$s</string>
     <string name="event_safety_note">Verify the event and active bonuses in Pokémon GO before acting.</string>
 
     <!-- What Changed / Changelog -->
@@ -369,12 +376,12 @@
     <string name="onboarding_hero_tagline">Search smarter before you transfer, trade, or tidy up.</string>
     <string name="onboarding_card1_title">Build the right search in seconds</string>
     <string name="onboarding_card1_desc">Use safe defaults for cleanup, candy, trades, PvP, Hundos, and Nundos.</string>
-    <string name="onboarding_feature_plan_title">Plan the search</string>
-    <string name="onboarding_feature_plan_desc">Pick the goal before you paste</string>
-    <string name="onboarding_feature_protect_title">Protect value</string>
-    <string name="onboarding_feature_protect_desc">Keep shinies, hundos, and favorites out</string>
-    <string name="onboarding_feature_copy_title">Copy with care</string>
-    <string name="onboarding_feature_copy_desc">Manual review, no account access</string>
+    <string name="onboarding_feature_plan_title">Build useful Pokémon GO searches</string>
+    <string name="onboarding_feature_plan_desc">Cleanup, candy, trades, PvP, hundos, nundos, events.</string>
+    <string name="onboarding_feature_protect_title">Avoid risky transfers</string>
+    <string name="onboarding_feature_protect_desc">Warnings help protect favorites, shinies, costumes, legendaries.</string>
+    <string name="onboarding_feature_copy_title">Plan around events</string>
+    <string name="onboarding_feature_copy_desc">Prep notes help you tag, trade, evolve, keep, or review.</string>
     <string name="onboarding_card2_title">Built for careful collectors</string>
     <string name="onboarding_card2_desc">PokeQuery creates search text only. You stay in control, review in-game, and decide what to keep.</string>
     <string name="onboarding_trust_strip_private">Private</string>
