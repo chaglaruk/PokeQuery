@@ -127,18 +127,75 @@ class EventContextTest {
         assertEquals("first", selectMainEvent(events)?.id)
     }
 
+    @Test
+    fun `effectiveStatus uses date window before static feed label`() {
+        val event = EventContext(
+            id = "go-fest",
+            titleText = "GO Fest",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.CURRENT,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+
+        assertEquals(EventStatus.UPCOMING, event.effectiveStatus("2026-07-02"))
+        assertEquals(EventStatus.CURRENT, event.effectiveStatus("2026-07-11"))
+        assertEquals(EventStatus.ENDED, event.effectiveStatus("2026-07-13"))
+    }
+
+    @Test
+    fun `selectMainEvent skips ended date window when upcoming event exists`() {
+        val ended = EventContext(
+            id = "ended",
+            titleText = "Old",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.CURRENT,
+            startDate = "2026-06-01",
+            endDate = "2026-06-02",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+        val upcoming = EventContext(
+            id = "upcoming",
+            titleText = "Next",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.UPCOMING,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+
+        assertEquals("upcoming", selectMainEvent(listOf(ended, upcoming), "2026-07-02")?.id)
+    }
+
     // ---- v0.6.9: fixture has featuredPokemon and bonuses ----
 
     @Test
-    fun `bundled fixture has featured Pokemon and bonuses on at least one event`() {
+    fun `bundled fixture has GO Fest planning fields`() {
         val json = File("src/main/res/raw/event_context_fixture.json").readText()
         val feed = EventFeedParser.parse(json).getOrThrow()
         assertTrue("fixture should have events", feed.events.isNotEmpty())
-        // At least the Community Day event should have featuredPokemon.
-        val sobble = feed.events.firstOrNull { it.id.contains("sobble", ignoreCase = true) }
-        assertNotNull("Sobble event should exist", sobble)
-        assertEquals("Sobble", sobble!!.featuredPokemon)
-        assertTrue("bonuses should not be blank", sobble.bonusesText.orEmpty().isNotBlank())
+        val goFest = feed.events.firstOrNull { it.id.contains("go-fest", ignoreCase = true) }
+        assertNotNull("GO Fest event should exist", goFest)
+        assertEquals("2026-07-11", goFest!!.startDate)
+        assertEquals("2026-07-12", goFest.endDate)
+        assertEquals(EventStatus.UPCOMING, goFest.effectiveStatus("2026-07-02"))
+        assertTrue("boosted spawns should not be blank", goFest.boostedPokemonText.orEmpty().isNotBlank())
+        assertTrue("raids should not be blank", goFest.raidsText.orEmpty().isNotBlank())
+        assertTrue("research should not be blank", goFest.researchText.orEmpty().isNotBlank())
+        assertTrue("bonuses should not be blank", goFest.bonusesText.orEmpty().isNotBlank())
     }
 
     @Test
@@ -186,6 +243,8 @@ class EventContextTest {
                   "noteTr": "İşlem yapmadan önce Pokemon GO içinde doğrula.",
                   "month": 6,
                   "year": 2026,
+                  "startDate": "2026-06-29",
+                  "endDate": "2026-06-29",
                   "start": "Event day",
                   "end": "After event",
                   "summary": "Useful event planning card.",
@@ -208,6 +267,8 @@ class EventContextTest {
         assertFalse(feed.events.single().isManual)
         assertEquals(EventContextType.COMMUNITY_DAY, feed.events.single().contextType)
         assertEquals(EventStatus.CURRENT, feed.events.single().status)
+        assertEquals("2026-06-29", feed.events.single().startDate)
+        assertEquals("2026-06-29", feed.events.single().endDate)
         assertEquals("age0-2", feed.events.single().suggestedSearch)
         assertEquals("community_day", feed.events.single().themeKey)
         assertEquals("Topluluk Günü", feed.events.single().titleTextTr)

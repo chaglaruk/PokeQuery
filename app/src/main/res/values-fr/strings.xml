@@ -23,7 +23,7 @@
     <string name="assistant_suggest">Suggestion IA</string>
     <string name="assistant_copied">Copié dans le presse-papiers</string>
     <string name="search_assistant_title">Assistant de Recherche</string>
-    <string name="search_assistant_desc_text">Décrivez ce que vous voulez trouver avec vos propres mots. L\'assistant créera la chaîne de recherche pour vous.</string>
+    <string name="search_assistant_desc_text">Décrivez ce que vous voulez trouver. PokeQuery le transforme en chaîne de recherche sûre à copier.</string>
     <string name="search_assistant_placeholder">ex. montre-moi des pokemon shiny legendary</string>
     <string name="search_assistant_parse">Générer</string>
     <string name="search_assistant_ai_suggest">Suggestion IA</string>
@@ -104,7 +104,7 @@
     <string name="event_date_range">%1$s – %2$s</string>
     <string name="event_date_starts">Débute %1$s</string>
     <string name="event_date_ends">Se termine %1$s</string>
-    <string name="event_safety_note">Vérifiez toujours votre vue Aujourd\'hui dans Pokémon GO pour être absolument sûr que l\'événement est actif avant de transférer.</string>
+    <string name="event_safety_note">Avant de transférer, vérifiez la vue Aujourd\'hui dans Pokémon GO et relisez les résultats manuellement.</string>
     <string name="what_changed_v066_subtitle">Phase 5 — Finitions de la localisation</string>
     <string name="what_changed_v066_b1">• Traduction turque complète pour le Guide des Événements, l\'Onboarding, les Détails de l\'Objectif et l\'Accueil</string>
     <string name="what_changed_v066_b2">• L\'Assistant de Recherche est désormais une carte principale sur l\'Accueil ; le Chercheur de Nundo est dans Plus d\'Outils</string>
@@ -158,15 +158,15 @@
     <string name="goal_changelog_desc">Historique des versions</string>
     <string name="goal_settings">Paramètres</string>
     <string name="goal_settings_desc">Confidentialité, langue, sécurité</string>
-    <string name="goal_exp_safe_cleanup">Ceci est une chaîne de VÉRIFICATION ciblant les candidats de faible valeur. Ce n\'est pas une commande de transfert automatique.</string>
-    <string name="goal_exp_candy_prep">Trouve les surplus. Le décompte est basé sur le numéro du Pokédex et peut ne pas distinguer les formes/costumes/shiny.</string>
-    <string name="goal_exp_trade_fodder">Trouve les candidats à l\'échange. L\'éligibilité réelle dépend du niveau d\'amitié et ne peut être garantie par une recherche.</string>
+    <string name="goal_exp_safe_cleanup">Affiche les Pokémon probablement peu précieux en excluant les catégories protégées. Relisez la liste avant tout transfert.</string>
+    <string name="goal_exp_candy_prep">Trouve les surplus pour les bonbons. Le décompte regroupe par numéro d’espèce; vérifiez formes, costumes, shiny et favoris.</string>
+    <string name="goal_exp_trade_fodder">Trouve des surplus possibles pour l’échange. L’éligibilité dépend de l’amitié, des échanges spéciaux et de vos plans.</string>
     <string name="goal_exp_hundo_check">Trouve tous les Pokémon aux IV parfaits (Hundo). 4★ signifie 15/15/15.</string>
-    <string name="goal_exp_untagged_cleanup">Trouve les Pokémon n\'ayant aucun tag.</string>
+    <string name="goal_exp_untagged_cleanup">Trouve les Pokémon sans tag pour revoir ce qui reste à trier.</string>
     <string name="goal_exp_nundo_finder">Trouve les Pokémon avec des IV de 0/0/0 exactement (Nundo).</string>
     <string name="goal_exp_pvp_candidates">Recherche de candidats uniquement. Le rang PvP final dépend de l\'espèce, du niveau et de la répartition des IV.</string>
-    <string name="goal_exp_lucky_trade">Trouve les Pokémon plus vieux ou capturés loin à échanger. Vérifiez manuellement. Des Pokémon précieux peuvent s\'y trouver. L\'éligibilité et la chance de Lucky ne sont pas garanties.</string>
-    <string name="goal_exp_expert">Chaîne de recherche personnalisée. Vérifiez toutes les correspondances en jeu avant d\'agir.</string>
+    <string name="goal_exp_lucky_trade">Trouve des Pokémon anciens ou capturés loin à examiner pour l’échange. Lucky n’est jamais garanti; vérifiez chaque résultat.</string>
+    <string name="goal_exp_expert">Crée une recherche personnalisée. PokeQuery peut signaler la syntaxe, mais vous devez vérifier les résultats avant d’agir.</string>
     <string name="risk_high">ÉLEVÉ</string>
     <string name="risk_medium">MOYEN</string>
     <string name="risk_low">FAIBLE</string>
@@ -255,17 +255,17 @@
     <string name="onboarding_skip">Passer</string>
     <string name="onboarding_next">Suivant</string>
     <string name="onboarding_start_building">Commencer</string>
-    <string name="onboarding_hero_tagline">Cherchez mieux avant de transférer, échanger ou trier.</string>
+    <string name="onboarding_hero_tagline">Trouvez ce qui peut être vérifié en sécurité avant de transférer, échanger ou trier.</string>
     <string name="onboarding_card1_title">Construisez la bonne recherche en un instant</string>
     <string name="onboarding_card1_desc">Utilisez des modèles sécurisés pour le nettoyage, les bonbons, les échanges, le PvP, les Hundos et Nundos.</string>
-    <string name="onboarding_feature_plan_title">Créer des recherches Pokémon GO utiles</string>
+    <string name="onboarding_feature_plan_title">Créer des recherches utiles</string>
     <string name="onboarding_feature_plan_desc">Nettoyage, bonbons, échanges, PvP, hundos, nundos, événements.</string>
-    <string name="onboarding_feature_protect_title">Éviter les transferts risqués</string>
-    <string name="onboarding_feature_protect_desc">Les alertes aident à protéger favoris, shinies, costumes et légendaires.</string>
-    <string name="onboarding_feature_copy_title">Préparer les événements</string>
-    <string name="onboarding_feature_copy_desc">Les notes aident à taguer, échanger, évoluer, garder ou vérifier.</string>
-    <string name="onboarding_card2_title">Pour collectionneurs attentifs</string>
-    <string name="onboarding_card2_desc">PokeQuery crée seulement du texte de recherche. Vous vérifiez dans le jeu et décidez quoi garder.</string>
+    <string name="onboarding_feature_protect_title">Ralentir en cas de risque</string>
+    <string name="onboarding_feature_protect_desc">Les alertes rappellent de vérifier shiny, costumes, favoris et tags.</string>
+    <string name="onboarding_feature_copy_title">Copier du texte seulement</string>
+    <string name="onboarding_feature_copy_desc">PokeQuery ne touche jamais votre compte. Vous collez la recherche vous-même.</string>
+    <string name="onboarding_card2_title">Vérifier d’abord, agir ensuite</string>
+    <string name="onboarding_card2_desc">PokeQuery crée du texte de recherche. Vous gardez le contrôle: copiez, ouvrez Pokémon GO et vérifiez avant d’agir.</string>
     <string name="onboarding_trust_strip_private">Privé</string>
     <string name="onboarding_trust_strip_offline">Hors Ligne</string>
     <string name="onboarding_trust_strip_copy">Copier seul</string>
@@ -478,7 +478,7 @@
     <string name="destructive_reset_title">Réinitialiser tous les paramètres ?</string>
     <string name="destructive_reset_msg">Les paramètres de langue seront remis par défaut. Les favoris et l\'historique sont conservés. Cette action est irréversible.</string>
     <string name="settings_online_events_toggle">Mises à jour du Guide des Événements</string>
-    <string name="settings_online_events_toggle_desc">Télécharge les dernières notes d\'événements publics. Aucune connexion, aucun suivi, aucun accès au compte Pokémon GO.</string>
+    <string name="settings_online_events_toggle_desc">Télécharge les notes publiques disponibles. Désactivé utilise les notes sauvegardées ou intégrées. Aucun login, suivi ou accès au compte.</string>
 
 
 
@@ -564,8 +564,12 @@
     <string name="goal_detail_tip_desc">Vérifiez quelques résultats au hasard avant le transfert de masse pour plus de sécurité.</string>
     <string name="risk_low_display">Risque Faible</string>
     <string name="risk_medium_display">Risque Moyen</string>
+    <string name="risk_info_display">Info</string>
+    <string name="risk_high_display">Risque Élevé</string>
     <string name="risk_low_subtitle">Sûr à utiliser</string>
     <string name="risk_medium_subtitle">Vérifier avant utilisation</string>
+    <string name="risk_info_subtitle">Inspection seulement</string>
+    <string name="risk_high_subtitle">Vérification attentive requise</string>
     <string name="goal_detail_about_count">À propos du nombre (important)</string>
     <string name="goal_detail_about_count_desc">Le nombre est basé sur le numéro d\'espèce. Il peut ne pas distinguer les chromatiques, formes, costumes, genres ou tailles.</string>
     <string name="goal_detail_what_does_this_do">Que fait ceci ?</string>
@@ -575,7 +579,10 @@
     <!-- v0.6.9 Carte principale du Guide des événements -->
     <string name="event_main_card_title">Événement à la une</string>
     <string name="event_featured_pokemon">Pokémon à la une</string>
+    <string name="event_boosted_pokemon">Apparitions augmentées</string>
     <string name="event_bonuses">Bonus</string>
+    <string name="event_raids">Raids</string>
+    <string name="event_research">Études</string>
     <string name="event_whats_happening">Qu\'est-ce qui se passe ?</string>
     <string name="event_why_care">Pourquoi ça compte ?</string>
     <string name="event_what_to_do">Que faire dans PokeQuery ?</string>
@@ -586,5 +593,6 @@
     <string name="event_no_events_desc">Tirez vers le bas pour actualiser ou revenez plus tard. Nous n\'affichons que les notes de notre flux public — aucun accès au compte.</string>
     <string name="event_main_card_live_now">En direct</string>
     <string name="event_main_card_coming_up">À venir</string>
+    <string name="event_main_card_ended">Terminé</string>
     <string name="event_suggested_for_event">Recherche suggérée pour cet événement</string>
 </resources>

@@ -65,6 +65,7 @@ import com.caglar.pokequery.domain.events.EventContext
 import com.caglar.pokequery.domain.events.EventContextRepository
 import com.caglar.pokequery.domain.events.EventFeedLoader
 import com.caglar.pokequery.domain.events.EventStatus
+import com.caglar.pokequery.domain.events.effectiveStatus
 import com.caglar.pokequery.domain.events.selectMainEvent
 import com.caglar.pokequery.theme.AmberWarning
 import com.caglar.pokequery.theme.BackgroundDark
@@ -195,16 +196,6 @@ fun EventContextScreen(
                     }
                 }
 
-                // Compact source / last-checked line.
-                item {
-                    SourceStatusLine(
-                        feedState = feedState,
-                        sourceLabelRes = sourceLabelRes,
-                        lastChecked = lastChecked,
-                        modifier = Modifier.pqStaggeredItem(visible, 1)
-                    )
-                }
-
                 when {
                     isLoading -> {
                         item {
@@ -223,6 +214,7 @@ fun EventContextScreen(
                             EventMainCard(
                                 event = mainEvent,
                                 sourceLabelRes = sourceLabelRes,
+                                lastChecked = lastChecked,
                                 modifier = Modifier.pqStaggeredItem(visible, 2)
                             )
                         }
@@ -264,14 +256,19 @@ private fun CompactRefreshButton(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    IconButton(
+    Button(
         onClick = onRefresh,
         enabled = !refreshing,
         modifier = modifier
-            .size(38.dp)
-            .clip(CircleShape)
-            .background(TealPrimary.copy(alpha = 0.16f))
-            .border(1.dp, TealPrimary.copy(alpha = 0.3f), CircleShape)
+            .height(38.dp),
+        shape = RoundedCornerShape(50),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = TealPrimary.copy(alpha = 0.16f),
+            contentColor = TealPrimary,
+            disabledContainerColor = TealPrimary.copy(alpha = 0.10f),
+            disabledContentColor = TealPrimary.copy(alpha = 0.70f)
+        )
     ) {
         if (refreshing) {
             CircularProgressIndicator(
@@ -279,13 +276,17 @@ private fun CompactRefreshButton(
                 modifier = Modifier.size(18.dp),
                 strokeWidth = 2.dp
             )
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.events_refresh), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         } else {
             Icon(
                 imageVector = Icons.Default.Refresh,
                 contentDescription = stringResource(R.string.events_refresh),
                 tint = TealPrimary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
             )
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.events_refresh), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -348,6 +349,7 @@ private fun SourceStatusLine(
 private fun EventMainCard(
     event: EventContext,
     sourceLabelRes: Int,
+    lastChecked: String?,
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(20.dp)
@@ -356,13 +358,20 @@ private fun EventMainCard(
     fun choose(en: String?, tr: String?): String = if (useTurkish && !tr.isNullOrBlank()) tr else en.orEmpty()
 
     val tone = themeTone(event.themeKey)
-    val isCurrent = event.status == EventStatus.CURRENT
+    val effectiveStatus = event.effectiveStatus()
     val badgeLabel = stringResource(
-        if (isCurrent) R.string.event_main_card_live_now else R.string.event_main_card_coming_up
+        when (effectiveStatus) {
+            EventStatus.CURRENT -> R.string.event_main_card_live_now
+            EventStatus.UPCOMING -> R.string.event_main_card_coming_up
+            EventStatus.ENDED -> R.string.event_main_card_ended
+        }
     )
     val title = if (useTurkish && !event.titleTextTr.isNullOrBlank()) event.titleTextTr else event.titleText.orEmpty()
     val featured = choose(event.featuredPokemon, event.featuredPokemonTr)
+    val boosted = choose(event.boostedPokemonText, event.boostedPokemonTextTr)
     val bonuses = choose(event.bonusesText, event.bonusesTextTr)
+    val raids = choose(event.raidsText, event.raidsTextTr)
+    val research = choose(event.researchText, event.researchTextTr)
     val note = choose(event.noteText, event.noteTextTr)
     val summary = choose(event.summaryText, event.summaryTextTr)
     val prep = choose(event.prepText, event.prepTextTr)
@@ -432,11 +441,29 @@ private fun EventMainCard(
             Spacer(Modifier.height(3.dp))
             Text(featured, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
+        if (boosted.isNotBlank()) {
+            Spacer(Modifier.height(8.dp))
+            SectionLabel(stringResource(R.string.event_boosted_pokemon), tone)
+            Spacer(Modifier.height(3.dp))
+            Text(boosted, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+        }
         if (bonuses.isNotBlank()) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
             SectionLabel(stringResource(R.string.event_bonuses), tone)
             Spacer(Modifier.height(3.dp))
             Text(bonuses, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+        }
+        if (raids.isNotBlank()) {
+            Spacer(Modifier.height(8.dp))
+            SectionLabel(stringResource(R.string.event_raids), tone)
+            Spacer(Modifier.height(3.dp))
+            Text(raids, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
+        }
+        if (research.isNotBlank()) {
+            Spacer(Modifier.height(8.dp))
+            SectionLabel(stringResource(R.string.event_research), tone)
+            Spacer(Modifier.height(3.dp))
+            Text(research, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
         }
 
         // What's happening? (ELI5 note)
@@ -525,6 +552,14 @@ private fun EventMainCard(
                     .clip(RoundedCornerShape(50))
                     .background(CardPremium.copy(alpha = 0.7f))
                     .padding(horizontal = 8.dp, vertical = 3.dp)
+            )
+        }
+        lastChecked?.let {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.event_context_last_checked, it),
+                color = TextTertiary,
+                fontSize = 10.sp
             )
         }
     }

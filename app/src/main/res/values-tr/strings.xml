@@ -23,7 +23,7 @@
     <string name="assistant_suggest">Yapay Zeka Önerisi</string>
     <string name="assistant_copied">Panoya kopyalandı</string>
     <string name="search_assistant_title">Arama Asistanı</string>
-    <string name="search_assistant_desc_text">Bulmak istediğinizi doğal dilde tarif edin. Asistan arama dizgisini sizin için oluşturur.</string>
+    <string name="search_assistant_desc_text">Bulmak istediğini normal cümleyle yaz. PokeQuery bunu kopyalanabilir güvenli bir arama dizgisine çevirir.</string>
     <string name="search_assistant_placeholder">örn. bana shiny legendary pokemon göster</string>
     <string name="search_assistant_parse">Oluştur</string>
     <string name="search_assistant_ai_suggest">Yapay Zeka Önerisi</string>
@@ -104,7 +104,7 @@
     <string name="event_date_range">%1$s – %2$s</string>
     <string name="event_date_starts">Başlangıç: %1$s</string>
     <string name="event_date_ends">Bitiş: %1$s</string>
-    <string name="event_safety_note">Transfer yapmadan önce etkinliğin gerçekten başladığından emin olmak için Pokémon GO içindeki Bugün (Today) sekmesini mutlaka kontrol et.</string>
+    <string name="event_safety_note">Transferden önce Pokémon GO’daki Bugün sekmesini kontrol et ve sonuçları elle incele.</string>
     <string name="what_changed_v066_subtitle">Aşama 5 — Yerelleştirme Cilası</string>
     <string name="what_changed_v066_b1">• Etkinlik Rehberi, Karşılama, Hedef Detayı ve Ana Ekran için tam Türkçe yerelleştirme</string>
     <string name="what_changed_v066_b2">• Arama Asistanı ana ekrana taşındı; Nundo Bulucu Daha Fazla Araç bölümüne alındı</string>
@@ -158,15 +158,15 @@
     <string name="goal_changelog_desc">Sürüm geçmişi</string>
     <string name="goal_settings">Ayarlar</string>
     <string name="goal_settings_desc">Gizlilik, dil, güvenlik</string>
-    <string name="goal_exp_safe_cleanup">Bu bir İNCELEME dizgisidir, düşük değerli adayları hedefler. Otomatik bir transfer komutu değildir.</string>
-    <string name="goal_exp_candy_prep">Fazlalıkları bulur. Sayım Pokédex tür numarasına dayanır ve shiny/form/kostüm farklarını ayırt etmeyebilir.</string>
-    <string name="goal_exp_trade_fodder">Takas için adayları bulur. Gerçek takas uygunluğu arkadaşlık seviyesine bağlıdır ve arama dizgileriyle garanti edilemez.</string>
+    <string name="goal_exp_safe_cleanup">Korunan kategorileri dışarıda bırakarak düşük değerli olabilecek Pokémonları gösterir. Transferden önce listeyi kendin incele.</string>
+    <string name="goal_exp_candy_prep">Şeker temizliği için fazlalıkları bulur. Sayım tür numarasına göre gruplar; form, kostüm, parlak ve favorileri yine kontrol et.</string>
+    <string name="goal_exp_trade_fodder">Takas için olası fazlalıkları bulur. Gerçek uygunluk arkadaşlığa, özel takaslara ve kendi planına bağlıdır.</string>
     <string name="goal_exp_hundo_check">Tüm kusursuz IV / hundo Pokémon\'ları bulur. 4★ 15/15/15 demektir.</string>
-    <string name="goal_exp_untagged_cleanup">Hiçbir etiketi olmayan Pokémon\'ları bulur.</string>
+    <string name="goal_exp_untagged_cleanup">Etiketsiz Pokémonları bulur; böylece hâlâ düzenlenmesi gerekenleri inceleyebilirsin.</string>
     <string name="goal_exp_nundo_finder">Tam olarak 0/0/0 IV Pokémon\'ları (Nundo) bulur.</string>
     <string name="goal_exp_pvp_candidates">Yalnızca aday araması. Nihai PvP sıralaması türe, seviyeye ve IV dağılımına bağlıdır.</string>
-    <string name="goal_exp_lucky_trade">Takas için incelenecek daha eski veya mesafe odaklı Pokémon\'ları bulur. Manuel olarak inceleyin. Değerli Pokémon\'lar çıkabilir. Takas uygunluğu ve Lucky şansı garanti edilmez.</string>
-    <string name="goal_exp_expert">Özel arama dizgisi. İşlem yapmadan önce tüm eşleşmeleri oyunda inceleyin.</string>
+    <string name="goal_exp_lucky_trade">Takas için eski veya mesafe odaklı Pokémonları bulur. Lucky şansı garanti değildir; her sonucu kontrol et.</string>
+    <string name="goal_exp_expert">Özel arama dizgisi kurar. PokeQuery söz dizimi için uyarabilir, ama işlemden önce eşleşmeleri sen incelemelisin.</string>
     <string name="risk_high">YÜKSEK</string>
     <string name="risk_medium">ORTA</string>
     <string name="risk_low">DÜŞÜK</string>
@@ -255,17 +255,17 @@
     <string name="onboarding_skip">Atla</string>
     <string name="onboarding_next">İleri</string>
     <string name="onboarding_start_building">Oluşturmaya başla</string>
-    <string name="onboarding_hero_tagline">Transfer, takas veya temizlikten önce daha akıllı ara.</string>
+    <string name="onboarding_hero_tagline">Transfer, takas veya temizlikten önce neyi güvenle inceleyebileceğini bul.</string>
     <string name="onboarding_card1_title">Saniyeler içinde doğru aramayı oluşturun</string>
     <string name="onboarding_card1_desc">Temizlik, şeker, takaslar, PvP, Hundo ve Nundo\'lar için güvenli varsayılanları kullanın.</string>
-    <string name="onboarding_feature_plan_title">İşe yarar Pokémon GO aramaları kur</string>
+    <string name="onboarding_feature_plan_title">İşe yarar aramalar kur</string>
     <string name="onboarding_feature_plan_desc">Temizlik, şeker, takas, PvP, hundo, nundo ve etkinlik hazırlığı.</string>
-    <string name="onboarding_feature_protect_title">Riskli transferlerden kaçın</string>
-    <string name="onboarding_feature_protect_desc">Uyarılar favori, parlak, kostümlü ve efsaneleri korumaya yardım eder.</string>
-    <string name="onboarding_feature_copy_title">Etkinliklere göre hazırlan</string>
-    <string name="onboarding_feature_copy_desc">Notlar etiketleme, takas, evrim, saklama ve inceleme kararlarına yardım eder.</string>
-    <string name="onboarding_card2_title">Dikkatli koleksiyoncular için</string>
-    <string name="onboarding_card2_desc">PokeQuery sadece arama metni hazırlar. Kontrol sende kalır; oyunda gözden geçirir, neyi tutacağına sen karar verirsin.</string>
+    <string name="onboarding_feature_protect_title">Riskte yavaşla</string>
+    <string name="onboarding_feature_protect_desc">Parlak, kostümlü, favori ve etiketlileri kontrol etmen için hatırlatır.</string>
+    <string name="onboarding_feature_copy_title">Sadece metin kopyala</string>
+    <string name="onboarding_feature_copy_desc">PokeQuery hesabına dokunmaz. Aramayı oyuna sen yapıştırırsın.</string>
+    <string name="onboarding_card2_title">Önce incele, sonra karar ver</string>
+    <string name="onboarding_card2_desc">PokeQuery sadece arama metni hazırlar. Kontrol sende kalır; oyunu kendin açar, işlemden önce sonucu kontrol edersin.</string>
     <string name="onboarding_trust_strip_private">Gizli</string>
     <string name="onboarding_trust_strip_offline">Çevrimdışı</string>
     <string name="onboarding_trust_strip_copy">Sadece kopyala</string>
@@ -478,7 +478,7 @@
     <string name="destructive_reset_title">Tüm ayarlar sıfırlansın mı?</string>
     <string name="destructive_reset_msg">Dil ayarları varsayılana döner. Favoriler ve geçmiş korunur. Bu işlem geri alınamaz.</string>
     <string name="settings_online_events_toggle">Etkinlik Rehberi güncellemeleri</string>
-    <string name="settings_online_events_toggle_desc">En son herkese açık etkinlik notlarını indir. Giriş yok, takip yok, Pokémon GO hesap erişimi yok.</string>
+    <string name="settings_online_events_toggle_desc">Varsa herkese açık etkinlik notlarını indirir. Kapalıyken kayıtlı veya yerleşik rehberlik kullanılır. Giriş, takip veya hesap erişimi yok.</string>
 
 
     <string name="risk_safe_cleanup_title">Neden dikkat etmelisin?</string>
@@ -563,8 +563,12 @@
     <string name="goal_detail_tip_desc">Daha güvende olmak için toplu transfer öncesi rastgele birkaç sonucu gözden geçirin.</string>
     <string name="risk_low_display">Düşük Risk</string>
     <string name="risk_medium_display">Orta Risk</string>
+    <string name="risk_info_display">Bilgi</string>
+    <string name="risk_high_display">Yüksek Risk</string>
     <string name="risk_low_subtitle">Kullanımı güvenli</string>
     <string name="risk_medium_subtitle">Kullanmadan önce incele</string>
+    <string name="risk_info_subtitle">Sadece inceleme</string>
+    <string name="risk_high_subtitle">Dikkatli inceleme gerekir</string>
     <string name="goal_detail_about_count">Sayı hakkında (önemli)</string>
     <string name="goal_detail_about_count_desc">Sayı, tür numarasına göre hesaplanır. Parlak, form, kostüm veya boyut farklarını ayırt etmeyebilir.</string>
     <string name="goal_detail_what_does_this_do">Bu ne işe yarar?</string>
@@ -574,7 +578,10 @@
     <!-- v0.6.9 Etkinlik Rehberi ana kart -->
     <string name="event_main_card_title">Öne Çıkan Etkinlik</string>
     <string name="event_featured_pokemon">Öne Çıkan Pokémon</string>
+    <string name="event_boosted_pokemon">Artan / yaygın çıkışlar</string>
     <string name="event_bonuses">Bonuslar</string>
+    <string name="event_raids">Akınlar</string>
+    <string name="event_research">Araştırma</string>
     <string name="event_whats_happening">Ne oluyor?</string>
     <string name="event_why_care">Bunu neden önemsemeli?</string>
     <string name="event_what_to_do">PokeQuery\'de ne yapmalıyım?</string>
@@ -585,5 +592,6 @@
     <string name="event_no_events_desc">Yenilemek için aşağı çek veya sonra tekrar bak. Sadece herkese açık akışımızdan notları gösteririz — hesap erişimi yok.</string>
     <string name="event_main_card_live_now">Şu an canlı</string>
     <string name="event_main_card_coming_up">Yaklaşıyor</string>
+    <string name="event_main_card_ended">Sona erdi</string>
     <string name="event_suggested_for_event">Bu etkinlik için önerilen arama</string>
 </resources>

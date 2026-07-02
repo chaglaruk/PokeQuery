@@ -272,7 +272,38 @@ fun GoalDetailScreen(
 
             // Description / Caution details section with Pokémon illustration overlays
             Spacer(Modifier.height(density.sectionGap))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pqStaggeredItem(visible, 3)
+            ) {
+                IllustratedCard(borderColor = TealPrimary) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = TealPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.goal_detail_what_does_this_do),
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = localizedExplanation,
+                        color = TextSecondary,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
+                    )
+                }
+            }
             if (isMedium) {
+                Spacer(Modifier.height(density.sectionGap))
                 // Warning Card with Gengar overlay
                 Box(
                     modifier = Modifier
@@ -336,40 +367,6 @@ fun GoalDetailScreen(
                         fontSize = 13.sp,
                         lineHeight = 18.sp
                     )
-                }
-            } else {
-                // Safe info card with Greninja overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .pqStaggeredItem(visible, 3)
-                ) {
-                    IllustratedCard(
-                        borderColor = TealPrimary
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = TealPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.goal_detail_what_does_this_do),
-                                color = TextPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = localizedExplanation,
-                            color = TextSecondary,
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp
-                        )
-                    }
                 }
             }
 
@@ -449,10 +446,26 @@ fun GoalDetailScreen(
 
 @Composable
 fun GoalRiskBanner(riskLevel: RiskLevel, modifier: Modifier = Modifier) {
-    val isMedium = riskLevel == RiskLevel.Medium || riskLevel == RiskLevel.High
-    val titleColor = if (isMedium) GoldCaution else TealPrimary
-    val displayTitle = if (isMedium) stringResource(R.string.risk_medium_display) else stringResource(R.string.risk_low_display)
-    val displaySubtitle = if (isMedium) stringResource(R.string.risk_medium_subtitle) else stringResource(R.string.risk_low_subtitle)
+    val titleColor = when (riskLevel) {
+        RiskLevel.High, RiskLevel.Medium -> GoldCaution
+        else -> TealPrimary
+    }
+    val displayTitle = stringResource(
+        when (riskLevel) {
+            RiskLevel.Info -> R.string.risk_info_display
+            RiskLevel.Low -> R.string.risk_low_display
+            RiskLevel.Medium -> R.string.risk_medium_display
+            RiskLevel.High -> R.string.risk_high_display
+        }
+    )
+    val displaySubtitle = stringResource(
+        when (riskLevel) {
+            RiskLevel.Info -> R.string.risk_info_subtitle
+            RiskLevel.Low -> R.string.risk_low_subtitle
+            RiskLevel.Medium -> R.string.risk_medium_subtitle
+            RiskLevel.High -> R.string.risk_high_subtitle
+        }
+    )
 
     Box(
         modifier = modifier

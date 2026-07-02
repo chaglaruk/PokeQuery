@@ -30,12 +30,12 @@ class OnboardingContentTest {
     @Test
     fun `onboarding feature cards explain actual product value`() {
         val en = File("src/main/res/values/strings.xml").readText(Charsets.UTF_8)
-        assertTrue(en.contains("Build useful Pokémon GO searches"))
-        assertTrue(en.contains("Avoid risky transfers"))
-        assertTrue(en.contains("Plan around events"))
-        assertTrue(en.contains("Cleanup, candy, trades, PvP, hundos, nundos, events."))
-        assertTrue(en.contains("Warnings help protect favorites, shinies, costumes, legendaries."))
-        assertTrue(en.contains("Prep notes help you tag, trade, evolve, keep, or review."))
+        assertTrue(en.contains("Build useful searches"))
+        assertTrue(en.contains("Slow down on risk"))
+        assertTrue(en.contains("Copy text only"))
+        assertTrue(en.contains("Cleanup, candy, trades, PvP, hundos, nundos, and event prep."))
+        assertTrue(en.contains("Warnings remind you to check shiny, costume, favorite, and tagged Pokémon."))
+        assertTrue(en.contains("PokeQuery never touches your account. You paste the search yourself."))
         assertTrue(!en.contains("Plan the search"))
         assertTrue(!en.contains("Pick the goal before you paste"))
     }

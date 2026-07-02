@@ -82,6 +82,8 @@ object EventFeedParser {
                 noteTextTr = optionalStringField(body, "noteTr"),
                 month = intField(body, "month"),
                 year = intField(body, "year"),
+                startDate = optionalStringField(body, "startDate"),
+                endDate = optionalStringField(body, "endDate"),
                 startText = optionalStringField(body, "start"),
                 endText = optionalStringField(body, "end"),
                 summaryText = stringField(body, "summary"),
@@ -93,8 +95,14 @@ object EventFeedParser {
                 eventNotesTextTr = optionalStringField(body, "eventNotesTr"),
                 featuredPokemon = optionalStringField(body, "featuredPokemon"),
                 featuredPokemonTr = optionalStringField(body, "featuredPokemonTr"),
+                boostedPokemonText = optionalStringField(body, "boostedPokemon"),
+                boostedPokemonTextTr = optionalStringField(body, "boostedPokemonTr"),
                 bonusesText = optionalStringField(body, "bonuses"),
                 bonusesTextTr = optionalStringField(body, "bonusesTr"),
+                raidsText = optionalStringField(body, "raids"),
+                raidsTextTr = optionalStringField(body, "raidsTr"),
+                researchText = optionalStringField(body, "research"),
+                researchTextTr = optionalStringField(body, "researchTr"),
                 themeKey = themeKey,
                 isManual = false
             )
@@ -142,7 +150,7 @@ object EventFeedCache {
 
 object EventFeedLoader {
     fun defaultProvider(context: Context): EventDataProvider =
-        HttpEventDataProvider()
+        if (BuildConfig.DEBUG) RawEventDataProvider(context) else HttpEventDataProvider()
 
     suspend fun load(
         context: Context,

@@ -34,7 +34,7 @@
 
 
     <string name="search_assistant_title">Search Assistant</string>
-    <string name="search_assistant_desc_text">Describe what you want to find in plain language. The assistant builds the search string for you.</string>
+    <string name="search_assistant_desc_text">Describe what you want to find. PokeQuery turns it into a safe search string you can copy.</string>
     <string name="search_assistant_placeholder">e.g. show me shiny legendary pokemon</string>
     <string name="search_assistant_parse">Generate</string>
     <string name="search_assistant_ai_suggest">AI Suggest</string>
@@ -119,7 +119,7 @@
     <string name="event_date_range">%1$s – %2$s</string>
     <string name="event_date_starts">Starts %1$s</string>
     <string name="event_date_ends">Ends %1$s</string>
-    <string name="event_safety_note">Always check your Today View in Pokémon GO to be absolutely sure the event is active before transferring.</string>
+    <string name="event_safety_note">Before transferring, check the Today view in Pokémon GO and review the results manually.</string>
 
 
     <string name="what_changed_v066_subtitle">Phase 5 — Localization Polish</string>
@@ -179,15 +179,15 @@
     <string name="goal_settings_desc">Privacy, language, safety</string>
 
 
-    <string name="goal_exp_safe_cleanup">This is a REVIEW string targeting low-value candidates. It is not an automatic transfer command.</string>
-    <string name="goal_exp_candy_prep">Finds extras. Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.</string>
-    <string name="goal_exp_trade_fodder">Finds candidates for trading. Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.</string>
+    <string name="goal_exp_safe_cleanup">Shows likely low-value Pokémon while excluding protected categories. Review the list yourself before transferring anything.</string>
+    <string name="goal_exp_candy_prep">Finds extras for candy cleanup. Count groups by species number, so still check forms, costumes, shinies, and favorites.</string>
+    <string name="goal_exp_trade_fodder">Finds possible trade extras. Real trade eligibility depends on friendship, special trades, and your own plans.</string>
     <string name="goal_exp_hundo_check">Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15.</string>
-    <string name="goal_exp_untagged_cleanup">Finds Pokémon without any tags.</string>
+    <string name="goal_exp_untagged_cleanup">Finds Pokémon without tags so you can review what still needs sorting.</string>
     <string name="goal_exp_nundo_finder">Finds exact 0/0/0 IV Pokémon (Nundos).</string>
     <string name="goal_exp_pvp_candidates">Candidate search only. Final PvP rank depends on species, level, and IV spread.</string>
-    <string name="goal_exp_lucky_trade">Finds older or distance-relevant Pokémon to review for trades. Review manually. Valuable Pokémon may appear. Trade eligibility and Lucky chance are not guaranteed by search strings.</string>
-    <string name="goal_exp_expert">Custom search string. Review all matches in the game before acting.</string>
+    <string name="goal_exp_lucky_trade">Finds older or distance-relevant Pokémon to review for trades. Lucky chance is never guaranteed, so check every result.</string>
+    <string name="goal_exp_expert">Builds a custom search string. PokeQuery can warn about syntax, but you must review the matches before acting.</string>
 
 
     <string name="risk_high">HIGH</string>
@@ -374,17 +374,17 @@
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_start_building">Start building</string>
-    <string name="onboarding_hero_tagline">Search smarter before you transfer, trade, or tidy up.</string>
+    <string name="onboarding_hero_tagline">Find what is safe to review before you transfer, trade, or clean up.</string>
     <string name="onboarding_card1_title">Build the right search in seconds</string>
     <string name="onboarding_card1_desc">Use safe defaults for cleanup, candy, trades, PvP, Hundos, and Nundos.</string>
-    <string name="onboarding_feature_plan_title">Build useful Pokémon GO searches</string>
-    <string name="onboarding_feature_plan_desc">Cleanup, candy, trades, PvP, hundos, nundos, events.</string>
-    <string name="onboarding_feature_protect_title">Avoid risky transfers</string>
-    <string name="onboarding_feature_protect_desc">Warnings help protect favorites, shinies, costumes, legendaries.</string>
-    <string name="onboarding_feature_copy_title">Plan around events</string>
-    <string name="onboarding_feature_copy_desc">Prep notes help you tag, trade, evolve, keep, or review.</string>
-    <string name="onboarding_card2_title">Built for careful collectors</string>
-    <string name="onboarding_card2_desc">PokeQuery creates search text only. You stay in control, review in-game, and decide what to keep.</string>
+    <string name="onboarding_feature_plan_title">Build useful searches</string>
+    <string name="onboarding_feature_plan_desc">Cleanup, candy, trades, PvP, hundos, nundos, and event prep.</string>
+    <string name="onboarding_feature_protect_title">Slow down on risk</string>
+    <string name="onboarding_feature_protect_desc">Warnings remind you to check shiny, costume, favorite, and tagged Pokémon.</string>
+    <string name="onboarding_feature_copy_title">Copy text only</string>
+    <string name="onboarding_feature_copy_desc">PokeQuery never touches your account. You paste the search yourself.</string>
+    <string name="onboarding_card2_title">Review first, act second</string>
+    <string name="onboarding_card2_desc">PokeQuery creates search text. You stay in control: copy it, open Pokémon GO yourself, and review before acting.</string>
     <string name="onboarding_trust_strip_private">Private</string>
     <string name="onboarding_trust_strip_offline">Offline</string>
     <string name="onboarding_trust_strip_copy">Copy only</string>
@@ -612,13 +612,17 @@
 
 
     <string name="settings_online_events_toggle">Event Guide updates</string>
-    <string name="settings_online_events_toggle_desc">Download the latest public event notes. No login, no tracking, no Pokémon GO account access.</string>
+    <string name="settings_online_events_toggle_desc">Downloads public event notes when available. Off uses saved or bundled guidance only. No login, tracking, or account access.</string>
     <string name="goal_detail_tip_title">Tip</string>
     <string name="goal_detail_tip_desc">Spot-check a few results before mass transferring to be extra safe.</string>
     <string name="risk_low_display">Low Risk</string>
     <string name="risk_medium_display">Medium Risk</string>
+    <string name="risk_info_display">Info</string>
+    <string name="risk_high_display">High Risk</string>
     <string name="risk_low_subtitle">Safe to use</string>
     <string name="risk_medium_subtitle">Review before using</string>
+    <string name="risk_info_subtitle">Inspection only</string>
+    <string name="risk_high_subtitle">Careful review required</string>
     <string name="goal_detail_about_count">About count (important)</string>
     <string name="goal_detail_about_count_desc">The count is based on species number. It may not distinguish between shiny, form, costume, gender, or size variants.</string>
     <string name="goal_detail_what_does_this_do">What does this do?</string>
@@ -628,7 +632,10 @@
     <!-- v0.6.9 Event Guide main card -->
     <string name="event_main_card_title">Featured Event</string>
     <string name="event_featured_pokemon">Featured Pokémon</string>
+    <string name="event_boosted_pokemon">Boosted / common spawns</string>
     <string name="event_bonuses">Bonuses</string>
+    <string name="event_raids">Raids</string>
+    <string name="event_research">Research</string>
     <string name="event_whats_happening">What\'s happening?</string>
     <string name="event_why_care">Why care about this?</string>
     <string name="event_what_to_do">What should I do in PokeQuery?</string>
@@ -639,5 +646,6 @@
     <string name="event_no_events_desc">Pull to refresh, or check back later. We only show notes from our public feed — no account access.</string>
     <string name="event_main_card_live_now">Live now</string>
     <string name="event_main_card_coming_up">Coming up</string>
+    <string name="event_main_card_ended">Ended</string>
     <string name="event_suggested_for_event">Suggested search for this event</string>
 </resources>
