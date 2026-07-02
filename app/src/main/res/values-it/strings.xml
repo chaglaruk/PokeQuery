@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">PokeQuery</string>
     <string name="shortcut_safe_cleanup_short">Pulizia Sicura</string>
@@ -19,13 +19,13 @@
     <string name="assistant_title">Assistente Ricerca</string>
     <string name="assistant_placeholder">es. mostrami i pokemon shiny legendary</string>
     <string name="assistant_description">Descrivi cosa vuoi trovare con parole tue.</string>
-    <string name="assistant_parse">Analizza</string>
+    <string name="assistant_parse">Genera</string>
     <string name="assistant_suggest">Suggerimento IA</string>
     <string name="assistant_copied">Copiato negli appunti</string>
     <string name="search_assistant_title">Assistente Ricerca</string>
     <string name="search_assistant_desc_text">Descrivi cosa vuoi trovare con parole tue. L\'Assistente creerà la stringa di ricerca per te.</string>
     <string name="search_assistant_placeholder">es. mostrami i pokemon shiny legendary</string>
-    <string name="search_assistant_parse">Analizza</string>
+    <string name="search_assistant_parse">Genera</string>
     <string name="search_assistant_ai_suggest">Suggerimento IA</string>
     <string name="search_assistant_suggested_string">Stringa di ricerca suggerita</string>
     <string name="search_assistant_copy_btn">Copia Stringa di Ricerca</string>
@@ -78,7 +78,7 @@
     <string name="event_context_community_day">Community Day di questo mese</string>
     <string name="event_context_candy_events">Eventi Caramelle</string>
     <string name="event_context_candy_events_note">Durante gli eventi con bonus di trasferimento, le caramelle extra possono rendere più efficace la Prep. Caramelle 2x. PokeQuery non ottiene dati in tempo reale — controlla su Pokémon GO se l\'evento è attivo.</string>
-    <string name="event_context_disclaimer">Le note sugli eventi sono gestite manualmente e potrebbero essere obsolete. Nessun dato in tempo reale viene recuperato.</string>
+    <string name="event_context_disclaimer">Questa è una guida manuale. PokeQuery non si connette al tuo gioco, quindi non può sapere con certezza cosa sia attivo. Controlla sempre nel gioco!</string>
     <string name="event_context_community_day_note">Durante un Community Day, i bonus per caramelle ed evoluzioni possono rendere più utili la Prep. Caramelle e le pulizie. Questa è una nota manuale — PokeQuery non recupera dati in tempo reale e la nota potrebbe essere vecchia.</string>
     <string name="event_context_no_note">Nessuna nota manuale disponibile al momento.</string>
     <string name="event_context_disclaimer_stale">Nota manuale dell\'app. Potrebbe essere obsoleta. PokeQuery non recupera i dati dell\'evento.</string>
@@ -104,7 +104,7 @@
     <string name="event_date_range">%1$s – %2$s</string>
     <string name="event_date_starts">Inizia %1$s</string>
     <string name="event_date_ends">Finisce %1$s</string>
-    <string name="event_safety_note">Verifica l’evento e i bonus attivi in Pokémon GO prima di agire.</string>
+    <string name="event_safety_note">Controlla sempre la scheda Oggi in Pokémon GO per essere assolutamente sicuro che l\'evento sia attivo prima di trasferire.</string>
     <string name="what_changed_v066_subtitle">Fase 5 — Ritocchi alla localizzazione</string>
     <string name="what_changed_v066_b1">• Traduzione turca completa per Guida Eventi, Onboarding, Dettagli Obiettivo e Home</string>
     <string name="what_changed_v066_b2">• L\'Assistente Ricerca è ora una scheda principale nella Home; Ricerca Nundo è sotto Altri Strumenti</string>
@@ -480,8 +480,8 @@
     <string name="settings_online_events_toggle">Aggiornamenti Guida Eventi</string>
     <string name="settings_online_events_toggle_desc">Scarica le ultime note sugli eventi pubblici. Nessun login, nessun tracciamento, nessun accesso all\'account Pokémon GO.</string>
 
-    <!-- Goal-specific risk explanations (ELI5 style) -->
-    <!-- Safe Cleanup -->
+
+
     <string name="risk_safe_cleanup_title">Perché questa ricerca richiede attenzione</string>
     <string name="risk_safe_cleanup_short">Questa ricerca trova Pokémon da trasferire. Ma può anche prendere quelli preziosi per errore.</string>
     <string name="risk_safe_cleanup_detailed">Questa ricerca cerca Pokémon con statistiche basse che di solito è sicuro trasferire. Ma a volte uno shiny, un hundo (IV perfetti) o un Pokémon che hai taggato come speciale può scappare. Guarda ogni risultato prima di trasferire.</string>
@@ -489,7 +489,7 @@
     <string name="risk_safe_cleanup_check2">Tieni tutto ciò che è shiny, perfetto (hundo) o hai segnato come preferito.</string>
     <string name="risk_safe_cleanup_check3">In caso di dubbio, tienilo.</string>
 
-    <!-- Candy Prep -->
+
     <string name="risk_candy_prep_title">Perché questa ricerca richiede attenzione</string>
     <string name="risk_candy_prep_short">Questa ricerca trova Pokémon extra per le caramelle. Ma conta per specie, non per forma o costume.</string>
     <string name="risk_candy_prep_detailed">Questa ricerca aiuta a trovare duplicati da trasferire durante gli eventi 2x caramelle. Il conteggio si basa sul numero del Pokédex, quindi un Pikachu shiny e un Pikachu in costume contano come lo stesso "slot". Potresti trasferire per sbaglio una forma rara. Controlla ognuno.</string>
@@ -497,7 +497,7 @@
     <string name="risk_candy_prep_check2">Tieni tutto ciò che ha un tag speciale o la stella dei preferiti.</string>
     <string name="risk_candy_prep_check3">In caso di dubbio, tienilo.</string>
 
-    <!-- Trade Fodder -->
+
     <string name="risk_trade_fodder_title">Perché questa ricerca richiede attenzione</string>
     <string name="risk_trade_fodder_short">Questa ricerca trova duplicati non scambiati per gli scambi. Ma livello amicizia e limiti scambi non sono nella ricerca.</string>
     <string name="risk_trade_fodder_detailed">Questa ricerca trova Pokémon che non hai ancora scambiato. Ma poter scambiare dipende dal tuo livello di amicizia con l\'altro allenatore. Inoltre, gli scambi speciali (shiny, leggendari, nuovo Pokédex) sono limitati a 1 al giorno. La ricerca non conosce questi limiti.</string>
@@ -505,7 +505,7 @@
     <string name="risk_trade_fodder_check2">Scambi speciali (shiny/leggendari) = max 1 al giorno.</string>
     <string name="risk_trade_fodder_check3">In caso di dubbio, tienilo.</string>
 
-    <!-- Hundo Check -->
+
     <string name="risk_hundo_check_title">Perché è sicuro</string>
     <string name="risk_hundo_check_short">Questa ricerca mostra solo i tuoi Pokémon perfetti 15/15/15. Nessun trasferimento suggerito.</string>
     <string name="risk_hundo_check_detailed">Questa ricerca trova solo Pokémon con IV perfetti (4★ / hundo). È uno strumento di ispezione — non suggerisce di trasferire nulla. Usalo per ammirare i tuoi migliori Pokémon o scegliere quali potenziare.</string>
@@ -513,7 +513,7 @@
     <string name="risk_hundo_check_check2">Nessun trasferimento o scambio suggerito.</string>
     <string name="risk_hundo_check_check3">Usalo per vedere cosa possiedi.</string>
 
-    <!-- Nundo Finder -->
+
     <string name="risk_nundo_finder_title">Perché è sicuro</string>
     <string name="risk_nundo_finder_short">Questa ricerca mostra solo i tuoi Pokémon 0/0/0 IV. Nessun trasferimento suggerito.</string>
     <string name="risk_nundo_finder_detailed">Questa ricerca trova solo Pokémon con esattamente 0 attacco, 0 difesa, 0 PS IVs (nundos). È per collezione o curiosità. Non suggerisce di trasferire nulla.</string>
@@ -521,7 +521,7 @@
     <string name="risk_nundo_finder_check2">Nessun trasferimento o scambio suggerito.</string>
     <string name="risk_nundo_finder_check3">Usalo per vedere cosa possiedi.</string>
 
-    <!-- PvP Candidates -->
+
     <string name="risk_pvp_candidates_title">Perché è sicuro</string>
     <string name="risk_pvp_candidates_short">Questa ricerca trova candidati PvP. Il rango finale dipende da specie, livello e distribuzione IV.</string>
     <string name="risk_pvp_candidates_detailed">Questa ricerca trova Pokémon che *potrebbero* essere buoni per Lega Mega o Ultra. Ma il vero rango PvP dipende dalla specie esatta, dal suo livello e da come sono distribuiti gli IV. È un punto di partenza — devi ancora controllare ognuno in un simulatore PvP.</string>
@@ -529,7 +529,7 @@
     <string name="risk_pvp_candidates_check2">Nessun trasferimento o scambio suggerito.</string>
     <string name="risk_pvp_candidates_check3">Usalo per trovare candidati da testare.</string>
 
-    <!-- Lucky Trade -->
+
     <string name="risk_lucky_trade_title">Perché questa ricerca richiede attenzione</string>
     <string name="risk_lucky_trade_short">Questa ricerca trova Pokémon vecchi o lontani per scambi lucky. Ma idoneità e tasso lucky non sono garantiti.</string>
     <string name="risk_lucky_trade_detailed">Questa ricerca trova Pokémon che *potrebbero* diventare lucky scambiandoli (più di 2 anni o catturati a 100km+). Ma entrambi gli allenatori devono poter scambiare, e il tasso lucky non è mai 100%. Anche: Pokémon già scambiati non possono ridiventare lucky. Pokémon preziosi possono apparire nei risultati.</string>
@@ -537,7 +537,7 @@
     <string name="risk_lucky_trade_check2">Pokémon già scambiati non possono ridiventare lucky.</string>
     <string name="risk_lucky_trade_check3">In caso di dubbio, tienilo.</string>
 
-    <!-- Untagged Cleanup -->
+
     <string name="risk_untagged_title">Perché questa ricerca richiede un controllo veloce</string>
     <string name="risk_untagged_short">Questa ricerca trova Pokémon senza tag. La maggior parte sono sicuri da rivedere, ma cerca shiny o hundos.</string>
     <string name="risk_untagged_detailed">Questa ricerca mostra Pokémon che non hanno tag. Di solito sono candidati sicuri per il trasferimento. Ma uno shiny o un Pokémon con IV perfetti senza tag può comunque apparire. Dai una scorsa veloce ai risultati.</string>
@@ -545,7 +545,7 @@
     <string name="risk_untagged_check2">Tieni tutto ciò che è shiny, perfetto (hundo) o su cui hai dubbi.</string>
     <string name="risk_untagged_check3">Tagga i Pokémon preziosi per proteggerli la prossima volta.</string>
 
-    <!-- Expert Builder -->
+
     <string name="risk_expert_title">Perché questa ricerca richiede attenzione</string>
     <string name="risk_expert_short">Hai costruito questa ricerca. Fa esattamente quello che hai scritto — incluse cose rischiose.</string>
     <string name="risk_expert_detailed">Le ricerche personalizzate eseguono esattamente ciò che scrivi. Se includi termini ampi o dimentichi esclusioni, Pokémon preziosi possono apparire. PokeQuery non può proteggerti dalla tua stessa query. Controlla ogni corrispondenza.</string>
@@ -553,7 +553,7 @@
     <string name="risk_expert_check2">Controlla ogni singola corrispondenza prima di agire.</string>
     <string name="risk_expert_check3">In caso di dubbio, tienilo.</string>
 
-    <!-- Search Assistant -->
+
     <string name="risk_assistant_title">Perché questa ricerca richiede attenzione</string>
     <string name="risk_assistant_short">L\'assistente ha costruito questo dalle tue parole. Controlla sempre le corrispondenze in Pokémon GO.</string>
     <string name="risk_assistant_detailed">L\'assistente converte il tuo linguaggio naturale in una stringa di ricerca. Potrebbe non cogliere tutto ciò che intendevi, o includere cose inaspettate. La ricerca è un suggerimento — decidi tu cosa fare con i risultati.</string>
@@ -562,4 +562,29 @@
     <string name="risk_assistant_check3">In caso di dubbio, tienilo.</string>
     <string name="goal_detail_tip_title">Suggerimento</string>
     <string name="goal_detail_tip_desc">Controlla a campione alcuni risultati prima del trasferimento di massa per essere extra sicuro.</string>
+    <string name="risk_low_display">Rischio Basso</string>
+    <string name="risk_medium_display">Rischio Medio</string>
+    <string name="risk_low_subtitle">Sicuro da usare</string>
+    <string name="risk_medium_subtitle">Controlla prima dell\'uso</string>
+    <string name="goal_detail_about_count">Riguardo al conteggio (importante)</string>
+    <string name="goal_detail_about_count_desc">Il conteggio si basa sul numero della specie. Potrebbe non distinguere tra cromatici, forme, costumi, sesso o dimensioni.</string>
+    <string name="goal_detail_what_does_this_do">Cosa fa questo?</string>
+    <string name="search_assistant_empty_state_title">Cosa posso cercare?</string>
+    <string name="search_assistant_empty_state_desc">Prova con un linguaggio naturale come \'leggendario cromatico\' o \'hundo per lega ultra\'. L\'assistente lo tradurrà in una stringa di ricerca pronta per il gioco.</string>
+
+    <!-- v0.6.9 Carta principale della Guida eventi -->
+    <string name="event_main_card_title">Evento in evidenza</string>
+    <string name="event_featured_pokemon">Pokémon in evidenza</string>
+    <string name="event_bonuses">Bonus</string>
+    <string name="event_whats_happening">Cosa sta succedendo?</string>
+    <string name="event_why_care">Perché mi interessa?</string>
+    <string name="event_what_to_do">Cosa faccio in PokeQuery?</string>
+    <string name="event_keep_review">Conserva e controlla</string>
+    <string name="event_avoid_transfer">Non trasferire</string>
+    <string name="event_check_before">Controlla prima / durante / dopo</string>
+    <string name="event_no_events_title">Nessuna info evento ora</string>
+    <string name="event_no_events_desc">Scorri verso il basso per aggiornare o torna più tardi. Mostriamo solo note dal nostro feed pubblico — nessun accesso all\'account.</string>
+    <string name="event_main_card_live_now">In diretta</string>
+    <string name="event_main_card_coming_up">In arrivo</string>
+    <string name="event_suggested_for_event">Ricerca suggerita per questo evento</string>
 </resources>

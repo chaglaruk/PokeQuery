@@ -1,7 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">PokeQuery</string>
 
-    <!-- v0.6.1 Android App Shortcuts -->
+
     <string name="shortcut_safe_cleanup_short">Safe Cleanup</string>
     <string name="shortcut_safe_cleanup_long">Safe Cleanup review</string>
     <string name="shortcut_safe_cleanup_disabled">Safe Cleanup unavailable</string>
@@ -18,24 +19,24 @@
     <string name="shortcut_expert_long">Expert Builder</string>
     <string name="shortcut_expert_disabled">Expert Builder unavailable</string>
 
-    <!-- v0.6.1 Quick Access widget -->
+
     <string name="widget_quick_access_title">PokeQuery</string>
     <string name="widget_quick_access_subtitle">Tap to open Safe Cleanup</string>
     <string name="widget_quick_access_description">Opens PokeQuery to a quick review screen.</string>
 
-    <!-- v0.6.2 Search Assistant -->
+
     <string name="assistant_title">Search Assistant</string>
     <string name="assistant_placeholder">e.g. show me shiny legendary pokemon</string>
     <string name="assistant_description">Describe what you want to find in plain language.</string>
-    <string name="assistant_parse">Parse</string>
+    <string name="assistant_parse">Generate</string>
     <string name="assistant_suggest">AI Suggest</string>
     <string name="assistant_copied">Copied to clipboard</string>
 
-    <!-- Search Assistant (screen-scoped) -->
+
     <string name="search_assistant_title">Search Assistant</string>
     <string name="search_assistant_desc_text">Describe what you want to find in plain language. The assistant builds the search string for you.</string>
     <string name="search_assistant_placeholder">e.g. show me shiny legendary pokemon</string>
-    <string name="search_assistant_parse">Parse</string>
+    <string name="search_assistant_parse">Generate</string>
     <string name="search_assistant_ai_suggest">AI Suggest</string>
     <string name="search_assistant_suggested_string">Suggested search string</string>
     <string name="search_assistant_copy_btn">Copy Search String</string>
@@ -53,7 +54,7 @@
     <string name="search_assistant_lint_issue">This search string has an issue that must be fixed before copying.</string>
     <string name="search_assistant_review_warning">This search requires review before acting.</string>
 
-    <!-- Explainer precision / scope labels -->
+
     <string name="explainer_prec_exact">Exact match</string>
     <string name="explainer_prec_shortlist">Shortlist</string>
     <string name="explainer_prec_approx">Approximate</string>
@@ -83,7 +84,7 @@
     <string name="explain_copied">Copied to clipboard</string>
     <string name="explain_copy_search_string">Copy search string</string>
 
-    <!-- v0.6.2 Event Guide -->
+
     <string name="events_title">Event Guide</string>
     <string name="events_refresh">Refresh now</string>
     <string name="events_online_enabled">Online events enabled</string>
@@ -92,7 +93,7 @@
     <string name="event_context_community_day">This month\'s Community Day</string>
     <string name="event_context_candy_events">Candy events</string>
     <string name="event_context_candy_events_note">During Candy transfer bonus events, extra candies can make 2x Candy Prep goals more effective. PokeQuery does not pull live event data — verify if an event is active in Pokémon GO itself.</string>
-    <string name="event_context_disclaimer">Event Guide notes may be outdated. No Pokémon GO account data is accessed.</string>
+    <string name="event_context_disclaimer">This is a manual guide. PokeQuery doesn\'t connect to your game, so it can\'t know for sure what\'s active. Always double-check in-game!</string>
     <string name="event_context_community_day_note">During Community Day, candy and evolution bonuses can make Candy Prep and cleanup-style reviews more useful. This is a manual app note — PokeQuery does not pull live event data and the note may be outdated.</string>
     <string name="event_context_no_note">No current manual event note.</string>
     <string name="event_context_disclaimer_stale">Manual app note. This note may be outdated. PokeQuery does not pull event data.</string>
@@ -118,9 +119,9 @@
     <string name="event_date_range">%1$s – %2$s</string>
     <string name="event_date_starts">Starts %1$s</string>
     <string name="event_date_ends">Ends %1$s</string>
-    <string name="event_safety_note">Verify the event and active bonuses in Pokémon GO before acting.</string>
+    <string name="event_safety_note">Always check your Today View in Pokémon GO to be absolutely sure the event is active before transferring.</string>
 
-    <!-- What Changed / Changelog -->
+
     <string name="what_changed_v066_subtitle">Phase 5 — Localization Polish</string>
     <string name="what_changed_v066_b1">• Full Turkish localization for Event Guide, Onboarding, Goal Detail, and Home</string>
     <string name="what_changed_v066_b2">• Search Assistant promoted to a primary Home card; Nundo Finder moved to More Tools</string>
@@ -135,7 +136,7 @@
     <string name="what_changed_v066_tester2">Check Event Guide shows online and fallback notes correctly.</string>
     <string name="what_changed_v066_tester3">Verify Search Assistant accepts Turkish input such as parlak.</string>
 
-    <!-- Goal titles -->
+
     <string name="goal_safe_cleanup">Safe Cleanup</string>
     <string name="goal_safe_cleanup_desc">Review low-value transfer candidates</string>
     <string name="goal_candy_prep">2x Candy Prep</string>
@@ -177,7 +178,7 @@
     <string name="goal_settings">Settings</string>
     <string name="goal_settings_desc">Privacy, language, safety</string>
 
-    <!-- Goal explanations -->
+
     <string name="goal_exp_safe_cleanup">This is a REVIEW string targeting low-value candidates. It is not an automatic transfer command.</string>
     <string name="goal_exp_candy_prep">Finds extras. Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.</string>
     <string name="goal_exp_trade_fodder">Finds candidates for trading. Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.</string>
@@ -188,13 +189,13 @@
     <string name="goal_exp_lucky_trade">Finds older or distance-relevant Pokémon to review for trades. Review manually. Valuable Pokémon may appear. Trade eligibility and Lucky chance are not guaranteed by search strings.</string>
     <string name="goal_exp_expert">Custom search string. Review all matches in the game before acting.</string>
 
-    <!-- Risk levels -->
+
     <string name="risk_high">HIGH</string>
     <string name="risk_medium">MEDIUM</string>
     <string name="risk_low">LOW</string>
     <string name="risk_info">INFO</string>
 
-    <!-- Risk explanations (general risk levels - kept for fallback) -->
+
     <string name="risk_info_title">Inspection only</string>
     <string name="risk_info_short">This is an inspection query. It shows matches but does not suggest a destructive action.</string>
     <string name="risk_info_detailed">Inspection queries are safe to run: they only display Pokémon. Still review the matches so you understand what is in your storage.</string>
@@ -223,8 +224,8 @@
     <string name="risk_high_check2">Do not bulk-transfer the results.</string>
     <string name="risk_high_check3">Protect valuable Pokémon with tags or favorites.</string>
 
-    <!-- Goal-specific ELI5 risk explanations -->
-    <!-- Safe Cleanup (medium risk) -->
+
+
     <string name="risk_safe_cleanup_title">Why this search needs care</string>
     <string name="risk_safe_cleanup_short">This finds Pokémon you might want to transfer. But it can also catch valuable ones by mistake.</string>
     <string name="risk_safe_cleanup_detailed">This search looks for Pokémon with low stats that are usually safe to transfer. But sometimes a shiny, a hundo (perfect IVs), or a Pokémon you tagged as special can slip through. Always look at each result before you hit transfer.</string>
@@ -232,7 +233,7 @@
     <string name="risk_safe_cleanup_check2">Keep anything shiny, perfect (hundo), or you marked as favorite.</string>
     <string name="risk_safe_cleanup_check3">When in doubt, keep it.</string>
 
-    <!-- Candy Prep (medium risk) -->
+
     <string name="risk_candy_prep_title">Why this search needs care</string>
     <string name="risk_candy_prep_short">This finds extra Pokémon to transfer for candy. But it counts by species, not by form or costume.</string>
     <string name="risk_candy_prep_detailed">This search helps you find duplicates to transfer during 2x candy events. The count is based on the Pokédex number, so a shiny Pikachu and a costume Pikachu count as the same "slot". You might accidentally transfer a rare form. Check each one.</string>
@@ -240,7 +241,7 @@
     <string name="risk_candy_prep_check2">Keep anything with a special tag or favorite star.</string>
     <string name="risk_candy_prep_check3">When in doubt, keep it.</string>
 
-    <!-- Trade Fodder (medium risk) -->
+
     <string name="risk_trade_fodder_title">Why this search needs care</string>
     <string name="risk_trade_fodder_short">This finds untraded duplicates for trading. But friendship level and trade limits aren\'t in the search.</string>
     <string name="risk_trade_fodder_detailed">This search finds Pokémon you haven\'t traded yet. But being able to trade depends on your friendship level with the other trainer. Also, special trades (shiny, legendary, new Pokédex) are limited to once per day. The search can\'t know these limits.</string>
@@ -248,7 +249,7 @@
     <string name="risk_trade_fodder_check2">Special trades (shiny/legendary) = 1 per day max.</string>
     <string name="risk_trade_fodder_check3">When in doubt, keep it.</string>
 
-    <!-- Hundo Check (info risk) -->
+
     <string name="risk_hundo_check_title">Why this is safe</string>
     <string name="risk_hundo_check_short">This only shows your perfect 15/15/15 IV Pokémon. No transfers suggested.</string>
     <string name="risk_hundo_check_detailed">This search only finds Pokémon with perfect IVs (4★ / hundo). It\'s an inspection tool — it doesn\'t suggest transferring anything. Use it to admire your best Pokémon or pick which to power up.</string>
@@ -256,7 +257,7 @@
     <string name="risk_hundo_check_check2">No transfer or trade is suggested.</string>
     <string name="risk_hundo_check_check3">Use it to learn what you own.</string>
 
-    <!-- Nundo Finder (info risk) -->
+
     <string name="risk_nundo_finder_title">Why this is safe</string>
     <string name="risk_nundo_finder_short">This only shows your 0/0/0 IV Pokémon. No transfers suggested.</string>
     <string name="risk_nundo_finder_detailed">This search only finds Pokémon with exactly 0 attack, 0 defense, 0 HP IVs (nundos). It\'s for collecting or curiosity. It doesn\'t suggest transferring anything.</string>
@@ -264,7 +265,7 @@
     <string name="risk_nundo_finder_check2">No transfer or trade is suggested.</string>
     <string name="risk_nundo_finder_check3">Use it to learn what you own.</string>
 
-    <!-- PvP Candidates (info risk) -->
+
     <string name="risk_pvp_candidates_title">Why this is safe</string>
     <string name="risk_pvp_candidates_short">This finds PvP candidates. Final rank depends on species, level, and IV spread.</string>
     <string name="risk_pvp_candidates_detailed">This search finds Pokémon that *might* be good for Great League or Ultra League. But the actual PvP rank depends on the exact species, its level, and how its IVs are spread. This is a starting point — you still need to check each one in a PvP simulator.</string>
@@ -272,7 +273,7 @@
     <string name="risk_pvp_candidates_check2">No transfer or trade is suggested.</string>
     <string name="risk_pvp_candidates_check3">Use it to find candidates to test.</string>
 
-    <!-- Lucky Trade (medium risk) -->
+
     <string name="risk_lucky_trade_title">Why this search needs care</string>
     <string name="risk_lucky_trade_short">This finds older or far-away Pokémon for lucky trades. But trade eligibility and lucky rate aren\'t guaranteed.</string>
     <string name="risk_lucky_trade_detailed">This search finds Pokémon that *might* become lucky when traded (older than 2 years or caught 100km+ away). But both trainers must be able to trade, and the lucky rate is never 100%. Also, already-traded Pokémon can\'t become lucky again. Valuable Pokémon can appear in results.</string>
@@ -280,7 +281,7 @@
     <string name="risk_lucky_trade_check2">Already-traded Pokémon can\'t become lucky again.</string>
     <string name="risk_lucky_trade_check3">When in doubt, keep it.</string>
 
-    <!-- Untagged Cleanup (low risk) -->
+
     <string name="risk_untagged_title">Why this search needs a quick check</string>
     <string name="risk_untagged_short">This finds Pokémon without tags. Most are safe to review, but check for shinies or hundos.</string>
     <string name="risk_untagged_detailed">This search shows Pokémon that don\'t have any tags. Usually these are safe to consider for transfer. But a shiny or perfect IV Pokémon without a tag can still appear. Give the results a quick scroll.</string>
@@ -288,7 +289,7 @@
     <string name="risk_untagged_check2">Keep anything shiny, perfect (hundo), or you\'re unsure about.</string>
     <string name="risk_untagged_check3">Tag valuable Pokémon to protect them next time.</string>
 
-    <!-- Expert Builder (medium risk) -->
+
     <string name="risk_expert_title">Why this search needs care</string>
     <string name="risk_expert_short">You built this search. It does exactly what you typed — including risky things.</string>
     <string name="risk_expert_detailed">Custom searches run exactly what you write. If you include broad terms or forget exclusions, valuable Pokémon can appear. PokeQuery can\'t protect you from your own query. Review every match.</string>
@@ -296,7 +297,7 @@
     <string name="risk_expert_check2">Check every single match before acting.</string>
     <string name="risk_expert_check3">When in doubt, keep it.</string>
 
-    <!-- Search Assistant (varies by output) -->
+
     <string name="risk_assistant_title">Why this search needs care</string>
     <string name="risk_assistant_short">The assistant built this from your words. Always review the matches in Pokémon GO.</string>
     <string name="risk_assistant_detailed">The assistant converts your plain language into a search string. It might not capture everything you meant, or it might include things you didn\'t expect. The search is a suggestion — you decide what to do with the results.</string>
@@ -304,20 +305,20 @@
     <string name="risk_assistant_check2">The assistant can make mistakes.</string>
     <string name="risk_assistant_check3">When in doubt, keep it.</string>
 
-    <!-- Manual review / warnings -->
+
     <string name="manual_review_panel_text">This is a review aid only. Always inspect matches in Pokémon GO before transferring or trading.</string>
     <string name="warning_operator_replaced">The \'|\' operator is unsupported and was replaced with \',\'.</string>
     <string name="warning_count_output">Count output: Count is based on Pokédex species number and may not distinguish shiny/form/costume differences.</string>
     <string name="warning_trade_disclaimer">Trade disclaimer: Real trade eligibility depends on friendship level and cannot be guaranteed by search strings.</string>
 
-    <!-- Goal detail labels -->
+
     <string name="goal_detail_result">RESULT</string>
     <string name="goal_detail_your_string">Your search string</string>
     <string name="goal_detail_refine">REFINE</string>
     <string name="goal_detail_protected">PROTECTED</string>
     <string name="goal_detail_notes">NOTES</string>
     <string name="goal_detail_details">DETAILS</string>
-    <string name="goal_detail_why_risk">Why this risk?</string>
+    <string name="goal_detail_why_risk">Why the warning?</string>
     <string name="goal_detail_copy_search_string">Copy Search String</string>
     <string name="goal_detail_copied">Copied to clipboard</string>
     <string name="goal_detail_saved_fav">Saved to favorites</string>
@@ -349,14 +350,14 @@
     <string name="goal_detail_review_matches">Review all matches in Pokémon GO.</string>
     <string name="goal_detail_never_blind">Never transfer blindly.</string>
 
-    <!-- Navigation -->
+
     <string name="nav_home">Home</string>
     <string name="nav_favorites">Favorites</string>
     <string name="nav_history">History</string>
     <string name="nav_knowledge">Knowledge</string>
     <string name="nav_settings">Settings</string>
 
-    <!-- Home -->
+
     <string name="home_header_desc">Safer search strings for Pokémon GO</string>
     <string name="home_subtitle">What do you want to find?</string>
     <string name="home_subtitle_secondary">Pick a goal and we\'ll build a safe search string for it.</string>
@@ -369,7 +370,7 @@
     <string name="home_chip_event_title">Event-Ready Planning</string>
     <string name="home_chip_event_desc">Event Guide provides curated notes and search tips for active bonuses. PokeQuery does not track you or require a network connection.</string>
 
-    <!-- Onboarding -->
+
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_start_building">Start building</string>
@@ -388,7 +389,7 @@
     <string name="onboarding_trust_strip_offline">Offline</string>
     <string name="onboarding_trust_strip_copy">Copy only</string>
 
-    <!-- Settings -->
+
     <string name="settings_title">Settings</string>
     <string name="settings_general">General</string>
     <string name="settings_first_use_guide">Show first-use guide</string>
@@ -445,11 +446,11 @@
     <string name="settings_cancel">Cancel</string>
     <string name="settings_email_desc">Send feedback by email. No data leaves your device unless you send the email.</string>
 
-    <!-- Language picker -->
+
     <string name="settings_change_language">Tap to change</string>
     <string name="settings_choose_language">Choose Language</string>
 
-    <!-- Presets -->
+
     <string name="preset_desc_untraded_duplicates">Untraded duplicates ready for trade</string>
     <string name="presets_intro">Ready-made search strings for common goals. Tap to preview, then copy.</string>
     <string name="presets_review_matches">Always review matches in Pokémon GO before transferring.</string>
@@ -460,7 +461,7 @@
     <string name="preset_cat_battle_iv">Battle &amp; IV</string>
     <string name="preset_cat_collection">Collection</string>
 
-    <!-- Risk Warning -->
+
     <string name="common_warning">Warning</string>
     <string name="risk_learn_more">Learn more about risk levels</string>
 
@@ -596,12 +597,12 @@
     <string name="expert_raw">RAW QUERY</string>
     <string name="expert_copy_custom">Copy Custom</string>
 
-    <!-- Saved template buttons -->
+
     <string name="saved_template_copy">Copy</string>
     <string name="saved_template_copy_again">Copy again</string>
     <string name="saved_template_save_preset">Save as preset</string>
 
-    <!-- Destructive action dialogs -->
+
     <string name="destructive_clear_fav_title">Clear favorites?</string>
     <string name="destructive_clear_fav_msg">This removes all saved search strings. This cannot be undone.</string>
     <string name="destructive_clear_hist_title">Clear history?</string>
@@ -609,9 +610,34 @@
     <string name="destructive_reset_title">Reset all settings?</string>
     <string name="destructive_reset_msg">This restores language settings to defaults. Favorites and history are kept. This cannot be undone.</string>
 
-    <!-- Event Guide public feed card -->
+
     <string name="settings_online_events_toggle">Event Guide updates</string>
     <string name="settings_online_events_toggle_desc">Download the latest public event notes. No login, no tracking, no Pokémon GO account access.</string>
     <string name="goal_detail_tip_title">Tip</string>
     <string name="goal_detail_tip_desc">Spot-check a few results before mass transferring to be extra safe.</string>
+    <string name="risk_low_display">Low Risk</string>
+    <string name="risk_medium_display">Medium Risk</string>
+    <string name="risk_low_subtitle">Safe to use</string>
+    <string name="risk_medium_subtitle">Review before using</string>
+    <string name="goal_detail_about_count">About count (important)</string>
+    <string name="goal_detail_about_count_desc">The count is based on species number. It may not distinguish between shiny, form, costume, gender, or size variants.</string>
+    <string name="goal_detail_what_does_this_do">What does this do?</string>
+    <string name="search_assistant_empty_state_title">What can I search for?</string>
+    <string name="search_assistant_empty_state_desc">Try natural language like \'shiny legendary pokemon\' or \'hundo for ultra league\'. The assistant will translate it into a game-ready search string.</string>
+
+    <!-- v0.6.9 Event Guide main card -->
+    <string name="event_main_card_title">Featured Event</string>
+    <string name="event_featured_pokemon">Featured Pokémon</string>
+    <string name="event_bonuses">Bonuses</string>
+    <string name="event_whats_happening">What\'s happening?</string>
+    <string name="event_why_care">Why care about this?</string>
+    <string name="event_what_to_do">What should I do in PokeQuery?</string>
+    <string name="event_keep_review">Keep &amp; review</string>
+    <string name="event_avoid_transfer">Avoid transferring</string>
+    <string name="event_check_before">Check before / during / after</string>
+    <string name="event_no_events_title">No event info right now</string>
+    <string name="event_no_events_desc">Pull to refresh, or check back later. We only show notes from our public feed — no account access.</string>
+    <string name="event_main_card_live_now">Live now</string>
+    <string name="event_main_card_coming_up">Coming up</string>
+    <string name="event_suggested_for_event">Suggested search for this event</string>
 </resources>

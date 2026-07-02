@@ -242,21 +242,17 @@ fun GoalDetailScreen(
             Spacer(Modifier.height(density.sectionGap))
 
             // RESULT block: string box + copy CTA.
-            PqSectionHeader(
-                text = stringResource(R.string.goal_detail_result),
-                modifier = Modifier.pqStaggeredItem(visible, 2)
-            )
             PqGlowCard(
                 modifier = Modifier.pqStaggeredItem(visible, 2),
                 accent = if (isMedium) GoldCaution else TealPrimary
             ) {
                 Text(
                     text = stringResource(R.string.goal_detail_your_string),
-                    color = TextSecondary,
-                    fontSize = 13.sp,
+                    color = TextPrimary,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(Modifier.height(density.innerElementGap))
+                Spacer(Modifier.height(12.dp))
                 PqStringBox(generatedString.rawSyntax)
                 Spacer(Modifier.height(14.dp))
                 CustomCopyButton(
@@ -295,7 +291,7 @@ fun GoalDetailScreen(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = "About count (important)",
+                                text = stringResource(R.string.goal_detail_about_count),
                                 color = TextPrimary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
@@ -303,7 +299,7 @@ fun GoalDetailScreen(
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "The count is based on species number. It may not distinguish between shiny, form, costume, gender, or size variants.",
+                            text = stringResource(R.string.goal_detail_about_count_desc),
                             color = TextPrimary,
                             fontSize = 13.sp,
                             lineHeight = 18.sp
@@ -360,7 +356,7 @@ fun GoalDetailScreen(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = "What does this do?",
+                                text = stringResource(R.string.goal_detail_what_does_this_do),
                                 color = TextPrimary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
@@ -455,8 +451,8 @@ fun GoalDetailScreen(
 fun GoalRiskBanner(riskLevel: RiskLevel, modifier: Modifier = Modifier) {
     val isMedium = riskLevel == RiskLevel.Medium || riskLevel == RiskLevel.High
     val titleColor = if (isMedium) GoldCaution else TealPrimary
-    val displayTitle = if (isMedium) "Medium Risk" else "Low Risk"
-    val displaySubtitle = if (isMedium) "Review before using" else "Safe to use"
+    val displayTitle = if (isMedium) stringResource(R.string.risk_medium_display) else stringResource(R.string.risk_low_display)
+    val displaySubtitle = if (isMedium) stringResource(R.string.risk_medium_subtitle) else stringResource(R.string.risk_low_subtitle)
 
     Box(
         modifier = modifier

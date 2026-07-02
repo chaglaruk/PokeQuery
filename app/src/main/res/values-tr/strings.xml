@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">PokeQuery</string>
     <string name="shortcut_safe_cleanup_short">Güvenli Temizlik</string>
@@ -19,13 +19,13 @@
     <string name="assistant_title">Arama Asistanı</string>
     <string name="assistant_placeholder">örn. bana shiny legendary pokemon göster</string>
     <string name="assistant_description">Bulmak istediğinizi doğal dilde tarif edin.</string>
-    <string name="assistant_parse">Ayrıştır</string>
+    <string name="assistant_parse">Oluştur</string>
     <string name="assistant_suggest">Yapay Zeka Önerisi</string>
     <string name="assistant_copied">Panoya kopyalandı</string>
     <string name="search_assistant_title">Arama Asistanı</string>
     <string name="search_assistant_desc_text">Bulmak istediğinizi doğal dilde tarif edin. Asistan arama dizgisini sizin için oluşturur.</string>
     <string name="search_assistant_placeholder">örn. bana shiny legendary pokemon göster</string>
-    <string name="search_assistant_parse">Ayrıştır</string>
+    <string name="search_assistant_parse">Oluştur</string>
     <string name="search_assistant_ai_suggest">Yapay Zeka Önerisi</string>
     <string name="search_assistant_suggested_string">Önerilen arama dizgisi</string>
     <string name="search_assistant_copy_btn">Arama Dizgisini Kopyala</string>
@@ -78,7 +78,7 @@
     <string name="event_context_community_day">Bu ayın Topluluk Günü</string>
     <string name="event_context_candy_events">Şeker etkinlikleri</string>
     <string name="event_context_candy_events_note">Şeker transfer bonusu etkinlikleri sırasında ekstra şekerler 2x Şeker Hazırlığı hedeflerini daha verimli hale getirebilir. PokeQuery canlı etkinlik verilerini çekmez — etkinliğin Pokémon GO\'da aktif olup olmadığını kontrol edin.</string>
-    <string name="event_context_disclaimer">Etkinlik notları manuel olarak yönetilir ve güncel olmayabilir. Canlı etkinlik verisi çekilmez.</string>
+    <string name="event_context_disclaimer">Bu rehber elle güncellenir. PokeQuery oyuna bağlanmadığı için aktif olanları kesin olarak bilemez. Her zaman oyun içinden kontrol et!</string>
     <string name="event_context_community_day_note">Topluluk Günü sırasında, şeker ve evrim bonusları Şeker Hazırlığı ve temizlik tarzı incelemeleri daha yararlı hale getirebilir. Bu manuel bir uygulama notudur — PokeQuery canlı etkinlik verilerini çekmez ve not güncel olmayabilir.</string>
     <string name="event_context_no_note">Mevcut manuel etkinlik notu yok.</string>
     <string name="event_context_disclaimer_stale">Manuel uygulama notu. Bu not güncel olmayabilir. PokeQuery etkinlik verilerini çekmez.</string>
@@ -104,7 +104,7 @@
     <string name="event_date_range">%1$s – %2$s</string>
     <string name="event_date_starts">Başlangıç: %1$s</string>
     <string name="event_date_ends">Bitiş: %1$s</string>
-    <string name="event_safety_note">İşlem yapmadan önce etkinliği ve aktif bonusları Pokémon GO içinde doğrula.</string>
+    <string name="event_safety_note">Transfer yapmadan önce etkinliğin gerçekten başladığından emin olmak için Pokémon GO içindeki Bugün (Today) sekmesini mutlaka kontrol et.</string>
     <string name="what_changed_v066_subtitle">Aşama 5 — Yerelleştirme Cilası</string>
     <string name="what_changed_v066_b1">• Etkinlik Rehberi, Karşılama, Hedef Detayı ve Ana Ekran için tam Türkçe yerelleştirme</string>
     <string name="what_changed_v066_b2">• Arama Asistanı ana ekrana taşındı; Nundo Bulucu Daha Fazla Araç bölümüne alındı</string>
@@ -205,7 +205,7 @@
     <string name="goal_detail_protected">KORUNAN</string>
     <string name="goal_detail_notes">NOTLAR</string>
     <string name="goal_detail_details">DETAYLAR</string>
-    <string name="goal_detail_why_risk">Neden bu risk?</string>
+    <string name="goal_detail_why_risk">Neden dikkat etmeli?</string>
     <string name="goal_detail_copy_search_string">Arama Dizgisini Kopyala</string>
     <string name="goal_detail_copied">Panoya kopyalandı</string>
     <string name="goal_detail_saved_fav">Favorilere kaydedildi</string>
@@ -480,85 +480,110 @@
     <string name="settings_online_events_toggle">Etkinlik Rehberi güncellemeleri</string>
     <string name="settings_online_events_toggle_desc">En son herkese açık etkinlik notlarını indir. Giriş yok, takip yok, Pokémon GO hesap erişimi yok.</string>
 
-<!-- Safe Cleanup -->
-    <string name="risk_safe_cleanup_title">Bu arama neden dikkat gerektirir</string>
-    <string name="risk_safe_cleanup_short">Bu arama transfer edilecek Pokémon bulur. Ama yanlılıkla değerlileri de yakalayabilir.</string>
-    <string name="risk_safe_cleanup_detailed">Bu arama genellikle güvenle transfer edilebilecek, düşük statlı Pokémon arar. Ama bazen bir shiny, hundo (mükemmel IV) veya özel olarak etiketlediğin bir Pokémon kaçıp gidebilir. Transfer tuşuna basmadan önce her sonuca bak.</string>
-    <string name="risk_safe_cleanup_check1">Sonuçlardaki her tek Pokémon\'a bak.</string>
-    <string name="risk_safe_cleanup_check2">Shiny, mükemmel (hundo) veya favorisi işaretlenmiş her şeyi sakla.</string>
-    <string name="risk_safe_cleanup_check3">Şüphelerin varsa, sakla.</string>
 
-    <!-- Candy Prep -->
-    <string name="risk_candy_prep_title">Bu arama neden dikkat gerektirir</string>
-    <string name="risk_candy_prep_short">Bu arama şeker için fazlalık Pokémon bulur. Ama tür numarasına göre sayar, form/kostüme göre değil.</string>
-    <string name="risk_candy_prep_detailed">Bu arama 2x şeker etkinliklerinde transfer edilecek kopyaları bulmaya yarar. Sayı Pokédex numarasına dayanır, yani shiny Pikachu ve kostümlü Pikachu aynı "yuvayı" sayar. Nadir bir formu yanlılıkla transfer edebilirsin. Her birini kontrol et.</string>
-    <string name="risk_candy_prep_check1">Her eşleşmeyi kontrol et — shiny ve kostümler aynı tür sayılır.</string>
-    <string name="risk_candy_prep_check2">Özel etiketi veya favori yıldızı olan her şeyi sakla.</string>
-    <string name="risk_candy_prep_check3">Şüphelerin varsa, sakla.</string>
+    <string name="risk_safe_cleanup_title">Neden dikkat etmelisin?</string>
+    <string name="risk_safe_cleanup_short">Bu arama gönderebileceğin Pokémonları bulur. Ancak yanlışlıkla değerlileri de seçebilir.</string>
+    <string name="risk_safe_cleanup_detailed">Bu arama düşük özellikli ve göndermesi güvenli Pokémonları listeler. Fakat araya parlak, hundo veya özel etiketlediğin biri karışabilir. Göndermeden önce listeye mutlaka göz at.</string>
+    <string name="risk_safe_cleanup_check1">Sonuçlardaki her bir Pokémon\'u kontrol et.</string>
+    <string name="risk_safe_cleanup_check2">Parlak, hundo veya favori olanları sakla.</string>
+    <string name="risk_safe_cleanup_check3">Emin değilsen elinde tut.</string>
 
-    <!-- Trade Fodder -->
-    <string name="risk_trade_fodder_title">Bu arama neden dikkat gerektirir</string>
-    <string name="risk_trade_fodder_short">Bu arama takas edilmemiş kopyaları bulur. Ama arkadaşlık seviyesi ve takas limitleri aramada yok.</string>
-    <string name="risk_trade_fodder_detailed">Bu arama henüz takas etmediğin Pokémonları bulur. Ama takas yapıp yapamayacağın diğer antrenorla olan arkadaşlık seviyesine bağlı. Ayrıca özel takaslar (shiny, efsanevi, yeni Pokédex) günde 1 ile sınırlı. Arama bu limitleri bilmez.</string>
-    <string name="risk_trade_fodder_check1">Takas yapmadan önce arkadaşlık seviyesini kontrol et.</string>
-    <string name="risk_trade_fodder_check2">Özel takaslar (shiny/efsanevi) = günde en fazla 1.</string>
-    <string name="risk_trade_fodder_check3">Şüphelerin varsa, sakla.</string>
 
-    <!-- Hundo Check -->
-    <string name="risk_hundo_check_title">Neden güvenli</string>
-    <string name="risk_hundo_check_short">Bu arama sadece 15/15/15 IV\'li mükemmel Pokémonlarını gösterir. Transfer önerilmez.</string>
-    <string name="risk_hundo_check_detailed">Bu arama sadece mükemmel IV\'li (4★ / hundo) Pokémon bulur. Sadece inceleme aracıdır — hiçbir şeyi transfer etmeyi önermez. En iyi Pokémonlarını takdir etmek veya hangilerini güçlendireceğini seçmek için kullan.</string>
-    <string name="risk_hundo_check_check1">Aramayı aç ve hundolarını seyreyle.</string>
-    <string name="risk_hundo_check_check2">Hiçbir transfer veya takas önerilmez.</string>
-    <string name="risk_hundo_check_check3">Neye sahip olduğunu görmek için kullan.</string>
+    <string name="risk_candy_prep_title">Neden dikkat etmelisin?</string>
+    <string name="risk_candy_prep_short">Şeker için fazlalıkları bulur. Ama kostüm veya forma bakmaz, sadece türe bakar.</string>
+    <string name="risk_candy_prep_detailed">Çifte şeker etkinliklerinde fazlalıkları bulmaya yarar. Sayı Pokédex numarasına göredir, yani parlak bir Pikachu ile kostümlü bir Pikachu aynı sayılır. Yanlışlıkla nadir bir formu göndermemek için hepsini kontrol et.</string>
+    <string name="risk_candy_prep_check1">Sonuçları incele — parlak ve kostümlüler de aynı tür sayılır.</string>
+    <string name="risk_candy_prep_check2">Özel etiketli veya favori olanları sakla.</string>
+    <string name="risk_candy_prep_check3">Emin değilsen elinde tut.</string>
 
-    <!-- Nundo Finder -->
-    <string name="risk_nundo_finder_title">Neden güvenli</string>
-    <string name="risk_nundo_finder_short">Bu arama sadece 0/0/0 IV\'li Pokémonları gösterir. Transfer önerilmez.</string>
-    <string name="risk_nundo_finder_detailed">Bu arama tam olarak 0 saldırı, 0 savunma, 0 HP IV\'li Pokémonları (nundo) bulur. Koleksiyon veya merak içindir. Hiçbir şeyi transfer etmeyi önermez.</string>
-    <string name="risk_nundo_finder_check1">Aramayı aç ve nundolarını gör.</string>
-    <string name="risk_nundo_finder_check2">Hiçbir transfer veya takas önerilmez.</string>
-    <string name="risk_nundo_finder_check3">Neye sahip olduğunu görmek için kullan.</string>
 
-    <!-- PvP Candidates -->
-    <string name="risk_pvp_candidates_title">Neden güvenli</string>
-    <string name="risk_pvp_candidates_short">Bu arama PvP adaylarını bulur. Final sıra tür, seviye ve IV dağılımına bağlı.</string>
-    <string name="risk_pvp_candidates_detailed">Bu arama Great Lig veya Ultra Lig için *iyi olabilecek* Pokémonları bulur. Ama asıl PvP sırası tam tür, seviyesi ve IV dağılımına göre değişir. Bu bir başlangıç noktası — her birini PvP simülatöründe (PvPoke gibi) kontrol etmen gerekir.</string>
-    <string name="risk_pvp_candidates_check1">Her adayı bir PvP simülatöründe (örn. PvPoke) kontrol et.</string>
-    <string name="risk_pvp_candidates_check2">Hiçbir transfer veya takas önerilmez.</string>
-    <string name="risk_pvp_candidates_check3">Test edilecek adayları bulmak için kullan.</string>
+    <string name="risk_trade_fodder_title">Neden dikkat etmelisin?</string>
+    <string name="risk_trade_fodder_short">Takas edilmemiş fazlalıkları bulur. Ancak arkadaşlık seviyesi ve limitleri bilemez.</string>
+    <string name="risk_trade_fodder_detailed">Henüz takas etmediğin Pokémonları listeler. Ama takas yapabilmen diğer kişiyle arkadaşlık seviyene bağlıdır. Ayrıca özel takaslar (parlak, efsanevi) günde sadece 1 kez yapılabilir. Arama bunları bilemez.</string>
+    <string name="risk_trade_fodder_check1">Takastan önce arkadaşlık seviyesini kontrol et.</string>
+    <string name="risk_trade_fodder_check2">Özel takaslar günde en fazla 1 kez yapılabilir.</string>
+    <string name="risk_trade_fodder_check3">Emin değilsen elinde tut.</string>
 
-    <!-- Lucky Trade -->
-    <string name="risk_lucky_trade_title">Bu arama neden dikkat gerektirir</string>
-    <string name="risk_lucky_trade_short">Bu arama lucky takas için eski/uzak Pokémon bulur. Ama uygunluk ve lucky şansı garanti değil.</string>
-    <string name="risk_lucky_trade_detailed">Bu arama takas edilince *lucky olabilecek* Pokémonları bulur (2+ yıl eski veya 100km+ uzakta yakalanmış). Ama her iki antrenor da takas yapabilmeli ve lucky oranı asla %100 değil. Ayrıca: zaten takas edilmiş Pokémon bir daha lucky olamaz. Değerli Pokémon sonuçlarda çıkabilir.</string>
-    <string name="risk_lucky_trade_check1">Önce arkadaşlık seviyesi ve takas uygunluğunu kontrol et.</string>
-    <string name="risk_lucky_trade_check2">Zaten takas edilmiş Pokémon bir daha lucky olamaz.</string>
-    <string name="risk_lucky_trade_check3">Şüphelerin varsa, sakla.</string>
 
-    <!-- Untagged Cleanup -->
-    <string name="risk_untagged_title">Bu arama neden hızlı bir kontrol ister</string>
-    <string name="risk_untagged_short">Bu arama etiketsiz Pokémon bulur. Çoğu incelemeye güvenli, ama shiny/hundo ara.</string>
-    <string name="risk_untagged_detailed">Bu arama hiç etiketi olmayan Pokémonları gösterir. Genelde transfer için güvenli adaylardır. Ama etiketsiz bir shiny veya mükemmel IV Pokémon yine de çıkabilir. Sonuçlara hızca göz at.</string>
-    <string name="risk_untagged_check1">Her eşleşmeyi kaydırarak kontrol et.</string>
-    <string name="risk_untagged_check2">Shiny, mükemmel (hundo) veya emin olmadığın her şeyi sakla.</string>
-    <string name="risk_untagged_check3">Değerli Pokémonları etiketleyip bir dahaki sefere koru.</string>
+    <string name="risk_hundo_check_title">Neden güvenli?</string>
+    <string name="risk_hundo_check_short">Sadece mükemmel (15/15/15) Pokémonlarını gösterir. Gönderme önermez.</string>
+    <string name="risk_hundo_check_detailed">Sadece kusursuz özelliklere sahip Pokémonlarını bulur. Sadece bakmak içindir — hiçbir şeyi göndermeni önermez. En iyilerini görmek için kullan.</string>
+    <string name="risk_hundo_check_check1">Aç ve kusursuz Pokémonlarının tadını çıkar.</string>
+    <string name="risk_hundo_check_check2">Hiçbir gönderme veya takas önermez.</string>
+    <string name="risk_hundo_check_check3">Nelerin olduğunu görmek için kullan.</string>
 
-    <!-- Expert Builder -->
-    <string name="risk_expert_title">Bu arama neden dikkat gerektirir</string>
-    <string name="risk_expert_short">Bu aramayı sen yaptın. Senin yazdıkların neyse onu yapar — riskli şeyler de dahil.</string>
-    <string name="risk_expert_detailed">Özel aramalar senin yazdığın birebir çalışır. Kapsayıcı terimler kullanırsan veya dışlamaları unutursan değerli Pokémon çıkabilir. PokeQuery seni kendi sorgundan koruyamaz. Her eşleşmeyi kontrol et.</string>
-    <string name="risk_expert_check1">Kendi arama dizeni dikkatle oku.</string>
-    <string name="risk_expert_check2">Hareket etmeden her tek eşleşmeyi kontrol et.</string>
-    <string name="risk_expert_check3">Şüphelerin varsa, sakla.</string>
 
-    <!-- Search Assistant -->
-    <string name="risk_assistant_title">Bu arama neden dikkat gerektirir</string>
-    <string name="risk_assistant_short">Asistan bunu senin kelimelerinden yaptı. Eşleşmeleri her zaman Pokémon GO\'da kontrol et.</string>
-    <string name="risk_assistant_detailed">Asistan doğal dilini arama dizgisine çevirir. Kastedeklerini tam yakalamayabilir veya beklemediklerinizi dahil edebilir. Arama bir öneridir — sonuçlarla ne yapacağını sen seçersin.</string>
-    <string name="risk_assistant_check1">Her eşleşmeyi Pokémon GO\'da kontrol et.</string>
+    <string name="risk_nundo_finder_title">Neden güvenli?</string>
+    <string name="risk_nundo_finder_short">Sadece tamamen sıfır özellikli (0/0/0) Pokémonları gösterir. Gönderme önermez.</string>
+    <string name="risk_nundo_finder_detailed">Tam olarak 0 saldırı, 0 savunma ve 0 HP\'si olan Pokémonları bulur. Sadece merak içindir. Hiçbir şeyi göndermeni önermez.</string>
+    <string name="risk_nundo_finder_check1">Aç ve sıfır özellikli Pokémonlarını gör.</string>
+    <string name="risk_nundo_finder_check2">Hiçbir gönderme veya takas önermez.</string>
+    <string name="risk_nundo_finder_check3">Nelerin olduğunu görmek için kullan.</string>
+
+
+    <string name="risk_pvp_candidates_title">Neden güvenli?</string>
+    <string name="risk_pvp_candidates_short">PvP için potansiyel adayları bulur. Asıl güçleri tür, seviye ve özelliklerine bağlıdır.</string>
+    <string name="risk_pvp_candidates_detailed">Savaşlarda *iyi olabilecek* Pokémonları listeler. Ancak asıl sırası tam türüne, seviyesine ve IV dağılımına göre değişir. Bu sadece bir başlangıçtır — her birini bir PvP hesaplayıcısında kontrol etmen gerekir.</string>
+    <string name="risk_pvp_candidates_check1">Adayları bir PvP uygulamasında kontrol et.</string>
+    <string name="risk_pvp_candidates_check2">Hiçbir gönderme veya takas önermez.</string>
+    <string name="risk_pvp_candidates_check3">Test edecek Pokémonları bulmak için kullan.</string>
+
+
+    <string name="risk_lucky_trade_title">Neden dikkat etmelisin?</string>
+    <string name="risk_lucky_trade_short">Lucky takas için eski veya uzakta yakalanmış Pokémonları bulur. Ama şans garanti değildir.</string>
+    <string name="risk_lucky_trade_detailed">Takas edildiğinde *lucky olma ihtimali yüksek* Pokémonları listeler. Ancak lucky oranı asla %100 değildir. Ayrıca önceden takas edilmiş bir Pokémon bir daha lucky olamaz. Listede değerli Pokémonlar da çıkabilir.</string>
+    <string name="risk_lucky_trade_check1">Önce arkadaşlık seviyesini ve takas hakkını kontrol et.</string>
+    <string name="risk_lucky_trade_check2">Önceden takas edilmiş bir Pokémon tekrar lucky olamaz.</string>
+    <string name="risk_lucky_trade_check3">Emin değilsen elinde tut.</string>
+
+
+    <string name="risk_untagged_title">Neden hızlıca kontrol etmelisin?</string>
+    <string name="risk_untagged_short">Etiketsiz Pokémonları bulur. Çoğu güvenlidir ama araya parlak olanlar karışabilir.</string>
+    <string name="risk_untagged_detailed">Hiçbir etiketi olmayan Pokémonları gösterir. Genelde göndermek için güvenlidirler. Fakat etiketsiz kalmış parlak veya mükemmel bir Pokémon çıkabilir. Listeye hızlıca göz at.</string>
+    <string name="risk_untagged_check1">Sonuçların hepsine hızlıca bak.</string>
+    <string name="risk_untagged_check2">Parlak, mükemmel veya emin olmadıklarını sakla.</string>
+    <string name="risk_untagged_check3">Değerli olanları etiketleyip korumaya al.</string>
+
+
+    <string name="risk_expert_title">Neden dikkat etmelisin?</string>
+    <string name="risk_expert_short">Bu aramayı sen yazdın. Ne yazdıysan birebir onu yapar.</string>
+    <string name="risk_expert_detailed">Özel aramalar tam yazdığın gibi çalışır. Eğer yanlışlıkla çok geniş bir şey yazarsan değerli Pokémonlar da çıkabilir. PokeQuery seni kendi yazdığın şeyden koruyamaz. Her sonucu kontrol et.</string>
+    <string name="risk_expert_check1">Kendi yazdığın aramayı dikkatlice oku.</string>
+    <string name="risk_expert_check2">İşlem yapmadan önce sonuçlara tek tek bak.</string>
+    <string name="risk_expert_check3">Emin değilsen elinde tut.</string>
+
+
+    <string name="risk_assistant_title">Neden dikkat etmelisin?</string>
+    <string name="risk_assistant_short">Asistan aramayı senin cümlelerinden oluşturdu. Sonuçları her zaman oyunda kontrol et.</string>
+    <string name="risk_assistant_detailed">Asistan cümlelerini arama koduna çevirir. Kastediklerini tam yakalamayabilir veya istemediklerini de listeye katabilir. Bu sadece bir öneridir — sonuçlarla ne yapacağın sana kalmış.</string>
+    <string name="risk_assistant_check1">Sonuçları her zaman Pokémon GO\'da kontrol et.</string>
     <string name="risk_assistant_check2">Asistan hata yapabilir.</string>
-    <string name="risk_assistant_check3">Şüphelerin varsa, sakla.</string>
+    <string name="risk_assistant_check3">Emin değilsen elinde tut.</string>
     <string name="goal_detail_tip_title">İpucu</string>
-    <string name="goal_detail_tip_desc">Ekstra güvenli olmak için toplu transfer etmeden önce birkaç sonucu rastgele kontrol edin.</string>
+    <string name="goal_detail_tip_desc">Daha güvende olmak için toplu transfer öncesi rastgele birkaç sonucu gözden geçirin.</string>
+    <string name="risk_low_display">Düşük Risk</string>
+    <string name="risk_medium_display">Orta Risk</string>
+    <string name="risk_low_subtitle">Kullanımı güvenli</string>
+    <string name="risk_medium_subtitle">Kullanmadan önce incele</string>
+    <string name="goal_detail_about_count">Sayı hakkında (önemli)</string>
+    <string name="goal_detail_about_count_desc">Sayı, tür numarasına göre hesaplanır. Parlak, form, kostüm veya boyut farklarını ayırt etmeyebilir.</string>
+    <string name="goal_detail_what_does_this_do">Bu ne işe yarar?</string>
+    <string name="search_assistant_empty_state_title">Neler arayabilirim?</string>
+    <string name="search_assistant_empty_state_desc">Kendi kelimelerinle \'parlak efsanevi\' veya \'ultra lig için hundo\' yazmayı dene. Asistan bunu oyuna hazır bir arama koduna çevirir.</string>
+
+    <!-- v0.6.9 Etkinlik Rehberi ana kart -->
+    <string name="event_main_card_title">Öne Çıkan Etkinlik</string>
+    <string name="event_featured_pokemon">Öne Çıkan Pokémon</string>
+    <string name="event_bonuses">Bonuslar</string>
+    <string name="event_whats_happening">Ne oluyor?</string>
+    <string name="event_why_care">Bunu neden önemsemeli?</string>
+    <string name="event_what_to_do">PokeQuery\'de ne yapmalıyım?</string>
+    <string name="event_keep_review">Sakla &amp; incele</string>
+    <string name="event_avoid_transfer">Transfer etme</string>
+    <string name="event_check_before">Önce / sırasında / sonra kontrol et</string>
+    <string name="event_no_events_title">Şu an etkinlik bilgisi yok</string>
+    <string name="event_no_events_desc">Yenilemek için aşağı çek veya sonra tekrar bak. Sadece herkese açık akışımızdan notları gösteririz — hesap erişimi yok.</string>
+    <string name="event_main_card_live_now">Şu an canlı</string>
+    <string name="event_main_card_coming_up">Yaklaşıyor</string>
+    <string name="event_suggested_for_event">Bu etkinlik için önerilen arama</string>
 </resources>

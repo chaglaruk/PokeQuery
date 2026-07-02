@@ -82,6 +82,80 @@ class EventContextTest {
         )
     }
 
+    // ---- v0.6.9: selectMainEvent logic ----
+
+    @Test
+    fun `selectMainEvent returns null for empty list`() {
+        assertEquals(null, selectMainEvent(emptyList()))
+    }
+
+    @Test
+    fun `selectMainEvent prefers CURRENT over UPCOMING`() {
+        val upcoming = EventContext(
+            id = "upcoming", titleText = "Later",
+            contextType = EventContextType.GENERIC_EVENT, status = EventStatus.UPCOMING,
+            noteText = "Up", summaryText = "S", prepText = "P", suggestedSearch = "a0",
+            eventNotesText = "N", themeKey = "generic_event", month = 8, year = 2026
+        )
+        val current = EventContext(
+            id = "current", titleText = "Now",
+            contextType = EventContextType.COMMUNITY_DAY, status = EventStatus.CURRENT,
+            noteText = "Cu", summaryText = "S", prepText = "P", suggestedSearch = "a0",
+            eventNotesText = "N", themeKey = "community_day", month = 7, year = 2026
+        )
+        val result = selectMainEvent(listOf(upcoming, current))
+        assertEquals("current", result?.id)
+    }
+
+    @Test
+    fun `selectMainEvent falls back to UPCOMING when no CURRENT exists`() {
+        val upcoming = EventContext(
+            id = "upcoming-only", titleText = "Next",
+            contextType = EventContextType.SPOTLIGHT_HOUR, status = EventStatus.UPCOMING,
+            noteText = "U", summaryText = "S", prepText = "P", suggestedSearch = "a0",
+            eventNotesText = "N", themeKey = "spotlight_hour", month = 8, year = 2026
+        )
+        assertEquals("upcoming-only", selectMainEvent(listOf(upcoming))?.id)
+    }
+
+    @Test
+    fun `selectMainEvent returns first event when all are UPCOMING`() {
+        val events = listOf(
+            EventContext(id = "first", titleText = "A", contextType = EventContextType.GENERIC_EVENT, status = EventStatus.UPCOMING, noteText = "N", summaryText = "S", prepText = "P", suggestedSearch = "a0", eventNotesText = "N", themeKey = "generic_event", month = 7, year = 2026),
+            EventContext(id = "second", titleText = "B", contextType = EventContextType.GENERIC_EVENT, status = EventStatus.UPCOMING, noteText = "N", summaryText = "S", prepText = "P", suggestedSearch = "a0", eventNotesText = "N", themeKey = "generic_event", month = 8, year = 2026)
+        )
+        assertEquals("first", selectMainEvent(events)?.id)
+    }
+
+    // ---- v0.6.9: fixture has featuredPokemon and bonuses ----
+
+    @Test
+    fun `bundled fixture has featured Pokemon and bonuses on at least one event`() {
+        val json = File("src/main/res/raw/event_context_fixture.json").readText()
+        val feed = EventFeedParser.parse(json).getOrThrow()
+        assertTrue("fixture should have events", feed.events.isNotEmpty())
+        // At least the Community Day event should have featuredPokemon.
+        val sobble = feed.events.firstOrNull { it.id.contains("sobble", ignoreCase = true) }
+        assertNotNull("Sobble event should exist", sobble)
+        assertEquals("Sobble", sobble!!.featuredPokemon)
+        assertTrue("bonuses should not be blank", sobble.bonusesText.orEmpty().isNotBlank())
+    }
+
+    @Test
+    fun `fixture events have Turkish translations for featured Pokemon`() {
+        val json = File("src/main/res/raw/event_context_fixture.json").readText()
+        val feed = EventFeedParser.parse(json).getOrThrow()
+        feed.events.forEach { event ->
+            // Not every event must have featuredPokemon, but when it does, TR should also exist.
+            if (!event.featuredPokemon.isNullOrBlank()) {
+                assertTrue("event ${event.id} missing featuredPokemonTr", !event.featuredPokemonTr.isNullOrBlank())
+            }
+            if (!event.bonusesText.isNullOrBlank()) {
+                assertTrue("event ${event.id} missing bonusesTextTr", !event.bonusesTextTr.isNullOrBlank())
+            }
+        }
+    }
+
     @Test
     fun `bundled event notes are always marked manual`() {
         EventContextRepository.all().forEach { event ->

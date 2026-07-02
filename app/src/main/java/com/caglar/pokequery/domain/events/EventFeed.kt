@@ -91,6 +91,10 @@ object EventFeedParser {
                 suggestedSearch = stringField(body, "suggestedSearch"),
                 eventNotesText = stringField(body, "eventNotes"),
                 eventNotesTextTr = optionalStringField(body, "eventNotesTr"),
+                featuredPokemon = optionalStringField(body, "featuredPokemon"),
+                featuredPokemonTr = optionalStringField(body, "featuredPokemonTr"),
+                bonusesText = optionalStringField(body, "bonuses"),
+                bonusesTextTr = optionalStringField(body, "bonusesTr"),
                 themeKey = themeKey,
                 isManual = false
             )

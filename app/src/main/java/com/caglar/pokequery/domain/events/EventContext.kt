@@ -23,6 +23,10 @@ data class EventContext(
     val suggestedSearch: String? = null,
     val eventNotesText: String? = null,
     val eventNotesTextTr: String? = null,
+    val featuredPokemon: String? = null,
+    val featuredPokemonTr: String? = null,
+    val bonusesText: String? = null,
+    val bonusesTextTr: String? = null,
     val themeKey: String = "generic_event",
     val isManual: Boolean = true
 )
@@ -31,48 +35,85 @@ enum class EventContextType { COMMUNITY_DAY, SPOTLIGHT_HOUR, GENERIC_EVENT }
 
 enum class EventStatus { CURRENT, UPCOMING }
 
+/**
+ * Selects the single main event to feature prominently on the Event Guide.
+ *
+ * Strategy (human-friendly, not debug): prefer a [EventStatus.CURRENT] event. If none is current,
+ * pick the first UPCOMING event (the nearest one the feed lists). If the list is empty, returns
+ * null so the UI can fall back to an honest empty state.
+ *
+ * Pure function — unit-testable without Android.
+ */
+fun selectMainEvent(events: List<EventContext>): EventContext? {
+    if (events.isEmpty()) return null
+    return events.firstOrNull { it.status == EventStatus.CURRENT }
+        ?: events.firstOrNull { it.status == EventStatus.UPCOMING }
+        ?: events.first()
+}
+
 object EventContextRepository {
     val entries: List<EventContext> = listOf(
         EventContext(
-            id = "fallback-community-day-prep",
-            titleText = "Community Day prep",
-            titleTextTr = "Topluluk Günü hazırlığı",
-            contextType = EventContextType.COMMUNITY_DAY,
+            id = "event-go-fest-global",
+            titleText = "GO Fest 2026: Global",
+            titleTextTr = "GO Fest 2026: Küresel",
+            contextType = EventContextType.GENERIC_EVENT,
             status = EventStatus.CURRENT,
-            noteText = "Bundled fallback guidance only. Use this when no live or saved public feed is available.",
-            noteTextTr = "Yalnızca yerleşik yedek rehberlik. Canlı veya kayıtlı herkese açık akış yoksa kullanılır.",
+            noteText = "The biggest event of the year! Special spawns, raids, and bonuses are everywhere.",
+            noteTextTr = "Yılın en büyük etkinliği! Özel belirmeler, akınlar ve bonuslar her yerde.",
             month = 7,
             year = 2026,
-            startText = "Event day",
-            endText = "After event review",
-            summaryText = "Community Day bonuses often make catching, evolving, tagging, and candy review more useful.",
-            summaryTextTr = "Topluluk Günü bonusları yakalama, evrim, etiketleme ve şeker incelemesini daha yararlı hale getirebilir.",
-            prepText = "Before the event, tag keepers and run Candy Prep. After the event, review recent catches before cleanup.",
-            prepTextTr = "Etkinlikten önce saklanacakları etiketle ve Şeker Hazırlığı kullan. Etkinlikten sonra yeni yakalananları temizlemeden önce incele.",
-            suggestedSearch = "age0-2",
-            eventNotesText = "Review favorites, shinies, costumes, high IV, PvP candidates, and traded Pokémon before transfer decisions.",
-            eventNotesTextTr = "Transfer kararı vermeden önce favori, parlak, kostümlü, yüksek IV, PvP adayı ve takas edilmiş Pokémonları incele.",
+            startText = "July 11",
+            endText = "July 12",
+            summaryText = "Storage fills up extremely fast. You will need a lot of free space to enjoy the event without stopping.",
+            summaryTextTr = "Depo çok hızlı dolar. Etkinliğin tadını duraksamadan çıkarmak için bolca boş alana ihtiyacın olacak.",
+            prepText = "Run Safe Cleanup and clear out all fodder. Make sure to tag your keepers so you don't accidentally transfer them.",
+            prepTextTr = "Güvenli Temizliği çalıştır ve gereksizleri yolla. Saklayacaklarını etiketlediğinden emin ol ki yanlışlıkla transfer etmeyesin.",
+            suggestedSearch = "age0-2&!favorite&!shiny&!legendary&!mythical&!costume&!ultra beasts",
+            eventNotesText = "Review your shiny catches, ultra beasts, and high IVs before clearing. Take advantage of special trades if applicable.",
+            eventNotesTextTr = "Temizlemeden önce parlakları, ultra canavarları ve yüksek IV'leri incele. Varsa özel takas haklarını değerlendir.",
+            themeKey = "raid"
+        ),
+        EventContext(
+            id = "event-july-cd",
+            titleText = "July Community Day",
+            titleTextTr = "Temmuz Topluluk Günü",
+            contextType = EventContextType.COMMUNITY_DAY,
+            status = EventStatus.UPCOMING,
+            noteText = "A classic Community Day featuring a rare Pokémon with an exclusive move.",
+            noteTextTr = "Nadir bir Pokémon ve özel yetenek içeren klasik bir Topluluk Günü.",
+            month = 7,
+            year = 2026,
+            startText = "July 21",
+            endText = "July 21",
+            summaryText = "Catching hundreds of the same Pokémon means you can be very strict about what you keep.",
+            summaryTextTr = "Aynı Pokémon'dan yüzlerce yakalamak, hangilerini tutacağın konusunda çok daha seçici olmanı sağlar.",
+            prepText = "Run Candy Prep. Keep only the highest IVs for raids or specific PvP spreads. Transfer the rest.",
+            prepTextTr = "Şeker Hazırlığı çalıştır. Sadece akınlar için en yüksek IV'leri veya özel PvP dağılımlarını sakla. Kalanını yolla.",
+            suggestedSearch = "age0&!favorite&!shiny&!3*&!4*",
+            eventNotesText = "Check for PvP IVs (low attack, high defense/HP) before transferring, especially if the Pokémon is good in Great or Ultra League.",
+            eventNotesTextTr = "Özellikle Süper veya Ultra Lig'de iyiyse, transfer etmeden önce PvP IV'lerini (düşük saldırı, yüksek savunma/HP) kontrol et.",
             themeKey = "community_day"
         ),
         EventContext(
-            id = "fallback-candy-bonus-prep",
-            titleText = "Candy bonus prep",
-            titleTextTr = "Şeker bonusu hazırlığı",
+            id = "event-aquatic-paradise",
+            titleText = "Aquatic Paradise",
+            titleTextTr = "Su Cenneti",
             contextType = EventContextType.GENERIC_EVENT,
             status = EventStatus.UPCOMING,
-            noteText = "Bundled fallback guidance only. Verify the real active bonus in Pokémon GO before acting.",
-            noteTextTr = "Yalnızca yerleşik yedek rehberlik. İşlem yapmadan önce gerçek aktif bonusu Pokémon GO içinde doğrula.",
+            noteText = "Water-type Pokémon are spawning more frequently. 2x Catch Candy bonus is active.",
+            noteTextTr = "Su türü Pokémonlar daha sık beliriyor. 2x Yakalama Şekeri bonusu aktif.",
             month = 7,
             year = 2026,
-            startText = "Before transfer bonus",
-            endText = "After transfer review",
-            summaryText = "Transfer-candy windows are useful only after careful review, because cleanup searches are action-adjacent.",
-            summaryTextTr = "Transfer şekeri dönemleri ancak dikkatli incelemeden sonra yararlıdır; çünkü temizlik aramaları işlem öncesi kullanılır.",
-            prepText = "Use Safe Cleanup and 2x Candy Prep, then manually review protected categories before copying.",
-            prepTextTr = "Güvenli Temizlik ve 2x Şeker Hazırlığı kullan; kopyalamadan önce korunan kategorileri elle incele.",
-            suggestedSearch = "age0-7&!favorite&!shiny&!legendary&!mythical&!costume",
-            eventNotesText = "Do not transfer from the search result blindly. Check tags, costumes, luckies, shadows, purified, and traded status.",
-            eventNotesTextTr = "Arama sonucundan körlemesine transfer yapma. Etiket, kostüm, şanslı, gölge, arındırılmış ve takas durumunu kontrol et.",
+            startText = "July 25",
+            endText = "July 29",
+            summaryText = "It's a great time to farm candies for Water-types, but watch your storage space.",
+            summaryTextTr = "Su türleri için şeker toplamak adına harika bir zaman, ancak depo alanına dikkat et.",
+            prepText = "Clear out non-event fodder beforehand so you can focus on catching Water-types.",
+            prepTextTr = "Su türlerine odaklanabilmek için etkinlik öncesinde diğer gereksizleri temizle.",
+            suggestedSearch = "water&age0-5&!favorite&!shiny&!legendary",
+            eventNotesText = "Keep an eye out for rare Water-types that are usually hard to find. Use Pinap Berries for even more candy.",
+            eventNotesTextTr = "Genelde bulması zor olan nadir Su türlerine dikkat et. Daha fazla şeker için Pinap Meyvesi kullan.",
             themeKey = "candy_bonus"
         )
     )
