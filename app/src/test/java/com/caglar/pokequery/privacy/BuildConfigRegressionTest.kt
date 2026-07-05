@@ -22,10 +22,10 @@ class BuildConfigRegressionTest {
         assertTrue(gradle.contains("""namespace = "com.caglar.pokequery""""))
     }
 
-    @Test
+@Test
     fun `version name is accessible and current`() {
         assertTrue("Version name should be non-empty", AppVersion.versionName.isNotBlank())
-        assertEquals("0.7.0", AppVersion.versionName)
-        assertEquals(20, AppVersion.versionCode)
+        assertEquals("0.7.1", AppVersion.versionName)
+        assertEquals(21, AppVersion.versionCode)
     }
 }

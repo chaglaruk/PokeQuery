@@ -37,6 +37,7 @@
       "pokemon": [
         {
           "name": "Gimmighoul",
+          "nameTr": "Gimmighoul",
           "source": "Coin Bag / Golden Lure / special background",
           "sourceTr": "Coin Bag / Golden Lure / özel arka plan",
           "shinyAvailable": true,
@@ -60,6 +61,7 @@
         },
         {
           "name": "Pikachu",
+          "nameTr": "Pikachu",
           "source": "wild costume",
           "sourceTr": "vahşi kostüm",
           "shinyAvailable": true,
@@ -83,6 +85,7 @@
         },
         {
           "name": "Eevee",
+          "nameTr": "Eevee",
           "source": "wild costume",
           "sourceTr": "vahşi kostüm",
           "shinyAvailable": true,
@@ -106,6 +109,7 @@
         },
         {
           "name": "Wurmple",
+          "nameTr": "Wurmple",
           "source": "wild costume",
           "sourceTr": "vahşi kostüm",
           "shinyAvailable": true,
@@ -199,6 +203,7 @@
       "pokemon": [
         {
           "name": "Pikachu",
+          "nameTr": "Pikachu",
           "source": "team-hat costume / GO Pass encounter",
           "sourceTr": "takım şapkalı kostüm / GO Pass karşılaşması",
           "shinyAvailable": true,
@@ -250,6 +255,7 @@
         },
         {
           "name": "Link Charges",
+          "nameTr": "Bağlantı Enerjileri",
           "source": "GO Pass reward",
           "sourceTr": "GO Pass ödülü",
           "shinyAvailable": false,
@@ -272,6 +278,7 @@
         },
         {
           "name": "Incubators",
+          "nameTr": "Kuluçka Makineleri",
           "source": "GO Pass reward / eggs",
           "sourceTr": "GO Pass ödülü / yumurta",
           "shinyAvailable": false,
@@ -366,6 +373,7 @@
       "pokemon": [
         {
           "name": "Mewtwo",
+          "nameTr": "Mewtwo",
           "source": "Super Mega Raids / special background",
           "sourceTr": "Süper Mega Akınlar / özel arka plan",
           "shinyAvailable": true,
@@ -384,10 +392,12 @@
           "badgesDe": "Shiny, Raid, Hintergrund",
           "badgesEs": "Shiny, Incursion, Fondo",
           "badgesFr": "Shiny, Raid, Arriere-plan",
-          "badgesIt": "Shiny, Raid, Sfondo"
+          "badgesIt": "Shiny, Raid, Sfondo",
+          "spriteKey": "mewtwo"
         },
         {
           "name": "Zeraora",
+          "nameTr": "Zeraora",
           "source": "Special Research",
           "sourceTr": "Özel Araştırma",
           "shinyAvailable": false,
@@ -411,6 +421,7 @@
         },
         {
           "name": "Pikachu",
+          "nameTr": "Pikachu",
           "source": "team-hat costume",
           "sourceTr": "takım şapkalı kostüm",
           "shinyAvailable": true,

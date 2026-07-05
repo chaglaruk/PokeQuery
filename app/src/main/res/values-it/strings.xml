@@ -19,8 +19,16 @@
     <string name="shortcut_expert_disabled">Costruttore Esperto non disponibile</string>
 
     <string name="widget_quick_access_title">PokeQuery</string>
-    <string name="widget_quick_access_subtitle">Tocca per aprire Pulizia Sicura</string>
-    <string name="widget_quick_access_description">Apre PokeQuery in una schermata di revisione rapida.</string>
+    <string name="widget_quick_access_subtitle">Anteprima ricerca Pulizia Sicura</string>
+    <string name="widget_quick_access_description">Mostra la ricerca di Pulizia Sicura con opzione copia.</string>
+    <string name="widget_quick_access_preview_label">Pulizia sicura</string>
+    <string name="widget_quick_access_search_preview">0*,1*&amp;!shiny</string>
+    <string name="widget_copy_desc">Copia ricerca</string>
+    <string name="widget_tap_to_open">Tocca per aprire nell\'applicazione</string>
+    <string name="widget_event_date_placeholder">Attivo ora</string>
+    <string name="widget_event_raid_pokemon">Raid in evidenza</string>
+    <string name="widget_event_raid_placeholder">Nessun raid attivo</string>
+    <string name="widget_event_search_preview">ricerca consigliata</string>
 
     <string name="assistant_title">Assistente di Ricerca</string>
     <string name="assistant_placeholder">es. mostrami pokemon shiny leggendari</string>

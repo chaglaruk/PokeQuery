@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
     // Held as observable state so re-entry via onNewIntent (the activity already running) also
     // re-routes instead of being ignored. `null` means "no specific route / go Home".
     private var startRoute by mutableStateOf<String?>(null)
+    private var copySearch by mutableStateOf<String?>(null)
     private var debugAppLanguage by mutableStateOf<String?>(null)
     private var debugSearchLanguage by mutableStateOf<String?>(null)
 
@@ -37,6 +38,7 @@ class MainActivity : ComponentActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
         startRoute = readStartRoute(intent)
+        copySearch = intent?.getStringExtra("copy_search")
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
         // v0.5.2 (Fix 7): one repository instance shared with MainNavigation for the App
@@ -87,7 +89,11 @@ class MainActivity : ComponentActivity() {
                 PokeQueryTheme {
                     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                         // Keyed on startRoute so a new shortcut/widget intent recomposes navigation.
-                        MainNavigation(startRoute)
+                        MainNavigation(
+                            startRoute = startRoute,
+                            copySearch = copySearch,
+                            onCopyHandled = { copySearch = null }
+                        )
                     }
                 }
             }
@@ -101,6 +107,7 @@ class MainActivity : ComponentActivity() {
         // stack). setIntent so getIntent() also reflects the latest.
         setIntent(intent)
         startRoute = readStartRoute(intent)
+        copySearch = intent.getStringExtra("copy_search")
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
     }

@@ -20,6 +20,7 @@ def check_runtime_assets():
         'event_gimmighoul.png',
         'event_heracross.png',
         'event_kangaskhan.png',
+        'event_mewtwo.png',
         'event_mr_mime.png',
         'event_necrozma.png',
         'event_pikachu.png',

@@ -23,6 +23,13 @@
 - Sources are `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png` for IDs 201, 115, 122, 214, 222, 25, 800, 133, 999, 807, and 265.
 - These are Pokémon character sprites and may carry Pokémon/Nintendo/Game Freak/The Pokémon Company IP risk.
 
+## v0.7.1 Event Guide Mewtwo update
+
+- Added clean Event Guide Mewtwo sprite asset: `event_mewtwo.png`.
+- Source is PokeAPI Sprite #150 (`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png`).
+- Checkerboard background was verified and removed completely; the sprite is stored as a clean transparent `PNG (96, 96) RGBA` asset.
+- This is a Pokémon character sprite and carries official Pokémon character IP risk, which is accepted by the user for internal/corrective test purposes.
+
 ## Audit Checklist
 
 - [ ] **No official Pokémon character assets**: Not true for v0.6.9. Event Guide includes Pokémon character sprites by explicit user request.

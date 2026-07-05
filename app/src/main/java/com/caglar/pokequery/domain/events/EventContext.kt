@@ -124,19 +124,6 @@ private fun todayIsoDate(): String =
 private fun String?.validIsoDate(): String? =
     this?.takeIf { isoDatePattern.matches(it) }
 
-fun EventContext.effectiveStatus(todayIsoDate: String = todayIsoDate()): EventStatus {
-    val today = todayIsoDate.validIsoDate() ?: return status
-    val start = startDate.validIsoDate()
-    val end = endDate.validIsoDate()
-    return when {
-        start != null && today < start -> EventStatus.UPCOMING
-        end != null && today > end -> EventStatus.ENDED
-        start != null && end != null -> EventStatus.CURRENT
-        start != null && today >= start -> EventStatus.CURRENT
-        else -> status
-    }
-}
-
 /**
  * Selects the single main event to feature prominently on the Event Guide.
  *
@@ -151,6 +138,123 @@ fun selectMainEvent(events: List<EventContext>, todayIsoDate: String = todayIsoD
     return events.firstOrNull { it.effectiveStatus(todayIsoDate) == EventStatus.CURRENT }
         ?: events.firstOrNull { it.effectiveStatus(todayIsoDate) == EventStatus.UPCOMING }
         ?: events.first()
+}
+
+// Localized string helpers for EventContext and EventPokemonEntry
+// These are public so they can be used by widget providers and other components.
+
+private fun localized(
+    en: String?,
+    tr: String?,
+    de: String?,
+    es: String?,
+    fr: String?,
+    it: String?
+): String = when (Locale.getDefault().language) {
+    "tr" -> tr
+    "de" -> de
+    "es" -> es
+    "fr" -> fr
+    "it" -> it
+    else -> en
+}.takeUnless { it.isNullOrBlank() } ?: en.orEmpty()
+
+fun EventContext.localizedTitle(): String =
+    localized(titleText, titleTextTr, titleTextDe, titleTextEs, titleTextFr, titleTextIt)
+
+fun EventContext.localizedFeatured(): String =
+    localized(featuredPokemon, featuredPokemonTr, featuredPokemonDe, featuredPokemonEs, featuredPokemonFr, featuredPokemonIt)
+
+fun EventContext.localizedResearch(): String =
+    localized(researchText, researchTextTr, researchTextDe, researchTextEs, researchTextFr, researchTextIt)
+
+fun EventContext.localizedBonuses(): String =
+    localized(bonusesText, bonusesTextTr, bonusesTextDe, bonusesTextEs, bonusesTextFr, bonusesTextIt)
+
+fun EventContext.localizedPrep(): String =
+    localized(prepText, prepTextTr, prepTextDe, prepTextEs, prepTextFr, prepTextIt)
+
+fun EventContext.localizedNotes(): String =
+    localized(eventNotesText, eventNotesTextTr, eventNotesTextDe, eventNotesTextEs, eventNotesTextFr, eventNotesTextIt)
+
+fun EventContext.localizedRaids(): String =
+    localized(raidsText, raidsTextTr, raidsTextDe, raidsTextEs, raidsTextFr, raidsTextIt)
+
+fun EventPokemonEntry.localizedName(): String =
+    localized(name, nameTr, nameDe, nameEs, nameFr, nameIt)
+
+fun EventPokemonEntry.localizedSource(): String =
+    localized(source, sourceTr, sourceDe, sourceEs, sourceFr, sourceIt)
+
+fun EventPokemonEntry.localizedNote(): String =
+    localized(note, noteTr, noteDe, noteEs, noteFr, noteIt)
+
+fun EventPokemonEntry.localizedBadges(): String =
+    localized(badges, badgesTr, badgesDe, badgesEs, badgesFr, badgesIt)
+
+fun EventContext.dateLabel(): String? = when {
+    isoMonthDay(startDate) != null && isoMonthDay(endDate) != null ->
+        localizedDateRange(isoMonthDay(startDate)!!, isoMonthDay(endDate)!!)
+    isoMonthDay(startDate) != null -> localizedSingleDate(isoMonthDay(startDate)!!)
+    isoMonthDay(endDate) != null -> localizedSingleDate(isoMonthDay(endDate)!!)
+    !startText.isNullOrBlank() && !endText.isNullOrBlank() -> "$startText – $endText"
+    !startText.isNullOrBlank() -> startText
+    !endText.isNullOrBlank() -> endText
+    month != null && year != null -> "$month/$year"
+    else -> null
+}
+
+private fun isoMonthDay(value: String?): Pair<Int, Int>? {
+    val text = value?.takeIf { it.length >= 10 } ?: return null
+    val month = text.substring(5, 7).toIntOrNull() ?: return null
+    val day = text.substring(8, 10).toIntOrNull() ?: return null
+    return month to day
+}
+
+private fun localizedDateRange(start: Pair<Int, Int>, end: Pair<Int, Int>): String =
+    if (start.first == end.first) {
+        when (Locale.getDefault().language) {
+            "tr" -> "${start.second}–${end.second} ${monthName(start.first)}"
+            "de" -> "${start.second}.–${end.second}. ${monthName(start.first)}"
+            "es" -> "${start.second}–${end.second} de ${monthName(start.first)}"
+            "fr", "it" -> "${start.second}–${end.second} ${monthName(start.first)}"
+            else -> "${monthName(start.first)} ${start.second}–${end.second}"
+        }
+    } else {
+        "${localizedSingleDate(start)} – ${localizedSingleDate(end)}"
+    }
+
+private fun localizedSingleDate(date: Pair<Int, Int>): String = when (Locale.getDefault().language) {
+    "tr" -> "${date.second} ${monthName(date.first)}"
+    "de" -> "${date.second}. ${monthName(date.first)}"
+    "es" -> "${date.second} de ${monthName(date.first)}"
+    "fr", "it" -> "${date.second} ${monthName(date.first)}"
+    else -> "${monthName(date.first)} ${date.second}"
+}
+
+private fun monthName(month: Int): String {
+    val names = when (Locale.getDefault().language) {
+        "tr" -> listOf("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
+        "de" -> listOf("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
+        "es" -> listOf("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
+        "fr" -> listOf("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+        "it" -> listOf("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre")
+        else -> listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+    }
+    return names.getOrElse(month - 1) { month.toString() }
+}
+
+fun EventContext.effectiveStatus(todayIsoDate: String = todayIsoDate()): EventStatus {
+    val today = todayIsoDate.validIsoDate() ?: return status
+    val start = startDate.validIsoDate()
+    val end = endDate.validIsoDate()
+    return when {
+        start != null && today.compareTo(start) < 0 -> EventStatus.UPCOMING
+        end != null && today.compareTo(end) > 0 -> EventStatus.ENDED
+        start != null && end != null -> EventStatus.CURRENT
+        start != null && today.compareTo(start) >= 0 -> EventStatus.CURRENT
+        else -> status
+    }
 }
 
 object EventContextRepository {
@@ -185,6 +289,89 @@ object EventContextRepository {
             researchText = "Research rewards can have good IV floors; review before transfer.",
             researchTextTr = "Araştırma ödüllerinde iyi IV tabanı olabilir; transferden önce incele.",
             themeKey = "raid"
+        ),
+        EventContext(
+            id = "event-go-fest-global-2026",
+            titleText = "GO Fest 2026: Global",
+            titleTextTr = "GO Fest 2026: Küresel",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.UPCOMING,
+            noteText = "Official event window: July 11–12, 2026, 10:00 a.m. to 7:00 p.m. local time.",
+            noteTextTr = "Resmi etkinlik aralığı: 11–12 Temmuz 2026, 10.00–19.00 yerel saat.",
+            month = 7,
+            year = 2026,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            startText = "July 11",
+            endText = "July 12",
+            featuredPokemon = "Global GO Fest featuring Mewtwo and Zeraora, with raid, research, shiny, background, and storage prep checks.",
+            featuredPokemonTr = "Mewtwo ve Zeraora odaklı küresel GO Fest; akın, araştırma, shiny, arka plan ve depo hazırlığı kontrolleri.",
+            boostedPokemonText = "Mewtwo, Zeraora, team-hat Pikachu, raid catches, research rewards, and trade candidates.",
+            boostedPokemonTextTr = "Mewtwo, Zeraora, takım şapkalı Pikachu, akın yakalamaları, araştırma ödülleri ve takas adayları.",
+            bonusesText = "Free for all Trainers during the event weekend, with Special Research, additional bonuses, and increased shiny chance.",
+            bonusesTextTr = "Etkinlik hafta sonu tüm Eğitmenlere ücretsiz; Özel Araştırma, ek bonuslar ve artan shiny şansı içerir.",
+            raidsText = "Review Mewtwo and other raid catches separately for IVs, shiny status, and special backgrounds.",
+            raidsTextTr = "Mewtwo ve diğer akın yakalamalarını IV, shiny durumu ve özel arka plan için ayrı incele.",
+            researchText = "Special Research leads to Zeraora. Do not mix research reward checks with bulk cleanup.",
+            researchTextTr = "Özel Araştırma Zeraora'ya götürür. Araştırma ödülü kontrollerini toplu temizlikle karıştırma.",
+            summaryText = "GO Fest creates many valuable catches quickly. Protect shiny, legendary, mythical, costume, background, raid, and trade candidates first.",
+            summaryTextTr = "GO Fest kısa sürede çok değerli yakalama oluşturur. Önce shiny, efsanevi, özel, kostüm, arka plan, akın ve takas adaylarını koru.",
+            prepText = "Open storage before the event. After each session, review raid catches and tagged keepers before cleanup.",
+            prepTextTr = "Etkinlikten önce depo aç. Her oturumdan sonra temizlikten önce akın yakalamalarını ve etiketli saklanacakları incele.",
+            suggestedSearch = "age0-2&!favorite&!shiny&!legendary&!mythical&!ultrabeast&!costume&!background&!locationbackground&!specialbackground&!traded",
+            eventNotesText = "Keep shiny, legendary, mythical, costume, special-background, raid, research, and trade candidates before any transfer.",
+            eventNotesTextTr = "Transferden önce shiny, efsanevi, özel, kostüm, özel arka plan, akın, araştırma ve takas adaylarını sakla.",
+            themeKey = "raid",
+            pokemon = listOf(
+                EventPokemonEntry(
+                    name = "Mewtwo",
+                    nameTr = "Mewtwo",
+                    source = "Super Mega Raids / special background",
+                    sourceTr = "Süper Mega Akınlar / özel arka plan",
+                    shinyAvailable = true,
+                    note = "Check raid IVs, shiny status, and special background before cleanup.",
+                    noteTr = "Temizlikten önce akın IV'lerini, shiny durumunu ve özel arka planı kontrol et.",
+                    badges = "Shiny, Raid, Background",
+                    badgesTr = "Shiny çıkabilir, Akın, Özel arka plan",
+                    spriteKey = "mewtwo"
+                ),
+                EventPokemonEntry(
+                    name = "Zeraora",
+                    nameTr = "Zeraora",
+                    source = "Special Research",
+                    sourceTr = "Özel Araştırma",
+                    shinyAvailable = false,
+                    note = "Research reward encounter; keep it out of cleanup flows.",
+                    noteTr = "Araştırma ödülü karşılaşmasıdır; temizlik akışlarından ayrı tut.",
+                    badges = "Research, Mythical check",
+                    badgesTr = "Araştırma, özel kontrol",
+                    spriteKey = "zeraora"
+                ),
+                EventPokemonEntry(
+                    name = "Pikachu",
+                    nameTr = "Pikachu",
+                    source = "team-hat costume",
+                    sourceTr = "takım şapkalı kostüm",
+                    shinyAvailable = true,
+                    note = "Team-hat Pikachu is a costume keep-check.",
+                    noteTr = "Takım şapkalı Pikachu kostümlü saklama kontrolüdür.",
+                    badges = "Shiny, Costume",
+                    badgesTr = "Shiny çıkabilir, Kostümlü",
+                    spriteKey = "pikachu"
+                ),
+                EventPokemonEntry(
+                    name = "Raid and trade candidates",
+                    nameTr = "Akın ve takas adayları",
+                    source = "raids / trades / storage",
+                    sourceTr = "akınlar / takaslar / depo",
+                    shinyAvailable = true,
+                    note = "Tag good raid catches and trade candidates before using cleanup searches.",
+                    noteTr = "Temizlik aramalarından önce iyi akın yakalamalarını ve takas adaylarını etiketle.",
+                    badges = "Raid, Trade, Storage",
+                    badgesTr = "Akın, Takas, Depo",
+                    spriteKey = "necrozma"
+                )
+            )
         ),
         EventContext(
             id = "event-july-cd",

@@ -19,8 +19,16 @@
     <string name="shortcut_expert_disabled">Créateur Expert indisponible</string>
 
     <string name="widget_quick_access_title">PokeQuery</string>
-    <string name="widget_quick_access_subtitle">Appuyez pour ouvrir le Nettoyage Sécurisé</string>
-    <string name="widget_quick_access_description">Ouvre PokeQuery sur un écran de révision rapide.</string>
+    <string name="widget_quick_access_subtitle">Aperçu de la recherche de Tri sécurisé</string>
+    <string name="widget_quick_access_description">Affiche la recherche de Tri sécurisé avec option de copie.</string>
+    <string name="widget_quick_access_preview_label">Tri sécurisé</string>
+    <string name="widget_quick_access_search_preview">0*,1*&amp;!shiny</string>
+    <string name="widget_copy_desc">Copier la recherche</string>
+    <string name="widget_tap_to_open">Appuyer pour ouvrir l\'application</string>
+    <string name="widget_event_date_placeholder">Actif maintenant</string>
+    <string name="widget_event_raid_pokemon">Raids vedettes</string>
+    <string name="widget_event_raid_placeholder">Aucun raid actif</string>
+    <string name="widget_event_search_preview">recherche suggérée</string>
 
     <string name="assistant_title">Assistant de Recherche</string>
     <string name="assistant_placeholder">ex. montre-moi des pokemon shiny legendary</string>
