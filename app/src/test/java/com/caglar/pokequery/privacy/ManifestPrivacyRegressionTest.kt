@@ -59,9 +59,9 @@ class ManifestPrivacyRegressionTest {
     @Test
     fun `only MainActivity is exported and no services providers or extra receivers`() {
         // Count exported activities/components and confirm MainActivity is the only exported
-        // activity. The v0.6.1 Quick Access widget receiver is the ONE allowed exported
-        // receiver: the Android app-widget contract requires exported="true" so the system
-        // AppWidgetHost can bind it. It is allowlisted below and must carry NO permission.
+        // activity. The home-screen widgets are the only allowed exported receivers: the
+        // Android app-widget contract requires exported="true" so the system AppWidgetHost can
+        // bind them. They are allowlisted below and must carry NO permission.
         val exportedActivities = Regex(
             """<activity[^>]*android:exported="true"[^>]*>""", RegexOption.IGNORE_CASE
         ).findAll(manifest).toList()

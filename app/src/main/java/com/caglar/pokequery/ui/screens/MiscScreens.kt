@@ -234,27 +234,6 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
         item {
             PremiumPanel {
                 Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_general), color = TealPrimary, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(10.dp))
-
-                PremiumPanel(borderColor = TealPrimary) {
-                    Text(stringResource(R.string.settings_online_events_toggle), color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(R.string.settings_online_events_toggle_desc), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
-                    Spacer(Modifier.height(8.dp))
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.event_setting_updates),
-                        description = stringResource(R.string.event_setting_updates_desc),
-                        checked = userPrefs?.eventGuideUpdatesEnabled ?: true,
-                        onCheckedChange = { enabled ->
-                            scope.launch {
-                                repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_UPDATES_ENABLED, enabled)
-                                if (enabled) {
-                                    repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_REFRESH_ON_OPEN, true)
-                                    repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_PREFER_SAVED_OFFLINE, true)
-                                }
-                            }
-                        }
-                    )
-                }
                 Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).padding(end = 16.dp)) {
@@ -735,7 +714,7 @@ private fun localizedSystemDefaultLabel(appLang: String): String = when (AppLoca
 }
 
 private fun localizedSearchStringLanguageTitle(appLang: String): String = when (AppLocaleController.resolvedLocaleTagFor(appLang)) {
-    "tr" -> "Arama Dizgisi Dili"
+    "tr" -> "Pokémon GO Arama Dili"
     "de" -> "Suchstring-Sprache"
     "es" -> "Idioma de cadena de búsqueda"
     "fr" -> "Langue des chaînes de recherche"

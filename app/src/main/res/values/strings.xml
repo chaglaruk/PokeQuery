@@ -116,7 +116,64 @@
     <string name="event_card_search">Suggested search</string>
     <string name="event_card_notes">Prep notes</string>
     <string name="event_card_copy_search">Copy search</string>
+    <string name="event_gofest_date">July 11–12</string>
+    <string name="event_details_see">See details</string>
+    <string name="event_close">Close</string>
+    <string name="event_what_should_do">What to do?</string>
+    <string name="event_battles_raids">Raids &amp; battles</string>
+    <string name="event_bag_prep">Bag prep</string>
+    <string name="event_trade_iv">Trade &amp; IV checks</string>
+    <string name="event_planning_card">Planning card</string>
+    <string name="event_representative_check">Representative check</string>
+    <string name="event_exact_spawns_unknown">Exact spawns not listed yet</string>
+    <string name="event_check_before_cleanup">Check before cleanup</string>
+    <string name="event_feature_unown">Unown</string>
+    <string name="event_feature_regionals">Regionals</string>
+    <string name="event_feature_costumes">Costumes / Pikachu</string>
+    <string name="event_feature_backgrounds">Backgrounds / Necrozma</string>
+    <string name="event_feature_raids">Raid targets</string>
+    <string name="event_feature_shiny">Shiny checks / Eevee</string>
+    <string name="event_feature_unown_body">Representative Unown check for letters and collection gaps.</string>
+    <string name="event_feature_regionals_body">Regional Pokémon can matter for trades and collection goals.</string>
+    <string name="event_feature_costumes_body">Costume catches are easy to lose during fast cleanup.</string>
+    <string name="event_feature_backgrounds_body">Use this as a reminder to check special backgrounds before transfer.</string>
+    <string name="event_feature_raids_body">Raid catches often need IV, trade, and shiny review.</string>
+    <string name="event_feature_shiny_body">Use shiny checks before any storage cleanup pass.</string>
+    <string name="event_feature_unown_action">Mark catches before cleanup.</string>
+    <string name="event_feature_regionals_action">Tag trade candidates.</string>
+    <string name="event_feature_costumes_action">Review costumes in game.</string>
+    <string name="event_feature_backgrounds_action">Review rare catches first.</string>
+    <string name="event_feature_raids_action">Check before transfer.</string>
+    <string name="event_feature_shiny_action">Keep shiny and rare catches safe.</string>
+    <string name="event_summary_bonuses_body">Bonuses can affect candy, trades, and storage decisions.</string>
+    <string name="event_summary_raids_body">Review raid catches separately for IVs, shiny, and trade value.</string>
+    <string name="event_summary_research_body">Research rewards should be checked before transfer.</string>
+    <string name="event_summary_bag_body">Clear space in small batches instead of one big cleanup.</string>
+    <string name="event_summary_trade_body">Keep trade tags and PvP/IV candidates until reviewed.</string>
+    <string name="event_summary_bonuses_action">Plan candy prep after catching.</string>
+    <string name="event_summary_raids_action">Check battle candidates before transfer.</string>
+    <string name="event_summary_research_action">Review rewards before cleanup.</string>
+    <string name="event_summary_bag_action">Make space before the event.</string>
+    <string name="event_summary_trade_action">Tag trades and IV checks.</string>
     <string name="event_date_range">%1$s – %2$s</string>
+    <string name="event_group_featured_badge">Shiny + costume</string>
+    <string name="event_group_featured_body">Check highlighted catches, costumes, shiny status, and backgrounds before cleanup.</string>
+    <string name="event_group_featured_action">Tag rare, shiny, costume, and background catches before cleanup.</string>
+    <string name="event_group_raids_badge">Raid prep</string>
+    <string name="event_group_research_badge">Research rewards</string>
+    <string name="event_group_raids_body">Raid and research catches can matter for IVs, shiny checks, backgrounds, and trades.</string>
+    <string name="event_group_raids_action">Review raid and research rewards separately before transferring anything.</string>
+    <string name="event_group_collection_title">Costumes &amp; backgrounds</string>
+    <string name="event_group_collection_badge">Background check</string>
+    <string name="event_group_collection_body">Costumes, backgrounds, regionals, and Unown can be easy to lose during fast storage cleanup.</string>
+    <string name="event_group_collection_action">Keep these catches until you have checked forms, backgrounds, shiny status, and trade plans.</string>
+    <string name="event_group_bonuses_badge">4x XP\n4x Stardust</string>
+    <string name="event_group_bonuses_body">Bonuses can change whether candy prep, trade review, or storage cleanup is worth doing today.</string>
+    <string name="event_group_bonuses_action">Confirm active bonuses in Pokémon GO before making transfer decisions.</string>
+    <string name="event_group_prep_title">Prep checklist</string>
+    <string name="event_group_prep_badge">Tag first</string>
+    <string name="event_group_prep_body">Before: make space carefully. During: tag rare catches. After: review recent catches, trades, PvP/IV candidates, and shiny results.</string>
+    <string name="event_group_prep_action">Use PokeQuery searches as a review aid only; always inspect results in Pokémon GO.</string>
     <string name="event_date_starts">Starts %1$s</string>
     <string name="event_date_ends">Ends %1$s</string>
     <string name="event_safety_note">Before transferring, check the Today view in Pokémon GO and review the results manually.</string>
@@ -178,10 +235,35 @@
     <string name="goal_settings">Settings</string>
     <string name="goal_settings_desc">Privacy, language, safety</string>
 
+    <!-- Widget Strings -->
+    <string name="widget_actions_title">Quick Searches</string>
+    <string name="widget_action_safe_cleanup">Safe Cleanup</string>
+    <string name="widget_action_safe_cleanup_desc">Safe Cleanup action</string>
+    <string name="widget_action_candy_prep">2x Candy</string>
+    <string name="widget_action_candy_prep_desc">2x Candy Prep action</string>
+    <string name="widget_action_assistant">Search Assistant</string>
+    <string name="widget_action_assistant_desc">Search Assistant action</string>
+    <string name="widget_action_event_guide">Event Guide</string>
+    <string name="widget_action_event_guide_desc">Event Guide action</string>
+    <string name="widget_actions_description">Quick access to PokeQuery goals</string>
+
+    <string name="widget_event_title">Event Guide</string>
+    <string name="widget_event_status">Coming up</string>
+    <string name="widget_event_shiny">Shiny</string>
+    <string name="widget_event_shiny_desc">Shiny encounters</string>
+    <string name="widget_event_raids">Raids</string>
+    <string name="widget_event_raids_desc">Exclusive raids</string>
+    <string name="widget_event_storage">Storage</string>
+    <string name="widget_event_storage_desc">Storage tips</string>
+    <string name="widget_event_trades">Trades</string>
+    <string name="widget_event_trades_desc">Trading plan</string>
+    <string name="widget_event_open">Open Event Guide</string>
+    <string name="widget_event_description">Quick access to upcoming Pokémon GO events</string>
+    <string name="widget_event_body">Upcoming event highlights</string>
 
     <string name="goal_exp_safe_cleanup">Shows likely low-value Pokémon while excluding protected categories. Review the list yourself before transferring anything.</string>
     <string name="goal_exp_candy_prep">Finds extras for candy cleanup. Count groups by species number, so still check forms, costumes, shinies, and favorites.</string>
-    <string name="goal_exp_trade_fodder">Finds possible trade extras. Real trade eligibility depends on friendship, special trades, and your own plans.</string>
+    <string name="goal_exp_trade_fodder">Finds possible trade extras. Real trade eligibility depends on friendship, special trades, and your own plan.</string>
     <string name="goal_exp_hundo_check">Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15.</string>
     <string name="goal_exp_untagged_cleanup">Finds Pokémon without tags so you can review what still needs sorting.</string>
     <string name="goal_exp_nundo_finder">Finds exact 0/0/0 IV Pokémon (Nundos).</string>
@@ -314,12 +396,16 @@
 
     <string name="goal_detail_result">RESULT</string>
     <string name="goal_detail_your_string">Your search string</string>
-    <string name="goal_detail_refine">REFINE</string>
+    <string name="goal_detail_search_to_copy">Search to copy</string>
+    <string name="goal_detail_edit_search">Edit search</string>
+    <string name="goal_detail_refine">EDIT OPTIONS</string>
     <string name="goal_detail_protected">PROTECTED</string>
     <string name="goal_detail_notes">NOTES</string>
     <string name="goal_detail_details">DETAILS</string>
     <string name="goal_detail_why_risk">Why the warning?</string>
-    <string name="goal_detail_copy_search_string">Copy Search String</string>
+    <string name="goal_detail_copy_search_string">Copy search</string>
+    <string name="goal_detail_watch_out">What to watch out for</string>
+    <string name="goal_detail_check_first">Check first</string>
     <string name="goal_detail_copied">Copied to clipboard</string>
     <string name="goal_detail_saved_fav">Saved to favorites</string>
     <string name="goal_detail_fix_errors">Fix errors to copy</string>
@@ -339,8 +425,11 @@
     <string name="goal_detail_exclude_shadow">Exclude Shadow / Purified</string>
     <string name="goal_detail_traded_cannot">Traded Pokémon cannot be transferred.</string>
     <string name="goal_detail_choose_league">Choose a league</string>
+    <string name="goal_detail_great_league">Great League</string>
+    <string name="goal_detail_ultra_league">Ultra League</string>
     <string name="goal_detail_under_1500">Great League: CP under 1500</string>
     <string name="goal_detail_under_2500">Ultra League: CP under 2500</string>
+    <string name="goal_detail_pvp_rank_note">Candidate search only. PokeQuery does not calculate PvP rank; review each match manually.</string>
     <string name="goal_detail_older_candidates">Older candidates (age)</string>
     <string name="goal_detail_distance_candidates">Distance candidates (100km+)</string>
     <string name="goal_detail_must_untraded">Must be untraded</string>
@@ -428,16 +517,6 @@
     <string name="settings_feedback">Send tester feedback</string>
     <string name="settings_email_fallback">No email app found. Please email caglar@caglardinc.com manually.</string>
     <string name="settings_online_events_later">Public feed</string>
-    <string name="event_setting_updates">Enable public Event Guide updates</string>
-    <string name="event_setting_updates_desc">Allow refresh from the public JSON feed.</string>
-    <string name="event_setting_refresh_open">Refresh on app open</string>
-    <string name="event_setting_refresh_open_desc">Check the public feed when the Event Guide opens.</string>
-    <string name="event_setting_saved_offline">Prefer saved notes offline</string>
-    <string name="event_setting_saved_offline_desc">Use cached public notes when refresh fails.</string>
-    <string name="event_setting_planning_hints">Show event planning hints</string>
-    <string name="event_setting_planning_hints_desc">Show extra local guidance cards in Event Guide.</string>
-    <string name="event_setting_extra_warnings">Extra action safety warnings</string>
-    <string name="event_setting_extra_warnings_desc">Keep extra reminders before cleanup, trade, or transfer-adjacent flows.</string>
     <string name="settings_system_default">System Default</string>
     <string name="settings_clear_fav">Clear favorites</string>
     <string name="settings_clear_hist">Clear history</string>
@@ -454,6 +533,10 @@
     <string name="preset_desc_untraded_duplicates">Untraded duplicates ready for trade</string>
     <string name="presets_intro">Ready-made search strings for common goals. Tap to preview, then copy.</string>
     <string name="presets_review_matches">Always review matches in Pokémon GO before transferring.</string>
+    <string name="presets_tap_preview">Tap to preview</string>
+    <string name="presets_preview">Preview</string>
+    <string name="presets_what_finds">What does it find?</string>
+    <string name="presets_check_before_copy">Check before copying</string>
     <string name="action_preview_copy">Preview &amp; Copy</string>
     <string name="preset_cat_cleanup">Cleanup</string>
     <string name="preset_cat_candy_event">Candy &amp; Event</string>
@@ -611,8 +694,6 @@
     <string name="destructive_reset_msg">This restores language settings to defaults. Favorites and history are kept. This cannot be undone.</string>
 
 
-    <string name="settings_online_events_toggle">Event Guide updates</string>
-    <string name="settings_online_events_toggle_desc">Downloads public event notes when available. Off uses saved or bundled guidance only. No login, tracking, or account access.</string>
     <string name="goal_detail_tip_title">Tip</string>
     <string name="goal_detail_tip_desc">Spot-check a few results before mass transferring to be extra safe.</string>
     <string name="risk_low_display">Low Risk</string>
@@ -625,7 +706,7 @@
     <string name="risk_high_subtitle">Careful review required</string>
     <string name="goal_detail_about_count">About count (important)</string>
     <string name="goal_detail_about_count_desc">The count is based on species number. It may not distinguish between shiny, form, costume, gender, or size variants.</string>
-    <string name="goal_detail_what_does_this_do">What does this do?</string>
+    <string name="goal_detail_what_does_this_do">What does this search do?</string>
     <string name="search_assistant_empty_state_title">What can I search for?</string>
     <string name="search_assistant_empty_state_desc">Try natural language like \'shiny legendary pokemon\' or \'hundo for ultra league\'. The assistant will translate it into a game-ready search string.</string>
 
@@ -636,7 +717,7 @@
     <string name="event_bonuses">Bonuses</string>
     <string name="event_raids">Raids</string>
     <string name="event_research">Research</string>
-    <string name="event_whats_happening">What\'s happening?</string>
+    <string name="event_whats_happening">What matters?</string>
     <string name="event_why_care">Why care about this?</string>
     <string name="event_what_to_do">What should I do in PokeQuery?</string>
     <string name="event_keep_review">Keep &amp; review</string>
@@ -647,5 +728,7 @@
     <string name="event_main_card_live_now">Live now</string>
     <string name="event_main_card_coming_up">Coming up</string>
     <string name="event_main_card_ended">Ended</string>
+    <string name="event_choose_event">Choose event — updates the guide below</string>
+    <string name="event_chip_bonus">Bonus</string>
     <string name="event_suggested_for_event">Suggested search for this event</string>
 </resources>

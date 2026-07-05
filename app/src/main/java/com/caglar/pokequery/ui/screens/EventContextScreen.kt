@@ -7,8 +7,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -52,9 +55,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.R
@@ -64,6 +69,7 @@ import com.caglar.pokequery.domain.events.ContextFeedState
 import com.caglar.pokequery.domain.events.EventContext
 import com.caglar.pokequery.domain.events.EventContextRepository
 import com.caglar.pokequery.domain.events.EventFeedLoader
+import com.caglar.pokequery.domain.events.EventPokemonEntry
 import com.caglar.pokequery.domain.events.EventStatus
 import com.caglar.pokequery.domain.events.effectiveStatus
 import com.caglar.pokequery.domain.events.selectMainEvent
@@ -111,36 +117,40 @@ fun EventContextScreen(
     var feedState by remember { mutableStateOf<ContextFeedState>(ContextFeedState.Loading()) }
     var refreshing by remember { mutableStateOf(false) }
     var lastChecked by remember { mutableStateOf<String?>(null) }
+    var selectedEventId by remember { mutableStateOf<String?>(null) }
 
     fun refresh() {
         refreshing = true
         feedState = ContextFeedState.Loading(feedState.monthly, feedState.events)
         scope.launch {
             feedState = withContext(Dispatchers.IO) {
-                if (userPrefs?.eventGuideUpdatesEnabled == false) {
-                    EventContextRepository.combined()
-                } else {
-                    EventFeedLoader.load(
-                        context.applicationContext,
-                        preferCachedOnFailure = userPrefs?.eventGuidePreferSavedOffline ?: true
-                    )
-                }
+                EventFeedLoader.load(
+                    context.applicationContext,
+                    preferCachedOnFailure = userPrefs?.eventGuidePreferSavedOffline ?: true
+                )
             }
             lastChecked = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
             refreshing = false
         }
     }
 
-    androidx.compose.runtime.LaunchedEffect(userPrefs?.eventGuideRefreshOnOpen, userPrefs?.eventGuideUpdatesEnabled) {
-        if (userPrefs == null) return@LaunchedEffect
-        if (userPrefs?.eventGuideRefreshOnOpen == false) {
-            feedState = EventContextRepository.combined()
-        } else {
+    var hasAutoRefreshed by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        // Auto-refresh on every Event Guide open (online-first, cache fallback, bundled fallback).
+        // Manual "Refresh now" button remains for user-initiated refresh.
+        if (!hasAutoRefreshed) {
+            hasAutoRefreshed = true
             refresh()
         }
     }
 
-    val mainEvent = selectMainEvent(feedState.events)
+    val mainEvent = feedState.events.firstOrNull { it.id == selectedEventId }
+        ?: selectMainEvent(feedState.events)
+    androidx.compose.runtime.LaunchedEffect(feedState.events.map { it.id }) {
+        if (selectedEventId == null || feedState.events.none { it.id == selectedEventId }) {
+            selectedEventId = selectMainEvent(feedState.events)?.id
+        }
+    }
     val sourceLabelRes = when (feedState) {
         is ContextFeedState.Online -> R.string.event_status_live_feed
         is ContextFeedState.StaleCache -> R.string.event_status_saved_guide
@@ -211,11 +221,19 @@ fun EventContextScreen(
                     }
                     mainEvent != null -> {
                         item {
+                            EventPickerPanel(
+                                events = feedState.events,
+                                selectedId = mainEvent.id,
+                                onSelected = { selectedEventId = it },
+                                modifier = Modifier.pqStaggeredItem(visible, 2)
+                            )
+                        }
+                        item {
                             EventMainCard(
                                 event = mainEvent,
                                 sourceLabelRes = sourceLabelRes,
                                 lastChecked = lastChecked,
-                                modifier = Modifier.pqStaggeredItem(visible, 2)
+                                modifier = Modifier.pqStaggeredItem(visible, 3)
                             )
                         }
                     }
@@ -352,12 +370,73 @@ private fun EventMainCard(
     lastChecked: String?,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(20.dp)
     val clipboard = LocalClipboardManager.current
-    val useTurkish = Locale.getDefault().language == "tr"
-    fun choose(en: String?, tr: String?): String = if (useTurkish && !tr.isNullOrBlank()) tr else en.orEmpty()
-
     val tone = themeTone(event.themeKey)
+    var dialog by remember { mutableStateOf<EventDialogContent?>(null) }
+    EventDashboardContent(
+        event = event,
+        sourceLabelRes = sourceLabelRes,
+        lastChecked = lastChecked,
+        tone = tone,
+        clipboard = clipboard,
+        onOpen = { dialog = it },
+        modifier = modifier
+    )
+    dialog?.let { content ->
+        EventInfoDialog(content = content, onDismiss = { dialog = null })
+    }
+}
+
+@Composable
+private fun EventPickerPanel(
+    events: List<EventContext>,
+    selectedId: String,
+    onSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        events.forEach { event ->
+            val selected = event.id == selectedId
+            val tone = if (selected) TealPrimary else TextTertiary
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(50))
+                    .background(if (selected) TealPrimary.copy(alpha = 0.18f) else CardPremium.copy(alpha = 0.75f))
+                    .border(1.dp, tone.copy(alpha = if (selected) 0.65f else 0.18f), RoundedCornerShape(50))
+                    .clickable { onSelected(event.id) }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(Modifier.size(7.dp).background(tone, CircleShape))
+                Spacer(Modifier.width(7.dp))
+                Text(
+                    text = event.localizedTitle(),
+                    color = if (selected) TextPrimary else TextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EventDashboardContent(
+    event: EventContext,
+    sourceLabelRes: Int,
+    lastChecked: String?,
+    tone: Color,
+    clipboard: androidx.compose.ui.platform.ClipboardManager,
+    onOpen: (EventDialogContent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(20.dp)
     val effectiveStatus = event.effectiveStatus()
     val badgeLabel = stringResource(
         when (effectiveStatus) {
@@ -366,134 +445,111 @@ private fun EventMainCard(
             EventStatus.ENDED -> R.string.event_main_card_ended
         }
     )
-    val title = if (useTurkish && !event.titleTextTr.isNullOrBlank()) event.titleTextTr else event.titleText.orEmpty()
-    val featured = choose(event.featuredPokemon, event.featuredPokemonTr)
-    val boosted = choose(event.boostedPokemonText, event.boostedPokemonTextTr)
-    val bonuses = choose(event.bonusesText, event.bonusesTextTr)
-    val raids = choose(event.raidsText, event.raidsTextTr)
-    val research = choose(event.researchText, event.researchTextTr)
-    val note = choose(event.noteText, event.noteTextTr)
-    val summary = choose(event.summaryText, event.summaryTextTr)
-    val prep = choose(event.prepText, event.prepTextTr)
-    val eventNotes = choose(event.eventNotesText, event.eventNotesTextTr)
     val search = event.suggestedSearch.orEmpty()
+    val featuredAction = stringResource(R.string.event_group_featured_action)
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
             .background(Brush.verticalGradient(listOf(tone.copy(alpha = 0.16f), CardDark)))
-            .border(1.dp, tone.copy(alpha = 0.30f), shape)
-            .padding(18.dp)
+            .border(1.dp, tone.copy(alpha = 0.34f), shape)
+            .padding(16.dp)
     ) {
-        // Top: badge + theme mark.
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(
-                Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(tone.copy(alpha = 0.18f))
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    Modifier
-                        .size(7.dp)
-                        .background(tone, CircleShape)
-                )
+                Box(Modifier.size(7.dp).background(tone, CircleShape))
                 Spacer(Modifier.width(6.dp))
                 Text(badgeLabel, color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
             }
             EventThemeMark(event.themeKey, tone, Modifier.size(40.dp))
         }
-
         Spacer(Modifier.height(10.dp))
-        Text(
-            text = title,
-            color = TextPrimary,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            lineHeight = 22.sp
+        Text(event.localizedTitle(), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
+        event.dateLabel()?.let {
+            Spacer(Modifier.height(4.dp))
+            Text(it, color = TextTertiary, fontSize = 12.sp)
+        }
+
+        if (event.pokemon.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            EventSpriteRow(
+                entries = event.pokemon,
+                tone = tone,
+                onOpen = { entry ->
+                    onOpen(
+                        EventDialogContent(
+                            title = entry.localizedName(),
+                            badge = entry.localizedBadges(),
+                            body = entry.localizedNote().ifBlank { entry.localizedSource() },
+                            action = featuredAction,
+                            spriteKey = entry.spriteKey
+                        )
+                    )
+                }
+            )
+        }
+
+        Spacer(Modifier.height(12.dp))
+        EventGroupCard(
+            title = stringResource(R.string.event_featured_pokemon),
+            badge = stringResource(R.string.event_group_featured_badge),
+            body = event.localizedFeatured().ifBlank { event.pokemon.joinToString { it.name } },
+            action = stringResource(R.string.event_group_featured_action),
+            tone = tone,
+            spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
+            onOpen = onOpen
+        )
+        Spacer(Modifier.height(10.dp))
+        EventGroupCard(
+            title = stringResource(R.string.event_research),
+            badge = stringResource(R.string.event_group_research_badge),
+            body = event.localizedResearch(),
+            action = stringResource(R.string.event_group_raids_action),
+            tone = PurpleIV,
+            spriteKey = event.pokemon.getOrNull(1)?.spriteKey,
+            onOpen = onOpen
+        )
+        Spacer(Modifier.height(10.dp))
+        EventGroupCard(
+            title = stringResource(R.string.event_group_collection_title),
+            badge = stringResource(R.string.event_group_collection_badge),
+            body = event.localizedNotes().ifBlank { stringResource(R.string.event_group_collection_body) },
+            action = stringResource(R.string.event_group_collection_action),
+            tone = GoldCaution,
+            spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
+            onOpen = onOpen
+        )
+        Spacer(Modifier.height(10.dp))
+        EventGroupCard(
+            title = stringResource(R.string.event_bonuses),
+            badge = stringResource(R.string.event_group_bonuses_badge),
+            body = event.localizedBonuses(),
+            action = stringResource(R.string.event_group_bonuses_action),
+            tone = AmberWarning,
+            spriteKey = event.pokemon.firstOrNull { it.spriteKey == "necrozma" }?.spriteKey,
+            onOpen = onOpen
+        )
+        Spacer(Modifier.height(10.dp))
+        EventGroupCard(
+            title = stringResource(R.string.event_group_prep_title),
+            badge = stringResource(R.string.event_group_prep_badge),
+            body = event.localizedPrep(),
+            action = stringResource(R.string.event_group_prep_action),
+            tone = TealPrimary,
+            spriteKey = null,
+            onOpen = onOpen
         )
 
-        // Date range.
-        val dateText = when {
-            !event.startText.isNullOrBlank() && !event.endText.isNullOrBlank() ->
-                stringResource(R.string.event_date_range, event.startText, event.endText)
-            !event.startText.isNullOrBlank() -> stringResource(R.string.event_date_starts, event.startText)
-            !event.endText.isNullOrBlank() -> stringResource(R.string.event_date_ends, event.endText)
-            event.month != null && event.year != null ->
-                stringResource(R.string.event_month_year, event.month, event.year)
-            else -> null
-        }
-        if (dateText != null) {
-            Spacer(Modifier.height(4.dp))
-            Text(dateText, color = TextTertiary, fontSize = 12.sp)
-        }
-
-        // Featured Pokémon + bonuses — the two things users care about most.
-        if (featured.isNotBlank()) {
-            Spacer(Modifier.height(12.dp))
-            SectionLabel(stringResource(R.string.event_featured_pokemon), tone)
-            Spacer(Modifier.height(3.dp))
-            Text(featured, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-        }
-        if (boosted.isNotBlank()) {
-            Spacer(Modifier.height(8.dp))
-            SectionLabel(stringResource(R.string.event_boosted_pokemon), tone)
-            Spacer(Modifier.height(3.dp))
-            Text(boosted, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
-        }
-        if (bonuses.isNotBlank()) {
-            Spacer(Modifier.height(8.dp))
-            SectionLabel(stringResource(R.string.event_bonuses), tone)
-            Spacer(Modifier.height(3.dp))
-            Text(bonuses, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
-        }
-        if (raids.isNotBlank()) {
-            Spacer(Modifier.height(8.dp))
-            SectionLabel(stringResource(R.string.event_raids), tone)
-            Spacer(Modifier.height(3.dp))
-            Text(raids, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
-        }
-        if (research.isNotBlank()) {
-            Spacer(Modifier.height(8.dp))
-            SectionLabel(stringResource(R.string.event_research), tone)
-            Spacer(Modifier.height(3.dp))
-            Text(research, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
-        }
-
-        // What's happening? (ELI5 note)
-        Spacer(Modifier.height(14.dp))
-        SectionLabel(stringResource(R.string.event_whats_happening), tone)
-        Spacer(Modifier.height(3.dp))
-        Text(note, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
-
-        // Why care about this? (summary)
-        Spacer(Modifier.height(12.dp))
-        SectionLabel(stringResource(R.string.event_why_care), tone)
-        Spacer(Modifier.height(3.dp))
-        Text(summary, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
-
-        // What to do in PokeQuery (prep).
-        Spacer(Modifier.height(12.dp))
-        SectionLabel(stringResource(R.string.event_what_to_do), tone)
-        Spacer(Modifier.height(3.dp))
-        Text(prep, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
-
-        // Suggested search with copy.
         if (search.isNotBlank()) {
             Spacer(Modifier.height(12.dp))
             SectionLabel(stringResource(R.string.event_suggested_for_event), tone)
             Spacer(Modifier.height(5.dp))
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(SlateBlack.copy(alpha = 0.6f))
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SlateBlack.copy(alpha = 0.6f))
                     .border(1.dp, tone.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -501,7 +557,7 @@ private fun EventMainCard(
                 Text(
                     text = search,
                     color = TextPrimary,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
                     modifier = Modifier.weight(1f)
                 )
@@ -512,57 +568,269 @@ private fun EventMainCard(
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                 ) {
-                    Text(
-                        stringResource(R.string.event_card_copy_search),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(stringResource(R.string.event_card_copy_search), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
-
-        // Keep & review — event-specific notes.
-        if (eventNotes.isNotBlank()) {
-            Spacer(Modifier.height(12.dp))
-            SectionLabel(stringResource(R.string.event_keep_review), AmberWarning)
-            Spacer(Modifier.height(3.dp))
-            Text(eventNotes, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
-        }
-
-        // Check before/during/after — the safety reminder, tied to this event.
         Spacer(Modifier.height(12.dp))
-        SectionLabel(stringResource(R.string.event_check_before), AmberWarning)
-        Spacer(Modifier.height(3.dp))
         Text(
-            text = stringResource(R.string.event_safety_note),
-            color = AmberWarning,
-            fontSize = 12.sp,
-            lineHeight = 16.sp
+            text = stringResource(sourceLabelRes),
+            color = TextTertiary,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.clip(RoundedCornerShape(50)).background(CardPremium.copy(alpha = 0.7f)).padding(horizontal = 8.dp, vertical = 3.dp)
         )
-
-        // Source label.
-        Spacer(Modifier.height(12.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(sourceLabelRes),
-                color = TextTertiary,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(CardPremium.copy(alpha = 0.7f))
-                    .padding(horizontal = 8.dp, vertical = 3.dp)
-            )
-        }
         lastChecked?.let {
             Spacer(Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.event_context_last_checked, it),
-                color = TextTertiary,
-                fontSize = 10.sp
-            )
+            Text(stringResource(R.string.event_context_last_checked, it), color = TextTertiary, fontSize = 10.sp)
         }
     }
+}
+
+@Composable
+private fun EventSpriteRow(entries: List<EventPokemonEntry>, tone: Color, onOpen: (EventPokemonEntry) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        entries.take(6).chunked(2).forEach { rowEntries ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                rowEntries.forEach { entry ->
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(CardPremium.copy(alpha = 0.9f))
+                            .border(1.dp, tone.copy(alpha = 0.26f), RoundedCornerShape(16.dp))
+                            .clickable { onOpen(entry) }
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        EventSprite(entry.spriteKey, tone, Modifier.size(54.dp))
+                        Spacer(Modifier.height(5.dp))
+                        Text(entry.localizedName(), color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(entry.localizedBadges(), color = tone, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+                if (rowEntries.size == 1) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EventGroupCard(
+    title: String,
+    badge: String,
+    body: String,
+    action: String,
+    tone: Color,
+    spriteKey: String?,
+    onOpen: (EventDialogContent) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(CardPremium.copy(alpha = 0.86f))
+            .border(1.dp, tone.copy(alpha = 0.24f), RoundedCornerShape(16.dp))
+            .clickable { onOpen(EventDialogContent(title, badge, body, action, spriteKey)) }
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        EventSprite(spriteKey, tone, Modifier.size(52.dp))
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(
+                    badge,
+                    color = tone,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.12f)).padding(horizontal = 8.dp, vertical = 3.dp)
+                )
+            }
+            Spacer(Modifier.height(5.dp))
+            Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+private fun EventSprite(spriteKey: String?, tone: Color, modifier: Modifier = Modifier) {
+    val res = spriteKey?.let(::spriteRes)
+    Box(
+        modifier = modifier.clip(RoundedCornerShape(14.dp)).background(tone.copy(alpha = 0.14f)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (res != null) {
+            Image(painter = painterResource(res), contentDescription = null, modifier = Modifier.size(42.dp))
+        } else {
+            EventThemeMark("generic_event", tone, Modifier.size(42.dp))
+        }
+    }
+}
+
+@Composable
+private fun EventInfoDialog(content: EventDialogContent, onDismiss: () -> Unit) {
+    val closeLabel = stringResource(R.string.event_close)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = SlateBlack)) {
+                Text(closeLabel, fontWeight = FontWeight.Bold)
+            }
+        },
+        containerColor = CardDark,
+        titleContentColor = TextPrimary,
+        textContentColor = TextSecondary,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                EventSprite(content.spriteKey, TealPrimary, Modifier.size(64.dp))
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(content.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(content.badge, color = TealPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        },
+        text = {
+            Column {
+                Text(content.body, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
+                Spacer(Modifier.height(10.dp))
+                SectionLabel(whatToDoLabel(), AmberWarning)
+                Spacer(Modifier.height(4.dp))
+                Text(content.action, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+            }
+        }
+    )
+}
+
+private data class EventDialogContent(
+    val title: String,
+    val badge: String,
+    val body: String,
+    val action: String,
+    val spriteKey: String?
+)
+
+private fun spriteRes(key: String): Int? = when (key) {
+    "unown" -> R.drawable.event_unown
+    "kangaskhan" -> R.drawable.event_kangaskhan
+    "mr_mime" -> R.drawable.event_mr_mime
+    "heracross" -> R.drawable.event_heracross
+    "corsola" -> R.drawable.event_corsola
+    "gimmighoul" -> R.drawable.event_gimmighoul
+    "pikachu" -> R.drawable.event_pikachu
+    "necrozma" -> R.drawable.event_necrozma
+    "eevee" -> R.drawable.event_eevee
+    "zeraora" -> R.drawable.event_zeraora
+    "wurmple" -> R.drawable.event_wurmple
+    else -> null
+}
+
+private fun lang(): String = Locale.getDefault().language
+
+private fun whatToDoLabel(): String = when (lang()) {
+    "tr" -> "Ne yapmalı?"
+    "de" -> "Was tun?"
+    "es" -> "¿Qué hacer?"
+    "fr" -> "Que faire ?"
+    "it" -> "Cosa fare?"
+    else -> "What to do?"
+}
+
+private fun localized(en: String?, tr: String?, de: String?, es: String?, fr: String?, it: String?): String = when (lang()) {
+    "tr" -> tr
+    "de" -> de
+    "es" -> es
+    "fr" -> fr
+    "it" -> it
+    else -> en
+}.takeUnless { it.isNullOrBlank() } ?: en.orEmpty()
+
+private fun EventContext.localizedTitle(): String =
+    localized(titleText, titleTextTr, titleTextDe, titleTextEs, titleTextFr, titleTextIt)
+
+private fun EventContext.localizedFeatured(): String =
+    localized(featuredPokemon, featuredPokemonTr, featuredPokemonDe, featuredPokemonEs, featuredPokemonFr, featuredPokemonIt)
+
+private fun EventContext.localizedResearch(): String =
+    localized(researchText, researchTextTr, researchTextDe, researchTextEs, researchTextFr, researchTextIt)
+
+private fun EventContext.localizedBonuses(): String =
+    localized(bonusesText, bonusesTextTr, bonusesTextDe, bonusesTextEs, bonusesTextFr, bonusesTextIt)
+
+private fun EventContext.localizedPrep(): String =
+    localized(prepText, prepTextTr, prepTextDe, prepTextEs, prepTextFr, prepTextIt)
+
+private fun EventContext.localizedNotes(): String =
+    localized(eventNotesText, eventNotesTextTr, eventNotesTextDe, eventNotesTextEs, eventNotesTextFr, eventNotesTextIt)
+
+private fun EventPokemonEntry.localizedName(): String =
+    localized(name, nameTr, nameDe, nameEs, nameFr, nameIt)
+
+private fun EventPokemonEntry.localizedSource(): String =
+    localized(source, sourceTr, sourceDe, sourceEs, sourceFr, sourceIt)
+
+private fun EventPokemonEntry.localizedNote(): String =
+    localized(note, noteTr, noteDe, noteEs, noteFr, noteIt)
+
+private fun EventPokemonEntry.localizedBadges(): String =
+    localized(badges, badgesTr, badgesDe, badgesEs, badgesFr, badgesIt)
+
+private fun EventContext.dateLabel(): String? = when {
+    isoMonthDay(startDate) != null && isoMonthDay(endDate) != null ->
+        localizedDateRange(isoMonthDay(startDate)!!, isoMonthDay(endDate)!!)
+    isoMonthDay(startDate) != null -> localizedSingleDate(isoMonthDay(startDate)!!)
+    isoMonthDay(endDate) != null -> localizedSingleDate(isoMonthDay(endDate)!!)
+    !startText.isNullOrBlank() && !endText.isNullOrBlank() -> "$startText – $endText"
+    !startText.isNullOrBlank() -> startText
+    !endText.isNullOrBlank() -> endText
+    month != null && year != null -> "$month/$year"
+    else -> null
+}
+
+private fun isoMonthDay(value: String?): Pair<Int, Int>? {
+    val text = value?.takeIf { it.length >= 10 } ?: return null
+    val month = text.substring(5, 7).toIntOrNull() ?: return null
+    val day = text.substring(8, 10).toIntOrNull() ?: return null
+    return month to day
+}
+
+private fun localizedDateRange(start: Pair<Int, Int>, end: Pair<Int, Int>): String =
+    if (start.first == end.first) {
+        when (lang()) {
+            "tr" -> "${start.second}–${end.second} ${monthName(start.first)}"
+            "de" -> "${start.second}.–${end.second}. ${monthName(start.first)}"
+            "es" -> "${start.second}–${end.second} de ${monthName(start.first)}"
+            "fr", "it" -> "${start.second}–${end.second} ${monthName(start.first)}"
+            else -> "${monthName(start.first)} ${start.second}–${end.second}"
+        }
+    } else {
+        "${localizedSingleDate(start)} – ${localizedSingleDate(end)}"
+    }
+
+private fun localizedSingleDate(date: Pair<Int, Int>): String = when (lang()) {
+    "tr" -> "${date.second} ${monthName(date.first)}"
+    "de" -> "${date.second}. ${monthName(date.first)}"
+    "es" -> "${date.second} de ${monthName(date.first)}"
+    "fr", "it" -> "${date.second} ${monthName(date.first)}"
+    else -> "${monthName(date.first)} ${date.second}"
+}
+
+private fun monthName(month: Int): String {
+    val names = when (lang()) {
+        "tr" -> listOf("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
+        "de" -> listOf("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
+        "es" -> listOf("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
+        "fr" -> listOf("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre")
+        "it" -> listOf("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre")
+        else -> listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+    }
+    return names.getOrElse(month - 1) { month.toString() }
 }
 
 @Composable

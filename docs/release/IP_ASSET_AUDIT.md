@@ -1,6 +1,6 @@
 # IP & Asset Audit
 
-**Status**: ALL CLEAR (with recommendations)
+**Status**: RUNTIME SPRITE IP RISK ACCEPTED BY USER REQUEST
 
 ## v0.3.2 update
 
@@ -16,9 +16,16 @@
 - The runtime asset guard allowlists only the named v033 art files and still blocks screenshot/mockup/contact/full-phone assets.
 - Codex did not add official Pokémon/Niantic/Nintendo/Game Freak assets. Final Play Store release still depends on the user having rights to the supplied v033 art pack.
 
+## v0.6.9 Event Guide sprite update
+
+- Added Event Guide Pokémon character sprites from PokeAPI sprites raw GitHub URLs because the user explicitly requested real Pokémon visuals despite release/IP risk.
+- Runtime files: `event_unown.png`, `event_kangaskhan.png`, `event_mr_mime.png`, `event_heracross.png`, `event_corsola.png`, `event_pikachu.png`, `event_necrozma.png`, `event_eevee.png`, `event_gimmighoul.png`, `event_zeraora.png`, `event_wurmple.png`.
+- Sources are `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png` for IDs 201, 115, 122, 214, 222, 25, 800, 133, 999, 807, and 265.
+- These are Pokémon character sprites and may carry Pokémon/Nintendo/Game Freak/The Pokémon Company IP risk.
+
 ## Audit Checklist
 
-- [x] **No official Pokémon character assets**: Verified. All icons are abstract generic shapes (stars, candies, tags, cleanup brushes).
+- [ ] **No official Pokémon character assets**: Not true for v0.6.9. Event Guide includes Pokémon character sprites by explicit user request.
 - [x] **No Poké Ball assets**: Verified. No branded spheres exist in `drawable-nodpi`.
 - [x] **No Niantic/Nintendo/Game Freak logos**: Verified.
 - [x] **No full mockup crops used at runtime**: Verified. Runtime UI loads only resources under `app/src/main/res/`.
@@ -27,4 +34,4 @@
 
 ## Recommendation
 
-Double-check any specific icon designs before final release to ensure no vector shapes are accidentally identical to registered in-game UI shapes, but visually the current abstract assets appear generic and legally distinct as helper utilities.
+Do not treat the v0.6.9 Event Guide sprite build as release-safe without separate legal approval or replacing those sprites with app-owned fallback visuals.

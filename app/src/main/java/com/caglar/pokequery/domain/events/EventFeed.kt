@@ -66,20 +66,25 @@ object EventFeedParser {
         require(schema == 1) { "unsupported schema" }
         val lastUpdated = stringField(json, "lastUpdated")
         require(lastUpdated.matches(Regex("""\d{4}-\d{2}-\d{2}"""))) { "bad lastUpdated" }
-        val eventsBody = Regex(""""events"\s*:\s*\[(.*)]""", RegexOption.DOT_MATCHES_ALL)
-            .find(json)?.groupValues?.get(1) ?: error("missing events")
-        val events = Regex("""\{([^{}]+)}""").findAll(eventsBody).map { match ->
-            val body = match.groupValues[1]
+        val events = splitTopLevelObjects(arrayField(json, "events")).map { body ->
             val themeKey = optionalStringField(body, "themeKey") ?: "generic_event"
             require(themeKey in allowedThemeKeys) { "unsupported themeKey" }
             EventContext(
                 id = stringField(body, "id"),
                 titleText = stringField(body, "title"),
                 titleTextTr = optionalStringField(body, "titleTr"),
+                titleTextDe = optionalStringField(body, "titleDe"),
+                titleTextEs = optionalStringField(body, "titleEs"),
+                titleTextFr = optionalStringField(body, "titleFr"),
+                titleTextIt = optionalStringField(body, "titleIt"),
                 contextType = EventContextType.valueOf(stringField(body, "kind")),
                 status = EventStatus.valueOf(stringField(body, "status").uppercase()),
                 noteText = stringField(body, "note"),
                 noteTextTr = optionalStringField(body, "noteTr"),
+                noteTextDe = optionalStringField(body, "noteDe"),
+                noteTextEs = optionalStringField(body, "noteEs"),
+                noteTextFr = optionalStringField(body, "noteFr"),
+                noteTextIt = optionalStringField(body, "noteIt"),
                 month = intField(body, "month"),
                 year = intField(body, "year"),
                 startDate = optionalStringField(body, "startDate"),
@@ -88,21 +93,54 @@ object EventFeedParser {
                 endText = optionalStringField(body, "end"),
                 summaryText = stringField(body, "summary"),
                 summaryTextTr = optionalStringField(body, "summaryTr"),
+                summaryTextDe = optionalStringField(body, "summaryDe"),
+                summaryTextEs = optionalStringField(body, "summaryEs"),
+                summaryTextFr = optionalStringField(body, "summaryFr"),
+                summaryTextIt = optionalStringField(body, "summaryIt"),
                 prepText = stringField(body, "prep"),
                 prepTextTr = optionalStringField(body, "prepTr"),
+                prepTextDe = optionalStringField(body, "prepDe"),
+                prepTextEs = optionalStringField(body, "prepEs"),
+                prepTextFr = optionalStringField(body, "prepFr"),
+                prepTextIt = optionalStringField(body, "prepIt"),
                 suggestedSearch = stringField(body, "suggestedSearch"),
                 eventNotesText = stringField(body, "eventNotes"),
                 eventNotesTextTr = optionalStringField(body, "eventNotesTr"),
+                eventNotesTextDe = optionalStringField(body, "eventNotesDe"),
+                eventNotesTextEs = optionalStringField(body, "eventNotesEs"),
+                eventNotesTextFr = optionalStringField(body, "eventNotesFr"),
+                eventNotesTextIt = optionalStringField(body, "eventNotesIt"),
                 featuredPokemon = optionalStringField(body, "featuredPokemon"),
                 featuredPokemonTr = optionalStringField(body, "featuredPokemonTr"),
+                featuredPokemonDe = optionalStringField(body, "featuredPokemonDe"),
+                featuredPokemonEs = optionalStringField(body, "featuredPokemonEs"),
+                featuredPokemonFr = optionalStringField(body, "featuredPokemonFr"),
+                featuredPokemonIt = optionalStringField(body, "featuredPokemonIt"),
                 boostedPokemonText = optionalStringField(body, "boostedPokemon"),
                 boostedPokemonTextTr = optionalStringField(body, "boostedPokemonTr"),
+                boostedPokemonTextDe = optionalStringField(body, "boostedPokemonDe"),
+                boostedPokemonTextEs = optionalStringField(body, "boostedPokemonEs"),
+                boostedPokemonTextFr = optionalStringField(body, "boostedPokemonFr"),
+                boostedPokemonTextIt = optionalStringField(body, "boostedPokemonIt"),
                 bonusesText = optionalStringField(body, "bonuses"),
                 bonusesTextTr = optionalStringField(body, "bonusesTr"),
+                bonusesTextDe = optionalStringField(body, "bonusesDe"),
+                bonusesTextEs = optionalStringField(body, "bonusesEs"),
+                bonusesTextFr = optionalStringField(body, "bonusesFr"),
+                bonusesTextIt = optionalStringField(body, "bonusesIt"),
                 raidsText = optionalStringField(body, "raids"),
                 raidsTextTr = optionalStringField(body, "raidsTr"),
+                raidsTextDe = optionalStringField(body, "raidsDe"),
+                raidsTextEs = optionalStringField(body, "raidsEs"),
+                raidsTextFr = optionalStringField(body, "raidsFr"),
+                raidsTextIt = optionalStringField(body, "raidsIt"),
                 researchText = optionalStringField(body, "research"),
                 researchTextTr = optionalStringField(body, "researchTr"),
+                researchTextDe = optionalStringField(body, "researchDe"),
+                researchTextEs = optionalStringField(body, "researchEs"),
+                researchTextFr = optionalStringField(body, "researchFr"),
+                researchTextIt = optionalStringField(body, "researchIt"),
+                pokemon = pokemonEntries(body),
                 themeKey = themeKey,
                 isManual = false
             )
@@ -132,6 +170,91 @@ object EventFeedParser {
     private fun intField(json: String, name: String): Int =
         Regex(""""$name"\s*:\s*(\d+)""").find(json)?.groupValues?.get(1)?.toInt()
             ?: error("missing $name")
+
+    private fun booleanField(json: String, name: String): Boolean =
+        Regex(""""$name"\s*:\s*(true|false)""").find(json)?.groupValues?.get(1)?.toBooleanStrictOrNull() ?: false
+
+    private fun pokemonEntries(json: String): List<EventPokemonEntry> =
+        runCatching {
+            splitTopLevelObjects(arrayField(json, "pokemon")).map { item ->
+                EventPokemonEntry(
+                    name = stringField(item, "name"),
+                    nameTr = optionalStringField(item, "nameTr"),
+                    nameDe = optionalStringField(item, "nameDe"),
+                    nameEs = optionalStringField(item, "nameEs"),
+                    nameFr = optionalStringField(item, "nameFr"),
+                    nameIt = optionalStringField(item, "nameIt"),
+                    source = optionalStringField(item, "source") ?: "unknown/check-in-game",
+                    sourceTr = optionalStringField(item, "sourceTr"),
+                    sourceDe = optionalStringField(item, "sourceDe"),
+                    sourceEs = optionalStringField(item, "sourceEs"),
+                    sourceFr = optionalStringField(item, "sourceFr"),
+                    sourceIt = optionalStringField(item, "sourceIt"),
+                    shinyAvailable = booleanField(item, "shinyAvailable"),
+                    note = optionalStringField(item, "note"),
+                    noteTr = optionalStringField(item, "noteTr"),
+                    noteDe = optionalStringField(item, "noteDe"),
+                    noteEs = optionalStringField(item, "noteEs"),
+                    noteFr = optionalStringField(item, "noteFr"),
+                    noteIt = optionalStringField(item, "noteIt"),
+                    badges = optionalStringField(item, "badges"),
+                    badgesTr = optionalStringField(item, "badgesTr"),
+                    badgesDe = optionalStringField(item, "badgesDe"),
+                    badgesEs = optionalStringField(item, "badgesEs"),
+                    badgesFr = optionalStringField(item, "badgesFr"),
+                    badgesIt = optionalStringField(item, "badgesIt"),
+                    spriteKey = optionalStringField(item, "spriteKey")
+                )
+            }
+        }.getOrDefault(emptyList())
+
+    private fun arrayField(json: String, name: String): String {
+        val match = Regex(""""$name"\s*:\s*\[""").find(json) ?: error("missing $name")
+        val start = match.range.last
+        var depth = 1
+        var inString = false
+        var escaped = false
+        for (i in start + 1 until json.length) {
+            val c = json[i]
+            if (escaped) {
+                escaped = false
+            } else if (c == '\\') {
+                escaped = true
+            } else if (c == '"') {
+                inString = !inString
+            } else if (!inString && c == '[') {
+                depth++
+            } else if (!inString && c == ']') {
+                depth--
+                if (depth == 0) return json.substring(start + 1, i)
+            }
+        }
+        error("unterminated $name")
+    }
+
+    private fun splitTopLevelObjects(arrayBody: String): List<String> {
+        val result = mutableListOf<String>()
+        var start = -1
+        var depth = 0
+        var inString = false
+        var escaped = false
+        arrayBody.forEachIndexed { index, c ->
+            if (escaped) {
+                escaped = false
+            } else if (c == '\\') {
+                escaped = true
+            } else if (c == '"') {
+                inString = !inString
+            } else if (!inString && c == '{') {
+                if (depth == 0) start = index
+                depth++
+            } else if (!inString && c == '}') {
+                depth--
+                if (depth == 0 && start >= 0) result += arrayBody.substring(start, index + 1)
+            }
+        }
+        return result
+    }
 }
 
 object EventFeedCache {
