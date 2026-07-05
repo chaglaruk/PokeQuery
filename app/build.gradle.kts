@@ -14,8 +14,8 @@ android {
         applicationId = "com.caglar.pokequery"
         minSdk = 24
         targetSdk = 36
-        versionCode = 19
-        versionName = "0.6.2"
+        versionCode = 20
+        versionName = "0.7.0"
     }
 
     val keystorePropertiesFile = rootProject.file("keystore.properties")

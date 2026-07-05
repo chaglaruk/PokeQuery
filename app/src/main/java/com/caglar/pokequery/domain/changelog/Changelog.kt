@@ -14,6 +14,30 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.7.0",
+            versionCode = 20,
+            releaseLabel = "Phase 5",
+            title = "Home Screen Widgets",
+            highlights = listOf(
+                "Goal Actions widget: Safe Cleanup, Candy Prep, Assistant, Event Guide quick actions",
+                "Event Guide widget: event icons, status, category highlights, one-tap open",
+                "Quick Access widget polish: card styling, consistent tap behavior"
+            ),
+            safetyNotes = listOf(
+                "INTERNET is used only for public Event Guide notes with cache and safe fallback",
+                "No login, no tracking, no ads, no analytics",
+                "No Pokémon GO account access",
+                "Widgets open app via standard start_route — no silent clipboard writes"
+            ),
+            testerNotes = listOf(
+                "Add Goal Actions widget (4×2) and tap each action",
+                "Add Event Guide widget (4×3) and tap Open Event Guide",
+                "Verify Quick Access widget still opens Safe Cleanup",
+                "Verify widgets work after reboot and locale change"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.6.2",
             versionCode = 19,
             releaseLabel = "Phase 4",
@@ -35,7 +59,7 @@ object Changelog {
                 "Check Event Guide refresh and fallback notes",
                 "Verify Search Assistant accepts Turkish input (e.g. 'parlak')"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.6.1",
