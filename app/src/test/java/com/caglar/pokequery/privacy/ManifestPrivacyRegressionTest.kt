@@ -77,28 +77,36 @@ class ManifestPrivacyRegressionTest {
         assertFalse(manifest.contains("<service", ignoreCase = true))
         assertFalse(manifest.contains("<provider", ignoreCase = true))
 
-        // Receivers: only the v0.6.1 Quick Access widget AppWidgetProvider is allowed. The
-        // receiver opening tag spans multiple lines, so use [^>]* (which matches newlines) like
-        // the activity regex above rather than `.*?`.
+        // Receivers: only the three home-screen widget AppWidgetProviders are allowed (v0.6.1
+        // Quick Access, v0.7.0 Goal Actions, v0.7.0 Event Guide). The receiver opening tag
+        // spans multiple lines, so use [^>]* (which matches newlines) like the activity regex
+        // above rather than `.*?`.
         val receivers = Regex("""<receiver\b[^>]*>""", RegexOption.IGNORE_CASE)
             .findAll(manifest).map { it.value }.toList()
         assertTrue(
-            "Expected exactly one receiver (the Quick Access widget), found ${receivers.size}: $receivers",
-            receivers.size == 1
+            "Expected exactly three widget receivers, found ${receivers.size}: $receivers",
+            receivers.size == 3
         )
-        val receiver = receivers.single()
-        assertTrue(
-            "The only receiver must be the Quick Access widget provider, got: $receiver",
-            receiver.contains("QuickAccessWidgetProvider", ignoreCase = true)
+        val allowedReceivers = setOf(
+            "QuickAccessWidgetProvider",
+            "GoalActionsWidgetProvider",
+            "EventGuideWidgetProvider"
         )
-        // The widget must register the appwidget system intent-filter and must NOT declare any
+        receivers.forEach { receiver ->
+            val isAllowed = allowedReceivers.any { receiver.contains(it, ignoreCase = true) }
+            assertTrue(
+                "Receiver must be one of the allowed widget providers, got: $receiver",
+                isAllowed
+            )
+        }
+        // Each widget must register the appwidget system intent-filter and must NOT declare any
         // android:permission (so it cannot be used as a privileged entry point).
         assertTrue(
-            "Widget must register the APPWIDGET_UPDATE system action",
+            "All widgets must register the APPWIDGET_UPDATE system action",
             manifest.contains("android.appwidget.action.APPWIDGET_UPDATE", ignoreCase = true)
         )
         assertFalse(
-            "Widget receiver must not declare any android:permission",
+            "Widget receivers must not declare any android:permission",
             manifest.contains("android:permission", ignoreCase = true)
         )
     }
