@@ -43,6 +43,34 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/quick_access_widget_info" />
         </receiver>
+
+        <!-- v0.7.0 Goal Actions home screen widget (4x2). Four quick actions:
+             Safe Cleanup, Candy Prep, Assistant, Event Guide. Each opens MainActivity with
+             the corresponding start_route. No network, no analytics, no background work. -->
+        <receiver
+            android:name=".widget.GoalActionsWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/goal_actions_widget_info" />
+        </receiver>
+
+        <!-- v0.7.0 Event Guide home screen widget (4x3). Displays event icons, status, and
+             category highlights. One-tap open to full Event Guide screen. No network fetch in
+             widget; data comes from app's cached Event Feed. -->
+        <receiver
+            android:name=".widget.EventGuideWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/event_guide_widget_info" />
+        </receiver>
     </application>
 
 </manifest>
