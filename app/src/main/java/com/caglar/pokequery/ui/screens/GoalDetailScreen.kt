@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -35,6 +36,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -82,7 +84,6 @@ import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.ui.pq.PqCard
 import com.caglar.pokequery.ui.pq.PqGlowCard
-import com.caglar.pokequery.ui.pq.PqManualReviewPanel
 import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqSectionHeader
 import com.caglar.pokequery.ui.pq.PqStringBox
@@ -93,7 +94,8 @@ import kotlinx.coroutines.launch
 fun GoalDetailScreen(
     goalId: String,
     onBack: () -> Unit,
-    onNavigateRisk: (GeneratedString) -> Unit
+    onNavigateRisk: (GeneratedString) -> Unit,
+    onEditSearch: (GeneratedString) -> Unit = {}
 ) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
@@ -113,6 +115,7 @@ fun GoalDetailScreen(
     var include0Star by remember { mutableStateOf(false) }
     var pvpLeague by remember { mutableStateOf("great") }
     var luckyMode by remember { mutableStateOf("age") }
+    var showRefineOptions by remember { mutableStateOf(false) }
 
     val generatedString = remember(
         goalId, excludeShiny, excludeLegendary, excludeCostume, excludeShadow,
@@ -233,32 +236,61 @@ fun GoalDetailScreen(
 
             Spacer(Modifier.height(density.sectionGap))
 
-            // Custom Risk Banner
-            GoalRiskBanner(
-                riskLevel = generatedString.riskLevel,
-                modifier = Modifier.pqStaggeredItem(visible, 1)
-            )
-
-            Spacer(Modifier.height(density.sectionGap))
-
-            // RESULT block: string box + copy CTA.
-            PqSectionHeader(
-                text = stringResource(R.string.goal_detail_result),
-                modifier = Modifier.pqStaggeredItem(visible, 2)
-            )
+            // RESULT block: search box + edit/copy buttons directly beneath it.
+            // Risk level is conveyed via accent color (no separate top risk card).
             PqGlowCard(
-                modifier = Modifier.pqStaggeredItem(visible, 2),
+                modifier = Modifier.pqStaggeredItem(visible, 1),
                 accent = if (isMedium) GoldCaution else TealPrimary
             ) {
                 Text(
-                    text = stringResource(R.string.goal_detail_your_string),
-                    color = TextSecondary,
-                    fontSize = 13.sp,
+                    text = stringResource(R.string.goal_detail_search_to_copy),
+                    color = TextPrimary,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(Modifier.height(density.innerElementGap))
+                Spacer(Modifier.height(12.dp))
+                if (goalId == "pvp_candidates") {
+                    Text(
+                        text = stringResource(R.string.goal_detail_choose_league),
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    com.caglar.pokequery.ui.pq.PqSegmentedControl(
+                        options = listOf(
+                            "great" to stringResource(R.string.goal_detail_great_league),
+                            "ultra" to stringResource(R.string.goal_detail_ultra_league)
+                        ),
+                        selected = pvpLeague,
+                        onSelect = { pvpLeague = it }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = if (pvpLeague == "ultra") stringResource(R.string.goal_detail_under_2500) else stringResource(R.string.goal_detail_under_1500),
+                        color = TealPrimary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.goal_detail_pvp_rank_note),
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
                 PqStringBox(generatedString.rawSyntax)
                 Spacer(Modifier.height(14.dp))
+                // High-contrast Edit search button directly under search box.
+                CustomActionButton(
+                    text = stringResource(R.string.goal_detail_edit_search),
+                    containerColor = TealPrimary,
+                    onClick = { showRefineOptions = !showRefineOptions }
+                )
+                Spacer(Modifier.height(10.dp))
+                // Copy search button.
                 CustomCopyButton(
                     text = stringResource(R.string.goal_detail_copy_search_string),
                     isMedium = isMedium,
@@ -274,66 +306,79 @@ fun GoalDetailScreen(
                 )
             }
 
-            // Description / Caution details section with Pokémon illustration overlays
+            // ONE combined info / risk / help box. No separate cards for
+            // "what does this do", "about count", or "tip".
             Spacer(Modifier.height(density.sectionGap))
-            if (isMedium) {
-                // Warning Card with Gengar overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .pqStaggeredItem(visible, 3)
-                ) {
-                    IllustratedCard(
-                        borderColor = GoldCaution
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = null,
-                                tint = GoldCaution,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "About count (important)",
-                                color = TextPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = "The count is based on species number. It may not distinguish between shiny, form, costume, gender, or size variants.",
-                            color = TextPrimary,
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp
-                        )
-                    }
+            IllustratedCard(
+                borderColor = if (isMedium) GoldCaution else TealPrimary,
+                modifier = Modifier.pqStaggeredItem(visible, 2)
+            ) {
+                // Header: what does this search do?
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = TealPrimary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.goal_detail_what_does_this_do),
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
                 }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = localizedExplanation,
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp
+                )
 
-                Spacer(Modifier.height(density.sectionGap))
-
-                // Tip Card with Bulb icon
-                IllustratedCard(
-                    borderColor = TealPrimary,
-                    modifier = Modifier.pqStaggeredItem(visible, 3)
-                ) {
+                // Medium/high-risk sub-section: what to watch out for + check first.
+                if (isMedium) {
+                    Spacer(Modifier.height(12.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.Info,
+                            imageVector = Icons.Default.Warning,
                             contentDescription = null,
-                            tint = TealPrimary,
-                            modifier = Modifier.size(22.dp)
+                            tint = GoldCaution,
+                            modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.goal_detail_tip_title),
+                            text = stringResource(R.string.goal_detail_watch_out),
                             color = TextPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = stringResource(R.string.goal_detail_about_count_desc),
+                        color = TextPrimary,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = GoldCaution,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.goal_detail_check_first),
+                            color = GoldCaution,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = stringResource(R.string.goal_detail_tip_desc),
                         color = TextSecondary,
@@ -341,76 +386,29 @@ fun GoalDetailScreen(
                         lineHeight = 18.sp
                     )
                 }
-            } else {
-                // Safe info card with Greninja overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .pqStaggeredItem(visible, 3)
-                ) {
-                    IllustratedCard(
-                        borderColor = TealPrimary
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = TealPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "What does this do?",
-                                color = TextPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = localizedExplanation,
-                            color = TextSecondary,
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp
-                        )
-                    }
-                }
             }
 
-            Spacer(Modifier.height(density.sectionGap))
-
-            RiskExplanationCard(
-                explanation = riskExplanation,
-                modifier = Modifier.pqStaggeredItem(visible, 4)
-            )
-
-            Spacer(Modifier.height(density.sectionGap))
-
-            // Manual review reminder (always present for actionable goals).
-            if (generatedString.riskLevel != RiskLevel.Info && userPrefs?.extraActionSafetyWarnings != false) {
-                PqManualReviewPanel(modifier = Modifier.pqStaggeredItem(visible, 4))
+            if (showRefineOptions) {
                 Spacer(Modifier.height(density.sectionGap))
-            }
-
-            // REFINE block: options.
-            PqSectionHeader(
-                text = stringResource(R.string.goal_detail_refine),
-                modifier = Modifier.pqStaggeredItem(visible, 5)
-            )
-            PqCard(modifier = Modifier.pqStaggeredItem(visible, 5)) {
-                OptionsPanel(
-                    goalId = goalId,
-                    include0Star = include0Star, onInclude0Star = { include0Star = it },
-                    excludeShiny = excludeShiny, onExcludeShiny = { excludeShiny = it },
-                    excludeLegendary = excludeLegendary, onExcludeLegendary = { excludeLegendary = it },
-                    excludeCostume = excludeCostume, onExcludeCostume = { excludeCostume = it },
-                    excludeShadow = excludeShadow, onExcludeShadow = { excludeShadow = it },
-                    excludeFavorite = excludeFavorite, onExcludeFavorite = { excludeFavorite = it },
-                    excludeTraded = excludeTraded, onExcludeTraded = { excludeTraded = it },
-                    excludeHundos = excludeHundos, onExcludeHundos = { excludeHundos = it },
-                    pvpLeague = pvpLeague, onPvpLeague = { pvpLeague = it },
-                    luckyMode = luckyMode, onLuckyMode = { luckyMode = it }
+                PqSectionHeader(
+                    text = stringResource(R.string.goal_detail_refine),
+                    modifier = Modifier.pqStaggeredItem(visible, 3)
                 )
+                PqCard(modifier = Modifier.pqStaggeredItem(visible, 3)) {
+                    OptionsPanel(
+                        goalId = goalId,
+                        include0Star = include0Star, onInclude0Star = { include0Star = it },
+                        excludeShiny = excludeShiny, onExcludeShiny = { excludeShiny = it },
+                        excludeLegendary = excludeLegendary, onExcludeLegendary = { excludeLegendary = it },
+                        excludeCostume = excludeCostume, onExcludeCostume = { excludeCostume = it },
+                        excludeShadow = excludeShadow, onExcludeShadow = { excludeShadow = it },
+                        excludeFavorite = excludeFavorite, onExcludeFavorite = { excludeFavorite = it },
+                        excludeTraded = excludeTraded, onExcludeTraded = { excludeTraded = it },
+                        excludeHundos = excludeHundos, onExcludeHundos = { excludeHundos = it },
+                        pvpLeague = pvpLeague, onPvpLeague = { pvpLeague = it },
+                        luckyMode = luckyMode, onLuckyMode = { luckyMode = it }
+                    )
+                }
             }
 
             // Protected categories chips (upgraded to teal rounded pills).
@@ -426,80 +424,12 @@ fun GoalDetailScreen(
                 )
             }
 
-            // Extra warnings block if there are non-count disclaimers
-            val otherWarnings = generatedString.warnings.filterNot { it.contains("Count is based") }
-            if (otherWarnings.isNotEmpty()) {
-                Spacer(Modifier.height(density.sectionGap))
-                PqSectionHeader(
-                    text = stringResource(R.string.goal_detail_notes),
-                    modifier = Modifier.pqStaggeredItem(visible, 7)
-                )
-                PqCard(modifier = Modifier.pqStaggeredItem(visible, 7)) {
-                    otherWarnings.forEachIndexed { index, warning ->
-                        if (index > 0) Spacer(Modifier.height(density.innerElementGap))
-                        val locWarning = if (warning.contains("The '|' operator")) stringResource(R.string.warning_operator_replaced)
-                        else if (warning.contains("Real trade eligibility depends")) stringResource(R.string.warning_trade_disclaimer)
-                        else warning
-                        Text("• $locWarning", color = TextPrimary, fontSize = 12.sp, lineHeight = 17.sp)
-                    }
-                }
-            }
-
             Spacer(Modifier.height(24.dp))
         }
         }
     }
 }
 
-@Composable
-fun GoalRiskBanner(riskLevel: RiskLevel, modifier: Modifier = Modifier) {
-    val isMedium = riskLevel == RiskLevel.Medium || riskLevel == RiskLevel.High
-    val titleColor = if (isMedium) GoldCaution else TealPrimary
-    val displayTitle = if (isMedium) "Medium Risk" else "Low Risk"
-    val displaySubtitle = if (isMedium) "Review before using" else "Safe to use"
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(84.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.horizontalGradient(
-                    listOf(titleColor.copy(alpha = 0.18f), CardPremium, CardDark)
-                )
-            )
-            .border(1.dp, titleColor.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Security,
-                contentDescription = null,
-                tint = titleColor,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(Modifier.width(16.dp))
-            Column {
-                Text(
-                    text = displayTitle,
-                    color = titleColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = displaySubtitle,
-                    color = TextPrimary.copy(alpha = 0.8f),
-                    fontSize = 13.sp
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun CustomCopyButton(
@@ -530,6 +460,43 @@ fun CustomCopyButton(
         ) {
             Icon(
                 imageVector = Icons.Default.ContentCopy,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        }
+    }
+}
+
+/**
+ * High-contrast outlined action button used for the "Edit search" CTA directly beneath
+ * the search box. Outlined so it is visually distinct from the filled copy button.
+ */
+@Composable
+fun CustomActionButton(
+    text: String,
+    containerColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        onClick = onClick,
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = containerColor
+        ),
+        border = androidx.compose.foundation.BorderStroke(2.dp, containerColor),
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp)
             )
@@ -691,7 +658,10 @@ private fun OptionsPanel(
             Text(stringResource(R.string.goal_detail_choose_league), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
             Spacer(Modifier.height(10.dp))
             com.caglar.pokequery.ui.pq.PqSegmentedControl(
-                options = listOf("great" to "Great League", "ultra" to "Ultra League"),
+                options = listOf(
+                    "great" to stringResource(R.string.goal_detail_great_league),
+                    "ultra" to stringResource(R.string.goal_detail_ultra_league)
+                ),
                 selected = pvpLeague,
                 onSelect = onPvpLeague
             )

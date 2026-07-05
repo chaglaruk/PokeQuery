@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.R
 import com.caglar.pokequery.theme.*
@@ -159,7 +160,7 @@ fun CopyCTA(color: Color, onClick: () -> Unit) {
 @Composable
 fun ExplanationCard(explanation: String) {
     Column(modifier = Modifier.fillMaxWidth().background(CardPremium, RoundedCornerShape(12.dp)).border(1.dp, BorderDark, RoundedCornerShape(12.dp)).padding(16.dp)) {
-        Text("What does this do?", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        Text(stringResource(R.string.goal_detail_what_does_this_do), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = explanation, color = TextSecondary, fontSize = 14.sp)
     }
@@ -259,3 +260,4 @@ fun ScopeMeterPanel(scopeBreadth: String) {
         Text("This is a query breadth hint, not a live Pokémon count.", color = TextSecondary, fontSize = 12.sp)
     }
 }
+

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -128,7 +129,10 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
         Box(Modifier.fillMaxSize().background(BackgroundDark)) {
             HomeBackground()
-            Scaffold(containerColor = Color.Transparent) { paddingValues ->
+            Scaffold(
+                containerColor = Color.Transparent,
+                contentWindowInsets = WindowInsets(0, 0, 0, 0)
+            ) { paddingValues ->
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().clearFocusOnTap().padding(paddingValues),
                     contentPadding = PaddingValues(bottom = 24.dp)

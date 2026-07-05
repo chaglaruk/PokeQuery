@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -86,7 +85,7 @@ fun PresetsScreen(
     // v0.5.2 (Fix 5): which preset is expanded for preview/customize/copy. Only one open at
     // a time keeps the screen compact (less scrolling) while still showing the full string,
     // warnings, and copy flow when a card is tapped.
-    var expandedTitle by remember { mutableStateOf<String?>(null) }
+    var previewPreset by remember { mutableStateOf<Preset?>(null) }
 
     val grouped = POPULAR_PRESETS.groupBy { it.category }
 
@@ -115,17 +114,36 @@ fun PresetsScreen(
                     Modifier.padding(top = 8.dp)
                 )
             }
-            items(presets, key = { it.title }) { preset ->
-                CompactPresetCard(
-                    preset = preset,
-                    isExpanded = expandedTitle == preset.title,
-                    language = language,
-                    onToggle = { expandedTitle = if (expandedTitle == preset.title) null else preset.title },
-                    onCopy = onCopy,
-                    onNavigateRisk = onNavigateRisk
-                )
+            presets.chunked(2).forEach { rowPresets ->
+                item {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        rowPresets.forEach { preset ->
+                            PresetCard(
+                                preset = preset,
+                                modifier = Modifier.weight(1f),
+                                onOpen = { previewPreset = preset }
+                            )
+                        }
+                        if (rowPresets.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
             }
         }
+    }
+    previewPreset?.let { preset ->
+        PresetPreviewDialog(
+            preset = preset,
+            language = language,
+            onDismiss = { previewPreset = null },
+            onCopy = { generated ->
+                previewPreset = null
+                if (preset.risk == RiskLevel.High || preset.risk == RiskLevel.Medium) {
+                    onNavigateRisk(generated)
+                } else {
+                    onCopy(generated)
+                }
+            }
+        )
     }
     }
 }
@@ -203,6 +221,144 @@ private fun CompactPresetCard(
             }
         }
     }
+}
+
+@Composable
+private fun PresetCard(
+    preset: Preset,
+    modifier: Modifier = Modifier,
+    onOpen: () -> Unit
+) {
+    val shape = RoundedCornerShape(14.dp)
+    val density = com.caglar.pokequery.theme.density.currentDensity()
+    val title = preset.titleRes?.let { stringResource(it) } ?: preset.title
+    val description = preset.descriptionRes?.let { stringResource(it) } ?: preset.description
+    Column(
+        modifier = modifier
+            .clip(shape)
+            .background(CardDark)
+            .border(1.dp, BorderSubtle, shape)
+            .clickable(onClick = onOpen)
+            .padding(horizontal = density.cardPadding, vertical = (density.innerElementGap.value * 1.1f).dp)
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(riskColor(preset.risk).copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(title.take(1), color = riskColor(preset.risk), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            }
+            com.caglar.pokequery.ui.pq.PqRiskBadge(preset.risk)
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp, lineHeight = 18.sp, maxLines = 2)
+        Spacer(Modifier.height(4.dp))
+        Text(description, color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp, maxLines = 3)
+        Spacer(Modifier.height(10.dp))
+        Text(stringResource(R.string.presets_tap_preview), color = TealPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun PresetPreviewDialog(
+    preset: Preset,
+    language: String,
+    onDismiss: () -> Unit,
+    onCopy: (GeneratedString) -> Unit
+) {
+    val title = preset.titleRes?.let { stringResource(it) } ?: preset.title
+    val description = preset.descriptionRes?.let { stringResource(it) } ?: preset.description
+    val previewLabel = stringResource(R.string.presets_preview)
+    val whatFindsLabel = stringResource(R.string.presets_what_finds)
+    val checkBeforeCopyLabel = stringResource(R.string.presets_check_before_copy)
+    val copyLabel = stringResource(R.string.goal_detail_copy_search_string)
+    val cancelLabel = stringResource(R.string.action_cancel)
+    val riskLabel = stringResource(
+        when (preset.risk) {
+            RiskLevel.Info -> R.string.risk_info
+            RiskLevel.Low -> R.string.risk_low
+            RiskLevel.Medium -> R.string.risk_medium
+            RiskLevel.High -> R.string.risk_high
+        }
+    )
+    val generated = remember(preset, language, title, description) {
+        StringBuilderEngine.buildString(
+            baseQuery = preset.syntax,
+            protections = emptyList(),
+            explanation = description,
+            riskLevel = preset.risk,
+            goalId = "preset",
+            title = title,
+            language = language
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = { onCopy(generated) },
+                colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = SlateBlack),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(copyLabel, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(cancelLabel, color = TextSecondary)
+            }
+        },
+        containerColor = CardDark,
+        titleContentColor = TextPrimary,
+        textContentColor = TextSecondary,
+        title = {
+            Column {
+                Text(previewLabel, color = TealPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(title, color = TextPrimary, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(whatFindsLabel, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        riskLabel,
+                        color = riskColor(preset.risk),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(riskColor(preset.risk).copy(alpha = 0.18f))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(description, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
+                if (preset.warnings.isNotEmpty() || preset.risk == RiskLevel.Medium || preset.risk == RiskLevel.High) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(checkBeforeCopyLabel, color = AmberWarning, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    preset.warnings.forEach { warning ->
+                        Text("• ${localizedPresetWarning(warning)}", color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                com.caglar.pokequery.ui.pq.PqStringBox(generated.rawSyntax)
+            }
+        }
+    )
+}
+
+private fun riskColor(risk: RiskLevel): Color = when (risk) {
+    RiskLevel.Info, RiskLevel.Low -> TealPrimary
+    RiskLevel.Medium -> GoldCaution
+    RiskLevel.High -> AmberWarning
 }
 
 @Composable

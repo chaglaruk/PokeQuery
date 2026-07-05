@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -56,6 +58,7 @@ import com.caglar.pokequery.theme.BorderSubtle
 import com.caglar.pokequery.theme.CardDark
 import com.caglar.pokequery.theme.CoralDanger
 import com.caglar.pokequery.theme.CyanGlow
+import com.caglar.pokequery.theme.CardPremium
 import com.caglar.pokequery.theme.GoldCaution
 import com.caglar.pokequery.theme.PurpleIV
 import com.caglar.pokequery.theme.TealPrimary
@@ -168,6 +171,15 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                         Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_ai_suggest), color = TealPrimary)
                     }
                 }
+            }
+        }
+
+        if (parseResult == null) {
+            item {
+                Spacer(Modifier.height(24.dp))
+                com.caglar.pokequery.ui.components.SearchAssistantEmptyState(
+                    modifier = Modifier.fillMaxWidth().pqStaggeredItem(visible, 2)
+                )
             }
         }
 
@@ -348,3 +360,4 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
     }
     }
 }
+

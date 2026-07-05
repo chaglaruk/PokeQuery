@@ -234,8 +234,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
         item {
             PremiumPanel {
                 Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_general), color = TealPrimary, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(10.dp))
-
+                Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).padding(end = 16.dp)) {
                         Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_first_use_guide), color = TextPrimary, fontWeight = FontWeight.SemiBold)
@@ -245,42 +244,6 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                         checked = userPrefs?.firstUseSeen ?: false,
                         onCheckedChange = { scope.launch { repository.setFirstUseSeen(it) } },
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
-                    )
-                }
-                Spacer(Modifier.height(14.dp))
-                PremiumPanel(borderColor = TealPrimary) {
-                    Text(stringResource(R.string.settings_online_events_toggle), color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(R.string.settings_online_events_toggle_desc), color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
-                    Spacer(Modifier.height(8.dp))
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.event_setting_updates),
-                        description = stringResource(R.string.event_setting_updates_desc),
-                        checked = userPrefs?.eventGuideUpdatesEnabled ?: true,
-                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_UPDATES_ENABLED, it) } }
-                    )
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.event_setting_refresh_open),
-                        description = stringResource(R.string.event_setting_refresh_open_desc),
-                        checked = userPrefs?.eventGuideRefreshOnOpen ?: true,
-                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_REFRESH_ON_OPEN, it) } }
-                    )
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.event_setting_saved_offline),
-                        description = stringResource(R.string.event_setting_saved_offline_desc),
-                        checked = userPrefs?.eventGuidePreferSavedOffline ?: true,
-                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_PREFER_SAVED_OFFLINE, it) } }
-                    )
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.event_setting_planning_hints),
-                        description = stringResource(R.string.event_setting_planning_hints_desc),
-                        checked = userPrefs?.eventGuideShowPlanningHints ?: true,
-                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EVENT_GUIDE_SHOW_PLANNING_HINTS, it) } }
-                    )
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.event_setting_extra_warnings),
-                        description = stringResource(R.string.event_setting_extra_warnings_desc),
-                        checked = userPrefs?.extraActionSafetyWarnings ?: true,
-                        onCheckedChange = { scope.launch { repository.setBooleanSetting(UserPreferencesRepository.EXTRA_ACTION_SAFETY_WARNINGS, it) } }
                     )
                 }
             }
@@ -751,7 +714,7 @@ private fun localizedSystemDefaultLabel(appLang: String): String = when (AppLoca
 }
 
 private fun localizedSearchStringLanguageTitle(appLang: String): String = when (AppLocaleController.resolvedLocaleTagFor(appLang)) {
-    "tr" -> "Arama Dizgisi Dili"
+    "tr" -> "Pokémon GO Arama Dili"
     "de" -> "Suchstring-Sprache"
     "es" -> "Idioma de cadena de búsqueda"
     "fr" -> "Langue des chaînes de recherche"

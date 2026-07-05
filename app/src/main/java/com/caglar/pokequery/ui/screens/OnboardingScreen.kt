@@ -64,11 +64,7 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            Box(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 24.dp, vertical = 14.dp), contentAlignment = Alignment.TopEnd) {
-                TextButton(onClick = onStart) {
-                    Text(stringResource(R.string.onboarding_skip), color = TextSecondary, fontWeight = FontWeight.Bold)
-                }
-            }
+            Spacer(Modifier.fillMaxWidth().statusBarsPadding().height(18.dp))
 
             HorizontalPager(state = pagerState, modifier = Modifier.weight(1f).fillMaxWidth()) { page ->
                 when (page) {
@@ -110,7 +106,10 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
                             coroutineScope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = BlueCTA),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BlueCTA,
+                        contentColor = SlateBlack
+                    ),
                     shape = RoundedCornerShape(18.dp),
                     modifier = Modifier
                         .height(58.dp)
@@ -124,10 +123,11 @@ fun OnboardingScreen(initialPage: Int = 0, onStart: () -> Unit) {
                     Text(
                         text = if (pagerState.currentPage == pageCount - 1) stringResource(R.string.onboarding_start_building) else stringResource(R.string.onboarding_next),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        color = SlateBlack
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text("→", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("→", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = SlateBlack)
                 }
             }
         }
@@ -191,33 +191,29 @@ private fun OnboardingHeroPage(visible: Boolean) {
             // Spacer pushes cards to bottom
             Spacer(Modifier.weight(1f))
 
-            // 3 feature cards matching reference: Private, Offline-first, Copy-only
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer {
                         alpha = cardsAlpha
                         translationY = cardsOffsetY
                     },
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 FeatureCard(
                     icon = Icons.Default.Lock,
                     title = stringResource(R.string.onboarding_feature_plan_title),
-                    description = stringResource(R.string.onboarding_feature_plan_desc),
-                    modifier = Modifier.weight(1f)
+                    description = stringResource(R.string.onboarding_feature_plan_desc)
                 )
                 FeatureCard(
                     icon = Icons.Default.CloudOff,
                     title = stringResource(R.string.onboarding_feature_protect_title),
-                    description = stringResource(R.string.onboarding_feature_protect_desc),
-                    modifier = Modifier.weight(1f)
+                    description = stringResource(R.string.onboarding_feature_protect_desc)
                 )
                 FeatureCard(
                     icon = Icons.Default.ContentCopy,
                     title = stringResource(R.string.onboarding_feature_copy_title),
-                    description = stringResource(R.string.onboarding_feature_copy_desc),
-                    modifier = Modifier.weight(1f)
+                    description = stringResource(R.string.onboarding_feature_copy_desc)
                 )
             }
             Spacer(Modifier.height(8.dp))
@@ -286,42 +282,41 @@ private fun FeatureCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(130.dp),
+        modifier = modifier.height(82.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = CardPremium.copy(alpha = 0.88f)),
         border = androidx.compose.foundation.BorderStroke(1.dp, TealPrimary.copy(alpha = 0.18f))
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = TealPrimary,
-                modifier = Modifier.size(34.dp)
+                modifier = Modifier.size(36.dp)
             )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = title,
-                color = TextPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                maxLines = 1
-            )
-            Spacer(Modifier.height(3.dp))
-            Text(
-                text = description,
-                color = TextSecondary,
-                fontSize = 10.sp,
-                textAlign = TextAlign.Center,
-                lineHeight = 13.sp,
-                maxLines = 3
-            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+                Text(
+                    text = title,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    maxLines = 2
+                )
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    text = description,
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    maxLines = 2
+                )
+            }
         }
     }
 }

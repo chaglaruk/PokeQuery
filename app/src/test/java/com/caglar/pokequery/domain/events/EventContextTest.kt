@@ -82,6 +82,137 @@ class EventContextTest {
         )
     }
 
+    // ---- v0.6.9: selectMainEvent logic ----
+
+    @Test
+    fun `selectMainEvent returns null for empty list`() {
+        assertEquals(null, selectMainEvent(emptyList()))
+    }
+
+    @Test
+    fun `selectMainEvent prefers CURRENT over UPCOMING`() {
+        val upcoming = EventContext(
+            id = "upcoming", titleText = "Later",
+            contextType = EventContextType.GENERIC_EVENT, status = EventStatus.UPCOMING,
+            noteText = "Up", summaryText = "S", prepText = "P", suggestedSearch = "a0",
+            eventNotesText = "N", themeKey = "generic_event", month = 8, year = 2026
+        )
+        val current = EventContext(
+            id = "current", titleText = "Now",
+            contextType = EventContextType.COMMUNITY_DAY, status = EventStatus.CURRENT,
+            noteText = "Cu", summaryText = "S", prepText = "P", suggestedSearch = "a0",
+            eventNotesText = "N", themeKey = "community_day", month = 7, year = 2026
+        )
+        val result = selectMainEvent(listOf(upcoming, current))
+        assertEquals("current", result?.id)
+    }
+
+    @Test
+    fun `selectMainEvent falls back to UPCOMING when no CURRENT exists`() {
+        val upcoming = EventContext(
+            id = "upcoming-only", titleText = "Next",
+            contextType = EventContextType.SPOTLIGHT_HOUR, status = EventStatus.UPCOMING,
+            noteText = "U", summaryText = "S", prepText = "P", suggestedSearch = "a0",
+            eventNotesText = "N", themeKey = "spotlight_hour", month = 8, year = 2026
+        )
+        assertEquals("upcoming-only", selectMainEvent(listOf(upcoming))?.id)
+    }
+
+    @Test
+    fun `selectMainEvent returns first event when all are UPCOMING`() {
+        val events = listOf(
+            EventContext(id = "first", titleText = "A", contextType = EventContextType.GENERIC_EVENT, status = EventStatus.UPCOMING, noteText = "N", summaryText = "S", prepText = "P", suggestedSearch = "a0", eventNotesText = "N", themeKey = "generic_event", month = 7, year = 2026),
+            EventContext(id = "second", titleText = "B", contextType = EventContextType.GENERIC_EVENT, status = EventStatus.UPCOMING, noteText = "N", summaryText = "S", prepText = "P", suggestedSearch = "a0", eventNotesText = "N", themeKey = "generic_event", month = 8, year = 2026)
+        )
+        assertEquals("first", selectMainEvent(events)?.id)
+    }
+
+    @Test
+    fun `effectiveStatus uses date window before static feed label`() {
+        val event = EventContext(
+            id = "go-fest",
+            titleText = "GO Fest",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.CURRENT,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+
+        assertEquals(EventStatus.UPCOMING, event.effectiveStatus("2026-07-02"))
+        assertEquals(EventStatus.CURRENT, event.effectiveStatus("2026-07-11"))
+        assertEquals(EventStatus.ENDED, event.effectiveStatus("2026-07-13"))
+    }
+
+    @Test
+    fun `selectMainEvent skips ended date window when upcoming event exists`() {
+        val ended = EventContext(
+            id = "ended",
+            titleText = "Old",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.CURRENT,
+            startDate = "2026-06-01",
+            endDate = "2026-06-02",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+        val upcoming = EventContext(
+            id = "upcoming",
+            titleText = "Next",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.UPCOMING,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+
+        assertEquals("upcoming", selectMainEvent(listOf(ended, upcoming), "2026-07-02")?.id)
+    }
+
+    // ---- v0.6.9: fixture has featuredPokemon and bonuses ----
+
+    @Test
+    fun `bundled fixture has GO Fest planning fields`() {
+        val json = File("src/main/res/raw/event_context_fixture.json").readText()
+        val feed = EventFeedParser.parse(json).getOrThrow()
+        assertTrue("fixture should have events", feed.events.isNotEmpty())
+        val goFest = feed.events.firstOrNull { it.id.contains("go-fest", ignoreCase = true) }
+        assertNotNull("GO Fest event should exist", goFest)
+        assertEquals("2026-07-11", goFest!!.startDate)
+        assertEquals("2026-07-12", goFest.endDate)
+        assertEquals(EventStatus.UPCOMING, goFest.effectiveStatus("2026-07-02"))
+        assertTrue("boosted spawns should not be blank", goFest.boostedPokemonText.orEmpty().isNotBlank())
+        assertTrue("raids should not be blank", goFest.raidsText.orEmpty().isNotBlank())
+        assertTrue("research should not be blank", goFest.researchText.orEmpty().isNotBlank())
+        assertTrue("bonuses should not be blank", goFest.bonusesText.orEmpty().isNotBlank())
+    }
+
+    @Test
+    fun `fixture events have Turkish translations for featured Pokemon`() {
+        val json = File("src/main/res/raw/event_context_fixture.json").readText()
+        val feed = EventFeedParser.parse(json).getOrThrow()
+        feed.events.forEach { event ->
+            // Not every event must have featuredPokemon, but when it does, TR should also exist.
+            if (!event.featuredPokemon.isNullOrBlank()) {
+                assertTrue("event ${event.id} missing featuredPokemonTr", !event.featuredPokemonTr.isNullOrBlank())
+            }
+            if (!event.bonusesText.isNullOrBlank()) {
+                assertTrue("event ${event.id} missing bonusesTextTr", !event.bonusesTextTr.isNullOrBlank())
+            }
+        }
+    }
+
     @Test
     fun `bundled event notes are always marked manual`() {
         EventContextRepository.all().forEach { event ->
@@ -112,6 +243,8 @@ class EventContextTest {
                   "noteTr": "İşlem yapmadan önce Pokemon GO içinde doğrula.",
                   "month": 6,
                   "year": 2026,
+                  "startDate": "2026-06-29",
+                  "endDate": "2026-06-29",
                   "start": "Event day",
                   "end": "After event",
                   "summary": "Useful event planning card.",
@@ -134,6 +267,8 @@ class EventContextTest {
         assertFalse(feed.events.single().isManual)
         assertEquals(EventContextType.COMMUNITY_DAY, feed.events.single().contextType)
         assertEquals(EventStatus.CURRENT, feed.events.single().status)
+        assertEquals("2026-06-29", feed.events.single().startDate)
+        assertEquals("2026-06-29", feed.events.single().endDate)
         assertEquals("age0-2", feed.events.single().suggestedSearch)
         assertEquals("community_day", feed.events.single().themeKey)
         assertEquals("Topluluk Günü", feed.events.single().titleTextTr)
@@ -145,18 +280,38 @@ class EventContextTest {
 
         val feed = EventFeedParser.parse(json).getOrThrow()
 
-        assertEquals("2026-07-02", feed.lastUpdated)
+        assertEquals("2026-07-04", feed.lastUpdated)
         assertTrue(feed.events.size >= 3)
         assertTrue(feed.events.none { it.isManual })
         feed.events.forEach { event ->
             assertTrue(event.titleText.orEmpty().isNotBlank())
-            assertTrue(event.noteText.orEmpty().contains("fallback", ignoreCase = true))
+            assertFalse(event.noteText.orEmpty().contains("fallback", ignoreCase = true))
             assertTrue(event.summaryText.orEmpty().isNotBlank())
             assertTrue(event.prepText.orEmpty().isNotBlank())
             assertTrue(event.suggestedSearch.orEmpty().isNotBlank())
             assertTrue(event.eventNotesText.orEmpty().isNotBlank())
             assertTrue(event.themeKey.isNotBlank())
         }
+    }
+
+    @Test
+    fun `event feed parser accepts pokemon template rows`() {
+        val json = File("src/main/res/raw/event_context_fixture.json").readText()
+
+        val feed = EventFeedParser.parse(json).getOrThrow()
+        val goFest = feed.events.first { it.id.contains("go-fest", ignoreCase = true) }
+
+        assertTrue(goFest.pokemon.size >= 4)
+        assertTrue(goFest.pokemon.any { it.name == "Mewtwo" && it.source.contains("raid", ignoreCase = true) })
+        assertTrue(feed.events.first { it.id.contains("anniversary") }.pokemon.any { it.name == "Gimmighoul" && it.spriteKey == "gimmighoul" })
+        assertTrue(goFest.pokemon.any { it.name == "Zeraora" && it.spriteKey == "zeraora" })
+        assertTrue(goFest.pokemon.any { it.name == "Raid and trade candidates" && it.nameTr == "Akın ve takas adayları" })
+        assertTrue(goFest.pokemon.any { it.shinyAvailable })
+        assertTrue(goFest.pokemon.any { it.spriteKey.orEmpty().isNotBlank() })
+        assertTrue(goFest.pokemon.all { it.sourceTr.orEmpty().isNotBlank() && it.noteTr.orEmpty().isNotBlank() })
+        assertTrue(feed.events.none { it.suggestedSearch.orEmpty().contains("|") })
+        assertTrue(feed.events.none { it.titleText.orEmpty().contains("Spotlight Hour", ignoreCase = true) })
+        assertTrue(feed.events.first { it.id.contains("anniversary") }.pokemon.any { it.badges.orEmpty().contains("Costume") })
     }
 
     @Test
@@ -196,6 +351,118 @@ class EventContextTest {
             }
         """.trimIndent()
         assertTrue(EventFeedParser.parse(invalid).isFailure)
+    }
+
+    // ---- v0.6.9: Future event JSON adaptability proof ----
+    // The Event Guide dashboard is driven entirely by the feed JSON/model. Adding a future
+    // event to the public JSON (or bundled fixture) must NOT require any Compose code changes.
+    // This synthetic future event exercises a brand-new id, localized title/date, >=2 Pokemon
+    // entries, a bonus card, a research/raid category card, and a suggested search — proving the
+    // parser/model can represent an event that does not exist in production today.
+
+    @Test
+    fun `parser accepts a synthetic future event without code changes`() {
+        val futureFeed = """
+            {
+              "schemaVersion": 1,
+              "lastUpdated": "2026-12-01",
+              "events": [
+                {
+                  "id": "event-holiday-cup-2027",
+                  "title": "Holiday Cup 2027",
+                  "titleTr": "Bayram Kupası 2027",
+                  "titleDe": "Feiertags-Pokal 2027",
+                  "titleEs": "Copa Festiva 2027",
+                  "titleFr": "Coupe des Fetes 2027",
+                  "titleIt": "Coppa Festiva 2027",
+                  "kind": "GENERIC_EVENT",
+                  "status": "UPCOMING",
+                  "note": "A future synthetic event for parser adaptability testing.",
+                  "noteTr": "Ayrıştırıcı uyumluluk testi için gelecekteki sentetik etkinlik.",
+                  "month": 12,
+                  "year": 2027,
+                  "startDate": "2027-12-15",
+                  "endDate": "2027-12-19",
+                  "start": "Dec 15",
+                  "end": "Dec 19",
+                  "featuredPokemon": "Cryogonal and Bergmite holiday spawns.",
+                  "featuredPokemonTr": "Cryogonal ve Bergmite bayram çıkışları.",
+                  "bonuses": "2x catch Stardust and increased holiday shiny chance.",
+                  "bonusesTr": "2x yakalama Star Tozu ve artmış bayram shiny şansı.",
+                  "raids": "Review holiday raid catches for IVs and shiny before cleanup.",
+                  "raidsTr": "Temizlikten önce bayram akın yakalamalarını IV ve shiny için incele.",
+                  "research": "Special research leads to a costumed starter.",
+                  "researchTr": "Özel araştırma kostümlü başlangıç Pokémonuna götürür.",
+                  "summary": "A holiday-themed event with costumes and shinies.",
+                  "summaryTr": "Kostüm ve shiny içeren bayram temalı etkinlik.",
+                  "prep": "Tag costumed and shiny catches before cleanup.",
+                  "prepTr": "Temizlikten önce kostümlü ve shiny yakalamaları etiketle.",
+                  "suggestedSearch": "age0-5&!favorite&!shiny&!costume",
+                  "eventNotes": "Check costumed and shiny catches before transferring.",
+                  "eventNotesTr": "Transferden önce kostümlü ve shiny yakalamaları kontrol et.",
+                  "themeKey": "generic_event",
+                  "pokemon": [
+                    {
+                      "name": "Cryogonal",
+                      "source": "wild holiday spawn",
+                      "sourceTr": "vahşi bayram çıkışı",
+                      "shinyAvailable": true,
+                      "note": "Holiday shiny check.",
+                      "noteTr": "Bayram shiny kontrolü.",
+                      "badges": "Shiny, Wild",
+                      "badgesTr": "Shiny çıkabilir, Vahşi",
+                      "spriteKey": "corsola"
+                    },
+                    {
+                      "name": "Bergmite",
+                      "source": "raid reward",
+                      "sourceTr": "akın ödülü",
+                      "shinyAvailable": true,
+                      "note": "Raid catch with possible special background.",
+                      "noteTr": "Özel arka plan ihtimali olan akın yakalaması.",
+                      "badges": "Shiny, Raid",
+                      "badgesTr": "Shiny çıkabilir, Akın",
+                      "spriteKey": "necrozma"
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val feed = EventFeedParser.parse(futureFeed).getOrThrow()
+
+        // Title + localized title/date.
+        assertEquals(1, feed.events.size)
+        val event = feed.events.single()
+        assertEquals("event-holiday-cup-2027", event.id)
+        assertEquals("Bayram Kupası 2027", event.titleTextTr)
+        assertEquals("2027-12-15", event.startDate)
+        assertEquals("2027-12-19", event.endDate)
+
+        // At least 2 Pokemon entries.
+        assertTrue("expected at least 2 pokemon entries", event.pokemon.size >= 2)
+
+        // At least one bonus card (bonuses text present and non-blank).
+        assertTrue("bonus card text must be present", !event.bonusesText.isNullOrBlank())
+        assertTrue("bonus card TR text must be present", !event.bonusesTextTr.isNullOrBlank())
+
+        // At least one research/raid/category card present and non-blank.
+        assertTrue("research card text must be present", !event.researchText.isNullOrBlank())
+        assertTrue("raid card text must be present", !event.raidsText.isNullOrBlank())
+
+        // Suggested search present and pipe-free.
+        assertTrue("suggested search must be present", !event.suggestedSearch.isNullOrBlank())
+        assertFalse("suggested search must not use |", event.suggestedSearch.orEmpty().contains("|"))
+
+        // The model round-trips localized fields used by the dashboard renderer.
+        assertEquals("Bayram Kupası 2027", event.titleTextTr)
+        assertEquals("2x yakalama Star Tozu ve artmış bayram shiny şansı.", event.bonusesTextTr)
+
+        // selectMainEvent works on a future-only feed (no code change needed to feature it).
+        val main = selectMainEvent(feed.events, "2026-07-04")
+        assertNotNull("dashboard must be able to feature the future event", main)
+        assertEquals("event-holiday-cup-2027", main?.id)
     }
 }
 

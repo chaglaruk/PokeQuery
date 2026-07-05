@@ -1,78 +1,235 @@
 package com.caglar.pokequery.domain.events
 
 import androidx.annotation.StringRes
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class EventContext(
     val id: String,
     @StringRes val titleRes: Int? = null,
     val titleText: String? = null,
     val titleTextTr: String? = null,
+    val titleTextDe: String? = null,
+    val titleTextEs: String? = null,
+    val titleTextFr: String? = null,
+    val titleTextIt: String? = null,
     val contextType: EventContextType,
     val status: EventStatus = EventStatus.CURRENT,
     @StringRes val noteRes: Int? = null,
     val noteText: String? = null,
     val noteTextTr: String? = null,
+    val noteTextDe: String? = null,
+    val noteTextEs: String? = null,
+    val noteTextFr: String? = null,
+    val noteTextIt: String? = null,
     val month: Int? = null,
     val year: Int? = null,
+    val startDate: String? = null,
+    val endDate: String? = null,
     val startText: String? = null,
     val endText: String? = null,
     val summaryText: String? = null,
     val summaryTextTr: String? = null,
+    val summaryTextDe: String? = null,
+    val summaryTextEs: String? = null,
+    val summaryTextFr: String? = null,
+    val summaryTextIt: String? = null,
     val prepText: String? = null,
     val prepTextTr: String? = null,
+    val prepTextDe: String? = null,
+    val prepTextEs: String? = null,
+    val prepTextFr: String? = null,
+    val prepTextIt: String? = null,
     val suggestedSearch: String? = null,
     val eventNotesText: String? = null,
     val eventNotesTextTr: String? = null,
+    val eventNotesTextDe: String? = null,
+    val eventNotesTextEs: String? = null,
+    val eventNotesTextFr: String? = null,
+    val eventNotesTextIt: String? = null,
+    val featuredPokemon: String? = null,
+    val featuredPokemonTr: String? = null,
+    val featuredPokemonDe: String? = null,
+    val featuredPokemonEs: String? = null,
+    val featuredPokemonFr: String? = null,
+    val featuredPokemonIt: String? = null,
+    val boostedPokemonText: String? = null,
+    val boostedPokemonTextTr: String? = null,
+    val boostedPokemonTextDe: String? = null,
+    val boostedPokemonTextEs: String? = null,
+    val boostedPokemonTextFr: String? = null,
+    val boostedPokemonTextIt: String? = null,
+    val bonusesText: String? = null,
+    val bonusesTextTr: String? = null,
+    val bonusesTextDe: String? = null,
+    val bonusesTextEs: String? = null,
+    val bonusesTextFr: String? = null,
+    val bonusesTextIt: String? = null,
+    val raidsText: String? = null,
+    val raidsTextTr: String? = null,
+    val raidsTextDe: String? = null,
+    val raidsTextEs: String? = null,
+    val raidsTextFr: String? = null,
+    val raidsTextIt: String? = null,
+    val researchText: String? = null,
+    val researchTextTr: String? = null,
+    val researchTextDe: String? = null,
+    val researchTextEs: String? = null,
+    val researchTextFr: String? = null,
+    val researchTextIt: String? = null,
+    val pokemon: List<EventPokemonEntry> = emptyList(),
     val themeKey: String = "generic_event",
     val isManual: Boolean = true
 )
 
+data class EventPokemonEntry(
+    val name: String,
+    val nameTr: String? = null,
+    val nameDe: String? = null,
+    val nameEs: String? = null,
+    val nameFr: String? = null,
+    val nameIt: String? = null,
+    val source: String = "unknown/check-in-game",
+    val sourceTr: String? = null,
+    val sourceDe: String? = null,
+    val sourceEs: String? = null,
+    val sourceFr: String? = null,
+    val sourceIt: String? = null,
+    val shinyAvailable: Boolean = false,
+    val note: String? = null,
+    val noteTr: String? = null,
+    val noteDe: String? = null,
+    val noteEs: String? = null,
+    val noteFr: String? = null,
+    val noteIt: String? = null,
+    val badges: String? = null,
+    val badgesTr: String? = null,
+    val badgesDe: String? = null,
+    val badgesEs: String? = null,
+    val badgesFr: String? = null,
+    val badgesIt: String? = null,
+    val spriteKey: String? = null
+)
+
 enum class EventContextType { COMMUNITY_DAY, SPOTLIGHT_HOUR, GENERIC_EVENT }
 
-enum class EventStatus { CURRENT, UPCOMING }
+enum class EventStatus { CURRENT, UPCOMING, ENDED }
+
+private val isoDatePattern = Regex("""\d{4}-\d{2}-\d{2}""")
+
+private fun todayIsoDate(): String =
+    SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
+private fun String?.validIsoDate(): String? =
+    this?.takeIf { isoDatePattern.matches(it) }
+
+fun EventContext.effectiveStatus(todayIsoDate: String = todayIsoDate()): EventStatus {
+    val today = todayIsoDate.validIsoDate() ?: return status
+    val start = startDate.validIsoDate()
+    val end = endDate.validIsoDate()
+    return when {
+        start != null && today < start -> EventStatus.UPCOMING
+        end != null && today > end -> EventStatus.ENDED
+        start != null && end != null -> EventStatus.CURRENT
+        start != null && today >= start -> EventStatus.CURRENT
+        else -> status
+    }
+}
+
+/**
+ * Selects the single main event to feature prominently on the Event Guide.
+ *
+ * Strategy (human-friendly, not debug): prefer a [EventStatus.CURRENT] event. If none is current,
+ * pick the first UPCOMING event (the nearest one the feed lists). If the list is empty, returns
+ * null so the UI can fall back to an honest empty state.
+ *
+ * Pure function — unit-testable without Android.
+ */
+fun selectMainEvent(events: List<EventContext>, todayIsoDate: String = todayIsoDate()): EventContext? {
+    if (events.isEmpty()) return null
+    return events.firstOrNull { it.effectiveStatus(todayIsoDate) == EventStatus.CURRENT }
+        ?: events.firstOrNull { it.effectiveStatus(todayIsoDate) == EventStatus.UPCOMING }
+        ?: events.first()
+}
 
 object EventContextRepository {
     val entries: List<EventContext> = listOf(
         EventContext(
-            id = "fallback-community-day-prep",
-            titleText = "Community Day prep",
-            titleTextTr = "Topluluk Günü hazırlığı",
-            contextType = EventContextType.COMMUNITY_DAY,
-            status = EventStatus.CURRENT,
-            noteText = "Bundled fallback guidance only. Use this when no live or saved public feed is available.",
-            noteTextTr = "Yalnızca yerleşik yedek rehberlik. Canlı veya kayıtlı herkese açık akış yoksa kullanılır.",
+            id = "event-go-fest-global",
+            titleText = "GO Fest 2026: Global",
+            titleTextTr = "GO Fest 2026: Küresel",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.UPCOMING,
+            noteText = "A large global event with special spawns, raids, research, and bonuses.",
+            noteTextTr = "Özel çıkışlar, akınlar, araştırmalar ve ek ödüller içeren büyük bir küresel etkinlik.",
             month = 7,
             year = 2026,
-            startText = "Event day",
-            endText = "After event review",
-            summaryText = "Community Day bonuses often make catching, evolving, tagging, and candy review more useful.",
-            summaryTextTr = "Topluluk Günü bonusları yakalama, evrim, etiketleme ve şeker incelemesini daha yararlı hale getirebilir.",
-            prepText = "Before the event, tag keepers and run Candy Prep. After the event, review recent catches before cleanup.",
-            prepTextTr = "Etkinlikten önce saklanacakları etiketle ve Şeker Hazırlığı kullan. Etkinlikten sonra yeni yakalananları temizlemeden önce incele.",
-            suggestedSearch = "age0-2",
-            eventNotesText = "Review favorites, shinies, costumes, high IV, PvP candidates, and traded Pokémon before transfer decisions.",
-            eventNotesTextTr = "Transfer kararı vermeden önce favori, parlak, kostümlü, yüksek IV, PvP adayı ve takas edilmiş Pokémonları incele.",
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            startText = "July 11",
+            endText = "July 12",
+            summaryText = "Make storage space before the event, then review recent catches after each play session.",
+            summaryTextTr = "Etkinlikten önce depoda yer aç, sonra her oyun oturumundan sonra son yakalamaları incele.",
+            prepText = "Tag keepers first. Use PokeQuery after catching to review recent Pokémon before any transfer.",
+            prepTextTr = "Önce saklayacaklarını etiketle. Yakaladıktan sonra transferden önce son Pokémonları PokeQuery ile incele.",
+            suggestedSearch = "age0-2&!favorite&!shiny&!legendary&!mythical&!costume&!ultrabeast",
+            eventNotesText = "Keep shinies, costumes, hundos, PvP candidates, raid catches, and anything tagged for trade.",
+            eventNotesTextTr = "Parlakları, kostümlüleri, hundoları, PvP adaylarını, akın yakalamalarını ve takas için etiketlenenleri sakla.",
+            boostedPokemonText = "Event spawns and global featured Pokémon",
+            boostedPokemonTextTr = "Etkinlik çıkışları ve küresel öne çıkan Pokémonlar",
+            bonusesText = "Special spawns, raids, research, and event bonuses",
+            bonusesTextTr = "Özel çıkışlar, akınlar, araştırmalar ve etkinlik ödülleri",
+            raidsText = "Check raid catches separately before cleanup.",
+            raidsTextTr = "Temizlikten önce akın yakalamalarını ayrı kontrol et.",
+            researchText = "Research rewards can have good IV floors; review before transfer.",
+            researchTextTr = "Araştırma ödüllerinde iyi IV tabanı olabilir; transferden önce incele.",
+            themeKey = "raid"
+        ),
+        EventContext(
+            id = "event-july-cd",
+            titleText = "July Community Day",
+            titleTextTr = "Temmuz Topluluk Günü",
+            contextType = EventContextType.COMMUNITY_DAY,
+            status = EventStatus.UPCOMING,
+            noteText = "A classic Community Day featuring a rare Pokémon with an exclusive move.",
+            noteTextTr = "Nadir bir Pokémon ve özel yetenek içeren klasik bir Topluluk Günü.",
+            month = 7,
+            year = 2026,
+            startDate = "2026-07-21",
+            endDate = "2026-07-21",
+            startText = "July 21",
+            endText = "July 21",
+            summaryText = "Catching hundreds of the same Pokémon means you can be very strict about what you keep.",
+            summaryTextTr = "Aynı Pokémon'dan yüzlerce yakalamak, hangilerini tutacağın konusunda çok daha seçici olmanı sağlar.",
+            prepText = "Run Candy Prep. Keep only the highest IVs for raids or specific PvP spreads. Transfer the rest.",
+            prepTextTr = "Şeker Hazırlığı çalıştır. Sadece akınlar için en yüksek IV'leri veya özel PvP dağılımlarını sakla. Kalanını yolla.",
+            suggestedSearch = "age0&!favorite&!shiny&!3*&!4*",
+            eventNotesText = "Check for PvP IVs (low attack, high defense/HP) before transferring, especially if the Pokémon is good in Great or Ultra League.",
+            eventNotesTextTr = "Özellikle Süper veya Ultra Lig'de iyiyse, transfer etmeden önce PvP IV'lerini (düşük saldırı, yüksek savunma/HP) kontrol et.",
             themeKey = "community_day"
         ),
         EventContext(
-            id = "fallback-candy-bonus-prep",
-            titleText = "Candy bonus prep",
-            titleTextTr = "Şeker bonusu hazırlığı",
+            id = "event-aquatic-paradise",
+            titleText = "Aquatic Paradise",
+            titleTextTr = "Su Cenneti",
             contextType = EventContextType.GENERIC_EVENT,
             status = EventStatus.UPCOMING,
-            noteText = "Bundled fallback guidance only. Verify the real active bonus in Pokémon GO before acting.",
-            noteTextTr = "Yalnızca yerleşik yedek rehberlik. İşlem yapmadan önce gerçek aktif bonusu Pokémon GO içinde doğrula.",
+            noteText = "Water-type Pokémon are spawning more frequently. 2x Catch Candy bonus is active.",
+            noteTextTr = "Su türü Pokémonlar daha sık beliriyor. 2x Yakalama Şekeri bonusu aktif.",
             month = 7,
             year = 2026,
-            startText = "Before transfer bonus",
-            endText = "After transfer review",
-            summaryText = "Transfer-candy windows are useful only after careful review, because cleanup searches are action-adjacent.",
-            summaryTextTr = "Transfer şekeri dönemleri ancak dikkatli incelemeden sonra yararlıdır; çünkü temizlik aramaları işlem öncesi kullanılır.",
-            prepText = "Use Safe Cleanup and 2x Candy Prep, then manually review protected categories before copying.",
-            prepTextTr = "Güvenli Temizlik ve 2x Şeker Hazırlığı kullan; kopyalamadan önce korunan kategorileri elle incele.",
-            suggestedSearch = "age0-7&!favorite&!shiny&!legendary&!mythical&!costume",
-            eventNotesText = "Do not transfer from the search result blindly. Check tags, costumes, luckies, shadows, purified, and traded status.",
-            eventNotesTextTr = "Arama sonucundan körlemesine transfer yapma. Etiket, kostüm, şanslı, gölge, arındırılmış ve takas durumunu kontrol et.",
+            startDate = "2026-07-25",
+            endDate = "2026-07-29",
+            startText = "July 25",
+            endText = "July 29",
+            summaryText = "It's a great time to farm candies for Water-types, but watch your storage space.",
+            summaryTextTr = "Su türleri için şeker toplamak adına harika bir zaman, ancak depo alanına dikkat et.",
+            prepText = "Clear out non-event fodder beforehand so you can focus on catching Water-types.",
+            prepTextTr = "Su türlerine odaklanabilmek için etkinlik öncesinde diğer gereksizleri temizle.",
+            suggestedSearch = "water&age0-5&!favorite&!shiny&!legendary",
+            eventNotesText = "Keep an eye out for rare Water-types that are usually hard to find. Use Pinap Berries for even more candy.",
+            eventNotesTextTr = "Genelde bulması zor olan nadir Su türlerine dikkat et. Daha fazla şeker için Pinap Meyvesi kullan.",
             themeKey = "candy_bonus"
         )
     )

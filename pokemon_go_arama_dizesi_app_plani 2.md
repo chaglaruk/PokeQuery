@@ -423,8 +423,7 @@ Bu uygulama resmi/gayriresmi bir API kullanmadığı için, üretilen string'ler
 ROL: Sen kıdemli bir Android/Kotlin/Jetpack Compose geliştiricisisin.
 
 BAĞLAM: Ekteki "Pokémon GO Arama Dizesi Oluşturucu" ürün planını (Bölüm 1-18) oku.
-Bu, [PokemonRarityScanner / TehlikeArşivi] projelerinden TAMAMEN AYRI, yeni ve
-bağımsız bir uygulama.
+Bu, diğer projelerden TAMAMEN AYRI, yeni ve bağımsız bir uygulama.
 
 SERT KISITLAR (asla ihlal etme):
 - Pokémon GO hesabına giriş YOK.

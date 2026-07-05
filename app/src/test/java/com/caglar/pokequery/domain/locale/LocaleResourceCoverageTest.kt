@@ -61,8 +61,9 @@ class LocaleResourceCoverageTest {
             ).forEach { marker ->
                 assertFalse("$dir contains mixed-language marker $marker", text.contains(marker))
             }
-            assertFalse("$dir contains [EN] fallback text", text.contains("[EN]"))
-            listOf("Ãƒ", "Ã…", "Ã¢â‚¬", "Ã‚Â¿", "\u0080", "\u009F", "\uFFFD").forEach { marker ->
+            val englishFallbackMarker = "[" + "EN" + "]"
+            assertFalse("$dir contains English fallback marker text", text.contains(englishFallbackMarker))
+            listOf("\u00C3\u0192", "\u00C3\u2026", "\u00C3\u00A2\u00E2\u201A\u00AC", "\u00C3\u201A\u00C2\u00BF", "\u0080", "\u009F", "\uFFFD").forEach { marker ->
                 assertFalse("$dir contains mojibake marker $marker", text.contains(marker))
             }
             assertFalse(
@@ -75,6 +76,58 @@ class LocaleResourceCoverageTest {
     }
 
     
+    @Test
+    fun `v069 event guide main card strings exist in all locales`() {
+        val eventGuideKeys = listOf(
+            "event_main_card_title",
+            "event_featured_pokemon",
+            "event_boosted_pokemon",
+            "event_bonuses",
+            "event_raids",
+            "event_research",
+            "event_whats_happening",
+            "event_why_care",
+            "event_what_to_do",
+            "event_keep_review",
+            "event_avoid_transfer",
+            "event_check_before",
+            "event_no_events_title",
+            "event_no_events_desc",
+            "event_main_card_live_now",
+            "event_main_card_coming_up",
+            "event_main_card_ended",
+            "event_suggested_for_event"
+        )
+        listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
+            val localeKeys = keys("src/main/res/$dir/strings.xml")
+            eventGuideKeys.forEach { key ->
+                assertTrue("$dir missing key $key", localeKeys.contains(key))
+            }
+        }
+    }
+
+    @Test
+    fun `v069 localized risk labels exist in all locales`() {
+        val riskKeys = listOf(
+            "risk_low_display",
+            "risk_medium_display",
+            "risk_info_display",
+            "risk_high_display",
+            "risk_low_subtitle",
+            "risk_medium_subtitle",
+            "risk_info_subtitle",
+            "risk_high_subtitle",
+            "goal_detail_about_count",
+            "goal_detail_what_does_this_do"
+        )
+        listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
+            val localeKeys = keys("src/main/res/$dir/strings.xml")
+            riskKeys.forEach { key ->
+                assertTrue("$dir missing key $key", localeKeys.contains(key))
+            }
+        }
+    }
+
     @Test
     fun `knowledge tier risk accepts string tier value`() {
         listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
