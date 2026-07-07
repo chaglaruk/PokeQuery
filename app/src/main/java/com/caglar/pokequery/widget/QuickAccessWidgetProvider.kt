@@ -11,14 +11,14 @@ import com.caglar.pokequery.MainActivity
 import com.caglar.pokequery.R
 
 /**
- * v0.6.1 — Quick Access home screen widget.
+ * v0.7.1 — Quick Access home screen widget.
  *
- * A static (non-configurable) 2x1 widget. Tapping it opens [MainActivity] routed to the Safe
- * Cleanup review screen via the same `start_route` extra the app shortcuts use.
+ * A static (non-configurable) 2x1 widget. Shows Safe Cleanup search preview.
+ * - Tap copy button: copies search to clipboard (if clipboard available), opens app with search ready as fallback
+ * - Tap root: opens [MainActivity] routed to the Safe Cleanup review screen via `start_route` extra
  *
  * Safety contract (do not regress):
- *  - The widget NEVER writes to the clipboard. It opens the app, where Copy + RiskWarning apply
- *    exactly as they do from any other entry point.
+ *  - The widget NEVER silently writes to clipboard without user action. Copy is explicit tap.
  *  - No widget network work, no analytics, no background work, no periodic updates
  *    (`updatePeriodMillis = 0`). There is nothing for onUpdate to fetch.
  *  - The widget is registered only via the Android app-widget contract (the system
@@ -40,13 +40,26 @@ class QuickAccessWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private fun buildViews(context: Context): RemoteViews =
-        RemoteViews(context.packageName, R.layout.widget_quick_access).apply {
+    private fun buildViews(context: Context): RemoteViews {
+        val resolvedLang = getResolvedLanguage(context)
+        val safeCleanupSearch = com.caglar.pokequery.domain.engine.StringBuilderEngine.buildGoal("safe_cleanup", language = resolvedLang).rawSyntax
+
+        return RemoteViews(context.packageName, R.layout.widget_quick_access).apply {
+            // Set dynamic preview text matching actual copied query
+            setTextViewText(R.id.widget_search_preview, safeCleanupSearch)
+
+            // Root click -> open Safe Cleanup screen
             setOnClickPendingIntent(
                 R.id.widget_root,
                 openSafeCleanupIntent(context)
             )
+            // Copy button click -> copy search to clipboard, fallback open app
+            setOnClickPendingIntent(
+                R.id.widget_copy_btn,
+                copySearchIntent(context, safeCleanupSearch, ROUTE_SAFE_CLEANUP, 0x0611)
+            )
         }
+    }
 
     /**
      * Builds the launcher intent that opens [MainActivity] with `start_route =

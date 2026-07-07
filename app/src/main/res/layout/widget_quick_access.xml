@@ -1,43 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- v0.6.1 Quick Access widget layout. Original branding only; no copyrighted assets. -->
+<!-- v0.7.1 Quick Access widget layout: shows Safe Cleanup search preview + copy action -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:background="@drawable/widget_background"
     android:padding="12dp"
     android:gravity="center_vertical">
 
-    <ImageView
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginEnd="12dp"
-        android:contentDescription="@null"
-        android:src="@drawable/ic_shortcut_safe_cleanup"
-        app:tint="#FFFFFFFF" />
-
+    <!-- Header Row -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="6dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_shortcut_safe_cleanup"
+            app:tint="#FF14B8A6" />
 
         <TextView
+            android:id="@+id/widget_preview_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/widget_quick_access_title"
-            android:textColor="#FFFFFFFF"
-            android:textSize="15sp"
+            android:text="@string/widget_quick_access_preview_label"
+            android:textColor="#E6FFFFFF"
+            android:textSize="11sp"
             android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Search Preview & Copy Box -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/widget_card_teal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/widget_search_preview"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/widget_quick_access_subtitle"
-            android:textColor="#CCFFFFFF"
-            android:textSize="11sp" />
+            android:layout_weight="1"
+            android:text="@string/widget_quick_access_search_preview"
+            android:textColor="#E6FFFFFF"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <ImageButton
+            android:id="@+id/widget_copy_btn"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:contentDescription="@string/widget_copy_desc"
+            android:src="@drawable/ic_copy"
+            android:padding="2dp"
+            android:scaleType="centerInside" />
     </LinearLayout>
+
+    <!-- Footer action hint -->
+    <TextView
+        android:id="@+id/widget_open_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="@string/widget_tap_to_open"
+        android:textColor="#88FFFFFF"
+        android:textSize="9sp"
+        android:layout_gravity="center_horizontal" />
 
 </LinearLayout>

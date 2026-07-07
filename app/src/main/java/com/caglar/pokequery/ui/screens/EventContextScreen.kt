@@ -11,6 +11,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -72,6 +75,7 @@ import com.caglar.pokequery.domain.events.EventFeedLoader
 import com.caglar.pokequery.domain.events.EventPokemonEntry
 import com.caglar.pokequery.domain.events.EventStatus
 import com.caglar.pokequery.domain.events.effectiveStatus
+import com.caglar.pokequery.domain.events.localizedRaids
 import com.caglar.pokequery.domain.events.selectMainEvent
 import com.caglar.pokequery.theme.AmberWarning
 import com.caglar.pokequery.theme.BackgroundDark
@@ -394,32 +398,55 @@ private fun EventPickerPanel(
     onSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Row(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        events.forEach { event ->
+        events.take(3).forEach { event ->
             val selected = event.id == selectedId
             val tone = if (selected) TealPrimary else TextTertiary
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(50))
-                    .background(if (selected) TealPrimary.copy(alpha = 0.18f) else CardPremium.copy(alpha = 0.75f))
-                    .border(1.dp, tone.copy(alpha = if (selected) 0.65f else 0.18f), RoundedCornerShape(50))
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (selected) TealPrimary.copy(alpha = 0.16f) else CardPremium.copy(alpha = 0.70f))
+                    .border(1.5.dp, tone.copy(alpha = if (selected) 0.65f else 0.15f), RoundedCornerShape(10.dp))
                     .clickable { onSelected(event.id) }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Box(Modifier.size(7.dp).background(tone, CircleShape))
-                Spacer(Modifier.width(7.dp))
+                Box(
+                    Modifier
+                        .size(5.dp)
+                        .background(tone, CircleShape)
+                )
+                Spacer(Modifier.height(4.dp))
+
+                val displayTitle = when {
+                    event.id.contains("anniversary") -> {
+                        if (lang() == "tr") "10. Yıl Dönümü" else "10th Anniv."
+                    }
+                    event.id.contains("legends") -> {
+                        if (lang() == "tr") "Efsaneler Yolu" else "Road of Legends"
+                    }
+                    event.id.contains("fest") -> {
+                        if (lang() == "tr") "GO Fest 2026" else "GO Fest 2026"
+                    }
+                    else -> event.localizedTitle()
+                }
+
                 Text(
-                    text = event.localizedTitle(),
+                    text = displayTitle,
                     color = if (selected) TextPrimary else TextSecondary,
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    maxLines = 2,
+                    lineHeight = 12.sp,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -493,7 +520,6 @@ private fun EventDashboardContent(
             )
         }
 
-        Spacer(Modifier.height(12.dp))
         EventGroupCard(
             title = stringResource(R.string.event_featured_pokemon),
             badge = stringResource(R.string.event_group_featured_badge),
@@ -503,6 +529,19 @@ private fun EventDashboardContent(
             spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
             onOpen = onOpen
         )
+        val raidsText = event.localizedRaids()
+        if (raidsText.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = stringResource(R.string.event_feature_raids),
+                badge = stringResource(R.string.event_group_raids_badge),
+                body = raidsText,
+                action = stringResource(R.string.event_feature_raids_action),
+                tone = CyanGlow,
+                spriteKey = event.pokemon.firstOrNull { it.spriteKey == "mewtwo" || it.spriteKey == "necrozma" }?.spriteKey,
+                onOpen = onOpen
+            )
+        }
         Spacer(Modifier.height(10.dp))
         EventGroupCard(
             title = stringResource(R.string.event_research),
@@ -728,6 +767,7 @@ private fun spriteRes(key: String): Int? = when (key) {
     "eevee" -> R.drawable.event_eevee
     "zeraora" -> R.drawable.event_zeraora
     "wurmple" -> R.drawable.event_wurmple
+    "mewtwo" -> R.drawable.event_mewtwo
     else -> null
 }
 

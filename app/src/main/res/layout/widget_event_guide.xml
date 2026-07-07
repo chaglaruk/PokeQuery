@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- v0.7.1 Event Guide widget: event title/date, featured Pokémon, raid info, copy search -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_event_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,132 +9,141 @@
     android:background="@drawable/widget_background"
     android:padding="12dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/widget_event_title"
-        android:textColor="#FFFFFFFF"
-        android:textSize="15sp"
-        android:textStyle="bold" />
-
+    <!-- Event Title Row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="34dp"
-        android:layout_marginTop="6dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_marginBottom="2dp">
+
+        <TextView
+            android:id="@+id/widget_event_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/widget_event_title"
+            android:textColor="#E6FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+    <!-- Event date/status -->
+    <TextView
+        android:id="@+id/widget_event_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_event_date_placeholder"
+        android:textColor="#99FFFFFF"
+        android:textSize="10sp"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Content Split: Pokémon Sprites -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginBottom="6dp">
 
         <ImageView
+            android:id="@+id/widget_event_poke1"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:contentDescription="@null"
             android:src="@drawable/event_pikachu" />
 
         <ImageView
+            android:id="@+id/widget_event_poke2"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="6dp"
             android:contentDescription="@null"
             android:src="@drawable/event_necrozma" />
 
         <ImageView
+            android:id="@+id/widget_event_poke3"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="6dp"
             android:contentDescription="@null"
             android:src="@drawable/event_unown" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:text="@string/widget_event_status"
-            android:textColor="#FFFFD54F"
-            android:textSize="12sp"
-            android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Raid Pokémon row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="8dp"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/widget_event_raid_label"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:text="@string/widget_event_raid_pokemon"
+            android:textColor="#FF22D3EE"
+            android:textSize="10sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="4dp"
-                android:layout_weight="1"
-                android:background="@drawable/widget_card_gold"
-                android:gravity="center"
-                android:text="@string/widget_event_shiny"
-                android:textColor="#FFFFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="4dp"
-                android:layout_weight="1"
-                android:background="@drawable/widget_card_blue"
-                android:gravity="center"
-                android:text="@string/widget_event_raids"
-                android:textColor="#FFFFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/widget_event_raid_names"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="7dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="4dp"
-                android:layout_weight="1"
-                android:background="@drawable/widget_card_teal"
-                android:gravity="center"
-                android:text="@string/widget_event_storage"
-                android:textColor="#FFFFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="4dp"
-                android:layout_weight="1"
-                android:background="@drawable/widget_card_purple"
-                android:gravity="center"
-                android:text="@string/widget_event_trades"
-                android:textColor="#FFFFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:text="@string/widget_event_raid_placeholder"
+            android:textColor="#CCFFFFFF"
+            android:textSize="10sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
     </LinearLayout>
 
+    <!-- Search preview + copy -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/widget_card_teal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/widget_event_search_preview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/widget_event_search_preview"
+            android:textColor="#E6FFFFFF"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <ImageButton
+            android:id="@+id/widget_event_copy"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:contentDescription="@string/widget_copy_desc"
+            android:src="@drawable/ic_copy"
+            android:padding="2dp"
+            android:scaleType="centerInside" />
+    </LinearLayout>
+
+    <!-- Open button -->
     <TextView
         android:id="@+id/widget_event_open_action"
         android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:layout_marginTop="8dp"
+        android:layout_height="32dp"
         android:gravity="center"
-        android:background="@drawable/widget_card_teal"
+        android:background="@drawable/widget_card_blue"
         android:text="@string/widget_event_open"
-        android:textColor="#FFFFFFFF"
-        android:textSize="12sp"
+        android:textColor="#E6FFFFFF"
+        android:textSize="11sp"
         android:textStyle="bold" />
 </LinearLayout>

@@ -14,6 +14,31 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.7.1",
+            versionCode = 21,
+            releaseLabel = "Phase 5 Patch",
+            title = "Widget Value & Event Guide Polish",
+            highlights = listOf(
+                "Quick Access widget: search preview + copy/fallback",
+                "Goal Actions widget: Safe Cleanup & Candy Prep show query preview + copy; Assistant & Event Guide labeled clearly",
+                "Event Guide widget: current event title/date, featured Pokémon, raid info, copy search, open as secondary",
+                "Widget design: dark card system, spacing, contrast, typography aligned to app visual language"
+            ),
+            safetyNotes = listOf(
+                "INTERNET is used only for public Event Guide notes with cache and safe fallback",
+                "No login, no tracking, no ads, no analytics",
+                "No Pokémon GO account access",
+                "Widgets use standard start_route or clipboard fallback — no silent background writes"
+            ),
+            testerNotes = listOf(
+                "Add Quick Access widget — verify search preview visible and copy/fallback works",
+                "Add Goal Actions widget — verify Safe Cleanup & Candy Prep show query preview + copy",
+                "Add Event Guide widget — verify event title/date, featured Pokémon, raid info, copy search",
+                "Verify all widgets work after reboot and locale change"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.7.0",
             versionCode = 20,
             releaseLabel = "Phase 5",
@@ -35,7 +60,7 @@ object Changelog {
                 "Verify Quick Access widget still opens Safe Cleanup",
                 "Verify widgets work after reboot and locale change"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.6.2",

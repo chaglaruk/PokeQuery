@@ -17,6 +17,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.caglar.pokequery.data.model.GeneratedString
 import com.caglar.pokequery.data.model.SavedTemplate
+import com.caglar.pokequery.data.model.RiskLevel
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
@@ -28,7 +29,11 @@ import com.caglar.pokequery.ui.screens.*
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainNavigation(startRoute: String? = null) {
+fun MainNavigation(
+    startRoute: String? = null,
+    copySearch: String? = null,
+    onCopyHandled: () -> Unit = {}
+) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
@@ -41,11 +46,38 @@ fun MainNavigation(startRoute: String? = null) {
     val backStack = rememberNavBackStack(initialEntry)
     var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
 
-    // v0.5.3 motion polish: provide the resolved reduced-motion state to the whole UI.
-    ProvidePqMotion {
     val copiedToClipboard = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_copied)
     val assistantExplanation = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_generated_explanation)
 
+    LaunchedEffect(startRoute, copySearch) {
+        if (!copySearch.isNullOrBlank()) {
+            clipboard.setText(AnnotatedString(copySearch))
+            val explanation = when (startRoute) {
+                "detail_safe_cleanup" -> "Safe Cleanup search string copied from widget"
+                "detail_candy_prep" -> "Candy Prep search string copied from widget"
+                "events" -> "Event Guide search string copied from widget"
+                else -> "Search string copied from widget"
+            }
+            scope.launch {
+                repository.addHistory(
+                    SavedTemplate.from(
+                        GeneratedString(
+                            rawSyntax = copySearch,
+                            plainLanguageExplanation = explanation,
+                            protectedCategories = emptyList(),
+                            includedHighRiskCategories = emptyList(),
+                            riskLevel = RiskLevel.Low
+                        )
+                    )
+                )
+            }
+            android.widget.Toast.makeText(context, copiedToClipboard, android.widget.Toast.LENGTH_SHORT).show()
+            onCopyHandled()
+        }
+    }
+
+    // v0.5.3 motion polish: provide the resolved reduced-motion state to the whole UI.
+    ProvidePqMotion {
     fun copyGenerated(generated: GeneratedString) {
         clipboard.setText(AnnotatedString(generated.rawSyntax))
         scope.launch { repository.addHistory(SavedTemplate.from(generated)) }

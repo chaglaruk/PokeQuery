@@ -21,8 +21,16 @@
 
 
     <string name="widget_quick_access_title">PokeQuery</string>
-    <string name="widget_quick_access_subtitle">Tap to open Safe Cleanup</string>
-    <string name="widget_quick_access_description">Opens PokeQuery to a quick review screen.</string>
+    <string name="widget_quick_access_subtitle">Safe Cleanup search preview</string>
+    <string name="widget_quick_access_description">Shows Safe Cleanup search with copy action.</string>
+    <string name="widget_quick_access_preview_label">Safe Cleanup</string>
+    <string name="widget_quick_access_search_preview">0*,1*&amp;!shiny</string>
+    <string name="widget_copy_desc">Copy search</string>
+    <string name="widget_tap_to_open">Tap to open in app</string>
+    <string name="widget_event_date_placeholder">Active now</string>
+    <string name="widget_event_raid_pokemon">Featured Raids</string>
+    <string name="widget_event_raid_placeholder">No active raids</string>
+    <string name="widget_event_search_preview">suggested search query</string>
 
 
     <string name="assistant_title">Search Assistant</string>
