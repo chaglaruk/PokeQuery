@@ -249,7 +249,7 @@ fun EventContextScreen(
                                     modifier = Modifier.pqStaggeredItem(visible, 4)
                                 )
                             }
-                            sections.happeningNow.forEachIndexed { idx, event ->
+                            sections.happeningNow.take(3).forEachIndexed { idx, event ->
                                 item(key = "now-${event.id}") {
                                     CompactEventCard(
                                         event = event,
@@ -298,7 +298,7 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Düzenli" else "Routine",
+                                        statusLabel = if (lang == "tr") "Rotasyon" else "Rotation",
                                         statusColor = PurpleIV,
                                         onClick = { selectedEventId = event.id },
                                         modifier = Modifier.pqStaggeredItem(visible, 9 + idx)
@@ -324,6 +324,38 @@ fun EventContextScreen(
                                         statusColor = TextTertiary,
                                         onClick = { selectedEventId = event.id },
                                         modifier = Modifier.pqStaggeredItem(visible, 11 + idx)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── All Events ──
+                        if (sections.allActive.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("allActive", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 14)
+                                )
+                            }
+                            sections.allActive.forEachIndexed { idx, event ->
+                                item(key = "all-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = when (event.determineCategory()) {
+                                            EventCategory.MAJOR_GAMEPLAY -> if (lang == "tr") "Büyük" else "Major"
+                                            EventCategory.LIMITED_GAMEPLAY -> if (lang == "tr") "Sınırlı" else "Limited"
+                                            EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> if (lang == "tr") "Rotasyon" else "Rotation"
+                                            else -> if (lang == "tr") "Haber" else "News"
+                                        },
+                                        statusColor = when (event.determineCategory()) {
+                                            EventCategory.MAJOR_GAMEPLAY -> CyanGlow
+                                            EventCategory.LIMITED_GAMEPLAY -> AmberWarning
+                                            EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> PurpleIV
+                                            else -> TextTertiary
+                                        },
+                                        onClick = { selectedEventId = event.id },
+                                        modifier = Modifier.pqStaggeredItem(visible, 15 + idx)
                                     )
                                 }
                             }
@@ -581,51 +613,57 @@ private fun EventPickerPanel(
 /** Section title localization helper — no XML resources needed. */
 private fun sectionTitle(section: String, lang: String): String = when (lang) {
     "tr" -> when (section) {
-        "featured" -> "Öne Çıkan Etkinlik"
-        "upcoming" -> "Yakında Önemli"
-        "live" -> "Şu An Olanlar"
-        "rotations" -> "Rotasyonlar ve Düzenli Etkinlikler"
-        "news" -> "Duyurular"
+        "featured" -> "Öne çıkan"
+        "upcoming" -> "Yakında önemli"
+        "live" -> "Şu an olanlar"
+        "rotations" -> "Rotasyonlar ve ligler"
+        "news" -> "Duyurular ve ödüller"
+        "allActive" -> "Tüm etkinlikler"
         else -> ""
     }
     "de" -> when (section) {
-        "featured" -> "Hervorgehobenes Event"
+        "featured" -> "Hervorgehoben"
         "upcoming" -> "Wichtig & Bevorstehend"
-        "live" -> "Jetzt Aktiv"
-        "rotations" -> "Rotationen & Regelmäßige Events"
-        "news" -> "Neuigkeiten"
+        "live" -> "Jetzt aktiv"
+        "rotations" -> "Rotationen & Ligen"
+        "news" -> "Neuigkeiten & Belohnungen"
+        "allActive" -> "Alle Events"
         else -> ""
     }
     "es" -> when (section) {
-        "featured" -> "Evento Destacado"
+        "featured" -> "Destacado"
         "upcoming" -> "Importante Próximo"
-        "live" -> "Activo Ahora"
-        "rotations" -> "Rotaciones y Eventos Regulares"
-        "news" -> "Noticias"
+        "live" -> "Activo ahora"
+        "rotations" -> "Rotaciones y Ligas"
+        "news" -> "Noticias y Recompensas"
+        "allActive" -> "Todos los eventos"
         else -> ""
     }
     "fr" -> when (section) {
-        "featured" -> "Événement Vedette"
-        "upcoming" -> "Important à Venir"
-        "live" -> "Actif Maintenant"
-        "rotations" -> "Rotations et Événements Réguliers"
-        "news" -> "Nouvelles"
+        "featured" -> "Vedette"
+        "upcoming" -> "Important à venir"
+        "live" -> "Actif maintenant"
+        "rotations" -> "Rotations & Ligues"
+        "news" -> "Nouvelles & Récompenses"
+        "allActive" -> "Tous les événements"
         else -> ""
     }
     "it" -> when (section) {
-        "featured" -> "Evento in Evidenza"
-        "upcoming" -> "Importante in Arrivo"
-        "live" -> "Attivo Ora"
-        "rotations" -> "Rotazioni e Eventi Regolari"
-        "news" -> "Notizie"
+        "featured" -> "In evidenza"
+        "upcoming" -> "Importante in arrivo"
+        "live" -> "Attivo ora"
+        "rotations" -> "Rotazioni e Leghe"
+        "news" -> "Notizie e Premi"
+        "allActive" -> "Tutti gli eventi"
         else -> ""
     }
     else -> when (section) {
-        "featured" -> "Featured Event"
-        "upcoming" -> "Important Upcoming"
-        "live" -> "Happening Now"
-        "rotations" -> "Rotations & Regular Events"
-        "news" -> "News & Announcements"
+        "featured" -> "Featured"
+        "upcoming" -> "Important upcoming"
+        "live" -> "Happening now"
+        "rotations" -> "Rotations and leagues"
+        "news" -> "News and rewards"
+        "allActive" -> "All active events"
         else -> ""
     }
 }

@@ -81,7 +81,8 @@ data class EventContext(
     val pokemon: List<EventPokemonEntry> = emptyList(),
     val themeKey: String = "generic_event",
     val isManual: Boolean = true,
-    val importanceTier: String = "STANDARD"
+    val importanceTier: String = "STANDARD",
+    val eventCategory: String? = null
 )
 
 data class EventPokemonEntry(
@@ -125,38 +126,86 @@ private fun todayIsoDate(): String =
 private fun String?.validIsoDate(): String? =
     this?.takeIf { isoDatePattern.matches(it) }
 
+object EventCategory {
+    const val MAJOR_GAMEPLAY = "MAJOR_GAMEPLAY"
+    const val LIMITED_GAMEPLAY = "LIMITED_GAMEPLAY"
+    const val ROUTINE_ROTATION = "ROUTINE_ROTATION"
+    const val SEASON_GBL = "SEASON_GBL"
+    const val RAID_ROTATION = "RAID_ROTATION"
+    const val NEWS_PROMO = "NEWS_PROMO"
+    const val REWARD_DROP = "REWARD_DROP"
+    const val ANNOUNCEMENT = "ANNOUNCEMENT"
+}
+
+fun EventContext.determineCategory(): String {
+    val cat = eventCategory?.uppercase()?.trim()
+    if (!cat.isNullOrBlank()) {
+        return cat
+    }
+    val title = (titleText ?: "").lowercase(Locale.US)
+    val kind = themeKey.lowercase(Locale.US)
+    return when {
+        title.contains("twitch drops") || title.contains("prime gaming") || title.contains("reward") || title.contains("drop") -> EventCategory.REWARD_DROP
+        title.contains("save the date") || title.contains("save-the-date") || title.contains("wallpapers") || title.contains("diary") || title.contains("promo") || title.contains("store") || title.contains("coupon") || title.contains("code") -> EventCategory.NEWS_PROMO
+        title.contains("lego") || title.contains("art") || title.contains("birthday") || title.contains("announcement") || title.contains("partnership") || title.contains("showcase") || title.contains("professor willow") || title.contains("scopely") -> EventCategory.ANNOUNCEMENT
+        title.contains("gbl") || title.contains("go battle league") || title.contains("season:") || title.contains("forever forward") || title.contains("season of") || title.contains("league") || title.contains("cup") -> EventCategory.SEASON_GBL
+        title.contains("spotlight hour") || title.contains("raid hour") || title.contains("max mondays") || title.contains("max monday") || kind == "spotlight_hour" -> EventCategory.ROUTINE_ROTATION
+        !title.contains("raid day") && (title.contains("in 5-star") || title.contains("in mega raids") || title.contains("in shadow raids") || title.contains("5-star raid") || title.contains("mega raid") || title.contains("shadow raid") || title.contains("raid rotation")) -> EventCategory.RAID_ROTATION
+        title.contains("go fest") || title.contains("go tour") || title.contains("safari zone") || title.contains("community day") || title.contains("road of legends") || title.contains("global") || kind == "community_day" -> EventCategory.MAJOR_GAMEPLAY
+        else -> EventCategory.LIMITED_GAMEPLAY
+    }
+}
+
 /**
  * Selects the single main event to feature prominently on the Event Guide.
  *
- * Strategy: prefer MAJOR current events, then STANDARD current, then MAJOR upcoming,
- * then STANDARD upcoming. Within each tier, prefer events ending/starting soonest.
- * Long-running ROUTINE and NEWS events rank lowest.
- *
+ * Strategy: prefer MAJOR_GAMEPLAY / LIMITED_GAMEPLAY.
+ * Prefer current or upcoming starting within 21 days.
  * Pure function — unit-testable without Android.
  */
 fun selectMainEvent(events: List<EventContext>, todayIsoDate: String = todayIsoDate()): EventContext? {
     if (events.isEmpty()) return null
     return events
         .filter { it.effectiveStatus(todayIsoDate) != EventStatus.ENDED }
-        .sortedWith(compareBy<EventContext> { it.featuredScore(todayIsoDate) }
+        .sortedWith(compareBy<EventContext> { it.heroScore(todayIsoDate) }
             .thenBy { if (it.effectiveStatus(todayIsoDate) == EventStatus.CURRENT) it.endDate ?: "9999-12-31" else it.startDate ?: "9999-12-31" })
         .firstOrNull()
 }
 
 /** Lower score = higher priority for featured selection. */
-fun EventContext.featuredScore(todayIso: String): Int {
+fun EventContext.heroScore(todayIso: String): Int {
     val status = effectiveStatus(todayIso)
-    val tier = importanceTier.uppercase()
-    return when {
-        status == EventStatus.CURRENT && tier == "MAJOR" -> 10
-        status == EventStatus.CURRENT && tier == "STANDARD" -> 20
-        status == EventStatus.UPCOMING && tier == "MAJOR" -> 30
-        status == EventStatus.UPCOMING && tier == "STANDARD" -> 40
-        status == EventStatus.CURRENT && tier == "ROUTINE" -> 50
-        status == EventStatus.UPCOMING && tier == "ROUTINE" -> 60
-        tier == "NEWS" -> 70
+    if (status == EventStatus.ENDED) return 9999
+
+    val cat = determineCategory()
+    val startDiff = daysBetween(todayIso, startDate)
+    val isNear = startDiff in 0..21
+
+    return when (cat) {
+        EventCategory.MAJOR_GAMEPLAY -> {
+            if (status == EventStatus.CURRENT) 10
+            else if (isNear) 30
+            else 50
+        }
+        EventCategory.LIMITED_GAMEPLAY -> {
+            if (status == EventStatus.CURRENT) 20
+            else if (isNear) 40
+            else 55
+        }
+        EventCategory.RAID_ROTATION, EventCategory.ROUTINE_ROTATION, EventCategory.SEASON_GBL -> {
+            if (status == EventStatus.CURRENT) 60
+            else 70
+        }
+        EventCategory.REWARD_DROP, EventCategory.NEWS_PROMO, EventCategory.ANNOUNCEMENT -> {
+            100
+        }
         else -> 80
     }
+}
+
+/** Legacy featuredScore utility keeping backward compatibility. */
+fun EventContext.featuredScore(todayIso: String): Int {
+    return heroScore(todayIso)
 }
 
 /** Compute days between two ISO date strings. Positive means to is after from. */
@@ -179,7 +228,8 @@ data class EventSections(
     val importantUpcoming: List<EventContext>,
     val happeningNow: List<EventContext>,
     val rotations: List<EventContext>,
-    val news: List<EventContext>
+    val news: List<EventContext>,
+    val allActive: List<EventContext>
 )
 
 fun groupEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): EventSections {
@@ -187,38 +237,43 @@ fun groupEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): 
     val featured = selectMainEvent(active, todayIso)
     val rest = active.filter { it.id != featured?.id }
 
-    val importantUpcoming = rest
-        .filter {
-            it.effectiveStatus(todayIso) == EventStatus.UPCOMING &&
-            it.importanceTier.uppercase() in listOf("MAJOR", "STANDARD")
-        }
-        .sortedWith(compareBy<EventContext> {
-            if (it.importanceTier.uppercase() == "MAJOR") 0 else 1
-        }.thenBy { it.startDate ?: "9999-12-31" })
-        .take(5)
-
     val happeningNow = rest
         .filter {
             it.effectiveStatus(todayIso) == EventStatus.CURRENT &&
-            it.importanceTier.uppercase() in listOf("MAJOR", "STANDARD")
+            it.determineCategory() in listOf(EventCategory.MAJOR_GAMEPLAY, EventCategory.LIMITED_GAMEPLAY)
         }
         .sortedBy { it.endDate ?: "9999-12-31" }
 
-    val usedIds = setOfNotNull(featured?.id) +
-        importantUpcoming.map { it.id }.toSet() +
-        happeningNow.map { it.id }.toSet()
+    val importantUpcoming = rest
+        .filter {
+            it.effectiveStatus(todayIso) == EventStatus.UPCOMING &&
+            it.determineCategory() in listOf(EventCategory.MAJOR_GAMEPLAY, EventCategory.LIMITED_GAMEPLAY) &&
+            daysBetween(todayIso, it.startDate) in 0..21
+        }
+        .sortedWith(compareBy<EventContext> {
+            if (it.determineCategory() == EventCategory.MAJOR_GAMEPLAY) 0 else 1
+        }.thenBy { it.startDate ?: "9999-12-31" })
 
     val rotations = rest
-        .filter { it.id !in usedIds && it.importanceTier.uppercase() == "ROUTINE" }
+        .filter {
+            it.determineCategory() in listOf(EventCategory.SEASON_GBL, EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION)
+        }
         .sortedWith(compareBy<EventContext> {
             if (it.effectiveStatus(todayIso) == EventStatus.CURRENT) 0 else 1
         }.thenBy { it.startDate ?: "9999-12-31" })
 
     val newsItems = rest
-        .filter { it.id !in usedIds && it.importanceTier.uppercase() == "NEWS" }
+        .filter {
+            it.determineCategory() in listOf(EventCategory.REWARD_DROP, EventCategory.NEWS_PROMO, EventCategory.ANNOUNCEMENT)
+        }
         .sortedBy { it.startDate ?: "9999-12-31" }
 
-    return EventSections(featured, importantUpcoming, happeningNow, rotations, newsItems)
+    val allActive = active
+        .sortedWith(compareBy<EventContext> {
+            if (it.effectiveStatus(todayIso) == EventStatus.CURRENT) 0 else 1
+        }.thenBy { it.startDate ?: "9999-12-31" })
+
+    return EventSections(featured, importantUpcoming, happeningNow, rotations, newsItems, allActive)
 }
 
 // Localized string helpers for EventContext and EventPokemonEntry

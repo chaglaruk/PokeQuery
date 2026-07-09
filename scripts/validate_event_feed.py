@@ -74,6 +74,13 @@ def validate_feed(file_path):
             print(f"Error: Event {event_id} has invalid importanceTier: {importance_tier}")
             return False
 
+        # Check eventCategory
+        event_category = event.get("eventCategory")
+        ALLOWED_CATEGORIES = ["MAJOR_GAMEPLAY", "LIMITED_GAMEPLAY", "ROUTINE_ROTATION", "SEASON_GBL", "RAID_ROTATION", "NEWS_PROMO", "REWARD_DROP", "ANNOUNCEMENT"]
+        if event_category and event_category not in ALLOWED_CATEGORIES:
+            print(f"Error: Event {event_id} has invalid eventCategory: {event_category}")
+            return False
+
         # Check no '|' in search
         suggested_search = event.get("suggestedSearch")
         if "|" in suggested_search:

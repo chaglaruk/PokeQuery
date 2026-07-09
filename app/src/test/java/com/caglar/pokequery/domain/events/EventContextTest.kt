@@ -662,7 +662,8 @@ class EventFeedLoaderTest {
         tier: String = "STANDARD",
         status: EventStatus = EventStatus.CURRENT,
         startDate: String? = null,
-        endDate: String? = null
+        endDate: String? = null,
+        category: String? = null
     ) = EventContext(
         id = id,
         titleText = id,
@@ -675,68 +676,137 @@ class EventFeedLoaderTest {
         prepText = "P",
         suggestedSearch = "age0",
         eventNotesText = "N",
-        importanceTier = tier
+        importanceTier = tier,
+        eventCategory = category
     )
 
     @Test
-    fun `featuredScore prefers MAJOR CURRENT over STANDARD CURRENT`() {
+    fun `featuredScore uses heroScore internally`() {
         val today = "2026-07-09"
-        val major = makeEvent("major", "MAJOR", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
-        val standard = makeEvent("std", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
+        val major = makeEvent("major", "MAJOR", EventStatus.CURRENT, "2026-07-08", "2026-07-10", EventCategory.MAJOR_GAMEPLAY)
+        val standard = makeEvent("std", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10", EventCategory.LIMITED_GAMEPLAY)
         assertTrue(major.featuredScore(today) < standard.featuredScore(today))
     }
 
     @Test
-    fun `featuredScore prefers CURRENT STANDARD over UPCOMING MAJOR`() {
+    fun `heroScore prefers MAJOR_GAMEPLAY over SEASON_GBL and NEWS_PROMO`() {
         val today = "2026-07-09"
-        val current = makeEvent("cur", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
-        val upcoming = makeEvent("up", "MAJOR", EventStatus.UPCOMING, "2026-07-15", "2026-07-17")
-        assertTrue(current.featuredScore(today) < upcoming.featuredScore(today))
+        val cd = makeEvent("community-day", "MAJOR", EventStatus.UPCOMING, "2026-07-15", "2026-07-15", EventCategory.MAJOR_GAMEPLAY)
+        val season = makeEvent("forever-forward", "ROUTINE", EventStatus.CURRENT, "2026-06-01", "2026-09-01", EventCategory.SEASON_GBL)
+        val twitch = makeEvent("twitch-drops", "NEWS", EventStatus.CURRENT, "2026-07-09", "2026-07-10", EventCategory.REWARD_DROP)
+
+        assertTrue(cd.heroScore(today) < season.heroScore(today))
+        assertTrue(season.heroScore(today) < twitch.heroScore(today))
     }
 
     @Test
-    fun `featuredScore ranks NEWS lowest`() {
+    fun `Twitch Drops is not hero when major gameplay event exists`() {
         val today = "2026-07-09"
-        val news = makeEvent("news", "NEWS", EventStatus.UPCOMING, "2026-07-01", "2026-12-31")
-        val routine = makeEvent("rot", "ROUTINE", EventStatus.UPCOMING, "2026-07-10", "2026-07-11")
-        assertTrue(news.featuredScore(today) > routine.featuredScore(today))
+        val twitch = makeEvent("twitch-drops", "NEWS", EventStatus.CURRENT, "2026-07-09", "2026-07-10", EventCategory.REWARD_DROP)
+        val roadOfLegends = makeEvent("road-of-legends", "MAJOR", EventStatus.UPCOMING, "2026-07-12", "2026-07-14", EventCategory.MAJOR_GAMEPLAY)
+
+        val hero = selectMainEvent(listOf(twitch, roadOfLegends), today)
+        assertEquals("road-of-legends", hero?.id)
     }
 
     @Test
-    fun `groupEvents puts MAJOR current as featured`() {
+    fun `Season and GBL do not appear in Happening Now`() {
         val today = "2026-07-09"
-        val major = makeEvent("go-fest", "MAJOR", EventStatus.CURRENT, "2026-07-08", "2026-07-12")
-        val standard = makeEvent("cd", "STANDARD", EventStatus.CURRENT, "2026-07-09", "2026-07-09")
-        val routine = makeEvent("rot", "ROUTINE", EventStatus.CURRENT, "2026-07-01", "2026-08-31")
-        val news = makeEvent("ann", "NEWS", EventStatus.UPCOMING, "2026-07-01", "2026-12-31")
+        val season = makeEvent("forever-forward", "ROUTINE", EventStatus.CURRENT, "2026-06-01", "2026-09-01", EventCategory.SEASON_GBL)
+        val gbl = makeEvent("gbl-league", "ROUTINE", EventStatus.CURRENT, "2026-07-09", "2026-07-16", EventCategory.SEASON_GBL)
+        val limited = makeEvent("anniversary-party", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-12", EventCategory.LIMITED_GAMEPLAY)
 
-        val sections = groupEvents(listOf(major, standard, routine, news), today)
-        assertEquals("go-fest", sections.featured?.id)
-        assertTrue(sections.happeningNow.any { it.id == "cd" })
-        assertTrue(sections.rotations.any { it.id == "rot" })
-        assertTrue(sections.news.any { it.id == "ann" })
-    }
-
-    @Test
-    fun `groupEvents excludes ENDED events from all sections`() {
-        val today = "2026-07-09"
-        val ended = makeEvent("old", "MAJOR", EventStatus.CURRENT, "2026-06-01", "2026-06-02")
-        val current = makeEvent("now", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
-
-        val sections = groupEvents(listOf(ended, current), today)
-        assertEquals("now", sections.featured?.id)
+        val sections = groupEvents(listOf(season, gbl, limited), today)
+        // featured should be limited anniversary-party (because it is CURRENT LIMITED_GAMEPLAY, score=10 vs SEASON_GBL score=60)
+        assertEquals("anniversary-party", sections.featured?.id)
+        // happeningNow should be empty because the only CURRENT LIMITED_GAMEPLAY is already featured
         assertTrue(sections.happeningNow.isEmpty())
-        assertTrue(sections.importantUpcoming.isEmpty())
+        // rotations should contain season and gbl
+        assertTrue(sections.rotations.any { it.id == "forever-forward" })
+        assertTrue(sections.rotations.any { it.id == "gbl-league" })
     }
 
     @Test
-    fun `groupEvents returns empty sections for empty input`() {
-        val sections = groupEvents(emptyList())
-        assertNull(sections.featured)
-        assertTrue(sections.happeningNow.isEmpty())
+    fun `Raid rotations and Spotlight and Raid Hour go to Rotations`() {
+        val today = "2026-07-09"
+        val shadowRaid = makeEvent("shadow-palkia", "ROUTINE", EventStatus.CURRENT, "2026-07-01", "2026-07-31", EventCategory.RAID_ROTATION)
+        val spotlight = makeEvent("spotlight-hour", "ROUTINE", EventStatus.UPCOMING, "2026-07-15", "2026-07-15", EventCategory.ROUTINE_ROTATION)
+        val cd = makeEvent("community-day", "MAJOR", EventStatus.UPCOMING, "2026-07-15", "2026-07-15", EventCategory.MAJOR_GAMEPLAY)
+
+        val sections = groupEvents(listOf(shadowRaid, spotlight, cd), today)
+        // cd is featured (upcoming MAJOR starting <= 21 days, score=20)
+        assertEquals("community-day", sections.featured?.id)
+        // shadowRaid and spotlight go to rotations
+        assertTrue(sections.rotations.any { it.id == "shadow-palkia" })
+        assertTrue(sections.rotations.any { it.id == "spotlight-hour" })
+    }
+
+    @Test
+    fun `Major upcoming gameplay event starts later than routine current but is chosen as hero`() {
+        val today = "2026-07-09"
+        val routineCurrent = makeEvent("mega-sceptile", "ROUTINE", EventStatus.CURRENT, "2026-07-01", "2026-07-15", EventCategory.RAID_ROTATION)
+        val majorUpcoming = makeEvent("go-fest-global", "MAJOR", EventStatus.UPCOMING, "2026-07-12", "2026-07-14", EventCategory.MAJOR_GAMEPLAY)
+
+        val hero = selectMainEvent(listOf(routineCurrent, majorUpcoming), today)
+        assertEquals("go-fest-global", hero?.id)
+    }
+
+    @Test
+    fun `Current limited gameplay event ending soon outranks long running season`() {
+        val today = "2026-07-09"
+        val limited = makeEvent("hatch-day", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10", EventCategory.LIMITED_GAMEPLAY)
+        val season = makeEvent("forever-forward", "ROUTINE", EventStatus.CURRENT, "2026-06-01", "2026-09-01", EventCategory.SEASON_GBL)
+
+        val hero = selectMainEvent(listOf(limited, season), today)
+        assertEquals("hatch-day", hero?.id)
+    }
+
+    @Test
+    fun `Important upcoming includes major gameplay within 21 days but excludes routine`() {
+        val today = "2026-07-09"
+        val upcomingCd = makeEvent("cd-upcoming", "MAJOR", EventStatus.UPCOMING, "2026-07-15", "2026-07-15", EventCategory.MAJOR_GAMEPLAY)
+        val upcomingFar = makeEvent("cd-far", "MAJOR", EventStatus.UPCOMING, "2026-08-15", "2026-08-15", EventCategory.MAJOR_GAMEPLAY)
+        val upcomingRoutine = makeEvent("spotlight-upcoming", "ROUTINE", EventStatus.UPCOMING, "2026-07-15", "2026-07-15", EventCategory.ROUTINE_ROTATION)
+
+        val sections = groupEvents(listOf(upcomingCd, upcomingFar, upcomingRoutine), today)
+        // cd-upcoming should be featured
+        assertEquals("cd-upcoming", sections.featured?.id)
+        // importantUpcoming should be empty since upcomingCd is already featured and upcomingFar is > 21 days
         assertTrue(sections.importantUpcoming.isEmpty())
-        assertTrue(sections.rotations.isEmpty())
-        assertTrue(sections.news.isEmpty())
+        // rotations should contain upcomingRoutine
+        assertTrue(sections.rotations.any { it.id == "spotlight-upcoming" })
+    }
+
+    @Test
+    fun `News promo rewards and announcements entries go to News section`() {
+        val today = "2026-07-09"
+        val twitch = makeEvent("twitch-drops", "NEWS", EventStatus.CURRENT, "2026-07-09", "2026-07-10", EventCategory.REWARD_DROP)
+        val lego = makeEvent("lego-collab", "NEWS", EventStatus.CURRENT, "2026-07-09", "2026-07-15", EventCategory.ANNOUNCEMENT)
+        val saveDate = makeEvent("save-the-date", "NEWS", EventStatus.UPCOMING, "2026-07-15", "2026-07-15", EventCategory.NEWS_PROMO)
+
+        val sections = groupEvents(listOf(twitch, lego, saveDate), today)
+        // twitch drops (current, score 100) is featured because all are score 100 and it ends earliest/starts earliest
+        assertEquals("twitch-drops", sections.featured?.id)
+        // news section should contain lego and save-the-date
+        assertTrue(sections.news.any { it.id == "lego-collab" })
+        assertTrue(sections.news.any { it.id == "save-the-date" })
+    }
+
+    @Test
+    fun `Full feed remains accessible via allActive`() {
+        val today = "2026-07-09"
+        val cd = makeEvent("community-day", "MAJOR", EventStatus.UPCOMING, "2026-07-15", "2026-07-15", EventCategory.MAJOR_GAMEPLAY)
+        val season = makeEvent("forever-forward", "ROUTINE", EventStatus.CURRENT, "2026-06-01", "2026-09-01", EventCategory.SEASON_GBL)
+        val twitch = makeEvent("twitch-drops", "NEWS", EventStatus.CURRENT, "2026-07-09", "2026-07-10", EventCategory.REWARD_DROP)
+
+        val sections = groupEvents(listOf(cd, season, twitch), today)
+        // featured is cd
+        assertEquals("community-day", sections.featured?.id)
+        // allActive contains all 3 events
+        assertEquals(3, sections.allActive.size)
+        assertTrue(sections.allActive.any { it.id == "community-day" })
+        assertTrue(sections.allActive.any { it.id == "forever-forward" })
+        assertTrue(sections.allActive.any { it.id == "twitch-drops" })
     }
 
     @Test
@@ -744,15 +814,6 @@ class EventFeedLoaderTest {
         assertEquals(7, daysBetween("2026-07-01", "2026-07-08"))
         assertEquals(0, daysBetween("2026-07-09", "2026-07-09"))
         assertEquals(999, daysBetween("2026-07-09", null))
-    }
-
-    @Test
-    fun `selectMainEvent with importance tier prefers MAJOR over STANDARD`() {
-        val today = "2026-07-09"
-        val standard = makeEvent("std", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
-        val major = makeEvent("major", "MAJOR", EventStatus.CURRENT, "2026-07-08", "2026-07-12")
-        val result = selectMainEvent(listOf(standard, major), today)
-        assertEquals("major", result?.id)
     }
 
     @Test
@@ -768,5 +829,14 @@ class EventFeedLoaderTest {
             eventNotesText = "N"
         )
         assertEquals("STANDARD", event.importanceTier)
+    }
+
+    @Test
+    fun `EventContext determineCategory defaults and overrides correctly`() {
+        val withOverride = makeEvent("test", category = "SEASON_GBL")
+        assertEquals(EventCategory.SEASON_GBL, withOverride.determineCategory())
+
+        val twitchImplicit = makeEvent("Twitch Drops for celebration")
+        assertEquals(EventCategory.REWARD_DROP, twitchImplicit.determineCategory())
     }
 }

@@ -242,22 +242,51 @@ def parse_live_leekduck_events(html):
         })
     return events
 
-def get_importance_tier(title, kind):
+def get_event_category(title, kind):
     title_lower = title.lower()
     kind_lower = kind.lower()
     
-    if any(w in title_lower for w in ["save the date", "save-the-date", "lego", "art", "partnership", "birthday", "wallpapers", "twitch drops"]):
+    # 1. Reward / Drops
+    if any(w in title_lower for w in ["twitch drops", "prime gaming", "reward", "drop"]):
+        return "REWARD_DROP"
+        
+    # 2. News / Promo
+    if any(w in title_lower for w in ["save the date", "save-the-date", "wallpapers", "diary", "promo", "store", "coupon", "code"]):
+        return "NEWS_PROMO"
+
+    # 3. Announcement / Collab / Art / Birthday
+    if any(w in title_lower for w in ["lego", "art", "birthday", "announcement", "partnership", "showcase", "professor willow", "scopely"]):
+        return "ANNOUNCEMENT"
+
+    # 4. GBL / Season
+    if any(w in title_lower for w in ["gbl", "go battle league", "season:", "forever forward", "season of", "league", "cup"]):
+        return "SEASON_GBL"
+
+    # 5. Routine Rotations
+    if any(w in title_lower for w in ["spotlight hour", "raid hour", "max mondays", "max monday"]) or kind_lower == "spotlight_hour":
+        return "ROUTINE_ROTATION"
+
+    # 6. Raid rotations (distinct from Raid Day)
+    if "raid day" not in title_lower:
+        if any(w in title_lower for w in ["in 5-star", "in mega raids", "in shadow raids", "5-star raid", "mega raid", "shadow raid", "raid rotation"]):
+            return "RAID_ROTATION"
+
+    # 7. Major Gameplay
+    if any(w in title_lower for w in ["go fest", "go tour", "safari zone", "community day", "road of legends", "global"]) or kind_lower == "community_day":
+        return "MAJOR_GAMEPLAY"
+        
+    # 8. Default fallback for standard gameplay events
+    return "LIMITED_GAMEPLAY"
+
+def get_importance_tier(category):
+    if category in ["REWARD_DROP", "NEWS_PROMO", "ANNOUNCEMENT"]:
         return "NEWS"
-        
-    if any(w in title_lower for w in ["spotlight hour", "raid hour", "max mondays", "league", "gbl", "season", "rotation", "5-star", "mega raid"]):
+    elif category in ["ROUTINE_ROTATION", "SEASON_GBL", "RAID_ROTATION"]:
         return "ROUTINE"
-        
-    if any(w in title_lower for w in ["community day", "go fest", "raid day", "hatch day", "takeover", "anniversary party", "road of legends", "global"]):
+    elif category == "MAJOR_GAMEPLAY":
         return "MAJOR"
-    if kind_lower in ["community_day", "spotlight_hour"]:
-        return "MAJOR" if kind_lower == "community_day" else "ROUTINE"
-        
-    return "STANDARD"
+    else:
+        return "STANDARD"
 
 def generate_feed(fixture_mode, output_path):
     # Determine base directories
@@ -454,7 +483,8 @@ def generate_feed(fixture_mode, output_path):
             "eventNotesFr": meta.get("eventNotesFr"),
             "eventNotesIt": meta.get("eventNotesIt"),
             "themeKey": meta.get("themeKey", "generic_event"),
-            "importanceTier": meta.get("importanceTier") or get_importance_tier(ev["title"], ev["kind"]),
+            "eventCategory": meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"]),
+            "importanceTier": meta.get("importanceTier") or get_importance_tier(meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"])),
             "sourceNotes": f"Generated from {ev['sourceName']}: {ev['sourceUrl']}",
             "sourceName": ev["sourceName"],
             "sourceUrl": ev["sourceUrl"],
