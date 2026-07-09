@@ -1,0 +1,33 @@
+name: Update Event Feed
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-feed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-level: '3.11'
+
+      - name: Generate Event Feed
+        run: |
+          python scripts/generate_event_feed.py --fixture-mode
+
+      - name: Validate Event Feed
+        run: |
+          python scripts/validate_event_feed.py docs/event-feed/pokequery-events.json
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/event-feed/pokequery-events.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update event feed JSON [skip ci]" && git push origin master)

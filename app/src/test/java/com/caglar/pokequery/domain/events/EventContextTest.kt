@@ -586,4 +586,71 @@ class EventFeedLoaderTest {
             assertTrue(fail.fetch().isFailure)
         }
     }
+
+    @Test
+    fun `activeEvents filters ended and sorts current first then upcoming by date`() {
+        val ended = EventContext(
+            id = "ended", titleText = "Ended Event",
+            contextType = EventContextType.GENERIC_EVENT, status = EventStatus.CURRENT,
+            startDate = "2026-06-01", endDate = "2026-06-10",
+            noteText = "N", summaryText = "S", prepText = "P", suggestedSearch = "a0", eventNotesText = "N"
+        )
+        val upcomingFar = EventContext(
+            id = "upcoming-far", titleText = "Upcoming Far",
+            contextType = EventContextType.GENERIC_EVENT, status = EventStatus.UPCOMING,
+            startDate = "2026-07-20", endDate = "2026-07-22",
+            noteText = "N", summaryText = "S", prepText = "P", suggestedSearch = "a0", eventNotesText = "N"
+        )
+        val upcomingNear = EventContext(
+            id = "upcoming-near", titleText = "Upcoming Near",
+            contextType = EventContextType.GENERIC_EVENT, status = EventStatus.UPCOMING,
+            startDate = "2026-07-15", endDate = "2026-07-18",
+            noteText = "N", summaryText = "S", prepText = "P", suggestedSearch = "a0", eventNotesText = "N"
+        )
+        val liveEvent = EventContext(
+            id = "live-event", titleText = "Live Event",
+            contextType = EventContextType.GENERIC_EVENT, status = EventStatus.CURRENT,
+            startDate = "2026-07-05", endDate = "2026-07-12",
+            noteText = "N", summaryText = "S", prepText = "P", suggestedSearch = "a0", eventNotesText = "N"
+        )
+
+        val active = activeEvents(listOf(ended, upcomingFar, upcomingNear, liveEvent), todayIso = "2026-07-08")
+        
+        // Assert sorting and filtering
+        assertEquals(3, active.size)
+        assertEquals("live-event", active[0].id)       // CURRENT first
+        assertEquals("upcoming-near", active[1].id)     // UPCOMING sorted by date ascending
+        assertEquals("upcoming-far", active[2].id)
+    }
+
+    @Test
+    fun `turkish copy contains correct terms for Link Charges and Fusion Energy`() {
+        val events = EventContextRepository.all()
+        events.forEach { event ->
+            val titleTr = event.localizedTitle("tr")
+            val featuredTr = event.localizedFeatured("tr")
+            val prepTr = event.localizedPrep("tr")
+            val notesTr = event.localizedNotes("tr")
+            
+            // Link Charges = Bağlantı Şarjı
+            // Fusion Energy = Füzyon Enerjisi
+            // Turkish banned words checked: "arama dizgisi", "dizgi", etc.
+            listOf(titleTr, featuredTr, prepTr, notesTr).forEach { text ->
+                assertFalse("Turkish copy must not contain 'arama dizgisi'", text.contains("arama dizgisi", ignoreCase = true))
+                assertFalse("Turkish copy must not contain 'dizgi'", text.contains("dizgi", ignoreCase = true))
+                assertFalse("Turkish copy must not contain 'Bağlantı Enerjileri'", text.contains("Bağlantı Enerjileri", ignoreCase = true))
+            }
+            
+            event.pokemon.forEach { pk ->
+                val nameTr = pk.localizedName("tr")
+                val sourceTr = pk.localizedSource("tr")
+                val noteTr = pk.localizedNote("tr")
+                listOf(nameTr, sourceTr, noteTr).forEach { text ->
+                    assertFalse("Turkish copy must not contain 'arama dizgisi'", text.contains("arama dizgisi", ignoreCase = true))
+                    assertFalse("Turkish copy must not contain 'dizgi'", text.contains("dizgi", ignoreCase = true))
+                    assertFalse("Turkish copy must not contain 'Bağlantı Enerjileri'", text.contains("Bağlantı Enerjileri", ignoreCase = true))
+                }
+            }
+        }
+    }
 }

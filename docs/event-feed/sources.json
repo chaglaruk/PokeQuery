@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "id": "pokemongolive-news",
+      "name": "Pokémon GO Live News",
+      "type": "official",
+      "url": "https://pokemongolive.com/news/"
+    },
+    {
+      "id": "leekduck-events",
+      "name": "Leek Duck Events",
+      "type": "third-party",
+      "url": "https://leekduck.com/events/"
+    }
+  ]
+}

@@ -366,6 +366,11 @@ private fun localizedTimerLabel(key: String, arg: String = "", lang: String): St
  */
 fun activeEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): List<EventContext> =
     events.filter { it.effectiveStatus(todayIso) != EventStatus.ENDED }
+        .sortedWith(compareBy<EventContext> {
+            if (it.effectiveStatus(todayIso) == EventStatus.CURRENT) 0 else 1
+        }.thenBy {
+            it.startDate ?: "9999-12-31"
+        })
 
 object EventContextRepository {
     val entries: List<EventContext> = listOf(

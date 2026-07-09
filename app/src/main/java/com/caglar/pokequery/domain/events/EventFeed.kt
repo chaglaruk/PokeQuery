@@ -273,7 +273,7 @@ object EventFeedCache {
 
 object EventFeedLoader {
     fun defaultProvider(context: Context): EventDataProvider =
-        if (BuildConfig.DEBUG) RawEventDataProvider(context) else HttpEventDataProvider()
+        HttpEventDataProvider()
 
     suspend fun load(
         context: Context,
