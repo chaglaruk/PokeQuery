@@ -299,6 +299,9 @@ private fun localized(
 fun EventContext.localizedTitle(lang: String = Locale.getDefault().language): String =
     localized(titleText, titleTextTr, titleTextDe, titleTextEs, titleTextFr, titleTextIt, lang)
 
+fun EventContext.localizedSummary(lang: String = Locale.getDefault().language): String =
+    localized(summaryText, summaryTextTr, summaryTextDe, summaryTextEs, summaryTextFr, summaryTextIt, lang)
+
 fun EventContext.localizedFeatured(lang: String = Locale.getDefault().language): String =
     localized(featuredPokemon, featuredPokemonTr, featuredPokemonDe, featuredPokemonEs, featuredPokemonFr, featuredPokemonIt, lang)
 
@@ -329,56 +332,65 @@ fun EventPokemonEntry.localizedNote(lang: String = Locale.getDefault().language)
 fun EventPokemonEntry.localizedBadges(lang: String = Locale.getDefault().language): String =
     localized(badges, badgesTr, badgesDe, badgesEs, badgesFr, badgesIt, lang)
 
-fun EventContext.dateLabel(lang: String = Locale.getDefault().language): String? = when {
-    isoMonthDay(startDate) != null && isoMonthDay(endDate) != null ->
-        localizedDateRange(isoMonthDay(startDate)!!, isoMonthDay(endDate)!!, lang)
-    isoMonthDay(startDate) != null -> localizedSingleDate(isoMonthDay(startDate)!!, lang)
-    isoMonthDay(endDate) != null -> localizedSingleDate(isoMonthDay(endDate)!!, lang)
-    !startText.isNullOrBlank() && !endText.isNullOrBlank() -> "$startText – $endText"
-    !startText.isNullOrBlank() -> startText
-    !endText.isNullOrBlank() -> endText
-    month != null && year != null -> "$month/$year"
-    else -> null
-}
-
-private fun isoMonthDay(value: String?): Pair<Int, Int>? {
-    val text = value?.takeIf { it.length >= 10 } ?: return null
-    val month = text.substring(5, 7).toIntOrNull() ?: return null
-    val day = text.substring(8, 10).toIntOrNull() ?: return null
-    return month to day
-}
-
-private fun localizedDateRange(start: Pair<Int, Int>, end: Pair<Int, Int>, lang: String): String =
-    if (start.first == end.first) {
-        when (lang) {
-            "tr" -> "${start.second}–${end.second} ${monthName(start.first, lang)}"
-            "de" -> "${start.second}.–${end.second}. ${monthName(start.first, lang)}"
-            "es" -> "${start.second}–${end.second} de ${monthName(start.first, lang)}"
-            "fr", "it" -> "${start.second}–${end.second} ${monthName(start.first, lang)}"
-            else -> "${monthName(start.first, lang)} ${start.second}–${end.second}"
+fun EventContext.dateLabel(lang: String = Locale.getDefault().language): String? {
+    val start = startDate?.takeIf { it.isNotBlank() }
+    val end = endDate?.takeIf { it.isNotBlank() }
+    if (start == null && end == null) return null
+    
+    val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val parsedStart = start.let { runCatching { sdfInput.parse(it) }.getOrNull() }
+    val parsedEnd = end?.let { runCatching { sdfInput.parse(it) }.getOrNull() }
+    
+    val locale = Locale(lang)
+    
+    if (parsedStart != null && (parsedEnd == null || parsedEnd == parsedStart)) {
+        val format = if (lang == "tr") {
+            SimpleDateFormat("d MMMM yyyy", locale)
+        } else {
+            SimpleDateFormat("MMMM d, yyyy", locale)
         }
-    } else {
-        "${localizedSingleDate(start, lang)} – ${localizedSingleDate(end, lang)}"
+        return format.format(parsedStart)
     }
-
-private fun localizedSingleDate(date: Pair<Int, Int>, lang: String): String = when (lang) {
-    "tr" -> "${date.second} ${monthName(date.first, lang)}"
-    "de" -> "${date.second}. ${monthName(date.first, lang)}"
-    "es" -> "${date.second} de ${monthName(date.first, lang)}"
-    "fr", "it" -> "${date.second} ${monthName(date.first, lang)}"
-    else -> "${monthName(date.first, lang)} ${date.second}"
-}
-
-private fun monthName(month: Int, lang: String): String {
-    val names = when (lang) {
-        "tr" -> listOf("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
-        "de" -> listOf("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
-        "es" -> listOf("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
-        "fr" -> listOf("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre")
-        "it" -> listOf("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre")
-        else -> listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+    
+    if (parsedStart != null && parsedEnd != null) {
+        val startCal = java.util.Calendar.getInstance().apply { time = parsedStart }
+        val endCal = java.util.Calendar.getInstance().apply { time = parsedEnd }
+        
+        val sameMonth = startCal.get(java.util.Calendar.MONTH) == endCal.get(java.util.Calendar.MONTH)
+        val sameYear = startCal.get(java.util.Calendar.YEAR) == endCal.get(java.util.Calendar.YEAR)
+        
+        return if (sameYear) {
+            if (sameMonth) {
+                if (lang == "tr") {
+                    val monthNameFormatter = SimpleDateFormat("MMMM yyyy", locale)
+                    "${startCal.get(java.util.Calendar.DAY_OF_MONTH)}–${endCal.get(java.util.Calendar.DAY_OF_MONTH)} ${monthNameFormatter.format(parsedStart)}"
+                } else {
+                    val monthFormatter = SimpleDateFormat("MMMM", locale)
+                    val yearFormatter = SimpleDateFormat("yyyy", locale)
+                    "${monthFormatter.format(parsedStart)} ${startCal.get(java.util.Calendar.DAY_OF_MONTH)}–${endCal.get(java.util.Calendar.DAY_OF_MONTH)}, ${yearFormatter.format(parsedStart)}"
+                }
+            } else {
+                if (lang == "tr") {
+                    val startFormatter = SimpleDateFormat("d MMMM", locale)
+                    val endFormatter = SimpleDateFormat("d MMMM yyyy", locale)
+                    "${startFormatter.format(parsedStart)} – ${endFormatter.format(parsedEnd)}"
+                } else {
+                    val startFormatter = SimpleDateFormat("MMMM d", locale)
+                    val endFormatter = SimpleDateFormat("MMMM d, yyyy", locale)
+                    "${startFormatter.format(parsedStart)} – ${endFormatter.format(parsedEnd)}"
+                }
+            }
+        } else {
+            val formatter = if (lang == "tr") {
+                SimpleDateFormat("d MMMM yyyy", locale)
+            } else {
+                SimpleDateFormat("MMMM d, yyyy", locale)
+            }
+            "${formatter.format(parsedStart)} – ${formatter.format(parsedEnd)}"
+        }
     }
-    return names.getOrElse(month - 1) { month.toString() }
+    
+    return startText ?: endText
 }
 
 fun EventContext.effectiveStatus(todayIsoDate: String = todayIsoDate()): EventStatus {
@@ -440,16 +452,91 @@ private fun formatRemainingTime(diffMs: Long, prefix: Boolean, lang: String): St
     val totalHours = (diffMs / (1000 * 60 * 60)).toInt()
     val days = totalHours / 24
     val hours = totalHours % 24
-    val timeStr = when {
-        days > 0 && hours > 0 -> "${days}D ${hours}H"
-        days > 0 -> "${days}D"
-        hours > 0 -> "${hours}H"
-        else -> "<1H"
-    }
+    
     return if (prefix) {
-        localizedTimerLabel("remaining", timeStr, lang)
+        when (lang) {
+            "tr" -> when {
+                days > 0 && hours > 0 -> "$days gün $hours saat kaldı"
+                days > 0 -> "$days gün kaldı"
+                hours > 0 -> "$hours saat kaldı"
+                else -> "Bugün bitiyor"
+            }
+            "de" -> when {
+                days > 0 && hours > 0 -> "noch $days Tg. $hours Std."
+                days > 0 -> "noch $days Tg."
+                hours > 0 -> "noch $hours Std."
+                else -> "Endet heute"
+            }
+            "es" -> when {
+                days > 0 && hours > 0 -> "quedan $days d. $hours h."
+                days > 0 -> "quedan $days d."
+                hours > 0 -> "quedan $hours h."
+                else -> "Termina hoy"
+            }
+            "fr" -> when {
+                days > 0 && hours > 0 -> "il reste $days j. $hours h."
+                days > 0 -> "il reste $days j."
+                hours > 0 -> "il reste $hours h."
+                else -> "Se termine aujourd'hui"
+            }
+            "it" -> when {
+                days > 0 && hours > 0 -> "mancano $days g. $hours o."
+                days > 0 -> "mancano $days g."
+                hours > 0 -> "mancano $hours o."
+                else -> "Termina oggi"
+            }
+            else -> when {
+                days > 0 && hours > 0 -> "${days}d ${hours}h left"
+                days > 0 -> "${days}d left"
+                hours > 0 -> "${hours}h left"
+                else -> "Ends today"
+            }
+        }
     } else {
-        localizedTimerLabel("starts_in", timeStr, lang)
+        when (lang) {
+            "tr" -> when {
+                days == 1 -> "Yarın başlıyor"
+                days > 1 && hours > 0 -> "$days gün $hours saat sonra"
+                days > 1 -> "$days gün sonra"
+                hours > 0 -> "$hours saat sonra"
+                else -> "Bugün başlıyor"
+            }
+            "de" -> when {
+                days == 1 -> "Beginnt morgen"
+                days > 1 && hours > 0 -> "in $days Tg. $hours Std."
+                days > 1 -> "in $days Tg."
+                hours > 0 -> "in $hours Std."
+                else -> "Beginnt heute"
+            }
+            "es" -> when {
+                days == 1 -> "Empieza mañana"
+                days > 1 && hours > 0 -> "en $days d. $hours h."
+                days > 1 -> "en $days d."
+                hours > 0 -> "en $hours h."
+                else -> "Empieza hoy"
+            }
+            "fr" -> when {
+                days == 1 -> "Commence demain"
+                days > 1 && hours > 0 -> "dans $days j. $hours h."
+                days > 1 -> "dans $days j."
+                hours > 0 -> "dans $hours h."
+                else -> "Commence aujourd'hui"
+            }
+            "it" -> when {
+                days == 1 -> "Inizia domani"
+                days > 1 && hours > 0 -> "tra $days g. $hours o."
+                days > 1 -> "tra $days g."
+                hours > 0 -> "tra $hours o."
+                else -> "Inizia oggi"
+            }
+            else -> when {
+                days == 1 -> "Starts tomorrow"
+                days > 1 && hours > 0 -> "in ${days}d ${hours}h"
+                days > 1 -> "in ${days}d"
+                hours > 0 -> "in ${hours}h"
+                else -> "Starts today"
+            }
+        }
     }
 }
 
@@ -477,22 +564,6 @@ private fun localizedTimerLabel(key: String, arg: String = "", lang: String): St
         "fr" -> "En cours"
         "it" -> "In corso"
         else -> "Live now"
-    }
-    "remaining" -> when (lang) {
-        "tr" -> "$arg kaldı"
-        "de" -> "$arg übrig"
-        "es" -> "$arg restante"
-        "fr" -> "$arg restant"
-        "it" -> "$arg rimanente"
-        else -> "$arg left"
-    }
-    "starts_in" -> when (lang) {
-        "tr" -> "$arg sonra"
-        "de" -> "in $arg"
-        "es" -> "en $arg"
-        "fr" -> "dans $arg"
-        "it" -> "tra $arg"
-        else -> "in $arg"
     }
     else -> arg
 }

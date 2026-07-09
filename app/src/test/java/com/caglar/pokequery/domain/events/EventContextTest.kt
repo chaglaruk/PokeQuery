@@ -839,4 +839,70 @@ class EventFeedLoaderTest {
         val twitchImplicit = makeEvent("Twitch Drops for celebration")
         assertEquals(EventCategory.REWARD_DROP, twitchImplicit.determineCategory())
     }
+
+    @Test
+    fun `Turkish countdown formats correctly`() {
+        val today = "2026-07-09"
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
+        
+        // 1. Current event ending in 2 days and 5 hours
+        val nowMs = sdf.parse("2026-07-09 18:59:59").time
+        val currentEvent = EventContext(
+            id = "current-ev",
+            titleText = "Current Event",
+            contextType = EventContextType.GENERIC_EVENT,
+            startDate = "2026-07-09",
+            endDate = "2026-07-11"
+        )
+        val trRemaining = currentEvent.remainingTimeLabel(todayIso = today, nowMillis = nowMs, lang = "tr")
+        val enRemaining = currentEvent.remainingTimeLabel(todayIso = today, nowMillis = nowMs, lang = "en")
+        
+        assertTrue(trRemaining.contains("gün") && trRemaining.contains("saat") && trRemaining.contains("kaldı"))
+        assertFalse(trRemaining.contains("D") || trRemaining.contains("H"))
+        assertTrue(enRemaining.contains("d") && enRemaining.contains("h") && enRemaining.contains("left"))
+
+        // 2. Current event ending today
+        val nowMsToday = sdf.parse("2026-07-09 20:00:00").time
+        val trEndingToday = currentEvent.remainingTimeLabel(todayIso = today, nowMillis = nowMsToday, lang = "tr")
+        assertEquals("Bugün bitiyor", trEndingToday)
+
+        // 3. Upcoming event starting in 1 day (tomorrow)
+        val upcomingEvent = EventContext(
+            id = "upcoming-ev",
+            titleText = "Upcoming Event",
+            contextType = EventContextType.GENERIC_EVENT,
+            startDate = "2026-07-10",
+            endDate = "2026-07-12"
+        )
+        val upcomingNowMs = sdf.parse("2026-07-09 10:00:00").time
+        val trStartsIn = upcomingEvent.remainingTimeLabel(todayIso = today, nowMillis = upcomingNowMs, lang = "tr")
+        assertEquals("Yarın başlıyor", trStartsIn)
+    }
+
+    @Test
+    fun `dateLabel formats Turkish and English dates correctly`() {
+        val event = EventContext(
+            id = "test-dates",
+            titleText = "Test",
+            contextType = EventContextType.GENERIC_EVENT,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12"
+        )
+        
+        val trLabel = event.dateLabel("tr")
+        val enLabel = event.dateLabel("en")
+        
+        assertEquals("11–12 Temmuz 2026", trLabel)
+        assertEquals("July 11–12, 2026", enLabel)
+        
+        val singleEvent = EventContext(
+            id = "test-single",
+            titleText = "Test Single",
+            contextType = EventContextType.GENERIC_EVENT,
+            startDate = "2026-07-11",
+            endDate = "2026-07-11"
+        )
+        assertEquals("11 Temmuz 2026", singleEvent.dateLabel("tr"))
+        assertEquals("July 11, 2026", singleEvent.dateLabel("en"))
+    }
 }

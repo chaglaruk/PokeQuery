@@ -4,7 +4,7 @@ import json
 import re
 import os
 
-BANNED_TR_WORDS = ["arama dizgisi", "arama dizgisini", "dizgi", "dizgin"]
+BANNED_TR_WORDS = ["arama dizgisi", "arama dizgisini", "dizgi", "dizgin", "bağlantı enerjileri"]
 ALLOWED_THEME_KEYS = {
     "electric", "dragon", "community_day", "candy_bonus",
     "trade_bonus", "raid", "spotlight_hour", "hatch", "research", "generic_event"
@@ -81,11 +81,11 @@ def validate_feed(file_path):
             print(f"Error: Event {event_id} has invalid eventCategory: {event_category}")
             return False
 
-        # Check no '|' in search
-        suggested_search = event.get("suggestedSearch")
-        if "|" in suggested_search:
-            print(f"Error: Event {event_id} suggestedSearch contains banned '|': {suggested_search}")
-            return False
+        # Check no '|' in any string field of the event
+        for field, val in event.items():
+            if isinstance(val, str) and "|" in val:
+                print(f"Error: Event {event_id} field '{field}' contains banned '|': {val}")
+                return False
             
         # Check themeKey
         theme_key = event.get("themeKey", "generic_event")

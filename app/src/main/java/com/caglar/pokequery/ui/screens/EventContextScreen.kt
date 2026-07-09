@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -117,7 +118,7 @@ fun EventContextScreen(
     var feedState by remember { mutableStateOf<ContextFeedState>(ContextFeedState.Loading()) }
     var refreshing by remember { mutableStateOf(false) }
     var lastChecked by remember { mutableStateOf<String?>(null) }
-    var selectedEventId by remember { mutableStateOf<String?>(null) }
+    var clickedEventDetail by remember { mutableStateOf<EventContext?>(null) }
 
     fun refresh() {
         refreshing = true
@@ -145,12 +146,6 @@ fun EventContextScreen(
     }
 
     val visibleEvents = activeEvents(feedState.events)
-    // Event selection is now handled by groupEvents() inside LazyColumn
-    androidx.compose.runtime.LaunchedEffect(visibleEvents.map { it.id }) {
-        if (selectedEventId == null || visibleEvents.none { it.id == selectedEventId }) {
-            selectedEventId = selectMainEvent(visibleEvents)?.id
-        }
-    }
     val sourceLabelRes = when (feedState) {
         is ContextFeedState.Online -> R.string.event_status_live_feed
         is ContextFeedState.StaleCache -> R.string.event_status_saved_guide
@@ -256,7 +251,7 @@ fun EventContextScreen(
                                         lang = lang,
                                         statusLabel = if (lang == "tr") "Canlı" else "Live",
                                         statusColor = CyanGlow,
-                                        onClick = { selectedEventId = event.id },
+                                        onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 5 + idx)
                                     )
                                 }
@@ -278,7 +273,7 @@ fun EventContextScreen(
                                         lang = lang,
                                         statusLabel = if (lang == "tr") "Yakında" else "Upcoming",
                                         statusColor = AmberWarning,
-                                        onClick = { selectedEventId = event.id },
+                                        onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 7 + idx)
                                     )
                                 }
@@ -300,7 +295,7 @@ fun EventContextScreen(
                                         lang = lang,
                                         statusLabel = if (lang == "tr") "Rotasyon" else "Rotation",
                                         statusColor = PurpleIV,
-                                        onClick = { selectedEventId = event.id },
+                                        onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 9 + idx)
                                     )
                                 }
@@ -322,7 +317,7 @@ fun EventContextScreen(
                                         lang = lang,
                                         statusLabel = if (lang == "tr") "Duyuru" else "News",
                                         statusColor = TextTertiary,
-                                        onClick = { selectedEventId = event.id },
+                                        onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 11 + idx)
                                     )
                                 }
@@ -354,7 +349,7 @@ fun EventContextScreen(
                                             EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> PurpleIV
                                             else -> TextTertiary
                                         },
-                                        onClick = { selectedEventId = event.id },
+                                        onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 15 + idx)
                                     )
                                 }
@@ -367,31 +362,6 @@ fun EventContextScreen(
                                 modifier = Modifier.pqStaggeredItem(visible, 2),
                                 onRefresh = { refresh() }
                             )
-                        }
-                    }
-                }
-
-                // Selected event detail card (when user taps a compact card)
-                if (selectedEventId != null && visibleEvents.isNotEmpty()) {
-                    val sections = groupEvents(visibleEvents)
-                    if (selectedEventId != sections.featured?.id) {
-                        val detailEvent = visibleEvents.firstOrNull { it.id == selectedEventId }
-                        if (detailEvent != null) {
-                            item {
-                                SectionHeader(
-                                    title = detailEvent.localizedTitle(lang),
-                                    modifier = Modifier.pqStaggeredItem(visible, 12)
-                                )
-                            }
-                            item {
-                                EventMainCard(
-                                    event = detailEvent,
-                                    sourceLabelRes = sourceLabelRes,
-                                    lastChecked = lastChecked,
-                                    lang = lang,
-                                    modifier = Modifier.pqStaggeredItem(visible, 13)
-                                )
-                            }
                         }
                     }
                 }
@@ -410,6 +380,16 @@ fun EventContextScreen(
                 }
             }
         }
+    }
+
+    clickedEventDetail?.let { ev ->
+        EventDetailsDialog(
+            event = ev,
+            sourceLabelRes = sourceLabelRes,
+            lastChecked = lastChecked,
+            lang = lang,
+            onDismiss = { clickedEventDetail = null }
+        )
     }
 }
 
@@ -736,10 +716,7 @@ private fun CompactEventCard(
                 }
                 Spacer(Modifier.width(6.dp))
                 // Date range
-                val dateText = buildString {
-                    event.startDate?.let { append(it) }
-                    event.endDate?.let { if (it != event.startDate) append(" – $it") }
-                }
+                val dateText = event.dateLabel(lang).orEmpty()
                 if (dateText.isNotBlank()) {
                     Text(
                         text = dateText,
@@ -806,6 +783,12 @@ private fun EventDashboardContent(
             Spacer(Modifier.height(4.dp))
             Text(it, color = TextTertiary, fontSize = 12.sp)
         }
+        
+        val summary = event.localizedSummary(lang)
+        if (summary.isNotBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+        }
 
         if (event.pokemon.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
@@ -828,16 +811,22 @@ private fun EventDashboardContent(
             )
         }
 
-        EventGroupCard(
-            title = stringResource(R.string.event_featured_pokemon),
-            badge = stringResource(R.string.event_group_featured_badge),
-            body = event.localizedFeatured(lang).ifBlank { event.pokemon.joinToString { it.name } },
-            action = stringResource(R.string.event_group_featured_action),
-            tone = tone,
-            spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
-            onOpen = onOpen,
-            cardKey = null
-        )
+        val featuredText = event.localizedFeatured(lang)
+        val hasFeatured = featuredText.isNotBlank() || event.pokemon.isNotEmpty()
+        if (hasFeatured) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = stringResource(R.string.event_featured_pokemon),
+                badge = stringResource(R.string.event_group_featured_badge),
+                body = featuredText.ifBlank { event.pokemon.joinToString { it.name } },
+                action = stringResource(R.string.event_group_featured_action),
+                tone = tone,
+                spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
+                onOpen = onOpen,
+                cardKey = null
+            )
+        }
+
         val raidsText = event.localizedRaids(lang)
         if (raidsText.isNotBlank()) {
             Spacer(Modifier.height(10.dp))
@@ -852,55 +841,98 @@ private fun EventDashboardContent(
                 cardKey = "raid_targets"
             )
         }
-        Spacer(Modifier.height(10.dp))
-        EventGroupCard(
-            title = stringResource(R.string.event_research),
-            badge = stringResource(R.string.event_group_research_badge),
-            body = event.localizedResearch(lang),
-            action = stringResource(R.string.event_group_raids_action),
-            tone = PurpleIV,
-            spriteKey = event.pokemon.getOrNull(1)?.spriteKey,
-            onOpen = onOpen,
-            cardKey = null
-        )
-        Spacer(Modifier.height(10.dp))
-        EventGroupCard(
-            title = stringResource(R.string.event_group_collection_title),
-            badge = stringResource(R.string.event_group_collection_badge),
-            body = event.localizedNotes(lang).ifBlank { stringResource(R.string.event_group_collection_body) },
-            action = stringResource(R.string.event_group_collection_action),
-            tone = GoldCaution,
-            spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
-            onOpen = onOpen,
-            cardKey = null
-        )
-        Spacer(Modifier.height(10.dp))
-        val hasFusion = event.id.contains("go-fest") || event.id.contains("legends") ||
-                event.localizedBonuses(lang).contains("energy", ignoreCase = true) ||
-                event.localizedNotes(lang).contains("energy", ignoreCase = true) ||
-                event.localizedBonuses(lang).contains("enerji", ignoreCase = true) ||
-                event.localizedNotes(lang).contains("enerji", ignoreCase = true)
-        EventGroupCard(
-            title = stringResource(R.string.event_bonuses),
-            badge = stringResource(R.string.event_group_bonuses_badge),
-            body = event.localizedBonuses(lang),
-            action = stringResource(R.string.event_group_bonuses_action),
-            tone = AmberWarning,
-            spriteKey = if (hasFusion) "link_energy" else null,
-            onOpen = onOpen,
-            cardKey = if (hasFusion) "link_energy" else "bonuses"
-        )
-        Spacer(Modifier.height(10.dp))
-        EventGroupCard(
-            title = stringResource(R.string.event_group_prep_title),
-            badge = stringResource(R.string.event_group_prep_badge),
-            body = event.localizedPrep(lang),
-            action = stringResource(R.string.event_group_prep_action),
-            tone = TealPrimary,
-            spriteKey = "prep_list",
-            onOpen = onOpen,
-            cardKey = "prep_list"
-        )
+
+        val researchText = event.localizedResearch(lang)
+        if (researchText.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = stringResource(R.string.event_research),
+                badge = stringResource(R.string.event_group_research_badge),
+                body = researchText,
+                action = stringResource(R.string.event_group_raids_action),
+                tone = PurpleIV,
+                spriteKey = event.pokemon.getOrNull(1)?.spriteKey,
+                onOpen = onOpen,
+                cardKey = null
+            )
+        }
+
+        val notesText = event.localizedNotes(lang)
+        if (notesText.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = stringResource(R.string.event_group_collection_title),
+                badge = stringResource(R.string.event_group_collection_badge),
+                body = notesText,
+                action = stringResource(R.string.event_group_collection_action),
+                tone = GoldCaution,
+                spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
+                onOpen = onOpen,
+                cardKey = null
+            )
+        }
+
+        val bonusesText = event.localizedBonuses(lang)
+        if (bonusesText.isNotBlank()) {
+            val hasFusion = event.id.contains("go-fest") || event.id.contains("legends") ||
+                    bonusesText.contains("energy", ignoreCase = true) ||
+                    event.localizedNotes(lang).contains("energy", ignoreCase = true) ||
+                    bonusesText.contains("enerji", ignoreCase = true) ||
+                    event.localizedNotes(lang).contains("enerji", ignoreCase = true)
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = stringResource(R.string.event_bonuses),
+                badge = stringResource(R.string.event_group_bonuses_badge),
+                body = bonusesText,
+                action = stringResource(R.string.event_group_bonuses_action),
+                tone = AmberWarning,
+                spriteKey = if (hasFusion) "link_energy" else null,
+                onOpen = onOpen,
+                cardKey = if (hasFusion) "link_energy" else "bonuses"
+            )
+        }
+
+        val prepText = event.localizedPrep(lang)
+        if (prepText.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = stringResource(R.string.event_group_prep_title),
+                badge = stringResource(R.string.event_group_prep_badge),
+                body = prepText,
+                action = stringResource(R.string.event_group_prep_action),
+                tone = TealPrimary,
+                spriteKey = "prep_list",
+                onOpen = onOpen,
+                cardKey = "prep_list"
+            )
+        }
+
+        val hasAnyDetails = hasFeatured || raidsText.isNotBlank() || researchText.isNotBlank() || notesText.isNotBlank() || bonusesText.isNotBlank() || prepText.isNotBlank()
+        if (!hasAnyDetails) {
+            Spacer(Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(CardPremium.copy(alpha = 0.50f))
+                    .border(1.dp, tone.copy(alpha = 0.20f), RoundedCornerShape(16.dp))
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val fallbackText = if (lang == "tr") {
+                    "Detay sınırlı; plan yapmadan önce kaynağı kontrol et."
+                } else {
+                    "Details are limited; check the source before planning."
+                }
+                Text(
+                    text = fallbackText,
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    lineHeight = 17.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
 
         if (search.isNotBlank()) {
             Spacer(Modifier.height(12.dp))
@@ -1190,6 +1222,85 @@ private fun EventInfoDialog(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun EventDetailsDialog(
+    event: EventContext,
+    sourceLabelRes: Int,
+    lastChecked: String?,
+    lang: String,
+    onDismiss: () -> Unit
+) {
+    val clipboard = LocalClipboardManager.current
+    var infoDialog by remember { mutableStateOf<EventDialogContent?>(null) }
+    val tone = themeTone(event.themeKey)
+    val closeLabel = stringResource(R.string.event_close)
+    val localCtx = LocalContext.current
+    val localConfig = LocalConfiguration.current
+
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalContext provides localCtx,
+        LocalConfiguration provides localConfig
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = SlateBlack)) {
+                    Text(closeLabel, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = CardDark,
+            titleContentColor = TextPrimary,
+            textContentColor = TextSecondary,
+            title = {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                            Text(event.remainingTimeLabel(lang = lang), color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.weight(1f))
+                    }
+                    event.dateLabel(lang)?.let {
+                        Spacer(Modifier.height(4.dp))
+                        Text(it, color = TextTertiary, fontSize = 12.sp)
+                    }
+                }
+            },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        val summary = event.localizedSummary(lang)
+                        if (summary.isNotBlank()) {
+                            item {
+                                Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+                            }
+                        }
+                        item {
+                            EventDashboardContent(
+                                event = event,
+                                sourceLabelRes = sourceLabelRes,
+                                lastChecked = lastChecked,
+                                tone = tone,
+                                clipboard = clipboard,
+                                lang = lang,
+                                onOpen = { infoDialog = it },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    infoDialog?.let { content ->
+        EventInfoDialog(content = content, event = event, lang = lang, onDismiss = { infoDialog = null })
     }
 }
 

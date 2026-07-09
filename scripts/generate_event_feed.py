@@ -293,6 +293,13 @@ def generate_feed(fixture_mode, output_path):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_dir = os.path.dirname(script_dir)
     
+    if fixture_mode:
+        abs_out = os.path.abspath(output_path)
+        default_prod_path = os.path.abspath(os.path.join(project_dir, "docs", "event-feed", "pokequery-events.json"))
+        if abs_out == default_prod_path:
+            import sys
+            sys.exit("Error: Fixture mode cannot write to docs/event-feed/pokequery-events.json. Pass --output to a test file.")
+    
     sources_path = os.path.join(project_dir, "docs", "event-feed", "sources.json")
     metadata_path = os.path.join(project_dir, "docs", "event-feed", "event_metadata.json")
     
@@ -490,8 +497,47 @@ def generate_feed(fixture_mode, output_path):
             "sourceUrl": ev["sourceUrl"],
             "sourceType": "official" if "News" in ev["sourceName"] else "third-party",
             "lastUpdated": datetime.now().strftime("%Y-%m-%d"),
-            "pokemon": meta.get("pokemon", [])
+            "pokemon": meta.get("pokemon", []),
+            "featuredPokemon": meta.get("featuredPokemon"),
+            "featuredPokemonTr": meta.get("featuredPokemonTr"),
+            "featuredPokemonDe": meta.get("featuredPokemonDe"),
+            "featuredPokemonEs": meta.get("featuredPokemonEs"),
+            "featuredPokemonFr": meta.get("featuredPokemonFr"),
+            "featuredPokemonIt": meta.get("featuredPokemonIt"),
+            "boostedPokemon": meta.get("boostedPokemon"),
+            "boostedPokemonTr": meta.get("boostedPokemonTr"),
+            "boostedPokemonDe": meta.get("boostedPokemonDe"),
+            "boostedPokemonEs": meta.get("boostedPokemonEs"),
+            "boostedPokemonFr": meta.get("boostedPokemonFr"),
+            "boostedPokemonIt": meta.get("boostedPokemonIt"),
+            "bonuses": meta.get("bonuses"),
+            "bonusesTr": meta.get("bonusesTr"),
+            "bonusesDe": meta.get("bonusesDe"),
+            "bonusesEs": meta.get("bonusesEs"),
+            "bonusesFr": meta.get("bonusesFr"),
+            "bonusesIt": meta.get("bonusesIt"),
+            "raids": meta.get("raids"),
+            "raidsTr": meta.get("raidsTr"),
+            "raidsDe": meta.get("raidsDe"),
+            "raidsEs": meta.get("raidsEs"),
+            "raidsFr": meta.get("raidsFr"),
+            "raidsIt": meta.get("raidsIt"),
+            "research": meta.get("research"),
+            "researchTr": meta.get("researchTr"),
+            "researchDe": meta.get("researchDe"),
+            "researchEs": meta.get("researchEs"),
+            "researchFr": meta.get("researchFr"),
+            "researchIt": meta.get("researchIt")
         }
+        
+        # Clean all string values to replace banned '|'
+        for field in event_entry:
+            if isinstance(event_entry[field], str):
+                event_entry[field] = event_entry[field].replace("|", " - ").strip()
+        for p in event_entry.get("pokemon", []):
+            for k in p:
+                if isinstance(p[k], str):
+                    p[k] = p[k].replace("|", " - ").strip()
         
         # Safety assertions
         validate_safety_constraints(event_entry)
