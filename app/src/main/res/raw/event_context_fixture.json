@@ -183,15 +183,15 @@
       "start": "July 6",
       "end": "July 10",
       "featuredPokemon": "Team-hat Pikachu encounters, Legendary Raid candy targets, Link Charges, Incubators, and raid bonuses.",
-      "featuredPokemonTr": "Takım şapkalı Pikachu karşılaşmaları, efsanevi akın şeker hedefleri, bağlantı enerjileri, kuluçka makineleri ve akın bonusları.",
+      "featuredPokemonTr": "Takım şapkalı Pikachu karşılaşmaları, efsanevi akın şeker hedefleri, bağlantı şarjı, kuluçka makineleri ve akın bonusları.",
       "bonuses": "GO Fest prep week with no Remote Raid Pass limit through GO Fest, raid bonuses, 1/2 Egg Hatch Distance, and GO Pass rewards.",
-      "bonusesTr": "GO Fest hazırlık haftası: GO Fest'e kadar uzaktan akın bileti limiti yok, akın bonusları, 1/2 yumurta çıkma mesafesi ve GO Pass ödülleri.",
+      "bonusesTr": "Uzaktan akın bileti limiti yok, akın bonusları, 1/2 yumurta çıkma mesafesi ve GO Pass ödülleri.",
       "raids": "Legendary, Ultra Beast, Mega, Primal, and Super Mega raid catches may have special backgrounds during the week.",
       "raidsTr": "Efsanevi, Ultra Canavar, Mega, Kadim ve Süper Mega akın yakalamalarında hafta boyunca özel arka plan olabilir.",
       "research": "GO Pass: Road of Legends runs through July 12 and includes encounters, candy, Link Charges, Incubators, and raid rewards.",
-      "researchTr": "GO Pass: Efsaneler Yolu 12 Temmuz'a kadar sürer; karşılaşmalar, şeker, bağlantı enerjisi, kuluçka makinesi ve akın ödülleri içerir.",
+      "researchTr": "GO Pass: Efsaneler Yolu 12 Temmuz'a kadar sürer; karşılaşmalar, şeker, bağlantı şarjı, kuluçka makinesi ve akın ödülleri içerir.",
       "summary": "This is GO Fest prep: make storage, tag raid catches, and keep special-background or GO Pass reward encounters safe.",
-      "summaryTr": "Bu GO Fest hazırlığıdır: depo aç, akın yakalamalarını etiketle, özel arka planlı veya GO Pass ödülü karşılaşmaları güvene al.",
+      "summaryTr": "Depo aç, akın yakalamalarını etiketle, özel arka planlı veya GO Pass ödülü karşılaşmaları güvene al.",
       "prep": "Review raid catches separately. Daily Discoveries are paused during Road of Legends and GO Fest Global.",
       "prepTr": "Akın yakalamalarını ayrı incele. Günlük Keşifler, Efsaneler Yolu ve GO Fest Küresel boyunca duraklatılır.",
       "suggestedSearch": "age0-7&!favorite&!shiny&!legendary&!mythical&!ultrabeast&!background&!locationbackground&!specialbackground&!costume",
@@ -254,12 +254,12 @@
         },
         {
           "name": "Link Charges",
-          "nameTr": "Bağlantı Enerjileri",
+          "nameTr": "Bağlantı Şarjı",
           "source": "GO Pass reward",
           "sourceTr": "GO Pass ödülü",
           "shinyAvailable": false,
           "note": "Track GO Pass rewards before the GO Fest weekend starts.",
-          "noteTr": "GO Fest hafta sonu başlamadan GO Pass ödüllerini takip et.",
+          "noteTr": "Bağlantı Şarjı durumunu ve GO Pass ödüllerini takip edin.",
           "badges": "Bonus, GO Pass",
           "badgesTr": "Ek ödül, GO Pass",
           "sourceDe": "GO-Pass-Belohnung",
@@ -273,7 +273,8 @@
           "badgesDe": "Boni, GO Pass",
           "badgesEs": "Bono, GO Pass",
           "badgesFr": "Prime, GO Pass",
-          "badgesIt": "Premio, GO Pass"
+          "badgesIt": "Premio, GO Pass",
+          "spriteKey": "link_charges"
         },
         {
           "name": "Incubators",
@@ -296,7 +297,8 @@
           "badgesDe": "Eier, Boni",
           "badgesEs": "Huevos, bono",
           "badgesFr": "Oeufs, prime",
-          "badgesIt": "Uova, premio"
+          "badgesIt": "Uova, premio",
+          "spriteKey": "incubators"
         }
       ],
       "titleDe": "Road of Legends",

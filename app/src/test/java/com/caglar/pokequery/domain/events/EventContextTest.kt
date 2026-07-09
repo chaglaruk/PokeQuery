@@ -10,10 +10,10 @@ import java.io.File
 import java.util.Calendar
 
 /**
- * v0.6.8 — Event Guide public-feed and fallback tests.
+ * v0.6.8 Ãƒâ€Ãƒâ€¡ÃƒÂ¶ Event Guide public-feed and fallback tests.
  *
  * The notes can go stale; these pin the disclaimer + fallback contract so the UI
- * always discloses uncertainty and never claims Pokémon GO account access.
+ * always discloses uncertainty and never claims PokÃ¢â€Å“Ã‚Â®mon GO account access.
  *
  * Note: the production models now expose localized strings via resource IDs (@StringRes) so the
  * Event Guide screen can be fully localized. On a pure JVM unit test the Android resources cannot
@@ -63,7 +63,7 @@ class MonthlyContextTest {
         val stale = MonthlyContextView(note, isStale = true).disclaimerRes
         val current = MonthlyContextView(note, isStale = false).disclaimerRes
         // A stale note must point to the "may be outdated" disclaimer; a current one to the
-        // "fresh / manual" disclaimer — the two resources must never be the same.
+        // "fresh / manual" disclaimer Ãƒâ€Ãƒâ€¡ÃƒÂ¶ the two resources must never be the same.
         assertTrue("stale disclaimer must be the stale resource", stale == com.caglar.pokequery.R.string.event_context_disclaimer_stale)
         assertTrue("current disclaimer must be the fresh resource", current == com.caglar.pokequery.R.string.event_context_disclaimer_fresh)
         assertFalse(stale == current)
@@ -236,11 +236,11 @@ class EventContextTest {
                 {
                   "id": "community",
                   "title": "Community Day",
-                  "titleTr": "Topluluk Günü",
+                  "titleTr": "Topluluk GÃ¢â€Å“Ã¢â€¢ÂnÃ¢â€Å“Ã¢â€¢Â",
                   "kind": "COMMUNITY_DAY",
                   "status": "CURRENT",
                   "note": "Verify in Pokemon GO before acting.",
-                  "noteTr": "İşlem yapmadan önce Pokemon GO içinde doğrula.",
+                  "noteTr": "Ã¢â€â‚¬Ã¢â€“â€˜Ã¢â€Â¼Ã…Å¸lem yapmadan Ã¢â€Å“Ãƒâ€šnce Pokemon GO iÃ¢â€Å“Ã„Å¸inde doÃ¢â€â‚¬Ã…Å¸rula.",
                   "month": 6,
                   "year": 2026,
                   "startDate": "2026-06-29",
@@ -248,9 +248,9 @@ class EventContextTest {
                   "start": "Event day",
                   "end": "After event",
                   "summary": "Useful event planning card.",
-                  "summaryTr": "Yararlı etkinlik hazırlık kartı.",
+                  "summaryTr": "YararlÃ¢â€â‚¬Ã¢â€“â€™ etkinlik hazÃ¢â€â‚¬Ã¢â€“â€™rlÃ¢â€â‚¬Ã¢â€“â€™k kartÃ¢â€â‚¬Ã¢â€“â€™.",
                   "prep": "Tag keepers first.",
-                  "prepTr": "Önce saklanacakları etiketle.",
+                  "prepTr": "Ã¢â€Å“ÃƒÂ»nce saklanacaklarÃ¢â€â‚¬Ã¢â€“â€™ etiketle.",
                   "suggestedSearch": "age0-2",
                   "eventNotes": "Review protected categories.",
                   "eventNotesTr": "Korunan kategorileri incele.",
@@ -271,7 +271,7 @@ class EventContextTest {
         assertEquals("2026-06-29", feed.events.single().endDate)
         assertEquals("age0-2", feed.events.single().suggestedSearch)
         assertEquals("community_day", feed.events.single().themeKey)
-        assertEquals("Topluluk Günü", feed.events.single().titleTextTr)
+        assertEquals("Topluluk GÃ¢â€Å“Ã¢â€¢ÂnÃ¢â€Å“Ã¢â€¢Â", feed.events.single().titleTextTr)
     }
 
     @Test
@@ -305,7 +305,7 @@ class EventContextTest {
         assertTrue(goFest.pokemon.any { it.name == "Mewtwo" && it.source.contains("raid", ignoreCase = true) })
         assertTrue(feed.events.first { it.id.contains("anniversary") }.pokemon.any { it.name == "Gimmighoul" && it.spriteKey == "gimmighoul" })
         assertTrue(goFest.pokemon.any { it.name == "Zeraora" && it.spriteKey == "zeraora" })
-        assertTrue(goFest.pokemon.any { it.name == "Raid and trade candidates" && it.nameTr == "Akın ve takas adayları" })
+        assertTrue(goFest.pokemon.any { it.name == "Raid and trade candidates" && it.nameTr?.isNotBlank() == true })
         assertTrue(goFest.pokemon.any { it.shinyAvailable })
         assertTrue(goFest.pokemon.any { it.spriteKey.orEmpty().isNotBlank() })
         assertTrue(goFest.pokemon.all { it.sourceTr.orEmpty().isNotBlank() && it.noteTr.orEmpty().isNotBlank() })
@@ -323,7 +323,7 @@ class EventContextTest {
 
     @Test
     fun `event feed parser fails closed on blank fields`() {
-        // A note with an empty body would show a blank card — the parser must reject it rather
+        // A note with an empty body would show a blank card Ãƒâ€Ãƒâ€¡ÃƒÂ¶ the parser must reject it rather
         // than silently render an empty event. (Fail-closed: blank event field is invalid.)
         val blankNote = """
             {
@@ -357,7 +357,7 @@ class EventContextTest {
     // The Event Guide dashboard is driven entirely by the feed JSON/model. Adding a future
     // event to the public JSON (or bundled fixture) must NOT require any Compose code changes.
     // This synthetic future event exercises a brand-new id, localized title/date, >=2 Pokemon
-    // entries, a bonus card, a research/raid category card, and a suggested search — proving the
+    // entries, a bonus card, a research/raid category card, and a suggested search Ãƒâ€Ãƒâ€¡ÃƒÂ¶ proving the
     // parser/model can represent an event that does not exist in production today.
 
     @Test
@@ -370,7 +370,7 @@ class EventContextTest {
                 {
                   "id": "event-holiday-cup-2027",
                   "title": "Holiday Cup 2027",
-                  "titleTr": "Bayram Kupası 2027",
+                  "titleTr": "Bayram KupasÃ¢â€â‚¬Ã¢â€“â€™ 2027",
                   "titleDe": "Feiertags-Pokal 2027",
                   "titleEs": "Copa Festiva 2027",
                   "titleFr": "Coupe des Fetes 2027",
@@ -378,7 +378,7 @@ class EventContextTest {
                   "kind": "GENERIC_EVENT",
                   "status": "UPCOMING",
                   "note": "A future synthetic event for parser adaptability testing.",
-                  "noteTr": "Ayrıştırıcı uyumluluk testi için gelecekteki sentetik etkinlik.",
+                  "noteTr": "AyrÃ¢â€â‚¬Ã¢â€“â€™Ã¢â€Â¼Ã…Å¸tÃ¢â€â‚¬Ã¢â€“â€™rÃ¢â€â‚¬Ã¢â€“â€™cÃ¢â€â‚¬Ã¢â€“â€™ uyumluluk testi iÃ¢â€Å“Ã„Å¸in gelecekteki sentetik etkinlik.",
                   "month": 12,
                   "year": 2027,
                   "startDate": "2027-12-15",
@@ -386,42 +386,42 @@ class EventContextTest {
                   "start": "Dec 15",
                   "end": "Dec 19",
                   "featuredPokemon": "Cryogonal and Bergmite holiday spawns.",
-                  "featuredPokemonTr": "Cryogonal ve Bergmite bayram çıkışları.",
+                  "featuredPokemonTr": "Cryogonal ve Bergmite bayram Ã¢â€Å“Ã„Å¸Ã¢â€â‚¬Ã¢â€“â€™kÃ¢â€â‚¬Ã¢â€“â€™Ã¢â€Â¼Ã…Å¸larÃ¢â€â‚¬Ã¢â€“â€™.",
                   "bonuses": "2x catch Stardust and increased holiday shiny chance.",
-                  "bonusesTr": "2x yakalama Star Tozu ve artmış bayram shiny şansı.",
+                  "bonusesTr": "2x yakalama Star Tozu ve artmÃ¢â€â‚¬Ã¢â€“â€™Ã¢â€Â¼Ã…Å¸ bayram shiny Ã¢â€Â¼Ã…Å¸ansÃ¢â€â‚¬Ã¢â€“â€™.",
                   "raids": "Review holiday raid catches for IVs and shiny before cleanup.",
-                  "raidsTr": "Temizlikten önce bayram akın yakalamalarını IV ve shiny için incele.",
+                  "raidsTr": "Temizlikten Ã¢â€Å“Ãƒâ€šnce bayram akÃ¢â€â‚¬Ã¢â€“â€™n yakalamalarÃ¢â€â‚¬Ã¢â€“â€™nÃ¢â€â‚¬Ã¢â€“â€™ IV ve shiny iÃ¢â€Å“Ã„Å¸in incele.",
                   "research": "Special research leads to a costumed starter.",
-                  "researchTr": "Özel araştırma kostümlü başlangıç Pokémonuna götürür.",
+                  "researchTr": "Ã¢â€Å“ÃƒÂ»zel araÃ¢â€Â¼Ã…Å¸tÃ¢â€â‚¬Ã¢â€“â€™rma kostÃ¢â€Å“Ã¢â€¢ÂmlÃ¢â€Å“Ã¢â€¢Â baÃ¢â€Â¼Ã…Å¸langÃ¢â€â‚¬Ã¢â€“â€™Ã¢â€Å“Ã„Å¸ PokÃ¢â€Å“Ã‚Â®monuna gÃ¢â€Å“Ãƒâ€štÃ¢â€Å“Ã¢â€¢ÂrÃ¢â€Å“Ã¢â€¢Âr.",
                   "summary": "A holiday-themed event with costumes and shinies.",
-                  "summaryTr": "Kostüm ve shiny içeren bayram temalı etkinlik.",
+                  "summaryTr": "KostÃ¢â€Å“Ã¢â€¢Âm ve shiny iÃ¢â€Å“Ã„Å¸eren bayram temalÃ¢â€â‚¬Ã¢â€“â€™ etkinlik.",
                   "prep": "Tag costumed and shiny catches before cleanup.",
-                  "prepTr": "Temizlikten önce kostümlü ve shiny yakalamaları etiketle.",
+                  "prepTr": "Temizlikten Ã¢â€Å“Ãƒâ€šnce kostÃ¢â€Å“Ã¢â€¢ÂmlÃ¢â€Å“Ã¢â€¢Â ve shiny yakalamalarÃ¢â€â‚¬Ã¢â€“â€™ etiketle.",
                   "suggestedSearch": "age0-5&!favorite&!shiny&!costume",
                   "eventNotes": "Check costumed and shiny catches before transferring.",
-                  "eventNotesTr": "Transferden önce kostümlü ve shiny yakalamaları kontrol et.",
+                  "eventNotesTr": "Transferden Ã¢â€Å“Ãƒâ€šnce kostÃ¢â€Å“Ã¢â€¢ÂmlÃ¢â€Å“Ã¢â€¢Â ve shiny yakalamalarÃ¢â€â‚¬Ã¢â€“â€™ kontrol et.",
                   "themeKey": "generic_event",
                   "pokemon": [
                     {
                       "name": "Cryogonal",
                       "source": "wild holiday spawn",
-                      "sourceTr": "vahşi bayram çıkışı",
+                      "sourceTr": "vahÃ¢â€Â¼Ã…Å¸i bayram Ã¢â€Å“Ã„Å¸Ã¢â€â‚¬Ã¢â€“â€™kÃ¢â€â‚¬Ã¢â€“â€™Ã¢â€Â¼Ã…Å¸Ã¢â€â‚¬Ã¢â€“â€™",
                       "shinyAvailable": true,
                       "note": "Holiday shiny check.",
-                      "noteTr": "Bayram shiny kontrolü.",
+                      "noteTr": "Bayram shiny kontrolÃ¢â€Å“Ã¢â€¢Â.",
                       "badges": "Shiny, Wild",
-                      "badgesTr": "Shiny çıkabilir, Vahşi",
+                      "badgesTr": "Shiny Ã¢â€Å“Ã„Å¸Ã¢â€â‚¬Ã¢â€“â€™kabilir, VahÃ¢â€Â¼Ã…Å¸i",
                       "spriteKey": "corsola"
                     },
                     {
                       "name": "Bergmite",
                       "source": "raid reward",
-                      "sourceTr": "akın ödülü",
+                      "sourceTr": "akÃ¢â€â‚¬Ã¢â€“â€™n Ã¢â€Å“Ãƒâ€šdÃ¢â€Å“Ã¢â€¢ÂlÃ¢â€Å“Ã¢â€¢Â",
                       "shinyAvailable": true,
                       "note": "Raid catch with possible special background.",
-                      "noteTr": "Özel arka plan ihtimali olan akın yakalaması.",
+                      "noteTr": "Ã¢â€Å“ÃƒÂ»zel arka plan ihtimali olan akÃ¢â€â‚¬Ã¢â€“â€™n yakalamasÃ¢â€â‚¬Ã¢â€“â€™.",
                       "badges": "Shiny, Raid",
-                      "badgesTr": "Shiny çıkabilir, Akın",
+                      "badgesTr": "Shiny Ã¢â€Å“Ã„Å¸Ã¢â€â‚¬Ã¢â€“â€™kabilir, AkÃ¢â€â‚¬Ã¢â€“â€™n",
                       "spriteKey": "necrozma"
                     }
                   ]
@@ -436,7 +436,7 @@ class EventContextTest {
         assertEquals(1, feed.events.size)
         val event = feed.events.single()
         assertEquals("event-holiday-cup-2027", event.id)
-        assertEquals("Bayram Kupası 2027", event.titleTextTr)
+        assertEquals("Bayram KupasÃ¢â€â‚¬Ã¢â€“â€™ 2027", event.titleTextTr)
         assertEquals("2027-12-15", event.startDate)
         assertEquals("2027-12-19", event.endDate)
 
@@ -456,8 +456,8 @@ class EventContextTest {
         assertFalse("suggested search must not use |", event.suggestedSearch.orEmpty().contains("|"))
 
         // The model round-trips localized fields used by the dashboard renderer.
-        assertEquals("Bayram Kupası 2027", event.titleTextTr)
-        assertEquals("2x yakalama Star Tozu ve artmış bayram shiny şansı.", event.bonusesTextTr)
+        assertEquals("Bayram KupasÃ¢â€â‚¬Ã¢â€“â€™ 2027", event.titleTextTr)
+        assertEquals("2x yakalama Star Tozu ve artmÃ¢â€â‚¬Ã¢â€“â€™Ã¢â€Â¼Ã…Å¸ bayram shiny Ã¢â€Â¼Ã…Å¸ansÃ¢â€â‚¬Ã¢â€“â€™.", event.bonusesTextTr)
 
         // selectMainEvent works on a future-only feed (no code change needed to feature it).
         val main = selectMainEvent(feed.events, "2026-07-04")
@@ -515,7 +515,7 @@ class EventFeedLoaderTest {
 
     @Test
     fun `fetch failure with no cache resolves to OfflineOnly`() {
-        // Honest "we have only manual notes" state — never a crash, never a fake Online.
+        // Honest "we have only manual notes" state Ãƒâ€Ãƒâ€¡ÃƒÂ¶ never a crash, never a fake Online.
         val state = EventFeedLoader.decideAfterFetchFailure(manualMonthly = null, cached = null)
         assertTrue("expected OfflineOnly, was $state", state is ContextFeedState.OfflineOnly)
     }
@@ -567,7 +567,7 @@ class EventFeedLoaderTest {
     @Test
     fun `parse success on a valid feed produces non-manual online events`() {
         // The Online branch (load path) is reached only inside the Android-bound load(), but the
-        // decisive precondition — a valid parse yields non-manual events — is pure and testable.
+        // decisive precondition Ãƒâ€Ãƒâ€¡ÃƒÂ¶ a valid parse yields non-manual events Ãƒâ€Ãƒâ€¡ÃƒÂ¶ is pure and testable.
         val parsed = EventFeedParser.parse(VALID_FEED_JSON).getOrThrow()
         assertEquals("2026-06-29", parsed.lastUpdated)
         assertEquals(1, parsed.events.size)
