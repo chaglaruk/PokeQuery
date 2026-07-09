@@ -173,6 +173,75 @@ def validate_safety_constraints(event):
                 if banned in val.lower():
                     raise ValueError(f"Event {event['id']} has banned Turkish word '{banned}' in field '{field}': {val}")
 
+def parse_live_pokemongolive_news(html):
+    events = []
+    card_matches = list(re.finditer(r'<a\s+href="(/news/[^"]+)"[^>]*class="[^"]*_newsCard_[^"]*"[^>]*>', html))
+    for m in card_matches:
+        href = m.group(1)
+        sub_html = html[m.end():m.end()+1500]
+        
+        ts_match = re.search(r'timestamp="(\d+)"', sub_html)
+        if not ts_match:
+            continue
+        ts = int(ts_match.group(1)) / 1000.0
+        dt = datetime.fromtimestamp(ts)
+        start_date = dt.strftime("%Y-%m-%d")
+        end_date = start_date
+        
+        title_match = re.search(r'class="[^"]*heading[^"]*">([^<]+)</div>', sub_html)
+        if not title_match:
+            continue
+        title = title_match.group(1).strip()
+        
+        events.append({
+            'title': title,
+            'date': start_date,
+            'href': href,
+            'parsed_dates': (start_date, end_date, dt.month, dt.year)
+        })
+    return events
+
+def parse_live_leekduck_events(html):
+    events = []
+    matches = list(re.finditer(r'<a\s+class="[^"]*event-item-link[^"]*"\s+href="(/events/[^"]+)"', html))
+    for m in matches:
+        href = m.group(1)
+        window_start = max(0, m.start() - 600)
+        window_end = min(len(html), m.start() + 1500)
+        sub_html = html[window_start:window_end]
+        
+        start_match = re.search(r'data-event-start-date-check="([^"T\s]+)T', sub_html)
+        end_match = re.search(r'data-event-end-date="([^"T\s]+)T', sub_html)
+        if not start_match or not end_match:
+            continue
+            
+        start_date = start_match.group(1)
+        end_date = end_match.group(1)
+        
+        title_match = re.search(r'<h2>([^<]+)</h2>', sub_html)
+        if not title_match:
+            continue
+        title = title_match.group(1).strip()
+        
+        badge_match = re.search(r'<span class="event-tag-badge">([^<]+)</span>', sub_html)
+        ev_type = badge_match.group(1).strip() if badge_match else "Generic Event"
+        
+        parts = start_date.split('-')
+        year = int(parts[0])
+        month = int(parts[1])
+        
+        events.append({
+            'title': title,
+            'date_range': f"{start_date} - {end_date}",
+            'startDate': start_date,
+            'endDate': end_date,
+            'month': month,
+            'year': year,
+            'href': href,
+            'type': ev_type
+        })
+    return events
+
 def generate_feed(fixture_mode, output_path):
     # Determine base directories
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -193,6 +262,7 @@ def generate_feed(fixture_mode, output_path):
         metadata = {}
         
     raw_events = {}
+    successful_sources = []
     
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
     
@@ -208,6 +278,7 @@ def generate_feed(fixture_mode, output_path):
                 with open(fixture_path, "r", encoding="utf-8") as f:
                     html_content = f.read()
                 print(f"Loaded fixture for source {src_id} from {fixture_path}")
+                successful_sources.append(src_id)
             else:
                 print(f"Fixture not found for source {src_id} at {fixture_path}")
                 continue
@@ -217,20 +288,28 @@ def generate_feed(fixture_mode, output_path):
                 with urllib.request.urlopen(req, timeout=10) as response:
                     html_content = response.read().decode("utf-8")
                 print(f"Successfully fetched {src_id} from {src_url}")
+                successful_sources.append(src_id)
             except Exception as e:
                 print(f"Failed to fetch {src_id} from {src_url}: {e}")
                 continue
                 
         if src_id == "pokemongolive-news":
-            parser = PokemonGoNewsHTMLParser()
-            parser.feed(html_content)
-            for ev in parser.events:
+            if fixture_mode:
+                parser = PokemonGoNewsHTMLParser()
+                parser.feed(html_content)
+                parsed_events = parser.events
+            else:
+                parsed_events = parse_live_pokemongolive_news(html_content)
+                
+            for ev in parsed_events:
                 title = ev["title"].strip()
                 if not title:
                     continue
-                # Normalize dates like "July 4, 2026"
                 try:
-                    start_date, end_date, month, year = parse_date_range(ev["date"])
+                    if 'parsed_dates' in ev:
+                        start_date, end_date, month, year = ev['parsed_dates']
+                    else:
+                        start_date, end_date, month, year = parse_date_range(ev["date"])
                     ev_id = get_event_id(ev["href"], title)
                     
                     raw_events[ev_id] = {
@@ -248,17 +327,27 @@ def generate_feed(fixture_mode, output_path):
                     print(f"Skipping event '{title}' due to date parse failure: {ex}")
                     
         elif src_id == "leekduck-events":
-            parser = LeekDuckHTMLParser()
-            parser.feed(html_content)
-            for ev in parser.events:
+            if fixture_mode:
+                parser = LeekDuckHTMLParser()
+                parser.feed(html_content)
+                parsed_events = parser.events
+            else:
+                parsed_events = parse_live_leekduck_events(html_content)
+                
+            for ev in parsed_events:
                 title = ev["title"].strip()
                 if not title:
                     continue
                 try:
-                    start_date, end_date, month, year = parse_date_range(ev["date_range"])
+                    if 'startDate' in ev:
+                        start_date = ev['startDate']
+                        end_date = ev['endDate']
+                        month = ev['month']
+                        year = ev['year']
+                    else:
+                        start_date, end_date, month, year = parse_date_range(ev["date_range"])
                     ev_id = get_event_id(ev["href"], title)
                     
-                    # Map kind
                     kind_str = ev["type"].lower()
                     kind = "GENERIC_EVENT"
                     if "community day" in kind_str:
@@ -266,10 +355,8 @@ def generate_feed(fixture_mode, output_path):
                     elif "spotlight hour" in kind_str:
                         kind = "SPOTLIGHT_HOUR"
                         
-                    # De-duplicate: prefer official sources but merge details if official already parsed
                     existing = raw_events.get(ev_id)
                     if existing and existing.get("sourceName") == "Pokémon GO Live News":
-                        # Already have official source, keep it but enrich kind if needed
                         if kind != "GENERIC_EVENT":
                             existing["kind"] = kind
                     else:
@@ -286,6 +373,10 @@ def generate_feed(fixture_mode, output_path):
                         }
                 except Exception as ex:
                     print(f"Skipping Leek Duck event '{title}' due to date parse failure: {ex}")
+
+    # Safety Check: If not in fixture_mode and all sources failed to fetch/parse, abort to prevent overwriting production JSON
+    if not fixture_mode and (len(successful_sources) == 0 or len(raw_events) == 0):
+        raise RuntimeError("Critical Error: All event sources failed to fetch or parse any events in live mode. Aborting generator to prevent empty/corrupted feed output.")
 
     # Build final event feed items
     final_events = []
@@ -347,6 +438,10 @@ def generate_feed(fixture_mode, output_path):
             "eventNotesIt": meta.get("eventNotesIt"),
             "themeKey": meta.get("themeKey", "generic_event"),
             "sourceNotes": f"Generated from {ev['sourceName']}: {ev['sourceUrl']}",
+            "sourceName": ev["sourceName"],
+            "sourceUrl": ev["sourceUrl"],
+            "sourceType": "official" if "News" in ev["sourceName"] else "third-party",
+            "lastUpdated": datetime.now().strftime("%Y-%m-%d"),
             "pokemon": meta.get("pokemon", [])
         }
         

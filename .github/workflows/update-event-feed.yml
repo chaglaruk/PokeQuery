@@ -19,7 +19,7 @@ jobs:
 
       - name: Generate Event Feed
         run: |
-          python scripts/generate_event_feed.py --fixture-mode
+          python scripts/generate_event_feed.py
 
       - name: Validate Event Feed
         run: |

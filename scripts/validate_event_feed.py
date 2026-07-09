@@ -49,13 +49,25 @@ def validate_feed(file_path):
         print(f"  Validating event: {event_id}")
         
         # Verify required non-blank fields
-        required_fields = ["title", "note", "summary", "prep", "suggestedSearch", "eventNotes"]
+        required_fields = ["title", "note", "summary", "prep", "suggestedSearch", "eventNotes", "sourceName", "sourceUrl", "sourceType", "lastUpdated"]
         for field in required_fields:
             val = event.get(field)
             if not val or not val.strip():
                 print(f"Error: Event {event_id} is missing required field: {field}")
                 return False
                 
+        # Check sourceUrl starts with http
+        source_url = event.get("sourceUrl")
+        if not source_url.startswith("http"):
+            print(f"Error: Event {event_id} has invalid sourceUrl: {source_url}")
+            return False
+            
+        # Check sourceType
+        source_type = event.get("sourceType")
+        if source_type not in ["official", "third-party"]:
+            print(f"Error: Event {event_id} has invalid sourceType: {source_type}")
+            return False
+
         # Check no '|' in search
         suggested_search = event.get("suggestedSearch")
         if "|" in suggested_search:
