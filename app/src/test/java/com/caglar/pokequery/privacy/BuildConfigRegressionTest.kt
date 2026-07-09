@@ -7,7 +7,7 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Package 7 — build-config / identity regression tests.
+ * Package 7 Ã¢â‚¬â€ build-config / identity regression tests.
  *
  * Guards the production applicationId and the current version against accidental change.
  */
@@ -22,10 +22,10 @@ class BuildConfigRegressionTest {
         assertTrue(gradle.contains("""namespace = "com.caglar.pokequery""""))
     }
 
-@Test
+    @Test
     fun `version name is accessible and current`() {
         assertTrue("Version name should be non-empty", AppVersion.versionName.isNotBlank())
-        assertEquals("0.7.1", AppVersion.versionName)
-        assertEquals(21, AppVersion.versionCode)
+        assertEquals("0.7.2", AppVersion.versionName)
+        assertEquals(22, AppVersion.versionCode)
     }
 }

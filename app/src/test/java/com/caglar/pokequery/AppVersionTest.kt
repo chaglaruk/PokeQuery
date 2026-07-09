@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * v0.4.2 safety patch (Fix 5) — version consistency.
+ * v0.4.2 safety patch (Fix 5) Ã¢â‚¬â€ version consistency.
  *
  * Audit finding (BUG-008/015): Settings/About hardcoded "v0.3.4" while the app was at
  * a different version, and docs were stale. The displayed version must derive from a
@@ -14,9 +14,9 @@ import org.junit.Test
 class AppVersionTest {
 
 @Test
-    fun `display version matches the v0-dot-7-dot-1 release`() {
-        assertEquals("0.7.1", AppVersion.versionName)
-        assertEquals(21, AppVersion.versionCode)
+    fun `display version matches the v0-dot-7-dot-2 release`() {
+        assertEquals("0.7.2", AppVersion.versionName)
+        assertEquals(22, AppVersion.versionCode)
     }
 
     @Test
@@ -31,6 +31,6 @@ class AppVersionTest {
     fun `about display string starts with PokeQuery and includes the version`() {
         val display = AppVersion.aboutDisplayString
         assertTrue("Expected 'PokeQuery' in: $display", display.contains("PokeQuery"))
-        assertTrue("Expected '0.7.1' in: $display", display.contains("0.7.1"))
+        assertTrue("Expected '0.7.2' in: $display", display.contains("0.7.2"))
     }
 }
