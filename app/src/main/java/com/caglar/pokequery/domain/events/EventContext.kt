@@ -149,8 +149,9 @@ private fun localized(
     de: String?,
     es: String?,
     fr: String?,
-    it: String?
-): String = when (Locale.getDefault().language) {
+    it: String?,
+    lang: String = Locale.getDefault().language
+): String = when (lang) {
     "tr" -> tr
     "de" -> de
     "es" -> es
@@ -159,44 +160,44 @@ private fun localized(
     else -> en
 }.takeUnless { it.isNullOrBlank() } ?: en.orEmpty()
 
-fun EventContext.localizedTitle(): String =
-    localized(titleText, titleTextTr, titleTextDe, titleTextEs, titleTextFr, titleTextIt)
+fun EventContext.localizedTitle(lang: String = Locale.getDefault().language): String =
+    localized(titleText, titleTextTr, titleTextDe, titleTextEs, titleTextFr, titleTextIt, lang)
 
-fun EventContext.localizedFeatured(): String =
-    localized(featuredPokemon, featuredPokemonTr, featuredPokemonDe, featuredPokemonEs, featuredPokemonFr, featuredPokemonIt)
+fun EventContext.localizedFeatured(lang: String = Locale.getDefault().language): String =
+    localized(featuredPokemon, featuredPokemonTr, featuredPokemonDe, featuredPokemonEs, featuredPokemonFr, featuredPokemonIt, lang)
 
-fun EventContext.localizedResearch(): String =
-    localized(researchText, researchTextTr, researchTextDe, researchTextEs, researchTextFr, researchTextIt)
+fun EventContext.localizedResearch(lang: String = Locale.getDefault().language): String =
+    localized(researchText, researchTextTr, researchTextDe, researchTextEs, researchTextFr, researchTextIt, lang)
 
-fun EventContext.localizedBonuses(): String =
-    localized(bonusesText, bonusesTextTr, bonusesTextDe, bonusesTextEs, bonusesTextFr, bonusesTextIt)
+fun EventContext.localizedBonuses(lang: String = Locale.getDefault().language): String =
+    localized(bonusesText, bonusesTextTr, bonusesTextDe, bonusesTextEs, bonusesTextFr, bonusesTextIt, lang)
 
-fun EventContext.localizedPrep(): String =
-    localized(prepText, prepTextTr, prepTextDe, prepTextEs, prepTextFr, prepTextIt)
+fun EventContext.localizedPrep(lang: String = Locale.getDefault().language): String =
+    localized(prepText, prepTextTr, prepTextDe, prepTextEs, prepTextFr, prepTextIt, lang)
 
-fun EventContext.localizedNotes(): String =
-    localized(eventNotesText, eventNotesTextTr, eventNotesTextDe, eventNotesTextEs, eventNotesTextFr, eventNotesTextIt)
+fun EventContext.localizedNotes(lang: String = Locale.getDefault().language): String =
+    localized(eventNotesText, eventNotesTextTr, eventNotesTextDe, eventNotesTextEs, eventNotesTextFr, eventNotesTextIt, lang)
 
-fun EventContext.localizedRaids(): String =
-    localized(raidsText, raidsTextTr, raidsTextDe, raidsTextEs, raidsTextFr, raidsTextIt)
+fun EventContext.localizedRaids(lang: String = Locale.getDefault().language): String =
+    localized(raidsText, raidsTextTr, raidsTextDe, raidsTextEs, raidsTextFr, raidsTextIt, lang)
 
-fun EventPokemonEntry.localizedName(): String =
-    localized(name, nameTr, nameDe, nameEs, nameFr, nameIt)
+fun EventPokemonEntry.localizedName(lang: String = Locale.getDefault().language): String =
+    localized(name, nameTr, nameDe, nameEs, nameFr, nameIt, lang)
 
-fun EventPokemonEntry.localizedSource(): String =
-    localized(source, sourceTr, sourceDe, sourceEs, sourceFr, sourceIt)
+fun EventPokemonEntry.localizedSource(lang: String = Locale.getDefault().language): String =
+    localized(source, sourceTr, sourceDe, sourceEs, sourceFr, sourceIt, lang)
 
-fun EventPokemonEntry.localizedNote(): String =
-    localized(note, noteTr, noteDe, noteEs, noteFr, noteIt)
+fun EventPokemonEntry.localizedNote(lang: String = Locale.getDefault().language): String =
+    localized(note, noteTr, noteDe, noteEs, noteFr, noteIt, lang)
 
-fun EventPokemonEntry.localizedBadges(): String =
-    localized(badges, badgesTr, badgesDe, badgesEs, badgesFr, badgesIt)
+fun EventPokemonEntry.localizedBadges(lang: String = Locale.getDefault().language): String =
+    localized(badges, badgesTr, badgesDe, badgesEs, badgesFr, badgesIt, lang)
 
-fun EventContext.dateLabel(): String? = when {
+fun EventContext.dateLabel(lang: String = Locale.getDefault().language): String? = when {
     isoMonthDay(startDate) != null && isoMonthDay(endDate) != null ->
-        localizedDateRange(isoMonthDay(startDate)!!, isoMonthDay(endDate)!!)
-    isoMonthDay(startDate) != null -> localizedSingleDate(isoMonthDay(startDate)!!)
-    isoMonthDay(endDate) != null -> localizedSingleDate(isoMonthDay(endDate)!!)
+        localizedDateRange(isoMonthDay(startDate)!!, isoMonthDay(endDate)!!, lang)
+    isoMonthDay(startDate) != null -> localizedSingleDate(isoMonthDay(startDate)!!, lang)
+    isoMonthDay(endDate) != null -> localizedSingleDate(isoMonthDay(endDate)!!, lang)
     !startText.isNullOrBlank() && !endText.isNullOrBlank() -> "$startText – $endText"
     !startText.isNullOrBlank() -> startText
     !endText.isNullOrBlank() -> endText
@@ -211,29 +212,29 @@ private fun isoMonthDay(value: String?): Pair<Int, Int>? {
     return month to day
 }
 
-private fun localizedDateRange(start: Pair<Int, Int>, end: Pair<Int, Int>): String =
+private fun localizedDateRange(start: Pair<Int, Int>, end: Pair<Int, Int>, lang: String): String =
     if (start.first == end.first) {
-        when (Locale.getDefault().language) {
-            "tr" -> "${start.second}–${end.second} ${monthName(start.first)}"
-            "de" -> "${start.second}.–${end.second}. ${monthName(start.first)}"
-            "es" -> "${start.second}–${end.second} de ${monthName(start.first)}"
-            "fr", "it" -> "${start.second}–${end.second} ${monthName(start.first)}"
-            else -> "${monthName(start.first)} ${start.second}–${end.second}"
+        when (lang) {
+            "tr" -> "${start.second}–${end.second} ${monthName(start.first, lang)}"
+            "de" -> "${start.second}.–${end.second}. ${monthName(start.first, lang)}"
+            "es" -> "${start.second}–${end.second} de ${monthName(start.first, lang)}"
+            "fr", "it" -> "${start.second}–${end.second} ${monthName(start.first, lang)}"
+            else -> "${monthName(start.first, lang)} ${start.second}–${end.second}"
         }
     } else {
-        "${localizedSingleDate(start)} – ${localizedSingleDate(end)}"
+        "${localizedSingleDate(start, lang)} – ${localizedSingleDate(end, lang)}"
     }
 
-private fun localizedSingleDate(date: Pair<Int, Int>): String = when (Locale.getDefault().language) {
-    "tr" -> "${date.second} ${monthName(date.first)}"
-    "de" -> "${date.second}. ${monthName(date.first)}"
-    "es" -> "${date.second} de ${monthName(date.first)}"
-    "fr", "it" -> "${date.second} ${monthName(date.first)}"
-    else -> "${monthName(date.first)} ${date.second}"
+private fun localizedSingleDate(date: Pair<Int, Int>, lang: String): String = when (lang) {
+    "tr" -> "${date.second} ${monthName(date.first, lang)}"
+    "de" -> "${date.second}. ${monthName(date.first, lang)}"
+    "es" -> "${date.second} de ${monthName(date.first, lang)}"
+    "fr", "it" -> "${date.second} ${monthName(date.first, lang)}"
+    else -> "${monthName(date.first, lang)} ${date.second}"
 }
 
-private fun monthName(month: Int): String {
-    val names = when (Locale.getDefault().language) {
+private fun monthName(month: Int, lang: String): String {
+    val names = when (lang) {
         "tr" -> listOf("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
         "de" -> listOf("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
         "es" -> listOf("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
@@ -256,6 +257,115 @@ fun EventContext.effectiveStatus(todayIsoDate: String = todayIsoDate()): EventSt
         else -> status
     }
 }
+
+/**
+ * Computes a compact remaining-time label for this event, e.g. "3D 14H left", "Live now",
+ * "Coming up", or "Ended". Pure function — testable without Android.
+ *
+ * @param todayIso ISO date string for "today" (yyyy-MM-dd)
+ * @param nowMillis current time in epoch millis (defaults to system time)
+ */
+fun EventContext.remainingTimeLabel(
+    todayIso: String = todayIsoDate(),
+    nowMillis: Long = System.currentTimeMillis(),
+    lang: String = Locale.getDefault().language
+): String {
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val status = effectiveStatus(todayIso)
+    return when (status) {
+        EventStatus.ENDED -> localizedTimerLabel("ended", lang = lang)
+        EventStatus.UPCOMING -> {
+            val startMs = startDate?.let { runCatching { sdf.parse(it)?.time }.getOrNull() }
+            if (startMs != null && startMs > nowMillis) {
+                val diffMs = startMs - nowMillis
+                formatRemainingTime(diffMs, prefix = false, lang = lang)
+            } else {
+                localizedTimerLabel("coming_up", lang = lang)
+            }
+        }
+        EventStatus.CURRENT -> {
+            val endMs = endDate?.let { runCatching { sdf.parse(it)?.time }.getOrNull() }
+            if (endMs != null) {
+                // End date is inclusive — event ends at end of that day (23:59:59)
+                val endOfDayMs = endMs + 24 * 60 * 60 * 1000 - 1
+                if (endOfDayMs > nowMillis) {
+                    formatRemainingTime(endOfDayMs - nowMillis, prefix = true, lang = lang)
+                } else {
+                    localizedTimerLabel("live_now", lang = lang)
+                }
+            } else {
+                localizedTimerLabel("live_now", lang = lang)
+            }
+        }
+    }
+}
+
+private fun formatRemainingTime(diffMs: Long, prefix: Boolean, lang: String): String {
+    val totalHours = (diffMs / (1000 * 60 * 60)).toInt()
+    val days = totalHours / 24
+    val hours = totalHours % 24
+    val timeStr = when {
+        days > 0 && hours > 0 -> "${days}D ${hours}H"
+        days > 0 -> "${days}D"
+        hours > 0 -> "${hours}H"
+        else -> "<1H"
+    }
+    return if (prefix) {
+        localizedTimerLabel("remaining", timeStr, lang)
+    } else {
+        localizedTimerLabel("starts_in", timeStr, lang)
+    }
+}
+
+private fun localizedTimerLabel(key: String, arg: String = "", lang: String): String = when (key) {
+    "ended" -> when (lang) {
+        "tr" -> "Sona erdi"
+        "de" -> "Beendet"
+        "es" -> "Finalizado"
+        "fr" -> "Terminé"
+        "it" -> "Terminato"
+        else -> "Ended"
+    }
+    "coming_up" -> when (lang) {
+        "tr" -> "Yakında"
+        "de" -> "Demnächst"
+        "es" -> "Próximamente"
+        "fr" -> "Bientôt"
+        "it" -> "In arrivo"
+        else -> "Coming up"
+    }
+    "live_now" -> when (lang) {
+        "tr" -> "Şu an canlı"
+        "de" -> "Jetzt live"
+        "es" -> "En vivo"
+        "fr" -> "En cours"
+        "it" -> "In corso"
+        else -> "Live now"
+    }
+    "remaining" -> when (lang) {
+        "tr" -> "$arg kaldı"
+        "de" -> "$arg übrig"
+        "es" -> "$arg restante"
+        "fr" -> "$arg restant"
+        "it" -> "$arg rimanente"
+        else -> "$arg left"
+    }
+    "starts_in" -> when (lang) {
+        "tr" -> "$arg sonra"
+        "de" -> "in $arg"
+        "es" -> "en $arg"
+        "fr" -> "dans $arg"
+        "it" -> "tra $arg"
+        else -> "in $arg"
+    }
+    else -> arg
+}
+
+/**
+ * Filters out events that have ended based on their date window. Pure function.
+ */
+fun activeEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): List<EventContext> =
+    events.filter { it.effectiveStatus(todayIso) != EventStatus.ENDED }
 
 object EventContextRepository {
     val entries: List<EventContext> = listOf(

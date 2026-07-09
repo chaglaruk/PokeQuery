@@ -16,11 +16,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
+import com.caglar.pokequery.domain.events.EventFeedLoader
 import com.caglar.pokequery.domain.locale.AppLocaleController
 import com.caglar.pokequery.domain.locale.LocalizationModel
 import com.caglar.pokequery.theme.PokeQueryTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -41,6 +44,14 @@ class MainActivity : ComponentActivity() {
         copySearch = intent?.getStringExtra("copy_search")
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
+
+        // v0.7.2: Silent background prefetch of event feed data on app startup.
+        // This pre-caches the remote feed so Event Guide data is ready before the user opens it.
+        // Failures are silently swallowed — the Event Guide screen handles its own refresh/fallback.
+        lifecycleScope.launch {
+            runCatching { EventFeedLoader.load(applicationContext) }
+        }
+
         // v0.5.2 (Fix 7): one repository instance shared with MainNavigation for the App
         // Language preference. The v0.5.2 original applied the OS per-app locale from a
         // `SideEffect` (per-frame), which on Android 16 / Samsung One UI drove an Activity

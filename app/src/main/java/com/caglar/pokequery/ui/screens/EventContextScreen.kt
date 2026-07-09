@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,17 +67,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.R
+import androidx.compose.ui.platform.LocalConfiguration
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
-import com.caglar.pokequery.domain.events.ContextFeedState
-import com.caglar.pokequery.domain.events.EventContext
-import com.caglar.pokequery.domain.events.EventContextRepository
-import com.caglar.pokequery.domain.events.EventFeedLoader
-import com.caglar.pokequery.domain.events.EventPokemonEntry
-import com.caglar.pokequery.domain.events.EventStatus
-import com.caglar.pokequery.domain.events.effectiveStatus
-import com.caglar.pokequery.domain.events.localizedRaids
-import com.caglar.pokequery.domain.events.selectMainEvent
+import com.caglar.pokequery.domain.events.*
 import com.caglar.pokequery.theme.AmberWarning
 import com.caglar.pokequery.theme.BackgroundDark
 import com.caglar.pokequery.theme.CardDark
@@ -115,6 +109,8 @@ fun EventContextScreen(
 ) {
     val density = currentDensity()
     val context = LocalContext.current
+    val currentLocale = LocalConfiguration.current.locales[0]
+    val lang = currentLocale.language
     val scope = rememberCoroutineScope()
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
@@ -148,11 +144,12 @@ fun EventContextScreen(
         }
     }
 
-    val mainEvent = feedState.events.firstOrNull { it.id == selectedEventId }
-        ?: selectMainEvent(feedState.events)
-    androidx.compose.runtime.LaunchedEffect(feedState.events.map { it.id }) {
-        if (selectedEventId == null || feedState.events.none { it.id == selectedEventId }) {
-            selectedEventId = selectMainEvent(feedState.events)?.id
+    val visibleEvents = activeEvents(feedState.events)
+    val mainEvent = visibleEvents.firstOrNull { it.id == selectedEventId }
+        ?: selectMainEvent(visibleEvents)
+    androidx.compose.runtime.LaunchedEffect(visibleEvents.map { it.id }) {
+        if (selectedEventId == null || visibleEvents.none { it.id == selectedEventId }) {
+            selectedEventId = selectMainEvent(visibleEvents)?.id
         }
     }
     val sourceLabelRes = when (feedState) {
@@ -226,8 +223,9 @@ fun EventContextScreen(
                     mainEvent != null -> {
                         item {
                             EventPickerPanel(
-                                events = feedState.events,
+                                events = visibleEvents,
                                 selectedId = mainEvent.id,
+                                lang = lang,
                                 onSelected = { selectedEventId = it },
                                 modifier = Modifier.pqStaggeredItem(visible, 2)
                             )
@@ -237,6 +235,7 @@ fun EventContextScreen(
                                 event = mainEvent,
                                 sourceLabelRes = sourceLabelRes,
                                 lastChecked = lastChecked,
+                                lang = lang,
                                 modifier = Modifier.pqStaggeredItem(visible, 3)
                             )
                         }
@@ -372,6 +371,7 @@ private fun EventMainCard(
     event: EventContext,
     sourceLabelRes: Int,
     lastChecked: String?,
+    lang: String,
     modifier: Modifier = Modifier
 ) {
     val clipboard = LocalClipboardManager.current
@@ -383,11 +383,12 @@ private fun EventMainCard(
         lastChecked = lastChecked,
         tone = tone,
         clipboard = clipboard,
+        lang = lang,
         onOpen = { dialog = it },
         modifier = modifier
     )
     dialog?.let { content ->
-        EventInfoDialog(content = content, onDismiss = { dialog = null })
+        EventInfoDialog(content = content, event = event, lang = lang, onDismiss = { dialog = null })
     }
 }
 
@@ -395,6 +396,7 @@ private fun EventMainCard(
 private fun EventPickerPanel(
     events: List<EventContext>,
     selectedId: String,
+    lang: String,
     onSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -426,15 +428,15 @@ private fun EventPickerPanel(
 
                 val displayTitle = when {
                     event.id.contains("anniversary") -> {
-                        if (lang() == "tr") "10. Yıl Dönümü" else "10th Anniv."
+                        if (lang == "tr") "10. Yıl Dönümü" else "10th Anniv."
                     }
                     event.id.contains("legends") -> {
-                        if (lang() == "tr") "Efsaneler Yolu" else "Road of Legends"
+                        if (lang == "tr") "Efsaneler Yolu" else "Road of Legends"
                     }
                     event.id.contains("fest") -> {
-                        if (lang() == "tr") "GO Fest 2026" else "GO Fest 2026"
+                        if (lang == "tr") "GO Fest 2026" else "GO Fest 2026"
                     }
-                    else -> event.localizedTitle()
+                    else -> event.localizedTitle(lang)
                 }
 
                 Text(
@@ -448,6 +450,15 @@ private fun EventPickerPanel(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    text = event.remainingTimeLabel(lang = lang),
+                    color = tone.copy(alpha = 0.85f),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -460,18 +471,14 @@ private fun EventDashboardContent(
     lastChecked: String?,
     tone: Color,
     clipboard: androidx.compose.ui.platform.ClipboardManager,
+    lang: String,
     onOpen: (EventDialogContent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(20.dp)
     val effectiveStatus = event.effectiveStatus()
-    val badgeLabel = stringResource(
-        when (effectiveStatus) {
-            EventStatus.CURRENT -> R.string.event_main_card_live_now
-            EventStatus.UPCOMING -> R.string.event_main_card_coming_up
-            EventStatus.ENDED -> R.string.event_main_card_ended
-        }
-    )
+    val timerLabel = event.remainingTimeLabel(lang = lang)
+    val badgeLabel = timerLabel
     val search = event.suggestedSearch.orEmpty()
     val featuredAction = stringResource(R.string.event_group_featured_action)
 
@@ -495,8 +502,8 @@ private fun EventDashboardContent(
             EventThemeMark(event.themeKey, tone, Modifier.size(40.dp))
         }
         Spacer(Modifier.height(10.dp))
-        Text(event.localizedTitle(), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
-        event.dateLabel()?.let {
+        Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
+        event.dateLabel(lang)?.let {
             Spacer(Modifier.height(4.dp))
             Text(it, color = TextTertiary, fontSize = 12.sp)
         }
@@ -506,14 +513,16 @@ private fun EventDashboardContent(
             EventSpriteRow(
                 entries = event.pokemon,
                 tone = tone,
+                lang = lang,
                 onOpen = { entry ->
                     onOpen(
                         EventDialogContent(
-                            title = entry.localizedName(),
-                            badge = entry.localizedBadges(),
-                            body = entry.localizedNote().ifBlank { entry.localizedSource() },
+                            title = entry.localizedName(lang),
+                            badge = entry.localizedBadges(lang),
+                            body = entry.localizedNote(lang).ifBlank { entry.localizedSource(lang) },
                             action = featuredAction,
-                            spriteKey = entry.spriteKey
+                            spriteKey = entry.spriteKey,
+                            cardKey = entry.spriteKey
                         )
                     )
                 }
@@ -523,13 +532,14 @@ private fun EventDashboardContent(
         EventGroupCard(
             title = stringResource(R.string.event_featured_pokemon),
             badge = stringResource(R.string.event_group_featured_badge),
-            body = event.localizedFeatured().ifBlank { event.pokemon.joinToString { it.name } },
+            body = event.localizedFeatured(lang).ifBlank { event.pokemon.joinToString { it.name } },
             action = stringResource(R.string.event_group_featured_action),
             tone = tone,
             spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
-            onOpen = onOpen
+            onOpen = onOpen,
+            cardKey = null
         )
-        val raidsText = event.localizedRaids()
+        val raidsText = event.localizedRaids(lang)
         if (raidsText.isNotBlank()) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
@@ -539,48 +549,58 @@ private fun EventDashboardContent(
                 action = stringResource(R.string.event_feature_raids_action),
                 tone = CyanGlow,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey == "mewtwo" || it.spriteKey == "necrozma" }?.spriteKey,
-                onOpen = onOpen
+                onOpen = onOpen,
+                cardKey = "raid_targets"
             )
         }
         Spacer(Modifier.height(10.dp))
         EventGroupCard(
             title = stringResource(R.string.event_research),
             badge = stringResource(R.string.event_group_research_badge),
-            body = event.localizedResearch(),
+            body = event.localizedResearch(lang),
             action = stringResource(R.string.event_group_raids_action),
             tone = PurpleIV,
             spriteKey = event.pokemon.getOrNull(1)?.spriteKey,
-            onOpen = onOpen
+            onOpen = onOpen,
+            cardKey = null
         )
         Spacer(Modifier.height(10.dp))
         EventGroupCard(
             title = stringResource(R.string.event_group_collection_title),
             badge = stringResource(R.string.event_group_collection_badge),
-            body = event.localizedNotes().ifBlank { stringResource(R.string.event_group_collection_body) },
+            body = event.localizedNotes(lang).ifBlank { stringResource(R.string.event_group_collection_body) },
             action = stringResource(R.string.event_group_collection_action),
             tone = GoldCaution,
             spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
-            onOpen = onOpen
+            onOpen = onOpen,
+            cardKey = null
         )
         Spacer(Modifier.height(10.dp))
+        val hasFusion = event.id.contains("go-fest") || event.id.contains("legends") ||
+                event.localizedBonuses(lang).contains("energy", ignoreCase = true) ||
+                event.localizedNotes(lang).contains("energy", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("enerji", ignoreCase = true) ||
+                event.localizedNotes(lang).contains("enerji", ignoreCase = true)
         EventGroupCard(
             title = stringResource(R.string.event_bonuses),
             badge = stringResource(R.string.event_group_bonuses_badge),
-            body = event.localizedBonuses(),
+            body = event.localizedBonuses(lang),
             action = stringResource(R.string.event_group_bonuses_action),
             tone = AmberWarning,
-            spriteKey = event.pokemon.firstOrNull { it.spriteKey == "necrozma" }?.spriteKey,
-            onOpen = onOpen
+            spriteKey = if (hasFusion) "link_energy" else null,
+            onOpen = onOpen,
+            cardKey = if (hasFusion) "link_energy" else "bonuses"
         )
         Spacer(Modifier.height(10.dp))
         EventGroupCard(
             title = stringResource(R.string.event_group_prep_title),
             badge = stringResource(R.string.event_group_prep_badge),
-            body = event.localizedPrep(),
+            body = event.localizedPrep(lang),
             action = stringResource(R.string.event_group_prep_action),
             tone = TealPrimary,
-            spriteKey = null,
-            onOpen = onOpen
+            spriteKey = "prep_list",
+            onOpen = onOpen,
+            cardKey = "prep_list"
         )
 
         if (search.isNotBlank()) {
@@ -627,7 +647,12 @@ private fun EventDashboardContent(
 }
 
 @Composable
-private fun EventSpriteRow(entries: List<EventPokemonEntry>, tone: Color, onOpen: (EventPokemonEntry) -> Unit) {
+private fun EventSpriteRow(
+    entries: List<EventPokemonEntry>,
+    tone: Color,
+    lang: String,
+    onOpen: (EventPokemonEntry) -> Unit
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         entries.take(6).chunked(2).forEach { rowEntries ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -644,8 +669,8 @@ private fun EventSpriteRow(entries: List<EventPokemonEntry>, tone: Color, onOpen
                     ) {
                         EventSprite(entry.spriteKey, tone, Modifier.size(54.dp))
                         Spacer(Modifier.height(5.dp))
-                        Text(entry.localizedName(), color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(entry.localizedBadges(), color = tone, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(entry.localizedName(lang), color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(entry.localizedBadges(lang), color = tone, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 if (rowEntries.size == 1) {
@@ -664,7 +689,8 @@ private fun EventGroupCard(
     action: String,
     tone: Color,
     spriteKey: String?,
-    onOpen: (EventDialogContent) -> Unit
+    onOpen: (EventDialogContent) -> Unit,
+    cardKey: String? = null
 ) {
     Row(
         modifier = Modifier
@@ -672,7 +698,7 @@ private fun EventGroupCard(
             .clip(RoundedCornerShape(16.dp))
             .background(CardPremium.copy(alpha = 0.86f))
             .border(1.dp, tone.copy(alpha = 0.24f), RoundedCornerShape(16.dp))
-            .clickable { onOpen(EventDialogContent(title, badge, body, action, spriteKey)) }
+            .clickable { onOpen(EventDialogContent(title, badge, body, action, spriteKey, cardKey)) }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -707,44 +733,69 @@ private fun EventSprite(spriteKey: String?, tone: Color, modifier: Modifier = Mo
         if (res != null) {
             Image(painter = painterResource(res), contentDescription = null, modifier = Modifier.size(42.dp))
         } else {
-            EventThemeMark("generic_event", tone, Modifier.size(42.dp))
+            when (spriteKey) {
+                "link_energy", "link_charges" -> LinkEnergyIcon(tone, Modifier.size(42.dp))
+                "incubators" -> IncubatorsIcon(tone, Modifier.size(42.dp))
+                "prep_list" -> PrepListIcon(tone, Modifier.size(42.dp))
+                else -> EventThemeMark("generic_event", tone, Modifier.size(42.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun EventInfoDialog(content: EventDialogContent, onDismiss: () -> Unit) {
-    val closeLabel = stringResource(R.string.event_close)
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = SlateBlack)) {
-                Text(closeLabel, fontWeight = FontWeight.Bold)
-            }
-        },
-        containerColor = CardDark,
-        titleContentColor = TextPrimary,
-        textContentColor = TextSecondary,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                EventSprite(content.spriteKey, TealPrimary, Modifier.size(64.dp))
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(content.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text(content.badge, color = TealPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-        },
-        text = {
-            Column {
-                Text(content.body, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
-                Spacer(Modifier.height(10.dp))
-                SectionLabel(whatToDoLabel(), AmberWarning)
-                Spacer(Modifier.height(4.dp))
-                Text(content.action, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
-            }
-        }
-    )
+private fun LinkEnergyIcon(tone: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+        drawCircle(tone, radius = w * 0.15f, center = Offset(w * 0.5f, h * 0.5f))
+        val stroke = Stroke(width = w * 0.08f)
+        drawCircle(tone.copy(alpha = 0.4f), radius = w * 0.32f, center = Offset(w * 0.5f, h * 0.5f), style = stroke)
+        drawLine(tone, Offset(w * 0.15f, h * 0.35f), Offset(w * 0.85f, h * 0.65f), strokeWidth = w * 0.07f)
+        drawLine(tone, Offset(w * 0.15f, h * 0.65f), Offset(w * 0.85f, h * 0.35f), strokeWidth = w * 0.07f)
+    }
+}
+
+@Composable
+private fun IncubatorsIcon(tone: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+        val stroke = Stroke(width = w * 0.07f)
+        drawRoundRect(
+            color = tone,
+            topLeft = Offset(w * 0.25f, h * 0.2f),
+            size = androidx.compose.ui.geometry.Size(w * 0.5f, h * 0.6f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.25f, w * 0.25f),
+            style = stroke
+        )
+        drawCircle(tone.copy(alpha = 0.5f), radius = w * 0.16f, center = Offset(w * 0.5f, h * 0.52f))
+    }
+}
+
+@Composable
+private fun PrepListIcon(tone: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+        val stroke = Stroke(width = w * 0.07f)
+        drawRoundRect(
+            color = tone.copy(alpha = 0.5f),
+            topLeft = Offset(w * 0.24f, h * 0.24f),
+            size = androidx.compose.ui.geometry.Size(w * 0.52f, h * 0.56f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.08f, w * 0.08f),
+            style = stroke
+        )
+        drawRoundRect(
+            color = tone,
+            topLeft = Offset(w * 0.4f, h * 0.16f),
+            size = androidx.compose.ui.geometry.Size(w * 0.2f, h * 0.12f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.04f, w * 0.04f)
+        )
+        drawLine(tone, Offset(w * 0.36f, h * 0.42f), Offset(w * 0.64f, h * 0.42f), strokeWidth = w * 0.06f)
+        drawLine(tone, Offset(w * 0.36f, h * 0.56f), Offset(w * 0.64f, h * 0.56f), strokeWidth = w * 0.06f)
+        drawLine(tone, Offset(w * 0.36f, h * 0.70f), Offset(w * 0.64f, h * 0.70f), strokeWidth = w * 0.06f)
+    }
 }
 
 private data class EventDialogContent(
@@ -752,7 +803,8 @@ private data class EventDialogContent(
     val badge: String,
     val body: String,
     val action: String,
-    val spriteKey: String?
+    val spriteKey: String?,
+    val cardKey: String? = null
 )
 
 private fun spriteRes(key: String): Int? = when (key) {
@@ -771,106 +823,208 @@ private fun spriteRes(key: String): Int? = when (key) {
     else -> null
 }
 
-private fun lang(): String = Locale.getDefault().language
+@Composable
+private fun EventInfoDialog(
+    content: EventDialogContent,
+    event: EventContext,
+    lang: String,
+    onDismiss: () -> Unit
+) {
+    val closeLabel = stringResource(R.string.event_close)
+    val prepItems = listOf(
+        stringResource(R.string.event_detail_prep_item_storage),
+        stringResource(R.string.event_detail_prep_item_trades),
+        stringResource(R.string.event_detail_prep_item_passes),
+        stringResource(R.string.event_detail_prep_item_megas),
+        stringResource(R.string.event_detail_prep_item_copy),
+        stringResource(R.string.event_detail_prep_item_keep)
+    )
+    val localCtx = androidx.compose.ui.platform.LocalContext.current
+    val localConfig = androidx.compose.ui.platform.LocalConfiguration.current
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.ui.platform.LocalContext provides localCtx,
+        androidx.compose.ui.platform.LocalConfiguration provides localConfig
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = SlateBlack)) {
+                    Text(closeLabel, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = CardDark,
+            titleContentColor = TextPrimary,
+            textContentColor = TextSecondary,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    EventSprite(content.spriteKey, TealPrimary, Modifier.size(64.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(content.title, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(content.badge, color = TealPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            },
+            text = {
+                Column {
+                    val detailBody = cardKeyBody(content.cardKey, event, lang, localCtx)
+                    val detailAction = cardKeyAction(content.cardKey, event, lang, localCtx)
+                    Text(
+                        text = detailBody ?: content.body,
+                        color = TextSecondary,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
+                    )
+                    if (content.cardKey == "prep_list") {
+                        Spacer(Modifier.height(10.dp))
+                        PrepChecklist(prepItems)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    SectionLabel(whatToDoLabel(lang), AmberWarning)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = detailAction ?: content.action,
+                        color = TextPrimary,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
+                    )
+                }
+            }
+        )
+    }
+}
 
-private fun whatToDoLabel(): String = when (lang()) {
+@Composable
+private fun PrepChecklist(items: List<String>) {
+    val checked = remember { mutableStateListOf(*Array(items.size) { false }) }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        items.forEachIndexed { index, label ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (checked[index]) TealPrimary.copy(alpha = 0.08f) else CardPremium.copy(alpha = 0.5f))
+                    .clickable {
+                        checked[index] = !checked[index]
+                    }
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(if (checked[index]) TealPrimary else TextTertiary.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (checked[index]) {
+                        Text("✓", color = SlateBlack, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = label,
+                    color = if (checked[index]) TextTertiary else TextPrimary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    textDecoration = if (checked[index]) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                )
+            }
+        }
+    }
+}
+
+private fun cardKeyBody(cardKey: String?, event: EventContext, lang: String, context: android.content.Context): String? = when (cardKey) {
+    "raid_targets" -> {
+        val specific = event.localizedRaids(lang)
+        val bodyPrefix = if (specific.isNotBlank()) {
+            if (lang == "tr") "Akın Detayları:\n$specific\n\n" else "Raid Details:\n$specific\n\n"
+        } else ""
+        val isGoFest = event.id.contains("go-fest") || event.id.contains("legends")
+        val resId = if (isGoFest) R.string.event_detail_raid_targets_body_gofest else R.string.event_detail_raid_targets_body
+        bodyPrefix + context.getString(resId)
+    }
+    "link_energy", "fusion_energy" -> {
+        val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
+                event.localizedBonuses(lang).contains("energy", ignoreCase = true) ||
+                event.localizedNotes(lang).contains("energy", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("enerji", ignoreCase = true) ||
+                event.localizedNotes(lang).contains("enerji", ignoreCase = true)
+        if (isGoFest) {
+            context.getString(R.string.event_detail_link_energy_body)
+        } else {
+            null
+        }
+    }
+    "link_charges" -> {
+        val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
+                event.localizedBonuses(lang).contains("charge", ignoreCase = true) ||
+                event.localizedNotes(lang).contains("charge", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("şarj", ignoreCase = true) ||
+                event.localizedNotes(lang).contains("şarj", ignoreCase = true)
+        if (isGoFest) {
+            context.getString(R.string.event_detail_link_charges_body)
+        } else {
+            null
+        }
+    }
+    "incubators" -> {
+        val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
+                event.localizedBonuses(lang).contains("distance", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("mesafe", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("egg", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("yumurta", ignoreCase = true)
+        if (isGoFest) {
+            context.getString(R.string.event_detail_incubators_body)
+        } else {
+            null
+        }
+    }
+    "prep_list" -> context.getString(R.string.event_detail_prep_list_body)
+    else -> null
+}
+
+private fun cardKeyAction(cardKey: String?, event: EventContext, lang: String, context: android.content.Context): String? = when (cardKey) {
+    "raid_targets" -> context.getString(R.string.event_detail_raid_targets_action)
+    "link_energy", "fusion_energy" -> {
+        val isGoFest = event.id.contains("go-fest") || event.id.contains("legends")
+        if (isGoFest) {
+            context.getString(R.string.event_detail_link_energy_action)
+        } else {
+            null
+        }
+    }
+    "link_charges" -> {
+        val isGoFest = event.id.contains("go-fest") || event.id.contains("legends")
+        if (isGoFest) {
+            context.getString(R.string.event_detail_link_charges_action)
+        } else {
+            null
+        }
+    }
+    "incubators" -> {
+        val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
+                event.localizedBonuses(lang).contains("distance", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("mesafe", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("egg", ignoreCase = true) ||
+                event.localizedBonuses(lang).contains("yumurta", ignoreCase = true)
+        if (isGoFest) {
+            context.getString(R.string.event_detail_incubators_action)
+        } else {
+            null
+        }
+    }
+    "prep_list" -> context.getString(R.string.event_detail_prep_list_action)
+    else -> null
+}
+
+private fun whatToDoLabel(lang: String): String = when (lang) {
     "tr" -> "Ne yapmalı?"
     "de" -> "Was tun?"
     "es" -> "¿Qué hacer?"
     "fr" -> "Que faire ?"
     "it" -> "Cosa fare?"
     else -> "What to do?"
-}
-
-private fun localized(en: String?, tr: String?, de: String?, es: String?, fr: String?, it: String?): String = when (lang()) {
-    "tr" -> tr
-    "de" -> de
-    "es" -> es
-    "fr" -> fr
-    "it" -> it
-    else -> en
-}.takeUnless { it.isNullOrBlank() } ?: en.orEmpty()
-
-private fun EventContext.localizedTitle(): String =
-    localized(titleText, titleTextTr, titleTextDe, titleTextEs, titleTextFr, titleTextIt)
-
-private fun EventContext.localizedFeatured(): String =
-    localized(featuredPokemon, featuredPokemonTr, featuredPokemonDe, featuredPokemonEs, featuredPokemonFr, featuredPokemonIt)
-
-private fun EventContext.localizedResearch(): String =
-    localized(researchText, researchTextTr, researchTextDe, researchTextEs, researchTextFr, researchTextIt)
-
-private fun EventContext.localizedBonuses(): String =
-    localized(bonusesText, bonusesTextTr, bonusesTextDe, bonusesTextEs, bonusesTextFr, bonusesTextIt)
-
-private fun EventContext.localizedPrep(): String =
-    localized(prepText, prepTextTr, prepTextDe, prepTextEs, prepTextFr, prepTextIt)
-
-private fun EventContext.localizedNotes(): String =
-    localized(eventNotesText, eventNotesTextTr, eventNotesTextDe, eventNotesTextEs, eventNotesTextFr, eventNotesTextIt)
-
-private fun EventPokemonEntry.localizedName(): String =
-    localized(name, nameTr, nameDe, nameEs, nameFr, nameIt)
-
-private fun EventPokemonEntry.localizedSource(): String =
-    localized(source, sourceTr, sourceDe, sourceEs, sourceFr, sourceIt)
-
-private fun EventPokemonEntry.localizedNote(): String =
-    localized(note, noteTr, noteDe, noteEs, noteFr, noteIt)
-
-private fun EventPokemonEntry.localizedBadges(): String =
-    localized(badges, badgesTr, badgesDe, badgesEs, badgesFr, badgesIt)
-
-private fun EventContext.dateLabel(): String? = when {
-    isoMonthDay(startDate) != null && isoMonthDay(endDate) != null ->
-        localizedDateRange(isoMonthDay(startDate)!!, isoMonthDay(endDate)!!)
-    isoMonthDay(startDate) != null -> localizedSingleDate(isoMonthDay(startDate)!!)
-    isoMonthDay(endDate) != null -> localizedSingleDate(isoMonthDay(endDate)!!)
-    !startText.isNullOrBlank() && !endText.isNullOrBlank() -> "$startText – $endText"
-    !startText.isNullOrBlank() -> startText
-    !endText.isNullOrBlank() -> endText
-    month != null && year != null -> "$month/$year"
-    else -> null
-}
-
-private fun isoMonthDay(value: String?): Pair<Int, Int>? {
-    val text = value?.takeIf { it.length >= 10 } ?: return null
-    val month = text.substring(5, 7).toIntOrNull() ?: return null
-    val day = text.substring(8, 10).toIntOrNull() ?: return null
-    return month to day
-}
-
-private fun localizedDateRange(start: Pair<Int, Int>, end: Pair<Int, Int>): String =
-    if (start.first == end.first) {
-        when (lang()) {
-            "tr" -> "${start.second}–${end.second} ${monthName(start.first)}"
-            "de" -> "${start.second}.–${end.second}. ${monthName(start.first)}"
-            "es" -> "${start.second}–${end.second} de ${monthName(start.first)}"
-            "fr", "it" -> "${start.second}–${end.second} ${monthName(start.first)}"
-            else -> "${monthName(start.first)} ${start.second}–${end.second}"
-        }
-    } else {
-        "${localizedSingleDate(start)} – ${localizedSingleDate(end)}"
-    }
-
-private fun localizedSingleDate(date: Pair<Int, Int>): String = when (lang()) {
-    "tr" -> "${date.second} ${monthName(date.first)}"
-    "de" -> "${date.second}. ${monthName(date.first)}"
-    "es" -> "${date.second} de ${monthName(date.first)}"
-    "fr", "it" -> "${date.second} ${monthName(date.first)}"
-    else -> "${monthName(date.first)} ${date.second}"
-}
-
-private fun monthName(month: Int): String {
-    val names = when (lang()) {
-        "tr" -> listOf("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
-        "de" -> listOf("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
-        "es" -> listOf("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
-        "fr" -> listOf("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre")
-        "it" -> listOf("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre")
-        else -> listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
-    }
-    return names.getOrElse(month - 1) { month.toString() }
 }
 
 @Composable
