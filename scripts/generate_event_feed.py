@@ -242,6 +242,23 @@ def parse_live_leekduck_events(html):
         })
     return events
 
+def get_importance_tier(title, kind):
+    title_lower = title.lower()
+    kind_lower = kind.lower()
+    
+    if any(w in title_lower for w in ["save the date", "save-the-date", "lego", "art", "partnership", "birthday", "wallpapers", "twitch drops"]):
+        return "NEWS"
+        
+    if any(w in title_lower for w in ["spotlight hour", "raid hour", "max mondays", "league", "gbl", "season", "rotation", "5-star", "mega raid"]):
+        return "ROUTINE"
+        
+    if any(w in title_lower for w in ["community day", "go fest", "raid day", "hatch day", "takeover", "anniversary party", "road of legends", "global"]):
+        return "MAJOR"
+    if kind_lower in ["community_day", "spotlight_hour"]:
+        return "MAJOR" if kind_lower == "community_day" else "ROUTINE"
+        
+    return "STANDARD"
+
 def generate_feed(fixture_mode, output_path):
     # Determine base directories
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -437,6 +454,7 @@ def generate_feed(fixture_mode, output_path):
             "eventNotesFr": meta.get("eventNotesFr"),
             "eventNotesIt": meta.get("eventNotesIt"),
             "themeKey": meta.get("themeKey", "generic_event"),
+            "importanceTier": meta.get("importanceTier") or get_importance_tier(ev["title"], ev["kind"]),
             "sourceNotes": f"Generated from {ev['sourceName']}: {ev['sourceUrl']}",
             "sourceName": ev["sourceName"],
             "sourceUrl": ev["sourceUrl"],

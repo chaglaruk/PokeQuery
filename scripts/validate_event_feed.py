@@ -68,6 +68,12 @@ def validate_feed(file_path):
             print(f"Error: Event {event_id} has invalid sourceType: {source_type}")
             return False
 
+        # Check importanceTier
+        importance_tier = event.get("importanceTier")
+        if importance_tier and importance_tier not in ["MAJOR", "STANDARD", "ROUTINE", "NEWS"]:
+            print(f"Error: Event {event_id} has invalid importanceTier: {importance_tier}")
+            return False
+
         # Check no '|' in search
         suggested_search = event.get("suggestedSearch")
         if "|" in suggested_search:

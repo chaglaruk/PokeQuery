@@ -145,8 +145,7 @@ fun EventContextScreen(
     }
 
     val visibleEvents = activeEvents(feedState.events)
-    val mainEvent = visibleEvents.firstOrNull { it.id == selectedEventId }
-        ?: selectMainEvent(visibleEvents)
+    // Event selection is now handled by groupEvents() inside LazyColumn
     androidx.compose.runtime.LaunchedEffect(visibleEvents.map { it.id }) {
         if (selectedEventId == null || visibleEvents.none { it.id == selectedEventId }) {
             selectedEventId = selectMainEvent(visibleEvents)?.id
@@ -157,7 +156,7 @@ fun EventContextScreen(
         is ContextFeedState.StaleCache -> R.string.event_status_saved_guide
         else -> R.string.event_status_bundled_fallback
     }
-    val isLoading = feedState is ContextFeedState.Loading && mainEvent == null
+    val isLoading = feedState is ContextFeedState.Loading && visibleEvents.isEmpty()
 
     Box(
         modifier = Modifier
@@ -220,24 +219,114 @@ fun EventContextScreen(
                             }
                         }
                     }
-                    mainEvent != null -> {
-                        item {
-                            EventPickerPanel(
-                                events = visibleEvents,
-                                selectedId = mainEvent.id,
-                                lang = lang,
-                                onSelected = { selectedEventId = it },
-                                modifier = Modifier.pqStaggeredItem(visible, 2)
-                            )
+                    visibleEvents.isNotEmpty() -> {
+                        val sections = groupEvents(visibleEvents)
+
+                        // ── Featured hero card ──
+                        if (sections.featured != null) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("featured", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 2)
+                                )
+                            }
+                            item {
+                                EventMainCard(
+                                    event = sections.featured,
+                                    sourceLabelRes = sourceLabelRes,
+                                    lastChecked = lastChecked,
+                                    lang = lang,
+                                    modifier = Modifier.pqStaggeredItem(visible, 3)
+                                )
+                            }
                         }
-                        item {
-                            EventMainCard(
-                                event = mainEvent,
-                                sourceLabelRes = sourceLabelRes,
-                                lastChecked = lastChecked,
-                                lang = lang,
-                                modifier = Modifier.pqStaggeredItem(visible, 3)
-                            )
+
+                        // ── Happening Now ──
+                        if (sections.happeningNow.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("live", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 4)
+                                )
+                            }
+                            sections.happeningNow.forEachIndexed { idx, event ->
+                                item(key = "now-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = if (lang == "tr") "Canlı" else "Live",
+                                        statusColor = CyanGlow,
+                                        onClick = { selectedEventId = event.id },
+                                        modifier = Modifier.pqStaggeredItem(visible, 5 + idx)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── Important Upcoming ──
+                        if (sections.importantUpcoming.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("upcoming", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 6)
+                                )
+                            }
+                            sections.importantUpcoming.forEachIndexed { idx, event ->
+                                item(key = "up-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = if (lang == "tr") "Yakında" else "Upcoming",
+                                        statusColor = AmberWarning,
+                                        onClick = { selectedEventId = event.id },
+                                        modifier = Modifier.pqStaggeredItem(visible, 7 + idx)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── Rotations & Regular Events ──
+                        if (sections.rotations.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("rotations", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 8)
+                                )
+                            }
+                            sections.rotations.forEachIndexed { idx, event ->
+                                item(key = "rot-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = if (lang == "tr") "Düzenli" else "Routine",
+                                        statusColor = PurpleIV,
+                                        onClick = { selectedEventId = event.id },
+                                        modifier = Modifier.pqStaggeredItem(visible, 9 + idx)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── News & Announcements ──
+                        if (sections.news.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("news", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 10)
+                                )
+                            }
+                            sections.news.forEachIndexed { idx, event ->
+                                item(key = "news-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = if (lang == "tr") "Duyuru" else "News",
+                                        statusColor = TextTertiary,
+                                        onClick = { selectedEventId = event.id },
+                                        modifier = Modifier.pqStaggeredItem(visible, 11 + idx)
+                                    )
+                                }
+                            }
                         }
                     }
                     else -> {
@@ -246,6 +335,31 @@ fun EventContextScreen(
                                 modifier = Modifier.pqStaggeredItem(visible, 2),
                                 onRefresh = { refresh() }
                             )
+                        }
+                    }
+                }
+
+                // Selected event detail card (when user taps a compact card)
+                if (selectedEventId != null && visibleEvents.isNotEmpty()) {
+                    val sections = groupEvents(visibleEvents)
+                    if (selectedEventId != sections.featured?.id) {
+                        val detailEvent = visibleEvents.firstOrNull { it.id == selectedEventId }
+                        if (detailEvent != null) {
+                            item {
+                                SectionHeader(
+                                    title = detailEvent.localizedTitle(lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 12)
+                                )
+                            }
+                            item {
+                                EventMainCard(
+                                    event = detailEvent,
+                                    sourceLabelRes = sourceLabelRes,
+                                    lastChecked = lastChecked,
+                                    lang = lang,
+                                    modifier = Modifier.pqStaggeredItem(visible, 13)
+                                )
+                            }
                         }
                     }
                 }
@@ -461,6 +575,153 @@ private fun EventPickerPanel(
                 )
             }
         }
+    }
+}
+
+/** Section title localization helper — no XML resources needed. */
+private fun sectionTitle(section: String, lang: String): String = when (lang) {
+    "tr" -> when (section) {
+        "featured" -> "Öne Çıkan Etkinlik"
+        "upcoming" -> "Yakında Önemli"
+        "live" -> "Şu An Olanlar"
+        "rotations" -> "Rotasyonlar ve Düzenli Etkinlikler"
+        "news" -> "Duyurular"
+        else -> ""
+    }
+    "de" -> when (section) {
+        "featured" -> "Hervorgehobenes Event"
+        "upcoming" -> "Wichtig & Bevorstehend"
+        "live" -> "Jetzt Aktiv"
+        "rotations" -> "Rotationen & Regelmäßige Events"
+        "news" -> "Neuigkeiten"
+        else -> ""
+    }
+    "es" -> when (section) {
+        "featured" -> "Evento Destacado"
+        "upcoming" -> "Importante Próximo"
+        "live" -> "Activo Ahora"
+        "rotations" -> "Rotaciones y Eventos Regulares"
+        "news" -> "Noticias"
+        else -> ""
+    }
+    "fr" -> when (section) {
+        "featured" -> "Événement Vedette"
+        "upcoming" -> "Important à Venir"
+        "live" -> "Actif Maintenant"
+        "rotations" -> "Rotations et Événements Réguliers"
+        "news" -> "Nouvelles"
+        else -> ""
+    }
+    "it" -> when (section) {
+        "featured" -> "Evento in Evidenza"
+        "upcoming" -> "Importante in Arrivo"
+        "live" -> "Attivo Ora"
+        "rotations" -> "Rotazioni e Eventi Regolari"
+        "news" -> "Notizie"
+        else -> ""
+    }
+    else -> when (section) {
+        "featured" -> "Featured Event"
+        "upcoming" -> "Important Upcoming"
+        "live" -> "Happening Now"
+        "rotations" -> "Rotations & Regular Events"
+        "news" -> "News & Announcements"
+        else -> ""
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = title,
+        color = TextPrimary,
+        fontWeight = FontWeight.Bold,
+        fontSize = 15.sp,
+        modifier = modifier.padding(top = 14.dp, bottom = 4.dp)
+    )
+}
+
+@Composable
+private fun CompactEventCard(
+    event: EventContext,
+    lang: String,
+    statusLabel: String,
+    statusColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(CardPremium.copy(alpha = 0.70f))
+            .border(1.dp, statusColor.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Status dot
+        Box(
+            Modifier
+                .size(8.dp)
+                .background(statusColor, CircleShape)
+        )
+        Spacer(Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = event.localizedTitle(lang),
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 13.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 16.sp
+            )
+            Spacer(Modifier.height(2.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Status chip
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(statusColor.copy(alpha = 0.14f))
+                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                ) {
+                    Text(
+                        text = statusLabel,
+                        color = statusColor,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(Modifier.width(6.dp))
+                // Date range
+                val dateText = buildString {
+                    event.startDate?.let { append(it) }
+                    event.endDate?.let { if (it != event.startDate) append(" – $it") }
+                }
+                if (dateText.isNotBlank()) {
+                    Text(
+                        text = dateText,
+                        color = TextTertiary,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+        // Time remaining label
+        Text(
+            text = event.remainingTimeLabel(lang = lang),
+            color = statusColor.copy(alpha = 0.85f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1
+        )
     }
 }
 

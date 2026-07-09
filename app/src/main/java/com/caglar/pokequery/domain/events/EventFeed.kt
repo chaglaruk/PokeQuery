@@ -142,7 +142,8 @@ object EventFeedParser {
                 researchTextIt = optionalStringField(body, "researchIt"),
                 pokemon = pokemonEntries(body),
                 themeKey = themeKey,
-                isManual = false
+                isManual = false,
+                importanceTier = optionalStringField(body, "importanceTier") ?: "STANDARD"
             )
         }.toList()
         require(events.isNotEmpty()) { "empty events" }

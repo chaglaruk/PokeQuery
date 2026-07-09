@@ -80,7 +80,8 @@ data class EventContext(
     val researchTextIt: String? = null,
     val pokemon: List<EventPokemonEntry> = emptyList(),
     val themeKey: String = "generic_event",
-    val isManual: Boolean = true
+    val isManual: Boolean = true,
+    val importanceTier: String = "STANDARD"
 )
 
 data class EventPokemonEntry(
@@ -127,17 +128,97 @@ private fun String?.validIsoDate(): String? =
 /**
  * Selects the single main event to feature prominently on the Event Guide.
  *
- * Strategy (human-friendly, not debug): prefer a [EventStatus.CURRENT] event. If none is current,
- * pick the first UPCOMING event (the nearest one the feed lists). If the list is empty, returns
- * null so the UI can fall back to an honest empty state.
+ * Strategy: prefer MAJOR current events, then STANDARD current, then MAJOR upcoming,
+ * then STANDARD upcoming. Within each tier, prefer events ending/starting soonest.
+ * Long-running ROUTINE and NEWS events rank lowest.
  *
  * Pure function — unit-testable without Android.
  */
 fun selectMainEvent(events: List<EventContext>, todayIsoDate: String = todayIsoDate()): EventContext? {
     if (events.isEmpty()) return null
-    return events.firstOrNull { it.effectiveStatus(todayIsoDate) == EventStatus.CURRENT }
-        ?: events.firstOrNull { it.effectiveStatus(todayIsoDate) == EventStatus.UPCOMING }
-        ?: events.first()
+    return events
+        .filter { it.effectiveStatus(todayIsoDate) != EventStatus.ENDED }
+        .sortedWith(compareBy<EventContext> { it.featuredScore(todayIsoDate) }
+            .thenBy { if (it.effectiveStatus(todayIsoDate) == EventStatus.CURRENT) it.endDate ?: "9999-12-31" else it.startDate ?: "9999-12-31" })
+        .firstOrNull()
+}
+
+/** Lower score = higher priority for featured selection. */
+fun EventContext.featuredScore(todayIso: String): Int {
+    val status = effectiveStatus(todayIso)
+    val tier = importanceTier.uppercase()
+    return when {
+        status == EventStatus.CURRENT && tier == "MAJOR" -> 10
+        status == EventStatus.CURRENT && tier == "STANDARD" -> 20
+        status == EventStatus.UPCOMING && tier == "MAJOR" -> 30
+        status == EventStatus.UPCOMING && tier == "STANDARD" -> 40
+        status == EventStatus.CURRENT && tier == "ROUTINE" -> 50
+        status == EventStatus.UPCOMING && tier == "ROUTINE" -> 60
+        tier == "NEWS" -> 70
+        else -> 80
+    }
+}
+
+/** Compute days between two ISO date strings. Positive means to is after from. */
+fun daysBetween(from: String, to: String?): Long {
+    if (to == null) return 999
+    return try {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val d1 = sdf.parse(from)
+        val d2 = sdf.parse(to)
+        if (d1 == null || d2 == null) 999 else (d2.time - d1.time) / (1000 * 60 * 60 * 24)
+    } catch (_: Exception) { 999 }
+}
+
+/**
+ * Groups active events into display sections for the Event Guide.
+ * Pure function — unit-testable without Android.
+ */
+data class EventSections(
+    val featured: EventContext?,
+    val importantUpcoming: List<EventContext>,
+    val happeningNow: List<EventContext>,
+    val rotations: List<EventContext>,
+    val news: List<EventContext>
+)
+
+fun groupEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): EventSections {
+    val active = events.filter { it.effectiveStatus(todayIso) != EventStatus.ENDED }
+    val featured = selectMainEvent(active, todayIso)
+    val rest = active.filter { it.id != featured?.id }
+
+    val importantUpcoming = rest
+        .filter {
+            it.effectiveStatus(todayIso) == EventStatus.UPCOMING &&
+            it.importanceTier.uppercase() in listOf("MAJOR", "STANDARD")
+        }
+        .sortedWith(compareBy<EventContext> {
+            if (it.importanceTier.uppercase() == "MAJOR") 0 else 1
+        }.thenBy { it.startDate ?: "9999-12-31" })
+        .take(5)
+
+    val happeningNow = rest
+        .filter {
+            it.effectiveStatus(todayIso) == EventStatus.CURRENT &&
+            it.importanceTier.uppercase() in listOf("MAJOR", "STANDARD")
+        }
+        .sortedBy { it.endDate ?: "9999-12-31" }
+
+    val usedIds = setOfNotNull(featured?.id) +
+        importantUpcoming.map { it.id }.toSet() +
+        happeningNow.map { it.id }.toSet()
+
+    val rotations = rest
+        .filter { it.id !in usedIds && it.importanceTier.uppercase() == "ROUTINE" }
+        .sortedWith(compareBy<EventContext> {
+            if (it.effectiveStatus(todayIso) == EventStatus.CURRENT) 0 else 1
+        }.thenBy { it.startDate ?: "9999-12-31" })
+
+    val newsItems = rest
+        .filter { it.id !in usedIds && it.importanceTier.uppercase() == "NEWS" }
+        .sortedBy { it.startDate ?: "9999-12-31" }
+
+    return EventSections(featured, importantUpcoming, happeningNow, rotations, newsItems)
 }
 
 // Localized string helpers for EventContext and EventPokemonEntry

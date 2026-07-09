@@ -4,6 +4,7 @@ import com.caglar.pokequery.AppVersion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -652,5 +653,120 @@ class EventFeedLoaderTest {
                 }
             }
         }
+    }
+
+    // ---- v0.7.2: Priority UI groupEvents / featuredScore / importanceTier ----
+
+    private fun makeEvent(
+        id: String,
+        tier: String = "STANDARD",
+        status: EventStatus = EventStatus.CURRENT,
+        startDate: String? = null,
+        endDate: String? = null
+    ) = EventContext(
+        id = id,
+        titleText = id,
+        contextType = EventContextType.GENERIC_EVENT,
+        status = status,
+        startDate = startDate,
+        endDate = endDate,
+        noteText = "N",
+        summaryText = "S",
+        prepText = "P",
+        suggestedSearch = "age0",
+        eventNotesText = "N",
+        importanceTier = tier
+    )
+
+    @Test
+    fun `featuredScore prefers MAJOR CURRENT over STANDARD CURRENT`() {
+        val today = "2026-07-09"
+        val major = makeEvent("major", "MAJOR", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
+        val standard = makeEvent("std", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
+        assertTrue(major.featuredScore(today) < standard.featuredScore(today))
+    }
+
+    @Test
+    fun `featuredScore prefers CURRENT STANDARD over UPCOMING MAJOR`() {
+        val today = "2026-07-09"
+        val current = makeEvent("cur", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
+        val upcoming = makeEvent("up", "MAJOR", EventStatus.UPCOMING, "2026-07-15", "2026-07-17")
+        assertTrue(current.featuredScore(today) < upcoming.featuredScore(today))
+    }
+
+    @Test
+    fun `featuredScore ranks NEWS lowest`() {
+        val today = "2026-07-09"
+        val news = makeEvent("news", "NEWS", EventStatus.UPCOMING, "2026-07-01", "2026-12-31")
+        val routine = makeEvent("rot", "ROUTINE", EventStatus.UPCOMING, "2026-07-10", "2026-07-11")
+        assertTrue(news.featuredScore(today) > routine.featuredScore(today))
+    }
+
+    @Test
+    fun `groupEvents puts MAJOR current as featured`() {
+        val today = "2026-07-09"
+        val major = makeEvent("go-fest", "MAJOR", EventStatus.CURRENT, "2026-07-08", "2026-07-12")
+        val standard = makeEvent("cd", "STANDARD", EventStatus.CURRENT, "2026-07-09", "2026-07-09")
+        val routine = makeEvent("rot", "ROUTINE", EventStatus.CURRENT, "2026-07-01", "2026-08-31")
+        val news = makeEvent("ann", "NEWS", EventStatus.UPCOMING, "2026-07-01", "2026-12-31")
+
+        val sections = groupEvents(listOf(major, standard, routine, news), today)
+        assertEquals("go-fest", sections.featured?.id)
+        assertTrue(sections.happeningNow.any { it.id == "cd" })
+        assertTrue(sections.rotations.any { it.id == "rot" })
+        assertTrue(sections.news.any { it.id == "ann" })
+    }
+
+    @Test
+    fun `groupEvents excludes ENDED events from all sections`() {
+        val today = "2026-07-09"
+        val ended = makeEvent("old", "MAJOR", EventStatus.CURRENT, "2026-06-01", "2026-06-02")
+        val current = makeEvent("now", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
+
+        val sections = groupEvents(listOf(ended, current), today)
+        assertEquals("now", sections.featured?.id)
+        assertTrue(sections.happeningNow.isEmpty())
+        assertTrue(sections.importantUpcoming.isEmpty())
+    }
+
+    @Test
+    fun `groupEvents returns empty sections for empty input`() {
+        val sections = groupEvents(emptyList())
+        assertNull(sections.featured)
+        assertTrue(sections.happeningNow.isEmpty())
+        assertTrue(sections.importantUpcoming.isEmpty())
+        assertTrue(sections.rotations.isEmpty())
+        assertTrue(sections.news.isEmpty())
+    }
+
+    @Test
+    fun `daysBetween computes correctly`() {
+        assertEquals(7, daysBetween("2026-07-01", "2026-07-08"))
+        assertEquals(0, daysBetween("2026-07-09", "2026-07-09"))
+        assertEquals(999, daysBetween("2026-07-09", null))
+    }
+
+    @Test
+    fun `selectMainEvent with importance tier prefers MAJOR over STANDARD`() {
+        val today = "2026-07-09"
+        val standard = makeEvent("std", "STANDARD", EventStatus.CURRENT, "2026-07-08", "2026-07-10")
+        val major = makeEvent("major", "MAJOR", EventStatus.CURRENT, "2026-07-08", "2026-07-12")
+        val result = selectMainEvent(listOf(standard, major), today)
+        assertEquals("major", result?.id)
+    }
+
+    @Test
+    fun `importanceTier defaults to STANDARD in EventContext`() {
+        val event = EventContext(
+            id = "test",
+            titleText = "Test",
+            contextType = EventContextType.GENERIC_EVENT,
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+        assertEquals("STANDARD", event.importanceTier)
     }
 }
