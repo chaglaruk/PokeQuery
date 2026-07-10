@@ -142,7 +142,12 @@ object EventFeedParser {
                 researchTextIt = optionalStringField(body, "researchIt"),
                 pokemon = pokemonEntries(body),
                 themeKey = themeKey,
-                isManual = false
+                isManual = false,
+                importanceTier = optionalStringField(body, "importanceTier") ?: "STANDARD",
+                eventCategory = optionalStringField(body, "eventCategory"),
+                sourceName = optionalStringField(body, "sourceName"),
+                sourceUrl = optionalStringField(body, "sourceUrl"),
+                sourceNotes = optionalStringField(body, "sourceNotes")
             )
         }.toList()
         require(events.isNotEmpty()) { "empty events" }
@@ -156,6 +161,14 @@ object EventFeedParser {
                 it.eventNotesText?.isNotBlank() == true
         }) {
             "blank event field"
+        }
+        require(events.all { event ->
+            val search = event.suggestedSearch.orEmpty()
+            val tokens = search.split('&').map(String::trim).filter(String::isNotBlank)
+            '|' !in search && tokens.count { it.equals("!traded", ignoreCase = true) } == 1 &&
+                tokens.none { it.equals("traded", ignoreCase = true) }
+        }) {
+            "unsafe suggested search"
         }
         EventFeed(lastUpdated, events)
     }
@@ -273,7 +286,7 @@ object EventFeedCache {
 
 object EventFeedLoader {
     fun defaultProvider(context: Context): EventDataProvider =
-        HttpEventDataProvider()
+        if (BuildConfig.DEBUG) RawEventDataProvider(context) else HttpEventDataProvider()
 
     suspend fun load(
         context: Context,

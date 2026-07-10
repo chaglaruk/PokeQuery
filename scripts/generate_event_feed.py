@@ -159,12 +159,29 @@ def get_event_id(href, title):
     slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
     return f"event-{slug}"
 
+def ensure_traded_exclusion(search):
+    """Return a copy-safe Event Guide search with exactly one !traded token."""
+    if "|" in search:
+        raise ValueError(f"Invalid suggestedSearch containing '|': {search}")
+    tokens = [token.strip() for token in search.split("&") if token.strip()]
+    lowered = [token.lower() for token in tokens]
+    if "traded" in lowered:
+        raise ValueError(f"Contradictory suggestedSearch includes traded: {search}")
+    if lowered.count("!traded") > 1:
+        raise ValueError(f"Duplicate !traded in suggestedSearch: {search}")
+    if "!traded" not in lowered:
+        tokens.append("!traded")
+    return "&".join(tokens)
+
 def validate_safety_constraints(event):
     """Enforces Turkish copy restrictions and suggestedSearch requirements."""
     # Ensure suggestedSearch does not contain '|'
     search = event.get("suggestedSearch", "")
     if "|" in search:
         raise ValueError(f"Event {event['id']} has invalid suggestedSearch containing '|': {search}")
+    tokens = [token.strip().lower() for token in search.split("&") if token.strip()]
+    if tokens.count("!traded") != 1 or "traded" in tokens:
+        raise ValueError(f"Event {event['id']} must contain exactly one !traded exclusion: {search}")
     
     # Check for Turkish banned words
     for field, val in event.items():
@@ -242,10 +259,130 @@ def parse_live_leekduck_events(html):
         })
     return events
 
+def get_event_category(title, kind):
+    title_lower = title.lower()
+    kind_lower = kind.lower()
+    
+    # 1. Reward / Drops
+    if any(w in title_lower for w in ["twitch drops", "prime gaming", "reward", "drop"]):
+        return "REWARD_DROP"
+        
+    # 2. News / Promo
+    if any(w in title_lower for w in [
+        "save the date", "save-the-date", "wallpapers", "diary", "promo", "store",
+        "coupon", "code", "community celebrations", "community ambassador",
+        "know before you go"
+    ]):
+        return "NEWS_PROMO"
+
+    # 3. Announcement / Collab / Art / Birthday
+    if any(w in title_lower for w in ["lego", "art", "birthday", "announcement", "partnership", "showcase", "professor willow", "scopely"]):
+        return "ANNOUNCEMENT"
+
+    # 4. GBL / Season
+    if any(w in title_lower for w in ["gbl", "go battle league", "season:", "forever forward", "season of", "league", "cup"]):
+        return "SEASON_GBL"
+
+    # 5. Routine Rotations
+    if any(w in title_lower for w in ["spotlight hour", "raid hour", "max mondays", "max monday"]) or kind_lower == "spotlight_hour":
+        return "ROUTINE_ROTATION"
+
+    # 6. Raid rotations (distinct from Raid Day)
+    if "raid day" not in title_lower:
+        if any(w in title_lower for w in ["in 5-star", "in mega raids", "in shadow raids", "5-star raid", "mega raid", "shadow raid", "raid rotation"]):
+            return "RAID_ROTATION"
+
+    # 7. Major Gameplay
+    if any(w in title_lower for w in ["go fest", "go tour", "safari zone", "community day", "road of legends", "global"]) or kind_lower == "community_day":
+        return "MAJOR_GAMEPLAY"
+        
+    # 8. Default fallback for standard gameplay events
+    return "LIMITED_GAMEPLAY"
+
+def get_importance_tier(category):
+    if category in ["REWARD_DROP", "NEWS_PROMO", "ANNOUNCEMENT"]:
+        return "NEWS"
+    elif category in ["ROUTINE_ROTATION", "SEASON_GBL", "RAID_ROTATION"]:
+        return "ROUTINE"
+    elif category == "MAJOR_GAMEPLAY":
+        return "MAJOR"
+    else:
+        return "STANDARD"
+
+# Map alternate scraped event IDs to curated metadata keys.
+METADATA_ID_ALIASES = {
+    "event-pokemon-go-fest-2026-global": "event-go-fest-global-2026",
+    "event-10th-anniversary-party": "event-10th-anniversary-party-2026",
+}
+
+CANONICAL_EVENT_ID_ALIASES = {
+    "event-go-fest-2026-global-final-details": "event-pokemon-go-fest-2026-global",
+}
+
+def canonical_event_id(event_id):
+    """Return a stable feed id for true duplicate source records."""
+    return CANONICAL_EVENT_ID_ALIASES.get(event_id, event_id)
+
+def prefer_event_record(existing, candidate):
+    """Prefer official source records when two source rows describe one canonical event."""
+    existing_official = "News" in existing.get("sourceName", "")
+    candidate_official = "News" in candidate.get("sourceName", "")
+    if candidate_official and not existing_official:
+        return candidate
+    if existing_official and not candidate_official:
+        if candidate.get("kind") != "GENERIC_EVENT":
+            existing["kind"] = candidate["kind"]
+        return existing
+    return existing
+
+def put_raw_event(raw_events, event):
+    event["id"] = canonical_event_id(event["id"])
+    existing = raw_events.get(event["id"])
+    raw_events[event["id"]] = prefer_event_record(existing, event) if existing else event
+
+def resolve_event_metadata(metadata, event_id, title=""):
+    """Resolve enrichment metadata for an event id, including known aliases."""
+    if not isinstance(metadata, dict):
+        return {}
+    event_id = canonical_event_id(event_id)
+    if event_id in metadata:
+        return metadata[event_id]
+    alias = METADATA_ID_ALIASES.get(event_id)
+    if alias and alias in metadata:
+        return metadata[alias]
+    return {}
+
+def format_default_note(start, end, lang="en"):
+    """Avoid raw ISO date ranges in default note strings."""
+    def pretty(iso):
+        try:
+            dt = datetime.strptime(iso, "%Y-%m-%d")
+            if lang == "tr":
+                months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+                          "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+                return f"{dt.day} {months[dt.month - 1]} {dt.year}"
+            return dt.strftime("%B %d, %Y")
+        except Exception:
+            return iso
+    if lang == "tr":
+        if start == end:
+            return f"Resmi etkinlik aralığı: {pretty(start)} yerel saat."
+        return f"Resmi etkinlik aralığı: {pretty(start)} – {pretty(end)} yerel saat."
+    if start == end:
+        return f"Official event window: {pretty(start)} local time."
+    return f"Official event window: {pretty(start)} – {pretty(end)} local time."
+
 def generate_feed(fixture_mode, output_path):
     # Determine base directories
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_dir = os.path.dirname(script_dir)
+    
+    if fixture_mode:
+        abs_out = os.path.abspath(output_path)
+        default_prod_path = os.path.abspath(os.path.join(project_dir, "docs", "event-feed", "pokequery-events.json"))
+        if abs_out == default_prod_path:
+            import sys
+            sys.exit("Error: Fixture mode cannot write to docs/event-feed/pokequery-events.json. Pass --output to a test file.")
     
     sources_path = os.path.join(project_dir, "docs", "event-feed", "sources.json")
     metadata_path = os.path.join(project_dir, "docs", "event-feed", "event_metadata.json")
@@ -312,7 +449,7 @@ def generate_feed(fixture_mode, output_path):
                         start_date, end_date, month, year = parse_date_range(ev["date"])
                     ev_id = get_event_id(ev["href"], title)
                     
-                    raw_events[ev_id] = {
+                    put_raw_event(raw_events, {
                         "id": ev_id,
                         "title": title,
                         "kind": "GENERIC_EVENT",
@@ -322,7 +459,7 @@ def generate_feed(fixture_mode, output_path):
                         "year": year,
                         "sourceUrl": ev["href"] if ev["href"].startswith("http") else "https://pokemongolive.com" + ev["href"],
                         "sourceName": "Pokémon GO Live News"
-                    }
+                    })
                 except Exception as ex:
                     print(f"Skipping event '{title}' due to date parse failure: {ex}")
                     
@@ -355,22 +492,17 @@ def generate_feed(fixture_mode, output_path):
                     elif "spotlight hour" in kind_str:
                         kind = "SPOTLIGHT_HOUR"
                         
-                    existing = raw_events.get(ev_id)
-                    if existing and existing.get("sourceName") == "Pokémon GO Live News":
-                        if kind != "GENERIC_EVENT":
-                            existing["kind"] = kind
-                    else:
-                        raw_events[ev_id] = {
-                            "id": ev_id,
-                            "title": title,
-                            "kind": kind,
-                            "startDate": start_date,
-                            "endDate": end_date,
-                            "month": month,
-                            "year": year,
-                            "sourceUrl": ev["href"] if ev["href"].startswith("http") else "https://leekduck.com" + ev["href"],
-                            "sourceName": "Leek Duck Events"
-                        }
+                    put_raw_event(raw_events, {
+                        "id": ev_id,
+                        "title": title,
+                        "kind": kind,
+                        "startDate": start_date,
+                        "endDate": end_date,
+                        "month": month,
+                        "year": year,
+                        "sourceUrl": ev["href"] if ev["href"].startswith("http") else "https://leekduck.com" + ev["href"],
+                        "sourceName": "Leek Duck Events"
+                    })
                 except Exception as ex:
                     print(f"Skipping Leek Duck event '{title}' due to date parse failure: {ex}")
 
@@ -382,12 +514,13 @@ def generate_feed(fixture_mode, output_path):
     final_events = []
     
     for ev_id, ev in raw_events.items():
-        meta = metadata.get(ev_id, {})
+        meta = resolve_event_metadata(metadata, ev_id, ev.get("title", ""))
         
         # Determine status dynamically based on current date (defaults to UPCOMING)
+        # Curated metadata may override scraped article dates with real event windows.
         today = datetime.now().strftime("%Y-%m-%d")
-        start = ev["startDate"]
-        end = ev["endDate"]
+        start = meta.get("startDate") or ev["startDate"]
+        end = meta.get("endDate") or ev["endDate"]
         if end < today:
             status = "ENDED"
         elif start <= today <= end:
@@ -397,22 +530,22 @@ def generate_feed(fixture_mode, output_path):
             
         event_entry = {
             "id": ev_id,
-            "title": ev["title"],
-            "titleTr": meta.get("titleTr", ev["title"]),
+            "title": meta.get("title", ev["title"]),
+            "titleTr": meta.get("titleTr"),
             "titleDe": meta.get("titleDe"),
             "titleEs": meta.get("titleEs"),
             "titleFr": meta.get("titleFr"),
             "titleIt": meta.get("titleIt"),
             "kind": ev["kind"],
             "status": status,
-            "note": meta.get("note", f"Official event window: {start} to {end} local time."),
-            "noteTr": meta.get("noteTr", f"Resmi etkinlik aralığı: {start} ile {end} yerel saat."),
+            "note": meta.get("note", format_default_note(start, end, "en")),
+            "noteTr": meta.get("noteTr", format_default_note(start, end, "tr")),
             "noteDe": meta.get("noteDe"),
             "noteEs": meta.get("noteEs"),
             "noteFr": meta.get("noteFr"),
             "noteIt": meta.get("noteIt"),
-            "month": ev["month"],
-            "year": ev["year"],
+            "month": int(start.split("-")[1]) if isinstance(start, str) and len(start) >= 7 else ev["month"],
+            "year": int(start.split("-")[0]) if isinstance(start, str) and len(start) >= 4 else ev["year"],
             "startDate": start,
             "endDate": end,
             "start": meta.get("start", start),
@@ -429,7 +562,7 @@ def generate_feed(fixture_mode, output_path):
             "prepEs": meta.get("prepEs"),
             "prepFr": meta.get("prepFr"),
             "prepIt": meta.get("prepIt"),
-            "suggestedSearch": meta.get("suggestedSearch", "age0&!favorite"),
+            "suggestedSearch": ensure_traded_exclusion(meta.get("suggestedSearch", "age0&!favorite")),
             "eventNotes": meta.get("eventNotes", "Review recent catches before transfer."),
             "eventNotesTr": meta.get("eventNotesTr", "Transferden önce son yakalamaları kontrol edin."),
             "eventNotesDe": meta.get("eventNotesDe"),
@@ -437,13 +570,54 @@ def generate_feed(fixture_mode, output_path):
             "eventNotesFr": meta.get("eventNotesFr"),
             "eventNotesIt": meta.get("eventNotesIt"),
             "themeKey": meta.get("themeKey", "generic_event"),
+            "eventCategory": meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"]),
+            "importanceTier": meta.get("importanceTier") or get_importance_tier(meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"])),
             "sourceNotes": f"Generated from {ev['sourceName']}: {ev['sourceUrl']}",
             "sourceName": ev["sourceName"],
             "sourceUrl": ev["sourceUrl"],
             "sourceType": "official" if "News" in ev["sourceName"] else "third-party",
             "lastUpdated": datetime.now().strftime("%Y-%m-%d"),
-            "pokemon": meta.get("pokemon", [])
+            "pokemon": meta.get("pokemon", []),
+            "featuredPokemon": meta.get("featuredPokemon"),
+            "featuredPokemonTr": meta.get("featuredPokemonTr"),
+            "featuredPokemonDe": meta.get("featuredPokemonDe"),
+            "featuredPokemonEs": meta.get("featuredPokemonEs"),
+            "featuredPokemonFr": meta.get("featuredPokemonFr"),
+            "featuredPokemonIt": meta.get("featuredPokemonIt"),
+            "boostedPokemon": meta.get("boostedPokemon"),
+            "boostedPokemonTr": meta.get("boostedPokemonTr"),
+            "boostedPokemonDe": meta.get("boostedPokemonDe"),
+            "boostedPokemonEs": meta.get("boostedPokemonEs"),
+            "boostedPokemonFr": meta.get("boostedPokemonFr"),
+            "boostedPokemonIt": meta.get("boostedPokemonIt"),
+            "bonuses": meta.get("bonuses"),
+            "bonusesTr": meta.get("bonusesTr"),
+            "bonusesDe": meta.get("bonusesDe"),
+            "bonusesEs": meta.get("bonusesEs"),
+            "bonusesFr": meta.get("bonusesFr"),
+            "bonusesIt": meta.get("bonusesIt"),
+            "raids": meta.get("raids"),
+            "raidsTr": meta.get("raidsTr"),
+            "raidsDe": meta.get("raidsDe"),
+            "raidsEs": meta.get("raidsEs"),
+            "raidsFr": meta.get("raidsFr"),
+            "raidsIt": meta.get("raidsIt"),
+            "research": meta.get("research"),
+            "researchTr": meta.get("researchTr"),
+            "researchDe": meta.get("researchDe"),
+            "researchEs": meta.get("researchEs"),
+            "researchFr": meta.get("researchFr"),
+            "researchIt": meta.get("researchIt")
         }
+        
+        # Clean all string values to replace banned '|'
+        for field in event_entry:
+            if isinstance(event_entry[field], str):
+                event_entry[field] = event_entry[field].replace("|", " - ").strip()
+        for p in event_entry.get("pokemon", []):
+            for k in p:
+                if isinstance(p[k], str):
+                    p[k] = p[k].replace("|", " - ").strip()
         
         # Safety assertions
         validate_safety_constraints(event_entry)

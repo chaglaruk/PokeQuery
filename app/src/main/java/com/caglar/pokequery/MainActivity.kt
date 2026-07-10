@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
     private var copySearch by mutableStateOf<String?>(null)
     private var debugAppLanguage by mutableStateOf<String?>(null)
     private var debugSearchLanguage by mutableStateOf<String?>(null)
+    private var debugEventFeedUrl by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +45,7 @@ class MainActivity : ComponentActivity() {
         copySearch = intent?.getStringExtra("copy_search")
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
+        debugEventFeedUrl = intent?.getStringExtra("event_feed_url")
 
         // v0.7.2: Silent background prefetch of event feed data on app startup.
         // This pre-caches the remote feed so Event Guide data is ready before the user opens it.
@@ -103,6 +105,7 @@ class MainActivity : ComponentActivity() {
                         MainNavigation(
                             startRoute = startRoute,
                             copySearch = copySearch,
+                            debugEventFeedUrl = if (BuildConfig.DEBUG) debugEventFeedUrl else null,
                             onCopyHandled = { copySearch = null }
                         )
                     }
@@ -121,6 +124,7 @@ class MainActivity : ComponentActivity() {
         copySearch = intent.getStringExtra("copy_search")
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
+        debugEventFeedUrl = intent.getStringExtra("event_feed_url")
     }
 
     private fun readStartRoute(intent: Intent?): String? =

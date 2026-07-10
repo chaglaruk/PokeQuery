@@ -80,7 +80,12 @@ data class EventContext(
     val researchTextIt: String? = null,
     val pokemon: List<EventPokemonEntry> = emptyList(),
     val themeKey: String = "generic_event",
-    val isManual: Boolean = true
+    val isManual: Boolean = true,
+    val importanceTier: String = "STANDARD",
+    val eventCategory: String? = null,
+    val sourceName: String? = null,
+    val sourceUrl: String? = null,
+    val sourceNotes: String? = null
 )
 
 data class EventPokemonEntry(
@@ -124,20 +129,164 @@ private fun todayIsoDate(): String =
 private fun String?.validIsoDate(): String? =
     this?.takeIf { isoDatePattern.matches(it) }
 
+object EventCategory {
+    const val MAJOR_GAMEPLAY = "MAJOR_GAMEPLAY"
+    const val LIMITED_GAMEPLAY = "LIMITED_GAMEPLAY"
+    const val ROUTINE_ROTATION = "ROUTINE_ROTATION"
+    const val SEASON_GBL = "SEASON_GBL"
+    const val RAID_ROTATION = "RAID_ROTATION"
+    const val NEWS_PROMO = "NEWS_PROMO"
+    const val REWARD_DROP = "REWARD_DROP"
+    const val ANNOUNCEMENT = "ANNOUNCEMENT"
+}
+
+fun EventContext.determineCategory(): String {
+    val cat = eventCategory?.uppercase()?.trim()
+    if (!cat.isNullOrBlank()) {
+        return cat
+    }
+    val title = (titleText ?: "").lowercase(Locale.US)
+    val kind = themeKey.lowercase(Locale.US)
+    return when {
+        title.contains("twitch drops") || title.contains("prime gaming") || title.contains("reward") || title.contains("drop") -> EventCategory.REWARD_DROP
+        title.contains("save the date") || title.contains("save-the-date") || title.contains("wallpapers") || title.contains("diary") || title.contains("promo") || title.contains("store") || title.contains("coupon") || title.contains("code") -> EventCategory.NEWS_PROMO
+        title.contains("lego") || title.contains("art") || title.contains("birthday") || title.contains("announcement") || title.contains("partnership") || title.contains("showcase") || title.contains("professor willow") || title.contains("scopely") -> EventCategory.ANNOUNCEMENT
+        title.contains("gbl") || title.contains("go battle league") || title.contains("season:") || title.contains("forever forward") || title.contains("season of") || title.contains("league") || title.contains("cup") -> EventCategory.SEASON_GBL
+        title.contains("spotlight hour") || title.contains("raid hour") || title.contains("max mondays") || title.contains("max monday") || kind == "spotlight_hour" -> EventCategory.ROUTINE_ROTATION
+        !title.contains("raid day") && (title.contains("in 5-star") || title.contains("in mega raids") || title.contains("in shadow raids") || title.contains("5-star raid") || title.contains("mega raid") || title.contains("shadow raid") || title.contains("raid rotation")) -> EventCategory.RAID_ROTATION
+        title.contains("go fest") || title.contains("go tour") || title.contains("safari zone") || title.contains("community day") || title.contains("road of legends") || title.contains("global") || kind == "community_day" -> EventCategory.MAJOR_GAMEPLAY
+        else -> EventCategory.LIMITED_GAMEPLAY
+    }
+}
+
+fun EventContext.canonicalEventKey(): String = when (id) {
+    "event-go-fest-2026-global-final-details" -> "event-pokemon-go-fest-2026-global"
+    else -> id
+}
+
+private fun List<EventContext>.distinctByCanonicalEvent(): List<EventContext> =
+    distinctBy { it.canonicalEventKey() }
+
 /**
  * Selects the single main event to feature prominently on the Event Guide.
  *
- * Strategy (human-friendly, not debug): prefer a [EventStatus.CURRENT] event. If none is current,
- * pick the first UPCOMING event (the nearest one the feed lists). If the list is empty, returns
- * null so the UI can fall back to an honest empty state.
- *
+ * Strategy: prefer MAJOR_GAMEPLAY / LIMITED_GAMEPLAY.
+ * Prefer current or upcoming starting within 21 days.
  * Pure function — unit-testable without Android.
  */
 fun selectMainEvent(events: List<EventContext>, todayIsoDate: String = todayIsoDate()): EventContext? {
     if (events.isEmpty()) return null
-    return events.firstOrNull { it.effectiveStatus(todayIsoDate) == EventStatus.CURRENT }
-        ?: events.firstOrNull { it.effectiveStatus(todayIsoDate) == EventStatus.UPCOMING }
-        ?: events.first()
+    return events
+        .filter { it.effectiveStatus(todayIsoDate) != EventStatus.ENDED }
+        .sortedWith(compareBy<EventContext> { it.heroScore(todayIsoDate) }
+            .thenBy { if (it.effectiveStatus(todayIsoDate) == EventStatus.CURRENT) it.endDate ?: "9999-12-31" else it.startDate ?: "9999-12-31" })
+        .firstOrNull()
+}
+
+/** Lower score = higher priority for featured selection. */
+fun EventContext.heroScore(todayIso: String): Int {
+    val status = effectiveStatus(todayIso)
+    if (status == EventStatus.ENDED) return 9999
+
+    val cat = determineCategory()
+    val startDiff = daysBetween(todayIso, startDate)
+    val isNear = startDiff in 0..21
+
+    return when (cat) {
+        EventCategory.MAJOR_GAMEPLAY -> {
+            if (status == EventStatus.CURRENT) 10
+            else if (isNear) 30
+            else 50
+        }
+        EventCategory.LIMITED_GAMEPLAY -> {
+            if (status == EventStatus.CURRENT) 20
+            else if (isNear) 40
+            else 55
+        }
+        EventCategory.RAID_ROTATION, EventCategory.ROUTINE_ROTATION, EventCategory.SEASON_GBL -> {
+            if (status == EventStatus.CURRENT) 60
+            else 70
+        }
+        EventCategory.REWARD_DROP, EventCategory.NEWS_PROMO, EventCategory.ANNOUNCEMENT -> {
+            100
+        }
+        else -> 80
+    }
+}
+
+/** Legacy featuredScore utility keeping backward compatibility. */
+fun EventContext.featuredScore(todayIso: String): Int {
+    return heroScore(todayIso)
+}
+
+/** Compute days between two ISO date strings. Positive means to is after from. */
+fun daysBetween(from: String, to: String?): Long {
+    if (to == null) return 999
+    return try {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val d1 = sdf.parse(from)
+        val d2 = sdf.parse(to)
+        if (d1 == null || d2 == null) 999 else (d2.time - d1.time) / (1000 * 60 * 60 * 24)
+    } catch (_: Exception) { 999 }
+}
+
+/**
+ * Groups active events into display sections for the Event Guide.
+ * Pure function — unit-testable without Android.
+ */
+data class EventSections(
+    val featured: EventContext?,
+    val importantUpcoming: List<EventContext>,
+    val happeningNow: List<EventContext>,
+    val rotations: List<EventContext>,
+    val news: List<EventContext>,
+    val allActive: List<EventContext>
+)
+
+fun groupEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): EventSections {
+    val active = events
+        .filter { it.effectiveStatus(todayIso) != EventStatus.ENDED }
+        .distinctByCanonicalEvent()
+    val featured = selectMainEvent(active, todayIso)
+    val rest = active.filter { it.id != featured?.id }
+
+    val happeningNow = rest
+        .filter {
+            it.effectiveStatus(todayIso) == EventStatus.CURRENT &&
+            it.determineCategory() in listOf(EventCategory.MAJOR_GAMEPLAY, EventCategory.LIMITED_GAMEPLAY)
+        }
+        .sortedBy { it.endDate ?: "9999-12-31" }
+
+    val importantUpcoming = rest
+        .filter {
+            it.effectiveStatus(todayIso) == EventStatus.UPCOMING &&
+            it.determineCategory() in listOf(EventCategory.MAJOR_GAMEPLAY, EventCategory.LIMITED_GAMEPLAY) &&
+            daysBetween(todayIso, it.startDate) in 0..21
+        }
+        .sortedWith(compareBy<EventContext> {
+            if (it.determineCategory() == EventCategory.MAJOR_GAMEPLAY) 0 else 1
+        }.thenBy { it.startDate ?: "9999-12-31" })
+
+    val rotations = rest
+        .filter {
+            it.determineCategory() in listOf(EventCategory.SEASON_GBL, EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION)
+        }
+        .sortedWith(compareBy<EventContext> {
+            if (it.effectiveStatus(todayIso) == EventStatus.CURRENT) 0 else 1
+        }.thenBy { it.startDate ?: "9999-12-31" })
+
+    val newsItems = rest
+        .filter {
+            it.determineCategory() in listOf(EventCategory.REWARD_DROP, EventCategory.NEWS_PROMO, EventCategory.ANNOUNCEMENT)
+        }
+        .sortedBy { it.startDate ?: "9999-12-31" }
+
+    val allActive = active
+        .sortedWith(compareBy<EventContext> {
+            if (it.effectiveStatus(todayIso) == EventStatus.CURRENT) 0 else 1
+        }.thenBy { it.startDate ?: "9999-12-31" })
+
+    return EventSections(featured, importantUpcoming, happeningNow, rotations, newsItems, allActive)
 }
 
 // Localized string helpers for EventContext and EventPokemonEntry
@@ -163,6 +312,9 @@ private fun localized(
 fun EventContext.localizedTitle(lang: String = Locale.getDefault().language): String =
     localized(titleText, titleTextTr, titleTextDe, titleTextEs, titleTextFr, titleTextIt, lang)
 
+fun EventContext.localizedSummary(lang: String = Locale.getDefault().language): String =
+    localized(summaryText, summaryTextTr, summaryTextDe, summaryTextEs, summaryTextFr, summaryTextIt, lang)
+
 fun EventContext.localizedFeatured(lang: String = Locale.getDefault().language): String =
     localized(featuredPokemon, featuredPokemonTr, featuredPokemonDe, featuredPokemonEs, featuredPokemonFr, featuredPokemonIt, lang)
 
@@ -181,6 +333,103 @@ fun EventContext.localizedNotes(lang: String = Locale.getDefault().language): St
 fun EventContext.localizedRaids(lang: String = Locale.getDefault().language): String =
     localized(raidsText, raidsTextTr, raidsTextDe, raidsTextEs, raidsTextFr, raidsTextIt, lang)
 
+/**
+ * Generator fallback strings that are not real event facts.
+ * UI must hide fact tiles that only contain these placeholders.
+ */
+private fun normalizeEventFact(text: String): String =
+    text.trim().lowercase(Locale.US).replace("\u0307", "")
+
+private val genericEventFactBodies = setOf(
+    "verify details in-game before acting.",
+    "prepare for event catches and inventory limits.",
+    "review recent catches before transfer.",
+    "işlem yapmadan önce oyun içi detayları kontrol edin.",
+    "etkinlik yakalamaları ve envanter limitleri için hazırlık yapın.",
+    "transferden önce son yakalamaları kontrol edin."
+).map(::normalizeEventFact).toSet()
+
+/** True when text is blank or a known generator placeholder. */
+fun isGenericEventFact(text: String?): Boolean {
+    if (text.isNullOrBlank()) return true
+    return normalizeEventFact(text) in genericEventFactBodies
+}
+
+/** Useful non-placeholder fact text, or null. */
+fun usefulEventFact(text: String?): String? =
+    text?.takeUnless { isGenericEventFact(it) }
+
+private fun looksLikeCostumeBackground(text: String): Boolean {
+    val lower = text.lowercase(Locale.US)
+    return listOf(
+        "costume", "kostüm", "kostumlu", "background", "arka plan",
+        "special-background", "özel arka", "special background"
+    ).any { it in lower }
+}
+
+/**
+ * Pure visibility model for event detail tiles.
+ * Empty/generic placeholders never produce a visible tile.
+ */
+data class EventDetailTileVisibility(
+    val showFeatured: Boolean,
+    val showResearch: Boolean,
+    val showRaids: Boolean,
+    val showBonuses: Boolean,
+    val showPrep: Boolean,
+    val showCostumeBackground: Boolean,
+    val showEventNotes: Boolean,
+    val showHonestFallback: Boolean,
+    val featuredBody: String,
+    val researchBody: String,
+    val raidsBody: String,
+    val bonusesBody: String,
+    val prepBody: String,
+    val notesBody: String
+)
+
+fun EventContext.detailTileVisibility(lang: String = Locale.getDefault().language): EventDetailTileVisibility {
+    val featuredBody = usefulEventFact(localizedFeatured(lang)).orEmpty()
+    val researchBody = usefulEventFact(localizedResearch(lang)).orEmpty()
+    val raidsBody = usefulEventFact(localizedRaids(lang)).orEmpty()
+    val bonusesBody = usefulEventFact(localizedBonuses(lang)).orEmpty()
+    val prepBody = usefulEventFact(localizedPrep(lang)).orEmpty()
+    val notesBody = usefulEventFact(localizedNotes(lang)).orEmpty()
+    val hasPokemon = pokemon.isNotEmpty()
+
+    val showFeatured = featuredBody.isNotBlank() || hasPokemon
+    val showResearch = researchBody.isNotBlank()
+    val showRaids = raidsBody.isNotBlank()
+    val showBonuses = bonusesBody.isNotBlank()
+    val showPrep = prepBody.isNotBlank()
+    val showCostumeBackground = notesBody.isNotBlank() && looksLikeCostumeBackground(notesBody)
+    // General notes only when useful and not already shown as costume/background.
+    val showEventNotes = notesBody.isNotBlank() && !showCostumeBackground
+    val hasAny = showFeatured || showResearch || showRaids || showBonuses || showPrep ||
+        showCostumeBackground || showEventNotes
+
+    return EventDetailTileVisibility(
+        showFeatured = showFeatured,
+        showResearch = showResearch,
+        showRaids = showRaids,
+        showBonuses = showBonuses,
+        showPrep = showPrep,
+        showCostumeBackground = showCostumeBackground,
+        showEventNotes = showEventNotes,
+        showHonestFallback = !hasAny,
+        featuredBody = if (featuredBody.isNotBlank()) featuredBody else pokemon.joinToString { it.name },
+        researchBody = researchBody,
+        raidsBody = raidsBody,
+        bonusesBody = bonusesBody,
+        prepBody = prepBody,
+        notesBody = notesBody
+    )
+}
+
+/** Pure helper used by tests to assert compact-card date formatting. */
+fun compactEventDateText(event: EventContext, lang: String): String =
+    event.dateLabel(lang).orEmpty()
+
 fun EventPokemonEntry.localizedName(lang: String = Locale.getDefault().language): String =
     localized(name, nameTr, nameDe, nameEs, nameFr, nameIt, lang)
 
@@ -193,56 +442,64 @@ fun EventPokemonEntry.localizedNote(lang: String = Locale.getDefault().language)
 fun EventPokemonEntry.localizedBadges(lang: String = Locale.getDefault().language): String =
     localized(badges, badgesTr, badgesDe, badgesEs, badgesFr, badgesIt, lang)
 
-fun EventContext.dateLabel(lang: String = Locale.getDefault().language): String? = when {
-    isoMonthDay(startDate) != null && isoMonthDay(endDate) != null ->
-        localizedDateRange(isoMonthDay(startDate)!!, isoMonthDay(endDate)!!, lang)
-    isoMonthDay(startDate) != null -> localizedSingleDate(isoMonthDay(startDate)!!, lang)
-    isoMonthDay(endDate) != null -> localizedSingleDate(isoMonthDay(endDate)!!, lang)
-    !startText.isNullOrBlank() && !endText.isNullOrBlank() -> "$startText – $endText"
-    !startText.isNullOrBlank() -> startText
-    !endText.isNullOrBlank() -> endText
-    month != null && year != null -> "$month/$year"
-    else -> null
-}
+fun EventContext.dateLabel(lang: String = Locale.getDefault().language): String? {
+    val start = startDate?.takeIf { it.isNotBlank() }
+    val end = endDate?.takeIf { it.isNotBlank() }
+    if (start == null && end == null) return null
 
-private fun isoMonthDay(value: String?): Pair<Int, Int>? {
-    val text = value?.takeIf { it.length >= 10 } ?: return null
-    val month = text.substring(5, 7).toIntOrNull() ?: return null
-    val day = text.substring(8, 10).toIntOrNull() ?: return null
-    return month to day
-}
+    val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val parsedStart = start.let { runCatching { sdfInput.parse(it) }.getOrNull() }
+    val parsedEnd = end?.let { runCatching { sdfInput.parse(it) }.getOrNull() }
 
-private fun localizedDateRange(start: Pair<Int, Int>, end: Pair<Int, Int>, lang: String): String =
-    if (start.first == end.first) {
-        when (lang) {
-            "tr" -> "${start.second}–${end.second} ${monthName(start.first, lang)}"
-            "de" -> "${start.second}.–${end.second}. ${monthName(start.first, lang)}"
-            "es" -> "${start.second}–${end.second} de ${monthName(start.first, lang)}"
-            "fr", "it" -> "${start.second}–${end.second} ${monthName(start.first, lang)}"
-            else -> "${monthName(start.first, lang)} ${start.second}–${end.second}"
+    val locale = Locale(lang)
+
+    fun day(date: Date) = SimpleDateFormat("d", locale).format(date)
+    fun month(date: Date) = SimpleDateFormat("MMMM", locale).format(date)
+    fun year(date: Date) = SimpleDateFormat("yyyy", locale).format(date)
+    fun single(date: Date): String = when (lang) {
+        "en" -> "${month(date)} ${day(date)}, ${year(date)}"
+        "de" -> "${day(date)}. ${month(date)} ${year(date)}"
+        "es" -> "${day(date)} de ${month(date)} de ${year(date)}"
+        else -> "${day(date)} ${month(date)} ${year(date)}"
+    }
+    fun partial(date: Date): String = when (lang) {
+        "en" -> "${month(date)} ${day(date)}"
+        "de" -> "${day(date)}. ${month(date)}"
+        "es" -> "${day(date)} de ${month(date)}"
+        else -> "${day(date)} ${month(date)}"
+    }
+
+    if (parsedStart != null && (parsedEnd == null || parsedEnd == parsedStart)) {
+        return single(parsedStart)
+    }
+
+    if (parsedStart != null && parsedEnd != null) {
+        val startCal = java.util.Calendar.getInstance().apply { time = parsedStart }
+        val endCal = java.util.Calendar.getInstance().apply { time = parsedEnd }
+
+        val sameMonth = startCal.get(java.util.Calendar.MONTH) == endCal.get(java.util.Calendar.MONTH)
+        val sameYear = startCal.get(java.util.Calendar.YEAR) == endCal.get(java.util.Calendar.YEAR)
+
+        return if (sameYear) {
+            if (sameMonth) {
+                when (lang) {
+                    "en" -> "${month(parsedStart)} ${day(parsedStart)}–${day(parsedEnd)}, ${year(parsedStart)}"
+                    "de" -> "${day(parsedStart)}.–${day(parsedEnd)}. ${month(parsedStart)} ${year(parsedStart)}"
+                    "es" -> "${day(parsedStart)}–${day(parsedEnd)} de ${month(parsedStart)} de ${year(parsedStart)}"
+                    else -> "${day(parsedStart)}–${day(parsedEnd)} ${month(parsedStart)} ${year(parsedStart)}"
+                }
+            } else {
+                when (lang) {
+                    "en" -> "${partial(parsedStart)} – ${single(parsedEnd)}"
+                    else -> "${partial(parsedStart)} – ${single(parsedEnd)}"
+                }
+            }
+        } else {
+            "${single(parsedStart)} – ${single(parsedEnd)}"
         }
-    } else {
-        "${localizedSingleDate(start, lang)} – ${localizedSingleDate(end, lang)}"
     }
 
-private fun localizedSingleDate(date: Pair<Int, Int>, lang: String): String = when (lang) {
-    "tr" -> "${date.second} ${monthName(date.first, lang)}"
-    "de" -> "${date.second}. ${monthName(date.first, lang)}"
-    "es" -> "${date.second} de ${monthName(date.first, lang)}"
-    "fr", "it" -> "${date.second} ${monthName(date.first, lang)}"
-    else -> "${monthName(date.first, lang)} ${date.second}"
-}
-
-private fun monthName(month: Int, lang: String): String {
-    val names = when (lang) {
-        "tr" -> listOf("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
-        "de" -> listOf("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
-        "es" -> listOf("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
-        "fr" -> listOf("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre")
-        "it" -> listOf("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre")
-        else -> listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
-    }
-    return names.getOrElse(month - 1) { month.toString() }
+    return startText ?: endText
 }
 
 fun EventContext.effectiveStatus(todayIsoDate: String = todayIsoDate()): EventStatus {
@@ -275,6 +532,10 @@ fun EventContext.remainingTimeLabel(
     return when (status) {
         EventStatus.ENDED -> localizedTimerLabel("ended", lang = lang)
         EventStatus.UPCOMING -> {
+            when (daysBetween(todayIso, startDate)) {
+                0L -> return localizedStartsToday(lang)
+                1L -> return localizedStartsTomorrow(lang)
+            }
             val startMs = startDate?.let { runCatching { sdf.parse(it)?.time }.getOrNull() }
             if (startMs != null && startMs > nowMillis) {
                 val diffMs = startMs - nowMillis
@@ -300,20 +561,107 @@ fun EventContext.remainingTimeLabel(
     }
 }
 
+private fun localizedStartsToday(lang: String): String = when (lang) {
+    "tr" -> "Bugün başlıyor"
+    "de" -> "Beginnt heute"
+    "es" -> "Empieza hoy"
+    "fr" -> "Commence aujourd'hui"
+    "it" -> "Inizia oggi"
+    else -> "Starts today"
+}
+
+private fun localizedStartsTomorrow(lang: String): String = when (lang) {
+    "tr" -> "Yarın başlıyor"
+    "de" -> "Beginnt morgen"
+    "es" -> "Empieza mañana"
+    "fr" -> "Commence demain"
+    "it" -> "Inizia domani"
+    else -> "Starts tomorrow"
+}
+
 private fun formatRemainingTime(diffMs: Long, prefix: Boolean, lang: String): String {
     val totalHours = (diffMs / (1000 * 60 * 60)).toInt()
     val days = totalHours / 24
     val hours = totalHours % 24
-    val timeStr = when {
-        days > 0 && hours > 0 -> "${days}D ${hours}H"
-        days > 0 -> "${days}D"
-        hours > 0 -> "${hours}H"
-        else -> "<1H"
-    }
+
     return if (prefix) {
-        localizedTimerLabel("remaining", timeStr, lang)
+        when (lang) {
+            "tr" -> when {
+                days > 0 && hours > 0 -> "$days gün $hours saat kaldı"
+                days > 0 -> "$days gün kaldı"
+                else -> "Bugün bitiyor"
+            }
+            "de" -> when {
+                days > 0 && hours > 0 -> "noch $days Tg. $hours Std."
+                days > 0 -> "noch $days Tg."
+                else -> "Endet heute"
+            }
+            "es" -> when {
+                days > 0 && hours > 0 -> "quedan $days d. $hours h."
+                days > 0 -> "quedan $days d."
+                else -> "Termina hoy"
+            }
+            "fr" -> when {
+                days > 0 && hours > 0 -> "il reste $days j. $hours h."
+                days > 0 -> "il reste $days j."
+                else -> "Se termine aujourd'hui"
+            }
+            "it" -> when {
+                days > 0 && hours > 0 -> "mancano $days g. $hours o."
+                days > 0 -> "mancano $days g."
+                else -> "Termina oggi"
+            }
+            else -> when {
+                days > 0 && hours > 0 -> "${days}d ${hours}h left"
+                days > 0 -> "${days}d left"
+                else -> "Ends today"
+            }
+        }
     } else {
-        localizedTimerLabel("starts_in", timeStr, lang)
+        when (lang) {
+            "tr" -> when {
+                days == 1 -> "Yarın başlıyor"
+                days > 1 && hours > 0 -> "$days gün $hours saat sonra"
+                days > 1 -> "$days gün sonra"
+                hours > 0 -> "$hours saat sonra"
+                else -> "Bugün başlıyor"
+            }
+            "de" -> when {
+                days == 1 -> "Beginnt morgen"
+                days > 1 && hours > 0 -> "in $days Tg. $hours Std."
+                days > 1 -> "in $days Tg."
+                hours > 0 -> "in $hours Std."
+                else -> "Beginnt heute"
+            }
+            "es" -> when {
+                days == 1 -> "Empieza mañana"
+                days > 1 && hours > 0 -> "en $days d. $hours h."
+                days > 1 -> "en $days d."
+                hours > 0 -> "en $hours h."
+                else -> "Empieza hoy"
+            }
+            "fr" -> when {
+                days == 1 -> "Commence demain"
+                days > 1 && hours > 0 -> "dans $days j. $hours h."
+                days > 1 -> "dans $days j."
+                hours > 0 -> "dans $hours h."
+                else -> "Commence aujourd'hui"
+            }
+            "it" -> when {
+                days == 1 -> "Inizia domani"
+                days > 1 && hours > 0 -> "tra $days g. $hours o."
+                days > 1 -> "tra $days g."
+                hours > 0 -> "tra $hours o."
+                else -> "Inizia oggi"
+            }
+            else -> when {
+                days == 1 -> "Starts tomorrow"
+                days > 1 && hours > 0 -> "in ${days}d ${hours}h"
+                days > 1 -> "in ${days}d"
+                hours > 0 -> "in ${hours}h"
+                else -> "Starts today"
+            }
+        }
     }
 }
 
@@ -341,22 +689,6 @@ private fun localizedTimerLabel(key: String, arg: String = "", lang: String): St
         "fr" -> "En cours"
         "it" -> "In corso"
         else -> "Live now"
-    }
-    "remaining" -> when (lang) {
-        "tr" -> "$arg kaldı"
-        "de" -> "$arg übrig"
-        "es" -> "$arg restante"
-        "fr" -> "$arg restant"
-        "it" -> "$arg rimanente"
-        else -> "$arg left"
-    }
-    "starts_in" -> when (lang) {
-        "tr" -> "$arg sonra"
-        "de" -> "in $arg"
-        "es" -> "en $arg"
-        "fr" -> "dans $arg"
-        "it" -> "tra $arg"
-        else -> "in $arg"
     }
     else -> arg
 }
@@ -392,7 +724,7 @@ object EventContextRepository {
             summaryTextTr = "Etkinlikten önce depoda yer aç, sonra her oyun oturumundan sonra son yakalamaları incele.",
             prepText = "Tag keepers first. Use PokeQuery after catching to review recent Pokémon before any transfer.",
             prepTextTr = "Önce saklayacaklarını etiketle. Yakaladıktan sonra transferden önce son Pokémonları PokeQuery ile incele.",
-            suggestedSearch = "age0-2&!favorite&!shiny&!legendary&!mythical&!costume&!ultrabeast",
+            suggestedSearch = "age0-2&!favorite&!shiny&!legendary&!mythical&!costume&!ultrabeast&!traded",
             eventNotesText = "Keep shinies, costumes, hundos, PvP candidates, raid catches, and anything tagged for trade.",
             eventNotesTextTr = "Parlakları, kostümlüleri, hundoları, PvP adaylarını, akın yakalamalarını ve takas için etiketlenenleri sakla.",
             boostedPokemonText = "Event spawns and global featured Pokémon",
@@ -506,7 +838,7 @@ object EventContextRepository {
             summaryTextTr = "Aynı Pokémon'dan yüzlerce yakalamak, hangilerini tutacağın konusunda çok daha seçici olmanı sağlar.",
             prepText = "Run Candy Prep. Keep only the highest IVs for raids or specific PvP spreads. Transfer the rest.",
             prepTextTr = "Şeker Hazırlığı çalıştır. Sadece akınlar için en yüksek IV'leri veya özel PvP dağılımlarını sakla. Kalanını yolla.",
-            suggestedSearch = "age0&!favorite&!shiny&!3*&!4*",
+            suggestedSearch = "age0&!favorite&!shiny&!3*&!4*&!traded",
             eventNotesText = "Check for PvP IVs (low attack, high defense/HP) before transferring, especially if the Pokémon is good in Great or Ultra League.",
             eventNotesTextTr = "Özellikle Süper veya Ultra Lig'de iyiyse, transfer etmeden önce PvP IV'lerini (düşük saldırı, yüksek savunma/HP) kontrol et.",
             themeKey = "community_day"
@@ -529,7 +861,7 @@ object EventContextRepository {
             summaryTextTr = "Su türleri için şeker toplamak adına harika bir zaman, ancak depo alanına dikkat et.",
             prepText = "Clear out non-event fodder beforehand so you can focus on catching Water-types.",
             prepTextTr = "Su türlerine odaklanabilmek için etkinlik öncesinde diğer gereksizleri temizle.",
-            suggestedSearch = "water&age0-5&!favorite&!shiny&!legendary",
+            suggestedSearch = "water&age0-5&!favorite&!shiny&!legendary&!traded",
             eventNotesText = "Keep an eye out for rare Water-types that are usually hard to find. Use Pinap Berries for even more candy.",
             eventNotesTextTr = "Genelde bulması zor olan nadir Su türlerine dikkat et. Daha fazla şeker için Pinap Meyvesi kullan.",
             themeKey = "candy_bonus"

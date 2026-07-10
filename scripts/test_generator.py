@@ -38,7 +38,7 @@ class TestEventFeedGenerator(unittest.TestCase):
     def test_safety_constraints_valid(self):
         valid_event = {
             "id": "event-test",
-            "suggestedSearch": "age0-2&!favorite",
+            "suggestedSearch": "age0-2&!favorite&!traded",
             "titleTr": "Test Etkinliği",
             "noteTr": "Test Notu"
         }
@@ -48,7 +48,7 @@ class TestEventFeedGenerator(unittest.TestCase):
     def test_safety_constraints_banned_word(self):
         invalid_event = {
             "id": "event-test",
-            "suggestedSearch": "age0-2&!favorite",
+            "suggestedSearch": "age0-2&!favorite&!traded",
             "titleTr": "Yeni arama dizgisi",
             "noteTr": "Test Notu"
         }
@@ -88,6 +88,7 @@ class TestEventFeedGenerator(unittest.TestCase):
             # Ensure no pipe in suggestedSearch
             for ev in feed["events"]:
                 self.assertFalse("|" in ev["suggestedSearch"])
+                self.assertEqual(ev["suggestedSearch"].split("&").count("!traded"), 1)
                 # Assert source fields exist and match schema
                 self.assertIn("sourceName", ev)
                 self.assertIn("sourceUrl", ev)

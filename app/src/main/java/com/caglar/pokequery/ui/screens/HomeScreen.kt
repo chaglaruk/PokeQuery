@@ -318,7 +318,7 @@ private fun GoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClick: () 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(110.dp)
+            .height(126.dp)
             .clip(shape)
             .background(Brush.verticalGradient(listOf(CardPremium, CardDark)))
             .border(1.dp, goal.accent.copy(alpha = 0.25f), shape)
@@ -353,11 +353,12 @@ private fun GoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClick: () 
                     color = TextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 16.sp
                 )
             }
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = stringResource(goal.subtitleRes),
                 color = TextSecondary,

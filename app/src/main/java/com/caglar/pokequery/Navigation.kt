@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 fun MainNavigation(
     startRoute: String? = null,
     copySearch: String? = null,
+    debugEventFeedUrl: String? = null,
     onCopyHandled: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -181,7 +182,8 @@ fun MainNavigation(
                     // v0.6.8: Event Guide.
                     entry<EventContext> {
                         EventContextScreen(
-                            onBack = { safePop() }
+                            onBack = { safePop() },
+                            debugEventFeedUrl = debugEventFeedUrl
                         )
                     }
                     // v0.6.2: Safe NL search-string assistant.

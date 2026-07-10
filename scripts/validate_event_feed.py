@@ -4,7 +4,7 @@ import json
 import re
 import os
 
-BANNED_TR_WORDS = ["arama dizgisi", "arama dizgisini", "dizgi", "dizgin"]
+BANNED_TR_WORDS = ["arama dizgisi", "arama dizgisini", "dizgi", "dizgin", "bağlantı enerjileri"]
 ALLOWED_THEME_KEYS = {
     "electric", "dragon", "community_day", "candy_bonus",
     "trade_bonus", "raid", "spotlight_hour", "hatch", "research", "generic_event"
@@ -68,10 +68,28 @@ def validate_feed(file_path):
             print(f"Error: Event {event_id} has invalid sourceType: {source_type}")
             return False
 
-        # Check no '|' in search
-        suggested_search = event.get("suggestedSearch")
-        if "|" in suggested_search:
-            print(f"Error: Event {event_id} suggestedSearch contains banned '|': {suggested_search}")
+        # Check importanceTier
+        importance_tier = event.get("importanceTier")
+        if importance_tier and importance_tier not in ["MAJOR", "STANDARD", "ROUTINE", "NEWS"]:
+            print(f"Error: Event {event_id} has invalid importanceTier: {importance_tier}")
+            return False
+
+        # Check eventCategory
+        event_category = event.get("eventCategory")
+        ALLOWED_CATEGORIES = ["MAJOR_GAMEPLAY", "LIMITED_GAMEPLAY", "ROUTINE_ROTATION", "SEASON_GBL", "RAID_ROTATION", "NEWS_PROMO", "REWARD_DROP", "ANNOUNCEMENT"]
+        if event_category and event_category not in ALLOWED_CATEGORIES:
+            print(f"Error: Event {event_id} has invalid eventCategory: {event_category}")
+            return False
+
+        # Check no '|' in any string field of the event
+        for field, val in event.items():
+            if isinstance(val, str) and "|" in val:
+                print(f"Error: Event {event_id} field '{field}' contains banned '|': {val}")
+                return False
+
+        search_tokens = [token.strip().lower() for token in event["suggestedSearch"].split("&") if token.strip()]
+        if search_tokens.count("!traded") != 1 or "traded" in search_tokens:
+            print(f"Error: Event {event_id} suggestedSearch must contain exactly one !traded exclusion")
             return False
             
         # Check themeKey

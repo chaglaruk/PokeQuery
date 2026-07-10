@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -67,6 +68,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.R
+import com.caglar.pokequery.BuildConfig
 import androidx.compose.ui.platform.LocalConfiguration
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
@@ -90,11 +92,14 @@ import com.caglar.pokequery.ui.motion.rememberReducedMotion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
+import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
+
+internal fun formatEventCheckTime(date: Date, locale: Locale): String =
+    DateFormat.getTimeInstance(DateFormat.SHORT, locale).format(date)
 
 /**
  * v0.6.9 Event Guide — human-friendly single main event card.
@@ -105,19 +110,21 @@ import kotlin.math.sin
  */
 @Composable
 fun EventContextScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    debugEventFeedUrl: String? = null
 ) {
     val density = currentDensity()
     val context = LocalContext.current
     val currentLocale = LocalConfiguration.current.locales[0]
     val lang = currentLocale.language
+    val debugFeedUrl = if (BuildConfig.DEBUG) debugEventFeedUrl else null
     val scope = rememberCoroutineScope()
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     var feedState by remember { mutableStateOf<ContextFeedState>(ContextFeedState.Loading()) }
     var refreshing by remember { mutableStateOf(false) }
     var lastChecked by remember { mutableStateOf<String?>(null) }
-    var selectedEventId by remember { mutableStateOf<String?>(null) }
+    var clickedEventDetail by remember { mutableStateOf<EventContext?>(null) }
 
     fun refresh() {
         refreshing = true
@@ -126,10 +133,12 @@ fun EventContextScreen(
             feedState = withContext(Dispatchers.IO) {
                 EventFeedLoader.load(
                     context.applicationContext,
+                    provider = debugFeedUrl?.let(::HttpEventDataProvider)
+                        ?: EventFeedLoader.defaultProvider(context.applicationContext),
                     preferCachedOnFailure = userPrefs?.eventGuidePreferSavedOffline ?: true
                 )
             }
-            lastChecked = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+            lastChecked = formatEventCheckTime(Date(), currentLocale)
             refreshing = false
         }
     }
@@ -145,19 +154,12 @@ fun EventContextScreen(
     }
 
     val visibleEvents = activeEvents(feedState.events)
-    val mainEvent = visibleEvents.firstOrNull { it.id == selectedEventId }
-        ?: selectMainEvent(visibleEvents)
-    androidx.compose.runtime.LaunchedEffect(visibleEvents.map { it.id }) {
-        if (selectedEventId == null || visibleEvents.none { it.id == selectedEventId }) {
-            selectedEventId = selectMainEvent(visibleEvents)?.id
-        }
-    }
     val sourceLabelRes = when (feedState) {
         is ContextFeedState.Online -> R.string.event_status_live_feed
         is ContextFeedState.StaleCache -> R.string.event_status_saved_guide
         else -> R.string.event_status_bundled_fallback
     }
-    val isLoading = feedState is ContextFeedState.Loading && mainEvent == null
+    val isLoading = feedState is ContextFeedState.Loading && visibleEvents.isEmpty()
 
     Box(
         modifier = Modifier
@@ -220,24 +222,147 @@ fun EventContextScreen(
                             }
                         }
                     }
-                    mainEvent != null -> {
-                        item {
-                            EventPickerPanel(
-                                events = visibleEvents,
-                                selectedId = mainEvent.id,
-                                lang = lang,
-                                onSelected = { selectedEventId = it },
-                                modifier = Modifier.pqStaggeredItem(visible, 2)
-                            )
+                    visibleEvents.isNotEmpty() -> {
+                        val sections = groupEvents(visibleEvents)
+
+                        // ── Featured hero card ──
+                        if (sections.featured != null) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("featured", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 2)
+                                )
+                            }
+                            item {
+                                EventMainCard(
+                                    event = sections.featured,
+                                    sourceLabelRes = sourceLabelRes,
+                                    lastChecked = lastChecked,
+                                    lang = lang,
+                                    onOpenDetail = { clickedEventDetail = sections.featured },
+                                    modifier = Modifier.pqStaggeredItem(visible, 3)
+                                )
+                            }
                         }
-                        item {
-                            EventMainCard(
-                                event = mainEvent,
-                                sourceLabelRes = sourceLabelRes,
-                                lastChecked = lastChecked,
-                                lang = lang,
-                                modifier = Modifier.pqStaggeredItem(visible, 3)
-                            )
+
+                        // ── Happening Now ──
+                        if (sections.happeningNow.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("live", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 4)
+                                )
+                            }
+                            sections.happeningNow.take(3).forEachIndexed { idx, event ->
+                                item(key = "now-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = if (lang == "tr") "Canlı" else "Live",
+                                        statusColor = CyanGlow,
+                                        onClick = { clickedEventDetail = event },
+                                        modifier = Modifier.pqStaggeredItem(visible, 5 + idx)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── Important Upcoming ──
+                        if (sections.importantUpcoming.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("upcoming", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 6)
+                                )
+                            }
+                            sections.importantUpcoming.forEachIndexed { idx, event ->
+                                item(key = "up-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = if (lang == "tr") "Yakında" else "Upcoming",
+                                        statusColor = AmberWarning,
+                                        onClick = { clickedEventDetail = event },
+                                        modifier = Modifier.pqStaggeredItem(visible, 7 + idx)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── Rotations & Regular Events ──
+                        if (sections.rotations.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("rotations", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 8)
+                                )
+                            }
+                            sections.rotations.forEachIndexed { idx, event ->
+                                item(key = "rot-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = if (lang == "tr") "Rotasyon" else "Rotation",
+                                        statusColor = PurpleIV,
+                                        onClick = { clickedEventDetail = event },
+                                        modifier = Modifier.pqStaggeredItem(visible, 9 + idx)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── News & Announcements ──
+                        if (sections.news.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("news", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 10)
+                                )
+                            }
+                            sections.news.forEachIndexed { idx, event ->
+                                item(key = "news-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = if (lang == "tr") "Duyuru" else "News",
+                                        statusColor = TextTertiary,
+                                        onClick = { clickedEventDetail = event },
+                                        modifier = Modifier.pqStaggeredItem(visible, 11 + idx)
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── All Events ──
+                        if (sections.allActive.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = sectionTitle("allActive", lang),
+                                    modifier = Modifier.pqStaggeredItem(visible, 14)
+                                )
+                            }
+                            sections.allActive.forEachIndexed { idx, event ->
+                                item(key = "all-${event.id}") {
+                                    CompactEventCard(
+                                        event = event,
+                                        lang = lang,
+                                        statusLabel = when (event.determineCategory()) {
+                                            EventCategory.MAJOR_GAMEPLAY -> if (lang == "tr") "Büyük" else "Major"
+                                            EventCategory.LIMITED_GAMEPLAY -> if (lang == "tr") "Sınırlı" else "Limited"
+                                            EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> if (lang == "tr") "Rotasyon" else "Rotation"
+                                            else -> if (lang == "tr") "Haber" else "News"
+                                        },
+                                        statusColor = when (event.determineCategory()) {
+                                            EventCategory.MAJOR_GAMEPLAY -> CyanGlow
+                                            EventCategory.LIMITED_GAMEPLAY -> AmberWarning
+                                            EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> PurpleIV
+                                            else -> TextTertiary
+                                        },
+                                        onClick = { clickedEventDetail = event },
+                                        modifier = Modifier.pqStaggeredItem(visible, 15 + idx)
+                                    )
+                                }
+                            }
                         }
                     }
                     else -> {
@@ -264,6 +389,16 @@ fun EventContextScreen(
                 }
             }
         }
+    }
+
+    clickedEventDetail?.let { ev ->
+        EventDetailsDialog(
+            event = ev,
+            sourceLabelRes = sourceLabelRes,
+            lastChecked = lastChecked,
+            lang = lang,
+            onDismiss = { clickedEventDetail = null }
+        )
     }
 }
 
@@ -372,6 +507,7 @@ private fun EventMainCard(
     sourceLabelRes: Int,
     lastChecked: String?,
     lang: String,
+    onOpenDetail: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val clipboard = LocalClipboardManager.current
@@ -385,6 +521,7 @@ private fun EventMainCard(
         clipboard = clipboard,
         lang = lang,
         onOpen = { dialog = it },
+        onOpenFullDetail = onOpenDetail,
         modifier = modifier
     )
     dialog?.let { content ->
@@ -464,6 +601,332 @@ private fun EventPickerPanel(
     }
 }
 
+private fun eventNotesTitle(lang: String): String = when (lang) {
+    "tr" -> "Etkinlik notları"
+    "de" -> "Event-Notizen"
+    "es" -> "Notas del evento"
+    "fr" -> "Notes d’événement"
+    "it" -> "Note evento"
+    else -> "Event notes"
+}
+
+private fun eventNotesBadge(lang: String): String = when (lang) {
+    "tr" -> "Not"
+    "de" -> "Hinweis"
+    "es" -> "Nota"
+    "fr" -> "Note"
+    "it" -> "Nota"
+    else -> "Note"
+}
+
+/** Section title localization helper — no XML resources needed. */
+private fun sectionTitle(section: String, lang: String): String = when (lang) {
+    "tr" -> when (section) {
+        "featured" -> "Öne çıkan"
+        "upcoming" -> "Yaklaşan önemli etkinlikler"
+        "live" -> "Şu an olanlar"
+        "rotations" -> "Rotasyonlar ve ligler"
+        "news" -> "Duyurular ve ödüller"
+        "allActive" -> "Tüm etkinlikler"
+        else -> ""
+    }
+    "de" -> when (section) {
+        "featured" -> "Hervorgehoben"
+        "upcoming" -> "Wichtige bevorstehende Events"
+        "live" -> "Jetzt aktiv"
+        "rotations" -> "Rotationen & Ligen"
+        "news" -> "Neuigkeiten & Belohnungen"
+        "allActive" -> "Alle Events"
+        else -> ""
+    }
+    "es" -> when (section) {
+        "featured" -> "Destacado"
+        "upcoming" -> "Próximos eventos importantes"
+        "live" -> "Activo ahora"
+        "rotations" -> "Rotaciones y Ligas"
+        "news" -> "Noticias y Recompensas"
+        "allActive" -> "Todos los eventos"
+        else -> ""
+    }
+    "fr" -> when (section) {
+        "featured" -> "Vedette"
+        "upcoming" -> "Événements importants à venir"
+        "live" -> "Actif maintenant"
+        "rotations" -> "Rotations & Ligues"
+        "news" -> "Nouvelles & Récompenses"
+        "allActive" -> "Tous les événements"
+        else -> ""
+    }
+    "it" -> when (section) {
+        "featured" -> "In evidenza"
+        "upcoming" -> "Prossimi eventi importanti"
+        "live" -> "Attivo ora"
+        "rotations" -> "Rotazioni e Leghe"
+        "news" -> "Notizie e Premi"
+        "allActive" -> "Tutti gli eventi"
+        else -> ""
+    }
+    else -> when (section) {
+        "featured" -> "Featured"
+        "upcoming" -> "Upcoming important events"
+        "live" -> "Happening now"
+        "rotations" -> "Rotations and leagues"
+        "news" -> "News and rewards"
+        "allActive" -> "All active events"
+        else -> ""
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = title,
+        color = TextPrimary,
+        fontWeight = FontWeight.Bold,
+        fontSize = 15.sp,
+        modifier = modifier.padding(top = 14.dp, bottom = 4.dp)
+    )
+}
+
+@Composable
+private fun CompactEventCard(
+    event: EventContext,
+    lang: String,
+    statusLabel: String,
+    statusColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(CardPremium.copy(alpha = 0.70f))
+            .border(1.dp, statusColor.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Status dot
+        Box(
+            Modifier
+                .size(8.dp)
+                .background(statusColor, CircleShape)
+        )
+        Spacer(Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = event.localizedTitle(lang),
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 13.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 16.sp
+            )
+            Spacer(Modifier.height(2.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Status chip
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(statusColor.copy(alpha = 0.14f))
+                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                ) {
+                    Text(
+                        text = statusLabel,
+                        color = statusColor,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(Modifier.width(6.dp))
+                // Date range
+                val dateText = event.dateLabel(lang).orEmpty()
+                if (dateText.isNotBlank()) {
+                    Text(
+                        text = dateText,
+                        color = TextTertiary,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+        // Time remaining label
+        Text(
+            text = event.remainingTimeLabel(lang = lang),
+            color = statusColor.copy(alpha = 0.85f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1
+        )
+    }
+}
+
+private data class EventDashboardLabels(
+    val featuredPokemon: String,
+    val featuredBadge: String,
+    val featuredAction: String,
+    val raids: String,
+    val raidsBadge: String,
+    val raidsAction: String,
+    val raidsGroupAction: String,
+    val research: String,
+    val researchBadge: String,
+    val collectionTitle: String,
+    val collectionBadge: String,
+    val collectionAction: String,
+    val bonuses: String,
+    val bonusesBadge: String,
+    val bonusesAction: String,
+    val prepTitle: String,
+    val prepBadge: String,
+    val prepAction: String,
+    val suggestedSearch: String,
+    val copySearch: String
+)
+
+private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lang) {
+    "tr" -> EventDashboardLabels(
+        featuredPokemon = "Öne Çıkan Pokémon",
+        featuredBadge = "Nadir ve Kostümlü",
+        featuredAction = "Nadir, farklı renkli, kostümlü veya özel arka planlı yakalamalarınızı temizlik öncesi etiketleyerek koruyun.",
+        raids = "Akın hedefleri",
+        raidsBadge = "Akın Hazırlığı",
+        raidsAction = "Transferden önce kontrol et.",
+        raidsGroupAction = "Akınlardan ve araştırma karşılaşmalarından yakaladığın Pokémonları transfer etmeden önce ayrı ayrı kontrol et.",
+        research = "Araştırma",
+        researchBadge = "Araştırma Ödülleri",
+        collectionTitle = "Kostümler ve Arka Planlar",
+        collectionBadge = "Arka Plan Kontrolü",
+        collectionAction = "Formlarını, arka planlarını, farklı renkli (shiny) olma durumlarını ve takas planlarınızı kontrol etmeden hiçbirini göndermeyin.",
+        bonuses = "Ek ödüller",
+        bonusesBadge = "Etkinlik Bonusları",
+        bonusesAction = "Pokémonları transfer etmeden önce aktif bonusları Pokémon GO oyunundaki Bugün sekmesinden kontrol edin.",
+        prepTitle = "Hazırlık Listesi",
+        prepBadge = "Planlı Temizlik",
+        prepAction = "PokeQuery arama metinlerini yalnızca yardımcı bir kılavuz olarak kullanın; Pokémonları aktarmadan önce her zaman oyun içinden son kez kontrol edin.",
+        suggestedSearch = "Bu etkinlik için önerilen arama",
+        copySearch = "Aramayı kopyala"
+    )
+    "de" -> EventDashboardLabels(
+        featuredPokemon = "Im Rampenlicht",
+        featuredBadge = "Shiny + Kostüm",
+        featuredAction = "Seltene, schillernde, kostümierte und Hintergrund-Fänge vor dem Aufräumen taggen.",
+        raids = "Raid-Ziele",
+        raidsBadge = "Raid-Vorbereitung",
+        raidsAction = "Vor dem Transfer prüfen.",
+        raidsGroupAction = "Pokémon aus Raids und Forschungsbegegnungen vor dem Verschicken getrennt prüfen.",
+        research = "Forschung",
+        researchBadge = "Forschungsbelohnungen",
+        collectionTitle = "Kostüme & Hintergründe",
+        collectionBadge = "Hintergrund-Check",
+        collectionAction = "Formen, Hintergründe, Shiny-Status und Tauschpläne vor dem Löschen prüfen.",
+        bonuses = "Boni",
+        bonusesBadge = "4x EP\n4x Sternenstaub",
+        bonusesAction = "Aktive Boni in Pokémon GO prüfen, bevor du Transferentscheidungen triffst.",
+        prepTitle = "Vorbereitungs-Checkliste",
+        prepBadge = "Erst taggen",
+        prepAction = "PokeQuery-Suchen nur als Prüfhilfe nutzen; Ergebnisse immer in Pokémon GO kontrollieren.",
+        suggestedSearch = "Vorgeschlagene Suche für dieses Event",
+        copySearch = "Suche kopieren"
+    )
+    "es" -> EventDashboardLabels(
+        featuredPokemon = "Pokémon destacado",
+        featuredBadge = "Shiny + disfraz",
+        featuredAction = "Etiqueta capturas raras, shiny, con disfraz o con fondo antes de limpiar.",
+        raids = "Objetivos de raid",
+        raidsBadge = "Preparar incursiones",
+        raidsAction = "Revisa antes de transferir.",
+        raidsGroupAction = "Revisa por separado los Pokémon de incursiones y encuentros de investigación antes de transferirlos.",
+        research = "Investigación",
+        researchBadge = "Recompensas de investigación",
+        collectionTitle = "Disfraces y fondos",
+        collectionBadge = "Revisar fondo",
+        collectionAction = "Revisa formas, fondos, shiny y planes de cambio antes de borrar.",
+        bonuses = "Bonos",
+        bonusesBadge = "4x PX\n4x Polvo Estelar",
+        bonusesAction = "Confirma los bonus activos en Pokémon GO antes de transferir.",
+        prepTitle = "Lista de preparación",
+        prepBadge = "Etiqueta primero",
+        prepAction = "Usa las búsquedas de PokeQuery solo como ayuda de revisión; comprueba siempre los resultados en Pokémon GO.",
+        suggestedSearch = "Búsqueda sugerida para este evento",
+        copySearch = "Copiar búsqueda"
+    )
+    "fr" -> EventDashboardLabels(
+        featuredPokemon = "Pokémon en vedette",
+        featuredBadge = "Shiny + costume",
+        featuredAction = "Marque les captures rares, shiny, costumées ou avec arrière-plan avant le tri.",
+        raids = "Cibles de raid",
+        raidsBadge = "Prépa raids",
+        raidsAction = "Vérifie avant transfert.",
+        raidsGroupAction = "Vérifie séparément les Pokémon des raids et rencontres d’étude avant de les transférer.",
+        research = "Recherches",
+        researchBadge = "Récompenses d’étude",
+        collectionTitle = "Costumes et arrière-plans",
+        collectionBadge = "Vérif. arrière-plan",
+        collectionAction = "Vérifie formes, arrière-plans, shiny et plans d’échange avant suppression.",
+        bonuses = "Bonus",
+        bonusesBadge = "4x PX\n4x Poussière",
+        bonusesAction = "Confirme les bonus actifs dans Pokémon GO avant tout transfert.",
+        prepTitle = "Liste de préparation",
+        prepBadge = "Marquer d’abord",
+        prepAction = "Utilise les recherches PokeQuery comme aide de revue seulement ; vérifie toujours dans Pokémon GO.",
+        suggestedSearch = "Recherche suggérée pour cet événement",
+        copySearch = "Copier la recherche"
+    )
+    "it" -> EventDashboardLabels(
+        featuredPokemon = "Pokémon in evidenza",
+        featuredBadge = "Shiny + costume",
+        featuredAction = "Tagga catture rare, shiny, in costume o con sfondo prima della pulizia.",
+        raids = "Obiettivi raid",
+        raidsBadge = "Preparazione raid",
+        raidsAction = "Controlla IV e piani raid nel gioco.",
+        raidsGroupAction = "Controlla separatamente i Pokémon da raid e incontri di ricerca prima di trasferirli.",
+        research = "Ricerche",
+        researchBadge = "Ricompense ricerca",
+        collectionTitle = "Costumi e sfondi",
+        collectionBadge = "Controllo sfondo",
+        collectionAction = "Controlla forme, sfondi, shiny e piani di scambio prima di eliminare.",
+        bonuses = "Premi",
+        bonusesBadge = "4x PE\n4x Polvere",
+        bonusesAction = "Conferma i bonus attivi in Pokémon GO prima di trasferire.",
+        prepTitle = "Lista preparazione",
+        prepBadge = "Tagga prima",
+        prepAction = "Usa le ricerche PokeQuery solo come aiuto di revisione; controlla sempre i risultati in Pokémon GO.",
+        suggestedSearch = "Ricerca suggerita per questo evento",
+        copySearch = "Copia ricerca"
+    )
+    else -> EventDashboardLabels(
+        featuredPokemon = "Featured Pokémon",
+        featuredBadge = "Shiny + costume",
+        featuredAction = "Tag rare, shiny, costume, and background catches before cleanup.",
+        raids = "Raid targets",
+        raidsBadge = "Raid prep",
+        raidsAction = "Check before transfer.",
+        raidsGroupAction = "Check Pokémon caught from raids and research encounters separately before transferring them.",
+        research = "Research",
+        researchBadge = "Research rewards",
+        collectionTitle = "Costumes & backgrounds",
+        collectionBadge = "Background check",
+        collectionAction = "Keep these catches until you have checked forms, backgrounds, shiny status, and trade plans.",
+        bonuses = "Bonuses",
+        bonusesBadge = "4x XP\n4x Stardust",
+        bonusesAction = "Confirm active bonuses in Pokémon GO before making transfer decisions.",
+        prepTitle = "Prep checklist",
+        prepBadge = "Tag first",
+        prepAction = "Use PokeQuery searches as a review aid only; always inspect results in Pokémon GO.",
+        suggestedSearch = "Suggested search for this event",
+        copySearch = "Copy search"
+    )
+}
+
 @Composable
 private fun EventDashboardContent(
     event: EventContext,
@@ -473,39 +936,80 @@ private fun EventDashboardContent(
     clipboard: androidx.compose.ui.platform.ClipboardManager,
     lang: String,
     onOpen: (EventDialogContent) -> Unit,
+    onOpenFullDetail: (() -> Unit)? = null,
+    compactForDialog: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val labels = eventDashboardLabels(lang)
     val shape = RoundedCornerShape(20.dp)
     val effectiveStatus = event.effectiveStatus()
     val timerLabel = event.remainingTimeLabel(lang = lang)
     val badgeLabel = timerLabel
     val search = event.suggestedSearch.orEmpty()
-    val featuredAction = stringResource(R.string.event_group_featured_action)
-
-    Column(
-        modifier = modifier
+    val featuredAction = labels.featuredAction
+    val tiles = event.detailTileVisibility(lang)
+    val showSearch = search.isNotBlank() && !(tiles.showHonestFallback && search == "age0&!favorite")
+    val columnModifier = if (compactForDialog) {
+        modifier.fillMaxWidth()
+    } else {
+        modifier
             .fillMaxWidth()
             .clip(shape)
             .background(Brush.verticalGradient(listOf(tone.copy(alpha = 0.16f), CardDark)))
             .border(1.dp, tone.copy(alpha = 0.34f), shape)
             .padding(16.dp)
-    ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    }
+
+    Column(modifier = columnModifier) {
+        // Optional full-detail entry point for hero cards (opens modal, not list-bottom append).
+        if (!compactForDialog && onOpenFullDetail != null) {
             Row(
-                Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { onOpenFullDetail() }
+                    .padding(bottom = 4.dp),
+                horizontalArrangement = Arrangement.End
             ) {
-                Box(Modifier.size(7.dp).background(tone, CircleShape))
-                Spacer(Modifier.width(6.dp))
-                Text(badgeLabel, color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                Text(
+                    text = when (lang) {
+                        "tr" -> "Detayı aç"
+                        "de" -> "Details öffnen"
+                        "es" -> "Abrir detalles"
+                        "fr" -> "Ouvrir les détails"
+                        "it" -> "Apri dettagli"
+                        else -> "Open details"
+                    },
+                    color = tone,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
-            EventThemeMark(event.themeKey, tone, Modifier.size(40.dp))
         }
-        Spacer(Modifier.height(10.dp))
-        Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
-        event.dateLabel(lang)?.let {
-            Spacer(Modifier.height(4.dp))
-            Text(it, color = TextTertiary, fontSize = 12.sp)
+        if (!compactForDialog) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(Modifier.size(7.dp).background(tone, CircleShape))
+                    Spacer(Modifier.width(6.dp))
+                    Text(badgeLabel, color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                }
+                EventThemeMark(event.themeKey, tone, Modifier.size(40.dp))
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
+            event.dateLabel(lang)?.let {
+                Spacer(Modifier.height(4.dp))
+                Text(it, color = TextTertiary, fontSize = 12.sp)
+            }
+
+            val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
+            if (summary.isNotBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+            }
         }
 
         if (event.pokemon.isNotEmpty()) {
@@ -529,83 +1033,168 @@ private fun EventDashboardContent(
             )
         }
 
-        EventGroupCard(
-            title = stringResource(R.string.event_featured_pokemon),
-            badge = stringResource(R.string.event_group_featured_badge),
-            body = event.localizedFeatured(lang).ifBlank { event.pokemon.joinToString { it.name } },
-            action = stringResource(R.string.event_group_featured_action),
-            tone = tone,
-            spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
-            onOpen = onOpen,
-            cardKey = null
-        )
-        val raidsText = event.localizedRaids(lang)
-        if (raidsText.isNotBlank()) {
+        if (tiles.showFeatured) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
-                title = stringResource(R.string.event_feature_raids),
-                badge = stringResource(R.string.event_group_raids_badge),
-                body = raidsText,
-                action = stringResource(R.string.event_feature_raids_action),
+                title = labels.featuredPokemon,
+                badge = labels.featuredBadge,
+                body = stringResource(R.string.event_group_featured_body),
+                detailBody = tiles.featuredBody,
+                action = labels.featuredAction,
+                tone = tone,
+                spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
+                onOpen = onOpen,
+                cardKey = null
+            )
+        }
+
+        if (tiles.showRaids) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = labels.raids,
+                badge = labels.raidsBadge,
+                body = stringResource(R.string.event_group_raids_body),
+                detailBody = tiles.raidsBody,
+                action = labels.raidsAction,
                 tone = CyanGlow,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey == "mewtwo" || it.spriteKey == "necrozma" }?.spriteKey,
                 onOpen = onOpen,
                 cardKey = "raid_targets"
             )
         }
-        Spacer(Modifier.height(10.dp))
-        EventGroupCard(
-            title = stringResource(R.string.event_research),
-            badge = stringResource(R.string.event_group_research_badge),
-            body = event.localizedResearch(lang),
-            action = stringResource(R.string.event_group_raids_action),
-            tone = PurpleIV,
-            spriteKey = event.pokemon.getOrNull(1)?.spriteKey,
-            onOpen = onOpen,
-            cardKey = null
-        )
-        Spacer(Modifier.height(10.dp))
-        EventGroupCard(
-            title = stringResource(R.string.event_group_collection_title),
-            badge = stringResource(R.string.event_group_collection_badge),
-            body = event.localizedNotes(lang).ifBlank { stringResource(R.string.event_group_collection_body) },
-            action = stringResource(R.string.event_group_collection_action),
-            tone = GoldCaution,
-            spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
-            onOpen = onOpen,
-            cardKey = null
-        )
-        Spacer(Modifier.height(10.dp))
-        val hasFusion = event.id.contains("go-fest") || event.id.contains("legends") ||
-                event.localizedBonuses(lang).contains("energy", ignoreCase = true) ||
-                event.localizedNotes(lang).contains("energy", ignoreCase = true) ||
-                event.localizedBonuses(lang).contains("enerji", ignoreCase = true) ||
-                event.localizedNotes(lang).contains("enerji", ignoreCase = true)
-        EventGroupCard(
-            title = stringResource(R.string.event_bonuses),
-            badge = stringResource(R.string.event_group_bonuses_badge),
-            body = event.localizedBonuses(lang),
-            action = stringResource(R.string.event_group_bonuses_action),
-            tone = AmberWarning,
-            spriteKey = if (hasFusion) "link_energy" else null,
-            onOpen = onOpen,
-            cardKey = if (hasFusion) "link_energy" else "bonuses"
-        )
-        Spacer(Modifier.height(10.dp))
-        EventGroupCard(
-            title = stringResource(R.string.event_group_prep_title),
-            badge = stringResource(R.string.event_group_prep_badge),
-            body = event.localizedPrep(lang),
-            action = stringResource(R.string.event_group_prep_action),
-            tone = TealPrimary,
-            spriteKey = "prep_list",
-            onOpen = onOpen,
-            cardKey = "prep_list"
-        )
 
-        if (search.isNotBlank()) {
+        if (tiles.showResearch) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = labels.research,
+                badge = labels.researchBadge,
+                body = stringResource(R.string.event_summary_research_body),
+                detailBody = tiles.researchBody,
+                action = labels.raidsGroupAction,
+                tone = PurpleIV,
+                spriteKey = "prep_list",
+                onOpen = onOpen,
+                cardKey = null
+            )
+        }
+
+        if (tiles.showCostumeBackground) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = labels.collectionTitle,
+                badge = labels.collectionBadge,
+                body = stringResource(R.string.event_group_collection_body),
+                detailBody = tiles.notesBody,
+                action = labels.collectionAction,
+                tone = GoldCaution,
+                spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
+                onOpen = onOpen,
+                cardKey = null
+            )
+        } else if (tiles.showEventNotes) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = eventNotesTitle(lang),
+                badge = eventNotesBadge(lang),
+                body = tiles.notesBody,
+                action = labels.collectionAction,
+                tone = GoldCaution,
+                spriteKey = null,
+                onOpen = onOpen,
+                cardKey = null
+            )
+        }
+
+        if (tiles.showBonuses) {
+            val hasFusion = event.id.contains("go-fest") || event.id.contains("legends") ||
+                    tiles.bonusesBody.contains("energy", ignoreCase = true) ||
+                    tiles.notesBody.contains("energy", ignoreCase = true) ||
+                    tiles.bonusesBody.contains("enerji", ignoreCase = true) ||
+                    tiles.notesBody.contains("enerji", ignoreCase = true)
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = labels.bonuses,
+                badge = labels.bonusesBadge,
+                body = stringResource(R.string.event_group_bonuses_body),
+                detailBody = tiles.bonusesBody,
+                action = labels.bonusesAction,
+                tone = AmberWarning,
+                spriteKey = if (hasFusion) "link_energy" else null,
+                onOpen = onOpen,
+                cardKey = if (hasFusion) "link_energy" else "bonuses"
+            )
+        }
+
+        if (tiles.showPrep) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = labels.prepTitle,
+                badge = labels.prepBadge,
+                body = stringResource(R.string.event_group_prep_body),
+                detailBody = tiles.prepBody,
+                action = labels.prepAction,
+                tone = TealPrimary,
+                spriteKey = "prep_list",
+                onOpen = onOpen,
+                cardKey = "prep_list"
+            )
+        }
+
+        if (tiles.showHonestFallback) {
+            Spacer(Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(CardPremium.copy(alpha = 0.50f))
+                    .border(1.dp, tone.copy(alpha = 0.20f), RoundedCornerShape(16.dp))
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val fallbackText = when (lang) {
+                    "tr" -> "Detay sınırlı; plan yapmadan önce kaynağı kontrol et."
+                    "de" -> "Details begrenzt; vor der Planung Quelle prüfen."
+                    "es" -> "Detalles limitados; comprueba la fuente antes de planificar."
+                    "fr" -> "Détails limités ; vérifie la source avant de planifier."
+                    "it" -> "Dettagli limitati; controlla la fonte prima di pianificare."
+                    else -> "Details are limited; check the source before planning."
+                }
+                Text(
+                    text = fallbackText,
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    lineHeight = 17.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
+        // Source attribution when available from the static feed.
+        val sourceName = event.sourceName?.takeIf { it.isNotBlank() }
+        val sourceUrl = event.sourceUrl?.takeIf { it.isNotBlank() }
+        if (sourceName != null || sourceUrl != null) {
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = when (lang) {
+                    "tr" -> "Kaynak: ${sourceName ?: sourceUrl}"
+                    "de" -> "Quelle: ${sourceName ?: sourceUrl}"
+                    "es" -> "Fuente: ${sourceName ?: sourceUrl}"
+                    "fr" -> "Source : ${sourceName ?: sourceUrl}"
+                    "it" -> "Fonte: ${sourceName ?: sourceUrl}"
+                    else -> "Source: ${sourceName ?: sourceUrl}"
+                },
+                color = TextTertiary,
+                fontSize = 11.sp,
+                lineHeight = 14.sp
+            )
+            sourceUrl?.let {
+                Text(it, color = TextTertiary, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+        }
+
+        if (showSearch) {
             Spacer(Modifier.height(12.dp))
-            SectionLabel(stringResource(R.string.event_suggested_for_event), tone)
+            SectionLabel(labels.suggestedSearch, tone)
             Spacer(Modifier.height(5.dp))
             Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SlateBlack.copy(alpha = 0.6f))
@@ -627,7 +1216,7 @@ private fun EventDashboardContent(
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                 ) {
-                    Text(stringResource(R.string.event_card_copy_search), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(labels.copySearch, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -686,6 +1275,7 @@ private fun EventGroupCard(
     title: String,
     badge: String,
     body: String,
+    detailBody: String = body,
     action: String,
     tone: Color,
     spriteKey: String?,
@@ -698,7 +1288,7 @@ private fun EventGroupCard(
             .clip(RoundedCornerShape(16.dp))
             .background(CardPremium.copy(alpha = 0.86f))
             .border(1.dp, tone.copy(alpha = 0.24f), RoundedCornerShape(16.dp))
-            .clickable { onOpen(EventDialogContent(title, badge, body, action, spriteKey, cardKey)) }
+            .clickable { onOpen(EventDialogContent(title, badge, detailBody, action, spriteKey, cardKey)) }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -869,6 +1459,8 @@ private fun EventInfoDialog(
                 Column {
                     val detailBody = cardKeyBody(content.cardKey, event, lang, localCtx)
                     val detailAction = cardKeyAction(content.cardKey, event, lang, localCtx)
+                    SectionLabel(stringResource(R.string.event_card_summary), TealPrimary)
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = detailBody ?: content.body,
                         color = TextSecondary,
@@ -891,6 +1483,90 @@ private fun EventInfoDialog(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun EventDetailsDialog(
+    event: EventContext,
+    sourceLabelRes: Int,
+    lastChecked: String?,
+    lang: String,
+    onDismiss: () -> Unit
+) {
+    val clipboard = LocalClipboardManager.current
+    var infoDialog by remember { mutableStateOf<EventDialogContent?>(null) }
+    val tone = themeTone(event.themeKey)
+    val closeLabel = stringResource(R.string.event_close)
+    val localCtx = LocalContext.current
+    val localConfig = LocalConfiguration.current
+    val dialogConfig = android.content.res.Configuration(localConfig).apply {
+        setLocale(Locale.forLanguageTag(lang))
+    }
+    val dialogContext = localCtx.createConfigurationContext(dialogConfig)
+
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalContext provides dialogContext,
+        LocalConfiguration provides dialogConfig
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = SlateBlack)) {
+                    Text(closeLabel, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = CardDark,
+            titleContentColor = TextPrimary,
+            textContentColor = TextSecondary,
+            title = {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                            Text(event.remainingTimeLabel(lang = lang), color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.weight(1f))
+                    }
+                    event.dateLabel(lang)?.let {
+                        Spacer(Modifier.height(4.dp))
+                        Text(it, color = TextTertiary, fontSize = 12.sp)
+                    }
+                }
+            },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
+                        if (summary.isNotBlank()) {
+                            item {
+                                Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+                            }
+                        }
+                        item {
+                            EventDashboardContent(
+                                event = event,
+                                sourceLabelRes = sourceLabelRes,
+                                lastChecked = lastChecked,
+                                tone = tone,
+                                clipboard = clipboard,
+                                lang = lang,
+                                onOpen = { infoDialog = it },
+                                compactForDialog = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    infoDialog?.let { content ->
+        EventInfoDialog(content = content, event = event, lang = lang, onDismiss = { infoDialog = null })
     }
 }
 
@@ -936,13 +1612,9 @@ private fun PrepChecklist(items: List<String>) {
 
 private fun cardKeyBody(cardKey: String?, event: EventContext, lang: String, context: android.content.Context): String? = when (cardKey) {
     "raid_targets" -> {
-        val specific = event.localizedRaids(lang)
-        val bodyPrefix = if (specific.isNotBlank()) {
-            if (lang == "tr") "Akın Detayları:\n$specific\n\n" else "Raid Details:\n$specific\n\n"
-        } else ""
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends")
         val resId = if (isGoFest) R.string.event_detail_raid_targets_body_gofest else R.string.event_detail_raid_targets_body
-        bodyPrefix + context.getString(resId)
+        context.getString(resId)
     }
     "link_energy", "fusion_energy" -> {
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
