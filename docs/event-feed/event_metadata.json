@@ -1,4 +1,10 @@
 {
+  "event-season-23-forever-forward": {
+    "titleTr": "Forever Forward Sezonu"
+  },
+  "event-shadow-palkia-in-shadow-raids-july-2026": {
+    "titleTr": "Gölge Akınlarında Palkia"
+  },
   "event-10th-anniversary-party-2026": {
     "titleTr": "10. Yıl Dönümü Etkinliği",
     "themeKey": "generic_event",
@@ -19,7 +25,7 @@
     "summaryTr": "Bu etkinlik kostüm, shiny, XP, Star Tozu ve özel arka plan odaklı. Etkinlik yakalamalarını topluca göndermeden önce kontrol et.",
     "prep": "Tag costumed, shiny, and special-background catches. Check Gimmighoul separately before any transfer.",
     "prepTr": "Kostümlüleri, shiny'leri ve özel arka planlıları etiketle. Gimmighoul'u transferden önce ayrı kontrol et.",
-    "suggestedSearch": "age0-3&!favorite&!shiny&!costume&!background&!locationbackground&!specialbackground",
+    "suggestedSearch": "age0-3&!favorite&!shiny&!costume&!background&!locationbackground&!specialbackground&!traded",
     "eventNotes": "Check Gimmighoul, costumed Pikachu, costumed Eevee, costumed Wurmple, shiny catches, and special backgrounds before cleanup.",
     "eventNotesTr": "Gimmighoul'u, kostümlü Pikachu'yu, kostümlü Eevee'yi, kostümlü Wurmple'ı, shiny yakalamaları ve özel arka planları temizlikten önce kontrol et.",
     "pokemon": [
@@ -88,12 +94,12 @@
     "raids": "Legendary, Ultra Beast, Mega, Primal, and Super Mega raid catches may have special backgrounds during the week.",
     "raidsTr": "Efsanevi, Ultra Canavar, Mega, Kadim ve Süper Mega akın yakalamalarında hafta boyunca özel arka plan olabilir.",
     "research": "GO Pass: Road of Legends runs through July 12 and includes encounters, candy, Link Charges, Incubators, and raid rewards.",
-    "researchTr": "GO Pass: Efsaneler Yolu 12 Temmuz'a kadar sürer; karşılaşmalar, şeker, bağlantı şarjı, kuluçka makine ve akın ödülleri içerir.",
+    "researchTr": "GO Pass: Efsaneler Yolu 12 Temmuz'a kadar sürer; karşılaşmalar, şeker, bağlantı şarjı, kuluçka makineleri ve akın ödülleri içerir.",
     "summary": "This is GO Fest prep: make storage, tag raid catches, and keep special-background or GO Pass reward encounters safe.",
     "summaryTr": "Depo aç, akın yakalamalarını etiketle, özel arka planlı veya GO Pass ödülü karşılaşmaları güvene al.",
     "prep": "Review raid catches separately. Daily Discoveries are paused during Road of Legends and GO Fest Global.",
     "prepTr": "Akın yakalamalarını ayrı incele. Günlük Keşifler, Efsaneler Yolu ve GO Fest Küresel boyunca duraklatılır.",
-    "suggestedSearch": "age0-7&!favorite&!shiny&!legendary&!mythical&!ultrabeast&!background&!locationbackground&!specialbackground&!costume",
+    "suggestedSearch": "age0-7&!favorite&!shiny&!legendary&!mythical&!ultrabeast&!background&!locationbackground&!specialbackground&!costume&!traded",
     "eventNotes": "Protect raid catches, team-hat Pikachu, special backgrounds, shiny catches, and GO Pass reward encounters before cleanup.",
     "eventNotesTr": "Temizlikten önce akın yakalamalarını, takım şapkalı Pikachu'yu, özel arka planları, shiny'leri ve GO Pass ödülü karşılaşmaları koru.",
     "pokemon": [

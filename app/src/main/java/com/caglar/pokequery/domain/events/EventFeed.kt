@@ -162,6 +162,14 @@ object EventFeedParser {
         }) {
             "blank event field"
         }
+        require(events.all { event ->
+            val search = event.suggestedSearch.orEmpty()
+            val tokens = search.split('&').map(String::trim).filter(String::isNotBlank)
+            '|' !in search && tokens.count { it.equals("!traded", ignoreCase = true) } == 1 &&
+                tokens.none { it.equals("traded", ignoreCase = true) }
+        }) {
+            "unsafe suggested search"
+        }
         EventFeed(lastUpdated, events)
     }
 

@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from generate_event_feed import (
     METADATA_ID_ALIASES,
     canonical_event_id,
+    ensure_traded_exclusion,
     generate_feed,
     put_raw_event,
     resolve_event_metadata,
@@ -67,7 +68,9 @@ class TestGeneratorSafety(unittest.TestCase):
         self.assertGreaterEqual(len(events), 20, "production feed must not be a tiny fixture feed")
         # Generated search strings must never contain pipe characters.
         for ev in events:
-            self.assertNotIn("|", ev.get("suggestedSearch", ""))
+            search = ev.get("suggestedSearch", "")
+            self.assertNotIn("|", search)
+            self.assertEqual(1, search.split("&").count("!traded"))
             for value in ev.values():
                 if isinstance(value, str):
                     self.assertNotIn("|", value, f"pipe found in event {ev.get('id')}")
@@ -118,6 +121,21 @@ class TestGeneratorSafety(unittest.TestCase):
         self.assertEqual("event-pokemon-go-fest-2026-global", canonical_event_id("event-go-fest-2026-global-final-details"))
         self.assertEqual(["event-pokemon-go-fest-2026-global"], list(raw_events.keys()))
         self.assertEqual("Pokemon GO Live News", raw_events["event-pokemon-go-fest-2026-global"]["sourceName"])
+
+    def test_traded_exclusion_is_added_once_and_preserved(self):
+        self.assertEqual("age0&!favorite&!traded", ensure_traded_exclusion("age0&!favorite"))
+        self.assertEqual("age0&!favorite&!traded", ensure_traded_exclusion("age0&!favorite&!traded"))
+
+    def test_curated_metadata_searches_have_one_traded_exclusion(self):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        metadata_path = os.path.join(os.path.dirname(script_dir), "docs", "event-feed", "event_metadata.json")
+        with open(metadata_path, encoding="utf-8") as handle:
+            metadata = json.load(handle)
+        searches = [entry["suggestedSearch"] for entry in metadata.values() if entry.get("suggestedSearch")]
+        self.assertTrue(searches)
+        for search in searches:
+            self.assertEqual(1, search.split("&").count("!traded"))
+            self.assertNotIn("|", search)
 
 
 if __name__ == "__main__":

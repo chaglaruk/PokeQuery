@@ -724,7 +724,7 @@ object EventContextRepository {
             summaryTextTr = "Etkinlikten önce depoda yer aç, sonra her oyun oturumundan sonra son yakalamaları incele.",
             prepText = "Tag keepers first. Use PokeQuery after catching to review recent Pokémon before any transfer.",
             prepTextTr = "Önce saklayacaklarını etiketle. Yakaladıktan sonra transferden önce son Pokémonları PokeQuery ile incele.",
-            suggestedSearch = "age0-2&!favorite&!shiny&!legendary&!mythical&!costume&!ultrabeast",
+            suggestedSearch = "age0-2&!favorite&!shiny&!legendary&!mythical&!costume&!ultrabeast&!traded",
             eventNotesText = "Keep shinies, costumes, hundos, PvP candidates, raid catches, and anything tagged for trade.",
             eventNotesTextTr = "Parlakları, kostümlüleri, hundoları, PvP adaylarını, akın yakalamalarını ve takas için etiketlenenleri sakla.",
             boostedPokemonText = "Event spawns and global featured Pokémon",
@@ -838,7 +838,7 @@ object EventContextRepository {
             summaryTextTr = "Aynı Pokémon'dan yüzlerce yakalamak, hangilerini tutacağın konusunda çok daha seçici olmanı sağlar.",
             prepText = "Run Candy Prep. Keep only the highest IVs for raids or specific PvP spreads. Transfer the rest.",
             prepTextTr = "Şeker Hazırlığı çalıştır. Sadece akınlar için en yüksek IV'leri veya özel PvP dağılımlarını sakla. Kalanını yolla.",
-            suggestedSearch = "age0&!favorite&!shiny&!3*&!4*",
+            suggestedSearch = "age0&!favorite&!shiny&!3*&!4*&!traded",
             eventNotesText = "Check for PvP IVs (low attack, high defense/HP) before transferring, especially if the Pokémon is good in Great or Ultra League.",
             eventNotesTextTr = "Özellikle Süper veya Ultra Lig'de iyiyse, transfer etmeden önce PvP IV'lerini (düşük saldırı, yüksek savunma/HP) kontrol et.",
             themeKey = "community_day"
@@ -861,7 +861,7 @@ object EventContextRepository {
             summaryTextTr = "Su türleri için şeker toplamak adına harika bir zaman, ancak depo alanına dikkat et.",
             prepText = "Clear out non-event fodder beforehand so you can focus on catching Water-types.",
             prepTextTr = "Su türlerine odaklanabilmek için etkinlik öncesinde diğer gereksizleri temizle.",
-            suggestedSearch = "water&age0-5&!favorite&!shiny&!legendary",
+            suggestedSearch = "water&age0-5&!favorite&!shiny&!legendary&!traded",
             eventNotesText = "Keep an eye out for rare Water-types that are usually hard to find. Use Pinap Berries for even more candy.",
             eventNotesTextTr = "Genelde bulması zor olan nadir Su türlerine dikkat et. Daha fazla şeker için Pinap Meyvesi kullan.",
             themeKey = "candy_bonus"

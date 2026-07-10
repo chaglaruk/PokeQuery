@@ -254,7 +254,7 @@ class EventContextTest {
                   "summaryTr": "YararlÃ¢â€â‚¬Ã¢â€“â€™ etkinlik hazÃ¢â€â‚¬Ã¢â€“â€™rlÃ¢â€â‚¬Ã¢â€“â€™k kartÃ¢â€â‚¬Ã¢â€“â€™.",
                   "prep": "Tag keepers first.",
                   "prepTr": "Ã¢â€Å“ÃƒÂ»nce saklanacaklarÃ¢â€â‚¬Ã¢â€“â€™ etiketle.",
-                  "suggestedSearch": "age0-2",
+                  "suggestedSearch": "age0-2&!traded",
                   "eventNotes": "Review protected categories.",
                   "eventNotesTr": "Korunan kategorileri incele.",
                   "themeKey": "community_day"
@@ -272,7 +272,7 @@ class EventContextTest {
         assertEquals(EventStatus.CURRENT, feed.events.single().status)
         assertEquals("2026-06-29", feed.events.single().startDate)
         assertEquals("2026-06-29", feed.events.single().endDate)
-        assertEquals("age0-2", feed.events.single().suggestedSearch)
+        assertEquals("age0-2&!traded", feed.events.single().suggestedSearch)
         assertEquals("community_day", feed.events.single().themeKey)
         assertEquals("Topluluk GÃ¢â€Å“Ã¢â€¢ÂnÃ¢â€Å“Ã¢â€¢Â", feed.events.single().titleTextTr)
     }
@@ -405,7 +405,7 @@ class EventContextTest {
                   "summaryTr": "KostÃ¢â€Å“Ã¢â€¢Âm ve shiny iÃ¢â€Å“Ã„Å¸eren bayram temalÃ¢â€â‚¬Ã¢â€“â€™ etkinlik.",
                   "prep": "Tag costumed and shiny catches before cleanup.",
                   "prepTr": "Temizlikten Ã¢â€Å“Ãƒâ€šnce kostÃ¢â€Å“Ã¢â€¢ÂmlÃ¢â€Å“Ã¢â€¢Â ve shiny yakalamalarÃ¢â€â‚¬Ã¢â€“â€™ etiketle.",
-                  "suggestedSearch": "age0-5&!favorite&!shiny&!costume",
+                  "suggestedSearch": "age0-5&!favorite&!shiny&!costume&!traded",
                   "eventNotes": "Check costumed and shiny catches before transferring.",
                   "eventNotesTr": "Transferden Ã¢â€Å“Ãƒâ€šnce kostÃ¢â€Å“Ã¢â€¢ÂmlÃ¢â€Å“Ã¢â€¢Â ve shiny yakalamalarÃ¢â€â‚¬Ã¢â€“â€™ kontrol et.",
                   "themeKey": "generic_event",
@@ -490,7 +490,7 @@ private val VALID_FEED_JSON = """
       "events": [
         { "id": "community", "title": "Community Day", "kind": "COMMUNITY_DAY",
           "status": "CURRENT", "note": "Verify in Pokemon GO before acting.", "month": 6, "year": 2026,
-          "summary": "Summary", "prep": "Prep", "suggestedSearch": "age0-2", "eventNotes": "Notes", "themeKey": "community_day" }
+          "summary": "Summary", "prep": "Prep", "suggestedSearch": "age0-2&!traded", "eventNotes": "Notes", "themeKey": "community_day" }
       ]
     }
 """.trimIndent()
@@ -740,6 +740,18 @@ class EventFeedLoaderTest {
         assertTrue(communityCelebrations.all { it.determineCategory() == EventCategory.NEWS_PROMO })
         assertFalse(sections.importantUpcoming.any { it.id.contains("community-celebrations") })
         assertEquals(1, goFestDisplayCount)
+    }
+
+    @Test
+    fun `every bundled event search preserves traded Pokemon exactly once`() {
+        val feed = EventFeedParser.parse(File("src/main/res/raw/event_context_fixture.json").readText()).getOrThrow()
+
+        feed.events.forEach { event ->
+            val search = event.suggestedSearch.orEmpty()
+            assertFalse("Pipe found in ${event.id}: $search", search.contains('|'))
+            assertEquals("Expected one !traded in ${event.id}: $search", 1, search.split('&').count { it == "!traded" })
+            assertFalse("Contradictory traded token in ${event.id}: $search", search.split('&').any { it == "traded" })
+        }
     }
 
     @Test

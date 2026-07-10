@@ -159,12 +159,29 @@ def get_event_id(href, title):
     slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
     return f"event-{slug}"
 
+def ensure_traded_exclusion(search):
+    """Return a copy-safe Event Guide search with exactly one !traded token."""
+    if "|" in search:
+        raise ValueError(f"Invalid suggestedSearch containing '|': {search}")
+    tokens = [token.strip() for token in search.split("&") if token.strip()]
+    lowered = [token.lower() for token in tokens]
+    if "traded" in lowered:
+        raise ValueError(f"Contradictory suggestedSearch includes traded: {search}")
+    if lowered.count("!traded") > 1:
+        raise ValueError(f"Duplicate !traded in suggestedSearch: {search}")
+    if "!traded" not in lowered:
+        tokens.append("!traded")
+    return "&".join(tokens)
+
 def validate_safety_constraints(event):
     """Enforces Turkish copy restrictions and suggestedSearch requirements."""
     # Ensure suggestedSearch does not contain '|'
     search = event.get("suggestedSearch", "")
     if "|" in search:
         raise ValueError(f"Event {event['id']} has invalid suggestedSearch containing '|': {search}")
+    tokens = [token.strip().lower() for token in search.split("&") if token.strip()]
+    if tokens.count("!traded") != 1 or "traded" in tokens:
+        raise ValueError(f"Event {event['id']} must contain exactly one !traded exclusion: {search}")
     
     # Check for Turkish banned words
     for field, val in event.items():
@@ -545,7 +562,7 @@ def generate_feed(fixture_mode, output_path):
             "prepEs": meta.get("prepEs"),
             "prepFr": meta.get("prepFr"),
             "prepIt": meta.get("prepIt"),
-            "suggestedSearch": meta.get("suggestedSearch", "age0&!favorite"),
+            "suggestedSearch": ensure_traded_exclusion(meta.get("suggestedSearch", "age0&!favorite")),
             "eventNotes": meta.get("eventNotes", "Review recent catches before transfer."),
             "eventNotesTr": meta.get("eventNotesTr", "Transferden önce son yakalamaları kontrol edin."),
             "eventNotesDe": meta.get("eventNotesDe"),

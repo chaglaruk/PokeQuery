@@ -86,6 +86,11 @@ def validate_feed(file_path):
             if isinstance(val, str) and "|" in val:
                 print(f"Error: Event {event_id} field '{field}' contains banned '|': {val}")
                 return False
+
+        search_tokens = [token.strip().lower() for token in event["suggestedSearch"].split("&") if token.strip()]
+        if search_tokens.count("!traded") != 1 or "traded" in search_tokens:
+            print(f"Error: Event {event_id} suggestedSearch must contain exactly one !traded exclusion")
+            return False
             
         # Check themeKey
         theme_key = event.get("themeKey", "generic_event")
