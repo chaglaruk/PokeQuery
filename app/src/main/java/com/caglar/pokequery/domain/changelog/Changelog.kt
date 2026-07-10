@@ -14,8 +14,8 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
-            versionName = "0.7.2",
-            versionCode = 22,
+            versionName = "0.7.3",
+            versionCode = 23,
             releaseLabel = "Phase 5 Patch",
             title = "Widget Value & Event Guide Polish",
             highlights = listOf(
