@@ -159,6 +159,14 @@ fun EventContext.determineCategory(): String {
     }
 }
 
+fun EventContext.canonicalEventKey(): String = when (id) {
+    "event-go-fest-2026-global-final-details" -> "event-pokemon-go-fest-2026-global"
+    else -> id
+}
+
+private fun List<EventContext>.distinctByCanonicalEvent(): List<EventContext> =
+    distinctBy { it.canonicalEventKey() }
+
 /**
  * Selects the single main event to feature prominently on the Event Guide.
  *
@@ -236,7 +244,9 @@ data class EventSections(
 )
 
 fun groupEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): EventSections {
-    val active = events.filter { it.effectiveStatus(todayIso) != EventStatus.ENDED }
+    val active = events
+        .filter { it.effectiveStatus(todayIso) != EventStatus.ENDED }
+        .distinctByCanonicalEvent()
     val featured = selectMainEvent(active, todayIso)
     val rest = active.filter { it.id != featured?.id }
 
@@ -327,6 +337,9 @@ fun EventContext.localizedRaids(lang: String = Locale.getDefault().language): St
  * Generator fallback strings that are not real event facts.
  * UI must hide fact tiles that only contain these placeholders.
  */
+private fun normalizeEventFact(text: String): String =
+    text.trim().lowercase(Locale.US).replace("\u0307", "")
+
 private val genericEventFactBodies = setOf(
     "verify details in-game before acting.",
     "prepare for event catches and inventory limits.",
@@ -334,12 +347,12 @@ private val genericEventFactBodies = setOf(
     "işlem yapmadan önce oyun içi detayları kontrol edin.",
     "etkinlik yakalamaları ve envanter limitleri için hazırlık yapın.",
     "transferden önce son yakalamaları kontrol edin."
-)
+).map(::normalizeEventFact).toSet()
 
 /** True when text is blank or a known generator placeholder. */
 fun isGenericEventFact(text: String?): Boolean {
     if (text.isNullOrBlank()) return true
-    return text.trim().lowercase(Locale.US) in genericEventFactBodies
+    return normalizeEventFact(text) in genericEventFactBodies
 }
 
 /** Useful non-placeholder fact text, or null. */

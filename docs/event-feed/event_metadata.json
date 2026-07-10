@@ -148,6 +148,7 @@
     ]
   },
   "event-go-fest-global-2026": {
+    "title": "Pok\u00e9mon GO Fest 2026: Global",
     "titleTr": "GO Fest 2026: Küresel",
     "themeKey": "raid",
     "startDate": "2026-07-11",
@@ -222,5 +223,11 @@
         "spriteKey": "necrozma"
       }
     ]
+  },
+  "event-special-anniversary-pikachu-celebration-2026": {
+    "titleTr": "\u00d6zel Y\u0131l D\u00f6n\u00fcm\u00fc Pikachu Kutlamas\u0131"
+  },
+  "event-choose-your-path-fairy-trail-2026": {
+    "titleTr": "Yolunu Se\u00e7: Peri Yolu"
   }
 }

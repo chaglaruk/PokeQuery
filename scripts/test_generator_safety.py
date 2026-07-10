@@ -6,7 +6,13 @@ from unittest.mock import patch, mock_open
 
 # Adjust path to import generate_event_feed
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from generate_event_feed import generate_feed, resolve_event_metadata, METADATA_ID_ALIASES
+from generate_event_feed import (
+    METADATA_ID_ALIASES,
+    canonical_event_id,
+    generate_feed,
+    put_raw_event,
+    resolve_event_metadata,
+)
 
 
 class TestGeneratorSafety(unittest.TestCase):
@@ -79,6 +85,39 @@ class TestGeneratorSafety(unittest.TestCase):
         )
         self.assertEqual(resolved.get("featuredPokemon"), "Mewtwo")
         self.assertIn("event-pokemon-go-fest-2026-global", METADATA_ID_ALIASES)
+
+    def test_go_fest_metadata_does_not_broad_match_news_titles(self):
+        metadata = {
+            "event-go-fest-global-2026": {
+                "featuredPokemon": "Mewtwo",
+                "eventCategory": "MAJOR_GAMEPLAY",
+            }
+        }
+        resolved = resolve_event_metadata(
+            metadata,
+            "event-community-celebrations-go-fest-2026-details-en",
+            "Get ready for Pokemon GO Fest 2026: Global Community Celebrations",
+        )
+        self.assertEqual({}, resolved)
+
+    def test_raw_event_insert_canonicalizes_true_duplicate_sources(self):
+        raw_events = {}
+        put_raw_event(raw_events, {
+            "id": "event-pokemon-go-fest-2026-global",
+            "title": "Pokemon GO Fest 2026: Global",
+            "kind": "GENERIC_EVENT",
+            "sourceName": "Leek Duck Events",
+        })
+        put_raw_event(raw_events, {
+            "id": "event-go-fest-2026-global-final-details",
+            "title": "Pokemon GO Fest 2026: Global final details!",
+            "kind": "GENERIC_EVENT",
+            "sourceName": "Pokemon GO Live News",
+        })
+
+        self.assertEqual("event-pokemon-go-fest-2026-global", canonical_event_id("event-go-fest-2026-global-final-details"))
+        self.assertEqual(["event-pokemon-go-fest-2026-global"], list(raw_events.keys()))
+        self.assertEqual("Pokemon GO Live News", raw_events["event-pokemon-go-fest-2026-global"]["sourceName"])
 
 
 if __name__ == "__main__":

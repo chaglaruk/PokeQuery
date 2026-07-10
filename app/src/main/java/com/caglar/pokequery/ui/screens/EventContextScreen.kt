@@ -761,6 +761,164 @@ private fun CompactEventCard(
     }
 }
 
+private data class EventDashboardLabels(
+    val featuredPokemon: String,
+    val featuredBadge: String,
+    val featuredAction: String,
+    val raids: String,
+    val raidsBadge: String,
+    val raidsAction: String,
+    val raidsGroupAction: String,
+    val research: String,
+    val researchBadge: String,
+    val collectionTitle: String,
+    val collectionBadge: String,
+    val collectionAction: String,
+    val bonuses: String,
+    val bonusesBadge: String,
+    val bonusesAction: String,
+    val prepTitle: String,
+    val prepBadge: String,
+    val prepAction: String,
+    val suggestedSearch: String,
+    val copySearch: String
+)
+
+private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lang) {
+    "tr" -> EventDashboardLabels(
+        featuredPokemon = "Öne Çıkan Pokémon",
+        featuredBadge = "Nadir ve Kostümlü",
+        featuredAction = "Nadir, farklı renkli, kostümlü veya özel arka planlı yakalamalarınızı temizlik öncesi etiketleyerek koruyun.",
+        raids = "Akın hedefleri",
+        raidsBadge = "Akın Hazırlığı",
+        raidsAction = "Transferden önce kontrol et.",
+        raidsGroupAction = "Akın yakalamalarını ve araştırma ödüllerini transfer etmeden önce ayrı olarak gözden geçirin.",
+        research = "Araştırma",
+        researchBadge = "Araştırma Ödülleri",
+        collectionTitle = "Kostümler ve Arka Planlar",
+        collectionBadge = "Arka Plan Kontrolü",
+        collectionAction = "Formlarını, arka planlarını, farklı renkli (shiny) olma durumlarını ve takas planlarınızı kontrol etmeden hiçbirini göndermeyin.",
+        bonuses = "Ek ödüller",
+        bonusesBadge = "Etkinlik Bonusları",
+        bonusesAction = "Pokémonları transfer etmeden önce aktif bonusları Pokémon GO oyunundaki Bugün sekmesinden kontrol edin.",
+        prepTitle = "Hazırlık Listesi",
+        prepBadge = "Planlı Temizlik",
+        prepAction = "PokeQuery arama metinlerini yalnızca yardımcı bir kılavuz olarak kullanın; Pokémonları aktarmadan önce her zaman oyun içinden son kez kontrol edin.",
+        suggestedSearch = "Bu etkinlik için önerilen arama",
+        copySearch = "Aramayı kopyala"
+    )
+    "de" -> EventDashboardLabels(
+        featuredPokemon = "Im Rampenlicht",
+        featuredBadge = "Shiny + Kostüm",
+        featuredAction = "Seltene, schillernde, kostümierte und Hintergrund-Fänge vor dem Aufräumen taggen.",
+        raids = "Raid-Ziele",
+        raidsBadge = "Raid-Vorbereitung",
+        raidsAction = "Vor dem Transfer prüfen.",
+        raidsGroupAction = "Raid- und Forschungsbelohnungen vor Transfers getrennt prüfen.",
+        research = "Forschung",
+        researchBadge = "Forschungsbelohnungen",
+        collectionTitle = "Kostüme & Hintergründe",
+        collectionBadge = "Hintergrund-Check",
+        collectionAction = "Formen, Hintergründe, Shiny-Status und Tauschpläne vor dem Löschen prüfen.",
+        bonuses = "Boni",
+        bonusesBadge = "4x EP\n4x Sternenstaub",
+        bonusesAction = "Aktive Boni in Pokémon GO prüfen, bevor du Transferentscheidungen triffst.",
+        prepTitle = "Vorbereitungs-Checkliste",
+        prepBadge = "Erst taggen",
+        prepAction = "PokeQuery-Suchen nur als Prüfhilfe nutzen; Ergebnisse immer in Pokémon GO kontrollieren.",
+        suggestedSearch = "Vorgeschlagene Suche für dieses Event",
+        copySearch = "Suche kopieren"
+    )
+    "es" -> EventDashboardLabels(
+        featuredPokemon = "Pokémon destacado",
+        featuredBadge = "Shiny + disfraz",
+        featuredAction = "Etiqueta capturas raras, shiny, con disfraz o con fondo antes de limpiar.",
+        raids = "Objetivos de raid",
+        raidsBadge = "Preparar incursiones",
+        raidsAction = "Revisa antes de transferir.",
+        raidsGroupAction = "Revisa recompensas de incursión e investigación por separado antes de transferir.",
+        research = "Investigación",
+        researchBadge = "Recompensas de investigación",
+        collectionTitle = "Disfraces y fondos",
+        collectionBadge = "Revisar fondo",
+        collectionAction = "Revisa formas, fondos, shiny y planes de cambio antes de borrar.",
+        bonuses = "Bonos",
+        bonusesBadge = "4x PX\n4x Polvo Estelar",
+        bonusesAction = "Confirma los bonus activos en Pokémon GO antes de transferir.",
+        prepTitle = "Lista de preparación",
+        prepBadge = "Etiqueta primero",
+        prepAction = "Usa las búsquedas de PokeQuery solo como ayuda de revisión; comprueba siempre los resultados en Pokémon GO.",
+        suggestedSearch = "Búsqueda sugerida para este evento",
+        copySearch = "Copiar búsqueda"
+    )
+    "fr" -> EventDashboardLabels(
+        featuredPokemon = "Pokémon en vedette",
+        featuredBadge = "Shiny + costume",
+        featuredAction = "Marque les captures rares, shiny, costumées ou avec arrière-plan avant le tri.",
+        raids = "Cibles de raid",
+        raidsBadge = "Prépa raids",
+        raidsAction = "Vérifie avant transfert.",
+        raidsGroupAction = "Vérifie séparément raids et récompenses d’étude avant tout transfert.",
+        research = "Recherches",
+        researchBadge = "Récompenses d’étude",
+        collectionTitle = "Costumes et arrière-plans",
+        collectionBadge = "Vérif. arrière-plan",
+        collectionAction = "Vérifie formes, arrière-plans, shiny et plans d’échange avant suppression.",
+        bonuses = "Bonus",
+        bonusesBadge = "4x PX\n4x Poussière",
+        bonusesAction = "Confirme les bonus actifs dans Pokémon GO avant tout transfert.",
+        prepTitle = "Liste de préparation",
+        prepBadge = "Marquer d’abord",
+        prepAction = "Utilise les recherches PokeQuery comme aide de revue seulement ; vérifie toujours dans Pokémon GO.",
+        suggestedSearch = "Recherche suggérée pour cet événement",
+        copySearch = "Copier la recherche"
+    )
+    "it" -> EventDashboardLabels(
+        featuredPokemon = "Pokémon in evidenza",
+        featuredBadge = "Shiny + costume",
+        featuredAction = "Tagga catture rare, shiny, in costume o con sfondo prima della pulizia.",
+        raids = "Obiettivi raid",
+        raidsBadge = "Preparazione raid",
+        raidsAction = "Controlla IV e piani raid nel gioco.",
+        raidsGroupAction = "Controlla raid e ricompense ricerca separatamente prima di trasferire.",
+        research = "Ricerche",
+        researchBadge = "Ricompense ricerca",
+        collectionTitle = "Costumi e sfondi",
+        collectionBadge = "Controllo sfondo",
+        collectionAction = "Controlla forme, sfondi, shiny e piani di scambio prima di eliminare.",
+        bonuses = "Premi",
+        bonusesBadge = "4x PE\n4x Polvere",
+        bonusesAction = "Conferma i bonus attivi in Pokémon GO prima di trasferire.",
+        prepTitle = "Lista preparazione",
+        prepBadge = "Tagga prima",
+        prepAction = "Usa le ricerche PokeQuery solo come aiuto di revisione; controlla sempre i risultati in Pokémon GO.",
+        suggestedSearch = "Ricerca suggerita per questo evento",
+        copySearch = "Copia ricerca"
+    )
+    else -> EventDashboardLabels(
+        featuredPokemon = "Featured Pokémon",
+        featuredBadge = "Shiny + costume",
+        featuredAction = "Tag rare, shiny, costume, and background catches before cleanup.",
+        raids = "Raid targets",
+        raidsBadge = "Raid prep",
+        raidsAction = "Check before transfer.",
+        raidsGroupAction = "Review raid and research rewards separately before transferring anything.",
+        research = "Research",
+        researchBadge = "Research rewards",
+        collectionTitle = "Costumes & backgrounds",
+        collectionBadge = "Background check",
+        collectionAction = "Keep these catches until you have checked forms, backgrounds, shiny status, and trade plans.",
+        bonuses = "Bonuses",
+        bonusesBadge = "4x XP\n4x Stardust",
+        bonusesAction = "Confirm active bonuses in Pokémon GO before making transfer decisions.",
+        prepTitle = "Prep checklist",
+        prepBadge = "Tag first",
+        prepAction = "Use PokeQuery searches as a review aid only; always inspect results in Pokémon GO.",
+        suggestedSearch = "Suggested search for this event",
+        copySearch = "Copy search"
+    )
+}
+
 @Composable
 private fun EventDashboardContent(
     event: EventContext,
@@ -771,25 +929,32 @@ private fun EventDashboardContent(
     lang: String,
     onOpen: (EventDialogContent) -> Unit,
     onOpenFullDetail: (() -> Unit)? = null,
+    compactForDialog: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val labels = eventDashboardLabels(lang)
     val shape = RoundedCornerShape(20.dp)
     val effectiveStatus = event.effectiveStatus()
     val timerLabel = event.remainingTimeLabel(lang = lang)
     val badgeLabel = timerLabel
     val search = event.suggestedSearch.orEmpty()
-    val featuredAction = stringResource(R.string.event_group_featured_action)
-
-    Column(
-        modifier = modifier
+    val featuredAction = labels.featuredAction
+    val tiles = event.detailTileVisibility(lang)
+    val showSearch = search.isNotBlank() && !(tiles.showHonestFallback && search == "age0&!favorite")
+    val columnModifier = if (compactForDialog) {
+        modifier.fillMaxWidth()
+    } else {
+        modifier
             .fillMaxWidth()
             .clip(shape)
             .background(Brush.verticalGradient(listOf(tone.copy(alpha = 0.16f), CardDark)))
             .border(1.dp, tone.copy(alpha = 0.34f), shape)
             .padding(16.dp)
-    ) {
+    }
+
+    Column(modifier = columnModifier) {
         // Optional full-detail entry point for hero cards (opens modal, not list-bottom append).
-        if (onOpenFullDetail != null) {
+        if (!compactForDialog && onOpenFullDetail != null) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -813,31 +978,31 @@ private fun EventDashboardContent(
                 )
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(Modifier.size(7.dp).background(tone, CircleShape))
-                Spacer(Modifier.width(6.dp))
-                Text(badgeLabel, color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+        if (!compactForDialog) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(Modifier.size(7.dp).background(tone, CircleShape))
+                    Spacer(Modifier.width(6.dp))
+                    Text(badgeLabel, color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                }
+                EventThemeMark(event.themeKey, tone, Modifier.size(40.dp))
             }
-            EventThemeMark(event.themeKey, tone, Modifier.size(40.dp))
-        }
-        Spacer(Modifier.height(10.dp))
-        Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
-        event.dateLabel(lang)?.let {
-            Spacer(Modifier.height(4.dp))
-            Text(it, color = TextTertiary, fontSize = 12.sp)
-        }
-        
-        val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
-        if (summary.isNotBlank()) {
-            Spacer(Modifier.height(8.dp))
-            Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
-        }
+            Spacer(Modifier.height(10.dp))
+            Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
+            event.dateLabel(lang)?.let {
+                Spacer(Modifier.height(4.dp))
+                Text(it, color = TextTertiary, fontSize = 12.sp)
+            }
 
-        val tiles = event.detailTileVisibility(lang)
+            val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
+            if (summary.isNotBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+            }
+        }
 
         if (event.pokemon.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
@@ -863,10 +1028,10 @@ private fun EventDashboardContent(
         if (tiles.showFeatured) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
-                title = stringResource(R.string.event_featured_pokemon),
-                badge = stringResource(R.string.event_group_featured_badge),
+                title = labels.featuredPokemon,
+                badge = labels.featuredBadge,
                 body = tiles.featuredBody,
-                action = stringResource(R.string.event_group_featured_action),
+                action = labels.featuredAction,
                 tone = tone,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
                 onOpen = onOpen,
@@ -877,10 +1042,10 @@ private fun EventDashboardContent(
         if (tiles.showRaids) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
-                title = stringResource(R.string.event_feature_raids),
-                badge = stringResource(R.string.event_group_raids_badge),
+                title = labels.raids,
+                badge = labels.raidsBadge,
                 body = tiles.raidsBody,
-                action = stringResource(R.string.event_feature_raids_action),
+                action = labels.raidsAction,
                 tone = CyanGlow,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey == "mewtwo" || it.spriteKey == "necrozma" }?.spriteKey,
                 onOpen = onOpen,
@@ -891,10 +1056,10 @@ private fun EventDashboardContent(
         if (tiles.showResearch) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
-                title = stringResource(R.string.event_research),
-                badge = stringResource(R.string.event_group_research_badge),
+                title = labels.research,
+                badge = labels.researchBadge,
                 body = tiles.researchBody,
-                action = stringResource(R.string.event_group_raids_action),
+                action = labels.raidsGroupAction,
                 tone = PurpleIV,
                 spriteKey = event.pokemon.getOrNull(1)?.spriteKey,
                 onOpen = onOpen,
@@ -905,10 +1070,10 @@ private fun EventDashboardContent(
         if (tiles.showCostumeBackground) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
-                title = stringResource(R.string.event_group_collection_title),
-                badge = stringResource(R.string.event_group_collection_badge),
+                title = labels.collectionTitle,
+                badge = labels.collectionBadge,
                 body = tiles.notesBody,
-                action = stringResource(R.string.event_group_collection_action),
+                action = labels.collectionAction,
                 tone = GoldCaution,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
                 onOpen = onOpen,
@@ -920,7 +1085,7 @@ private fun EventDashboardContent(
                 title = eventNotesTitle(lang),
                 badge = eventNotesBadge(lang),
                 body = tiles.notesBody,
-                action = stringResource(R.string.event_group_collection_action),
+                action = labels.collectionAction,
                 tone = GoldCaution,
                 spriteKey = null,
                 onOpen = onOpen,
@@ -936,10 +1101,10 @@ private fun EventDashboardContent(
                     tiles.notesBody.contains("enerji", ignoreCase = true)
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
-                title = stringResource(R.string.event_bonuses),
-                badge = stringResource(R.string.event_group_bonuses_badge),
+                title = labels.bonuses,
+                badge = labels.bonusesBadge,
                 body = tiles.bonusesBody,
-                action = stringResource(R.string.event_group_bonuses_action),
+                action = labels.bonusesAction,
                 tone = AmberWarning,
                 spriteKey = if (hasFusion) "link_energy" else null,
                 onOpen = onOpen,
@@ -950,10 +1115,10 @@ private fun EventDashboardContent(
         if (tiles.showPrep) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
-                title = stringResource(R.string.event_group_prep_title),
-                badge = stringResource(R.string.event_group_prep_badge),
+                title = labels.prepTitle,
+                badge = labels.prepBadge,
                 body = tiles.prepBody,
-                action = stringResource(R.string.event_group_prep_action),
+                action = labels.prepAction,
                 tone = TealPrimary,
                 spriteKey = "prep_list",
                 onOpen = onOpen,
@@ -1013,9 +1178,9 @@ private fun EventDashboardContent(
             }
         }
 
-        if (search.isNotBlank()) {
+        if (showSearch) {
             Spacer(Modifier.height(12.dp))
-            SectionLabel(stringResource(R.string.event_suggested_for_event), tone)
+            SectionLabel(labels.suggestedSearch, tone)
             Spacer(Modifier.height(5.dp))
             Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SlateBlack.copy(alpha = 0.6f))
@@ -1037,7 +1202,7 @@ private fun EventDashboardContent(
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                 ) {
-                    Text(stringResource(R.string.event_card_copy_search), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(labels.copySearch, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -1318,10 +1483,14 @@ private fun EventDetailsDialog(
     val closeLabel = stringResource(R.string.event_close)
     val localCtx = LocalContext.current
     val localConfig = LocalConfiguration.current
+    val dialogConfig = android.content.res.Configuration(localConfig).apply {
+        setLocale(Locale.forLanguageTag(lang))
+    }
+    val dialogContext = localCtx.createConfigurationContext(dialogConfig)
 
     androidx.compose.runtime.CompositionLocalProvider(
-        LocalContext provides localCtx,
-        LocalConfiguration provides localConfig
+        LocalContext provides dialogContext,
+        LocalConfiguration provides dialogConfig
     ) {
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -1354,7 +1523,7 @@ private fun EventDetailsDialog(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
-                        val summary = event.localizedSummary(lang)
+                        val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
                         if (summary.isNotBlank()) {
                             item {
                                 Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
@@ -1369,6 +1538,7 @@ private fun EventDetailsDialog(
                                 clipboard = clipboard,
                                 lang = lang,
                                 onOpen = { infoDialog = it },
+                                compactForDialog = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }

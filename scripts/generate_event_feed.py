@@ -251,7 +251,11 @@ def get_event_category(title, kind):
         return "REWARD_DROP"
         
     # 2. News / Promo
-    if any(w in title_lower for w in ["save the date", "save-the-date", "wallpapers", "diary", "promo", "store", "coupon", "code"]):
+    if any(w in title_lower for w in [
+        "save the date", "save-the-date", "wallpapers", "diary", "promo", "store",
+        "coupon", "code", "community celebrations", "community ambassador",
+        "know before you go"
+    ]):
         return "NEWS_PROMO"
 
     # 3. Announcement / Collab / Art / Birthday
@@ -291,25 +295,44 @@ def get_importance_tier(category):
 # Map alternate scraped event IDs to curated metadata keys.
 METADATA_ID_ALIASES = {
     "event-pokemon-go-fest-2026-global": "event-go-fest-global-2026",
-    "event-go-fest-2026-global-final-details": "event-go-fest-global-2026",
     "event-10th-anniversary-party": "event-10th-anniversary-party-2026",
 }
+
+CANONICAL_EVENT_ID_ALIASES = {
+    "event-go-fest-2026-global-final-details": "event-pokemon-go-fest-2026-global",
+}
+
+def canonical_event_id(event_id):
+    """Return a stable feed id for true duplicate source records."""
+    return CANONICAL_EVENT_ID_ALIASES.get(event_id, event_id)
+
+def prefer_event_record(existing, candidate):
+    """Prefer official source records when two source rows describe one canonical event."""
+    existing_official = "News" in existing.get("sourceName", "")
+    candidate_official = "News" in candidate.get("sourceName", "")
+    if candidate_official and not existing_official:
+        return candidate
+    if existing_official and not candidate_official:
+        if candidate.get("kind") != "GENERIC_EVENT":
+            existing["kind"] = candidate["kind"]
+        return existing
+    return existing
+
+def put_raw_event(raw_events, event):
+    event["id"] = canonical_event_id(event["id"])
+    existing = raw_events.get(event["id"])
+    raw_events[event["id"]] = prefer_event_record(existing, event) if existing else event
 
 def resolve_event_metadata(metadata, event_id, title=""):
     """Resolve enrichment metadata for an event id, including known aliases."""
     if not isinstance(metadata, dict):
         return {}
+    event_id = canonical_event_id(event_id)
     if event_id in metadata:
         return metadata[event_id]
     alias = METADATA_ID_ALIASES.get(event_id)
     if alias and alias in metadata:
         return metadata[alias]
-    # Soft match for GO Fest Global when ids drift across sources.
-    title_l = (title or "").lower()
-    if "go fest" in title_l and "global" in title_l:
-        for key, value in metadata.items():
-            if "go-fest" in key and "global" in key:
-                return value
     return {}
 
 def format_default_note(start, end, lang="en"):
@@ -409,7 +432,7 @@ def generate_feed(fixture_mode, output_path):
                         start_date, end_date, month, year = parse_date_range(ev["date"])
                     ev_id = get_event_id(ev["href"], title)
                     
-                    raw_events[ev_id] = {
+                    put_raw_event(raw_events, {
                         "id": ev_id,
                         "title": title,
                         "kind": "GENERIC_EVENT",
@@ -419,7 +442,7 @@ def generate_feed(fixture_mode, output_path):
                         "year": year,
                         "sourceUrl": ev["href"] if ev["href"].startswith("http") else "https://pokemongolive.com" + ev["href"],
                         "sourceName": "Pokémon GO Live News"
-                    }
+                    })
                 except Exception as ex:
                     print(f"Skipping event '{title}' due to date parse failure: {ex}")
                     
@@ -452,22 +475,17 @@ def generate_feed(fixture_mode, output_path):
                     elif "spotlight hour" in kind_str:
                         kind = "SPOTLIGHT_HOUR"
                         
-                    existing = raw_events.get(ev_id)
-                    if existing and existing.get("sourceName") == "Pokémon GO Live News":
-                        if kind != "GENERIC_EVENT":
-                            existing["kind"] = kind
-                    else:
-                        raw_events[ev_id] = {
-                            "id": ev_id,
-                            "title": title,
-                            "kind": kind,
-                            "startDate": start_date,
-                            "endDate": end_date,
-                            "month": month,
-                            "year": year,
-                            "sourceUrl": ev["href"] if ev["href"].startswith("http") else "https://leekduck.com" + ev["href"],
-                            "sourceName": "Leek Duck Events"
-                        }
+                    put_raw_event(raw_events, {
+                        "id": ev_id,
+                        "title": title,
+                        "kind": kind,
+                        "startDate": start_date,
+                        "endDate": end_date,
+                        "month": month,
+                        "year": year,
+                        "sourceUrl": ev["href"] if ev["href"].startswith("http") else "https://leekduck.com" + ev["href"],
+                        "sourceName": "Leek Duck Events"
+                    })
                 except Exception as ex:
                     print(f"Skipping Leek Duck event '{title}' due to date parse failure: {ex}")
 
@@ -495,8 +513,8 @@ def generate_feed(fixture_mode, output_path):
             
         event_entry = {
             "id": ev_id,
-            "title": ev["title"],
-            "titleTr": meta.get("titleTr", ev["title"]),
+            "title": meta.get("title", ev["title"]),
+            "titleTr": meta.get("titleTr"),
             "titleDe": meta.get("titleDe"),
             "titleEs": meta.get("titleEs"),
             "titleFr": meta.get("titleFr"),

@@ -283,7 +283,7 @@ class EventContextTest {
 
         val feed = EventFeedParser.parse(json).getOrThrow()
 
-        assertEquals("2026-07-09", feed.lastUpdated)
+        assertEquals("2026-07-10", feed.lastUpdated)
         assertTrue(feed.events.size >= 20)
         assertTrue(feed.events.none { it.isManual })
         feed.events.forEach { event ->
@@ -686,6 +686,66 @@ class EventFeedLoaderTest {
         importanceTier = tier,
         eventCategory = category
     )
+
+    @Test
+    fun `groupEvents collapses true canonical event duplicates only`() {
+        val today = "2026-07-10"
+        val goFest = makeEvent(
+            "event-pokemon-go-fest-2026-global",
+            status = EventStatus.UPCOMING,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            category = EventCategory.MAJOR_GAMEPLAY
+        )
+        val finalDetailsDuplicate = makeEvent(
+            "event-go-fest-2026-global-final-details",
+            status = EventStatus.UPCOMING,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            category = EventCategory.MAJOR_GAMEPLAY
+        )
+
+        val sections = groupEvents(listOf(goFest, finalDetailsDuplicate), today)
+
+        assertEquals(1, sections.allActive.count { it.canonicalEventKey() == "event-pokemon-go-fest-2026-global" })
+    }
+
+    @Test
+    fun `groupEvents keeps unrelated events with the same dates`() {
+        val today = "2026-07-10"
+        val first = makeEvent("first-event", status = EventStatus.UPCOMING, startDate = "2026-07-11", endDate = "2026-07-12", category = EventCategory.MAJOR_GAMEPLAY)
+        val second = makeEvent("second-event", status = EventStatus.UPCOMING, startDate = "2026-07-11", endDate = "2026-07-12", category = EventCategory.MAJOR_GAMEPLAY)
+
+        val sections = groupEvents(listOf(first, second), today)
+
+        assertEquals(2, sections.allActive.size)
+        assertTrue(sections.allActive.any { it.id == "first-event" })
+        assertTrue(sections.allActive.any { it.id == "second-event" })
+    }
+
+    @Test
+    fun `bundled feed has one GO Fest gameplay record and community celebration news stays out of upcoming gameplay`() {
+        val feed = EventFeedParser.parse(File("src/main/res/raw/event_context_fixture.json").readText()).getOrThrow()
+        val events = feed.events
+        val goFestGameplay = events.filter {
+            it.canonicalEventKey() == "event-pokemon-go-fest-2026-global" &&
+                it.determineCategory() == EventCategory.MAJOR_GAMEPLAY
+        }
+        val communityCelebrations = events.filter { it.id.contains("community-celebrations") }
+        val sections = groupEvents(events, todayIso = "2026-07-10")
+        val goFestDisplayCount = sections.allActive.count { it.canonicalEventKey() == "event-pokemon-go-fest-2026-global" }
+
+        assertEquals(1, goFestGameplay.size)
+        assertTrue(communityCelebrations.isNotEmpty())
+        assertTrue(communityCelebrations.all { it.determineCategory() == EventCategory.NEWS_PROMO })
+        assertFalse(sections.importantUpcoming.any { it.id.contains("community-celebrations") })
+        assertEquals(1, goFestDisplayCount)
+    }
+
+    @Test
+    fun `generic Turkish fallback facts hide even with uppercase dotted I`() {
+        assertTrue(isGenericEventFact("İşlem yapmadan önce oyun içi detayları kontrol edin."))
+    }
 
     @Test
     fun `featuredScore uses heroScore internally`() {
