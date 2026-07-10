@@ -231,6 +231,7 @@ fun EventContextScreen(
                                     sourceLabelRes = sourceLabelRes,
                                     lastChecked = lastChecked,
                                     lang = lang,
+                                    onOpenDetail = { clickedEventDetail = sections.featured },
                                     modifier = Modifier.pqStaggeredItem(visible, 3)
                                 )
                             }
@@ -498,6 +499,7 @@ private fun EventMainCard(
     sourceLabelRes: Int,
     lastChecked: String?,
     lang: String,
+    onOpenDetail: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val clipboard = LocalClipboardManager.current
@@ -511,6 +513,7 @@ private fun EventMainCard(
         clipboard = clipboard,
         lang = lang,
         onOpen = { dialog = it },
+        onOpenFullDetail = onOpenDetail,
         modifier = modifier
     )
     dialog?.let { content ->
@@ -588,6 +591,24 @@ private fun EventPickerPanel(
             }
         }
     }
+}
+
+private fun eventNotesTitle(lang: String): String = when (lang) {
+    "tr" -> "Etkinlik notları"
+    "de" -> "Event-Notizen"
+    "es" -> "Notas del evento"
+    "fr" -> "Notes d’événement"
+    "it" -> "Note evento"
+    else -> "Event notes"
+}
+
+private fun eventNotesBadge(lang: String): String = when (lang) {
+    "tr" -> "Not"
+    "de" -> "Hinweis"
+    "es" -> "Nota"
+    "fr" -> "Note"
+    "it" -> "Nota"
+    else -> "Note"
 }
 
 /** Section title localization helper — no XML resources needed. */
@@ -749,6 +770,7 @@ private fun EventDashboardContent(
     clipboard: androidx.compose.ui.platform.ClipboardManager,
     lang: String,
     onOpen: (EventDialogContent) -> Unit,
+    onOpenFullDetail: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(20.dp)
@@ -766,6 +788,31 @@ private fun EventDashboardContent(
             .border(1.dp, tone.copy(alpha = 0.34f), shape)
             .padding(16.dp)
     ) {
+        // Optional full-detail entry point for hero cards (opens modal, not list-bottom append).
+        if (onOpenFullDetail != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { onOpenFullDetail() }
+                    .padding(bottom = 4.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = when (lang) {
+                        "tr" -> "Detayı aç"
+                        "de" -> "Details öffnen"
+                        "es" -> "Abrir detalles"
+                        "fr" -> "Ouvrir les détails"
+                        "it" -> "Apri dettagli"
+                        else -> "Open details"
+                    },
+                    color = tone,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(
                 Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp),
@@ -784,11 +831,13 @@ private fun EventDashboardContent(
             Text(it, color = TextTertiary, fontSize = 12.sp)
         }
         
-        val summary = event.localizedSummary(lang)
+        val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
         if (summary.isNotBlank()) {
             Spacer(Modifier.height(8.dp))
             Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
         }
+
+        val tiles = event.detailTileVisibility(lang)
 
         if (event.pokemon.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
@@ -811,14 +860,12 @@ private fun EventDashboardContent(
             )
         }
 
-        val featuredText = event.localizedFeatured(lang)
-        val hasFeatured = featuredText.isNotBlank() || event.pokemon.isNotEmpty()
-        if (hasFeatured) {
+        if (tiles.showFeatured) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
                 title = stringResource(R.string.event_featured_pokemon),
                 badge = stringResource(R.string.event_group_featured_badge),
-                body = featuredText.ifBlank { event.pokemon.joinToString { it.name } },
+                body = tiles.featuredBody,
                 action = stringResource(R.string.event_group_featured_action),
                 tone = tone,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
@@ -827,13 +874,12 @@ private fun EventDashboardContent(
             )
         }
 
-        val raidsText = event.localizedRaids(lang)
-        if (raidsText.isNotBlank()) {
+        if (tiles.showRaids) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
                 title = stringResource(R.string.event_feature_raids),
                 badge = stringResource(R.string.event_group_raids_badge),
-                body = raidsText,
+                body = tiles.raidsBody,
                 action = stringResource(R.string.event_feature_raids_action),
                 tone = CyanGlow,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey == "mewtwo" || it.spriteKey == "necrozma" }?.spriteKey,
@@ -842,13 +888,12 @@ private fun EventDashboardContent(
             )
         }
 
-        val researchText = event.localizedResearch(lang)
-        if (researchText.isNotBlank()) {
+        if (tiles.showResearch) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
                 title = stringResource(R.string.event_research),
                 badge = stringResource(R.string.event_group_research_badge),
-                body = researchText,
+                body = tiles.researchBody,
                 action = stringResource(R.string.event_group_raids_action),
                 tone = PurpleIV,
                 spriteKey = event.pokemon.getOrNull(1)?.spriteKey,
@@ -857,33 +902,43 @@ private fun EventDashboardContent(
             )
         }
 
-        val notesText = event.localizedNotes(lang)
-        if (notesText.isNotBlank()) {
+        if (tiles.showCostumeBackground) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
                 title = stringResource(R.string.event_group_collection_title),
                 badge = stringResource(R.string.event_group_collection_badge),
-                body = notesText,
+                body = tiles.notesBody,
                 action = stringResource(R.string.event_group_collection_action),
                 tone = GoldCaution,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
                 onOpen = onOpen,
                 cardKey = null
             )
+        } else if (tiles.showEventNotes) {
+            Spacer(Modifier.height(10.dp))
+            EventGroupCard(
+                title = eventNotesTitle(lang),
+                badge = eventNotesBadge(lang),
+                body = tiles.notesBody,
+                action = stringResource(R.string.event_group_collection_action),
+                tone = GoldCaution,
+                spriteKey = null,
+                onOpen = onOpen,
+                cardKey = null
+            )
         }
 
-        val bonusesText = event.localizedBonuses(lang)
-        if (bonusesText.isNotBlank()) {
+        if (tiles.showBonuses) {
             val hasFusion = event.id.contains("go-fest") || event.id.contains("legends") ||
-                    bonusesText.contains("energy", ignoreCase = true) ||
-                    event.localizedNotes(lang).contains("energy", ignoreCase = true) ||
-                    bonusesText.contains("enerji", ignoreCase = true) ||
-                    event.localizedNotes(lang).contains("enerji", ignoreCase = true)
+                    tiles.bonusesBody.contains("energy", ignoreCase = true) ||
+                    tiles.notesBody.contains("energy", ignoreCase = true) ||
+                    tiles.bonusesBody.contains("enerji", ignoreCase = true) ||
+                    tiles.notesBody.contains("enerji", ignoreCase = true)
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
                 title = stringResource(R.string.event_bonuses),
                 badge = stringResource(R.string.event_group_bonuses_badge),
-                body = bonusesText,
+                body = tiles.bonusesBody,
                 action = stringResource(R.string.event_group_bonuses_action),
                 tone = AmberWarning,
                 spriteKey = if (hasFusion) "link_energy" else null,
@@ -892,13 +947,12 @@ private fun EventDashboardContent(
             )
         }
 
-        val prepText = event.localizedPrep(lang)
-        if (prepText.isNotBlank()) {
+        if (tiles.showPrep) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
                 title = stringResource(R.string.event_group_prep_title),
                 badge = stringResource(R.string.event_group_prep_badge),
-                body = prepText,
+                body = tiles.prepBody,
                 action = stringResource(R.string.event_group_prep_action),
                 tone = TealPrimary,
                 spriteKey = "prep_list",
@@ -907,8 +961,7 @@ private fun EventDashboardContent(
             )
         }
 
-        val hasAnyDetails = hasFeatured || raidsText.isNotBlank() || researchText.isNotBlank() || notesText.isNotBlank() || bonusesText.isNotBlank() || prepText.isNotBlank()
-        if (!hasAnyDetails) {
+        if (tiles.showHonestFallback) {
             Spacer(Modifier.height(10.dp))
             Row(
                 modifier = Modifier
@@ -919,10 +972,13 @@ private fun EventDashboardContent(
                     .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val fallbackText = if (lang == "tr") {
-                    "Detay sınırlı; plan yapmadan önce kaynağı kontrol et."
-                } else {
-                    "Details are limited; check the source before planning."
+                val fallbackText = when (lang) {
+                    "tr" -> "Detay sınırlı; plan yapmadan önce kaynağı kontrol et."
+                    "de" -> "Details begrenzt; vor der Planung Quelle prüfen."
+                    "es" -> "Detalles limitados; comprueba la fuente antes de planificar."
+                    "fr" -> "Détails limités ; vérifie la source avant de planifier."
+                    "it" -> "Dettagli limitati; controlla la fonte prima di pianificare."
+                    else -> "Details are limited; check the source before planning."
                 }
                 Text(
                     text = fallbackText,
@@ -931,6 +987,29 @@ private fun EventDashboardContent(
                     lineHeight = 17.sp,
                     fontWeight = FontWeight.Medium
                 )
+            }
+        }
+
+        // Source attribution when available from the static feed.
+        val sourceName = event.sourceName?.takeIf { it.isNotBlank() }
+        val sourceUrl = event.sourceUrl?.takeIf { it.isNotBlank() }
+        if (sourceName != null || sourceUrl != null) {
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = when (lang) {
+                    "tr" -> "Kaynak: ${sourceName ?: sourceUrl}"
+                    "de" -> "Quelle: ${sourceName ?: sourceUrl}"
+                    "es" -> "Fuente: ${sourceName ?: sourceUrl}"
+                    "fr" -> "Source : ${sourceName ?: sourceUrl}"
+                    "it" -> "Fonte: ${sourceName ?: sourceUrl}"
+                    else -> "Source: ${sourceName ?: sourceUrl}"
+                },
+                color = TextTertiary,
+                fontSize = 11.sp,
+                lineHeight = 14.sp
+            )
+            sourceUrl?.let {
+                Text(it, color = TextTertiary, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
 

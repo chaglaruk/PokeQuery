@@ -2,6 +2,9 @@
   "event-10th-anniversary-party-2026": {
     "titleTr": "10. Yıl Dönümü Etkinliği",
     "themeKey": "generic_event",
+    "startDate": "2026-07-04",
+    "endDate": "2026-07-06",
+    "eventCategory": "LIMITED_GAMEPLAY",
     "note": "Official event window: July 4, 10:00 a.m. to July 6, 2026, 8:00 p.m. local time.",
     "noteTr": "Resmi etkinlik aralığı: 4 Temmuz 10.00 ile 6 Temmuz 2026 20.00 yerel saat.",
     "featuredPokemon": "Gimmighoul with a 10th anniversary coin, cake-hat Pikachu, party-hat Eevee, and party-hat Wurmple.",
@@ -73,6 +76,9 @@
   "event-road-of-legends-2026": {
     "titleTr": "Efsaneler Yolu",
     "themeKey": "raid",
+    "startDate": "2026-07-06",
+    "endDate": "2026-07-10",
+    "eventCategory": "LIMITED_GAMEPLAY",
     "note": "Official event window: July 6, 12:01 a.m. to July 10, 2026, 11:59 p.m. local time.",
     "noteTr": "Resmi etkinlik aralığı: 6 Temmuz 00.01 ile 10 Temmuz 2026 23.59 yerel saat.",
     "featuredPokemon": "Team-hat Pikachu encounters, Legendary Raid candy targets, Link Charges, Incubators, and raid bonuses.",
@@ -144,6 +150,9 @@
   "event-go-fest-global-2026": {
     "titleTr": "GO Fest 2026: Küresel",
     "themeKey": "raid",
+    "startDate": "2026-07-11",
+    "endDate": "2026-07-12",
+    "eventCategory": "MAJOR_GAMEPLAY",
     "note": "Official event window: July 11–12, 2026, 10:00 a.m. to 7:00 p.m. local time.",
     "noteTr": "Resmi etkinlik aralığı: 11–12 Temmuz 2026, 10.00–19.00 yerel saat.",
     "featuredPokemon": "Global GO Fest featuring Mewtwo and Zeraora, with raid, research, shiny, background, and storage prep checks.",

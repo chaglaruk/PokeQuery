@@ -8,7 +8,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 /**
  * v0.6.8 Ãƒâ€Ãƒâ€¡ÃƒÂ¶ Event Guide public-feed and fallback tests.
@@ -281,8 +283,8 @@ class EventContextTest {
 
         val feed = EventFeedParser.parse(json).getOrThrow()
 
-        assertEquals("2026-07-04", feed.lastUpdated)
-        assertTrue(feed.events.size >= 3)
+        assertEquals("2026-07-09", feed.lastUpdated)
+        assertTrue(feed.events.size >= 20)
         assertTrue(feed.events.none { it.isManual })
         feed.events.forEach { event ->
             assertTrue(event.titleText.orEmpty().isNotBlank())
@@ -300,19 +302,24 @@ class EventContextTest {
         val json = File("src/main/res/raw/event_context_fixture.json").readText()
 
         val feed = EventFeedParser.parse(json).getOrThrow()
-        val goFest = feed.events.first { it.id.contains("go-fest", ignoreCase = true) }
+        val goFest = feed.events.first { it.id == "event-pokemon-go-fest-2026-global" }
 
         assertTrue(goFest.pokemon.size >= 4)
         assertTrue(goFest.pokemon.any { it.name == "Mewtwo" && it.source.contains("raid", ignoreCase = true) })
-        assertTrue(feed.events.first { it.id.contains("anniversary") }.pokemon.any { it.name == "Gimmighoul" && it.spriteKey == "gimmighoul" })
+        assertTrue(feed.events.any { event ->
+            event.id.contains("anniversary") &&
+                event.pokemon.any { it.name == "Gimmighoul" && it.spriteKey == "gimmighoul" }
+        })
         assertTrue(goFest.pokemon.any { it.name == "Zeraora" && it.spriteKey == "zeraora" })
         assertTrue(goFest.pokemon.any { it.name == "Raid and trade candidates" && it.nameTr?.isNotBlank() == true })
         assertTrue(goFest.pokemon.any { it.shinyAvailable })
         assertTrue(goFest.pokemon.any { it.spriteKey.orEmpty().isNotBlank() })
         assertTrue(goFest.pokemon.all { it.sourceTr.orEmpty().isNotBlank() && it.noteTr.orEmpty().isNotBlank() })
         assertTrue(feed.events.none { it.suggestedSearch.orEmpty().contains("|") })
-        assertTrue(feed.events.none { it.titleText.orEmpty().contains("Spotlight Hour", ignoreCase = true) })
-        assertTrue(feed.events.first { it.id.contains("anniversary") }.pokemon.any { it.badges.orEmpty().contains("Costume") })
+        assertTrue(feed.events.any { event ->
+            event.id.contains("anniversary") &&
+                event.pokemon.any { it.badges.orEmpty().contains("Costume") }
+        })
     }
 
     @Test
@@ -845,7 +852,7 @@ class EventFeedLoaderTest {
         val today = "2026-07-09"
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
         
-        // 1. Current event ending in 2 days and 5 hours
+        // 1. Current event ending in 2 days and ~5 hours
         val nowMs = sdf.parse("2026-07-09 18:59:59").time
         val currentEvent = EventContext(
             id = "current-ev",
@@ -858,12 +865,21 @@ class EventFeedLoaderTest {
         val enRemaining = currentEvent.remainingTimeLabel(todayIso = today, nowMillis = nowMs, lang = "en")
         
         assertTrue(trRemaining.contains("gün") && trRemaining.contains("saat") && trRemaining.contains("kaldı"))
-        assertFalse(trRemaining.contains("D") || trRemaining.contains("H"))
+        assertFalse("TR countdown must not use D", Regex("""\bD\b""").containsMatchIn(trRemaining))
+        assertFalse("TR countdown must not use H", Regex("""\bH\b""").containsMatchIn(trRemaining))
+        assertFalse(trRemaining.contains("1D") || trRemaining.contains("1H") || trRemaining.contains("D kaldı") || trRemaining.contains("H sonra"))
         assertTrue(enRemaining.contains("d") && enRemaining.contains("h") && enRemaining.contains("left"))
 
         // 2. Current event ending today
+        val endingToday = EventContext(
+            id = "ends-today",
+            titleText = "Ends Today",
+            contextType = EventContextType.GENERIC_EVENT,
+            startDate = "2026-07-09",
+            endDate = "2026-07-09"
+        )
         val nowMsToday = sdf.parse("2026-07-09 20:00:00").time
-        val trEndingToday = currentEvent.remainingTimeLabel(todayIso = today, nowMillis = nowMsToday, lang = "tr")
+        val trEndingToday = endingToday.remainingTimeLabel(todayIso = today, nowMillis = nowMsToday, lang = "tr")
         assertEquals("Bugün bitiyor", trEndingToday)
 
         // 3. Upcoming event starting in 1 day (tomorrow)
@@ -894,6 +910,11 @@ class EventFeedLoaderTest {
         
         assertEquals("11–12 Temmuz 2026", trLabel)
         assertEquals("July 11–12, 2026", enLabel)
+        assertEquals("11.–12. Juli 2026", event.dateLabel("de"))
+        assertEquals("11–12 de julio de 2026", event.dateLabel("es"))
+        assertEquals("11–12 juillet 2026", event.dateLabel("fr"))
+        assertEquals("11–12 luglio 2026", event.dateLabel("it"))
+        assertFalse("TR dates must not use ISO year-month-day", Regex("""20\d{2}-\d{2}-\d{2}""").containsMatchIn(trLabel.orEmpty()))
         
         val singleEvent = EventContext(
             id = "test-single",
@@ -904,5 +925,184 @@ class EventFeedLoaderTest {
         )
         assertEquals("11 Temmuz 2026", singleEvent.dateLabel("tr"))
         assertEquals("July 11, 2026", singleEvent.dateLabel("en"))
+        assertEquals("11. Juli 2026", singleEvent.dateLabel("de"))
+        assertEquals("11 de julio de 2026", singleEvent.dateLabel("es"))
+        assertEquals("11 juillet 2026", singleEvent.dateLabel("fr"))
+        assertEquals("11 luglio 2026", singleEvent.dateLabel("it"))
+    }
+
+    @Test
+    fun `compact card date text is localized not ISO for Turkish`() {
+        val event = EventContext(
+            id = "compact-date",
+            titleText = "Raid Hour",
+            contextType = EventContextType.GENERIC_EVENT,
+            startDate = "2026-07-14",
+            endDate = "2026-07-14",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+        val tr = compactEventDateText(event, "tr")
+        assertEquals("14 Temmuz 2026", tr)
+        assertFalse(Regex("""20\d{2}-\d{2}-\d{2}""").containsMatchIn(tr))
+        assertFalse(tr.contains("2026-07-14 - 2026-07-14"))
+    }
+
+    @Test
+    fun `empty generic facts hide placeholder tiles and show honest fallback`() {
+        val emptyFacts = EventContext(
+            id = "generic-only",
+            titleText = "Generic Event",
+            contextType = EventContextType.GENERIC_EVENT,
+            summaryText = "Verify details in-game before acting.",
+            summaryTextTr = "İşlem yapmadan önce oyun içi detayları kontrol edin.",
+            prepText = "Prepare for event catches and inventory limits.",
+            prepTextTr = "Etkinlik yakalamaları ve envanter limitleri için hazırlık yapın.",
+            eventNotesText = "Review recent catches before transfer.",
+            eventNotesTextTr = "Transferden önce son yakalamaları kontrol edin.",
+            noteText = "N",
+            suggestedSearch = "age0"
+        )
+        val tr = emptyFacts.detailTileVisibility("tr")
+        assertFalse(tr.showFeatured)
+        assertFalse(tr.showResearch)
+        assertFalse(tr.showRaids)
+        assertFalse(tr.showBonuses)
+        assertFalse(tr.showPrep)
+        assertFalse(tr.showCostumeBackground)
+        assertFalse(tr.showEventNotes)
+        assertTrue(tr.showHonestFallback)
+    }
+
+    @Test
+    fun `real facts render tiles and costume notes use costume tile`() {
+        val rich = EventContext(
+            id = "event-go-fest-rich",
+            titleText = "GO Fest",
+            contextType = EventContextType.GENERIC_EVENT,
+            featuredPokemon = "Mewtwo and Zeraora",
+            featuredPokemonTr = "Mewtwo ve Zeraora",
+            researchText = "Special Research leads to Zeraora.",
+            researchTextTr = "Özel Araştırma Zeraora'ya götürür.",
+            raidsText = "Review Mewtwo raid catches.",
+            raidsTextTr = "Mewtwo akın yakalamalarını incele.",
+            bonusesText = "Extra shiny chance",
+            bonusesTextTr = "Ek shiny şansı",
+            prepText = "Open storage before the event.",
+            prepTextTr = "Etkinlikten önce depo aç.",
+            eventNotesText = "Keep costume and special-background catches.",
+            eventNotesTextTr = "Kostümlü ve özel arka plan yakalamalarını sakla.",
+            noteText = "N",
+            summaryText = "GO Fest creates many valuable catches.",
+            summaryTextTr = "GO Fest çok değerli yakalama oluşturur.",
+            suggestedSearch = "age0"
+        )
+        val tiles = rich.detailTileVisibility("tr")
+        assertTrue(tiles.showFeatured)
+        assertTrue(tiles.showResearch)
+        assertTrue(tiles.showRaids)
+        assertTrue(tiles.showBonuses)
+        assertTrue(tiles.showPrep)
+        assertTrue(tiles.showCostumeBackground)
+        assertFalse(tiles.showEventNotes)
+        assertFalse(tiles.showHonestFallback)
+    }
+
+    @Test
+    fun `current limited gameplay like Road of Legends is not hidden`() {
+        val road = EventContext(
+            id = "event-road-of-legends-2026",
+            titleText = "The Road of Legends",
+            titleTextTr = "Efsaneler Yolu",
+            contextType = EventContextType.GENERIC_EVENT,
+            status = EventStatus.CURRENT,
+            startDate = "2026-07-06",
+            endDate = "2026-07-10",
+            eventCategory = EventCategory.LIMITED_GAMEPLAY,
+            noteText = "N",
+            summaryText = "GO Fest prep week",
+            prepText = "Review raid catches",
+            suggestedSearch = "age0",
+            eventNotesText = "Protect raid catches"
+        )
+        val sections = groupEvents(listOf(road), "2026-07-09")
+        assertNotNull(sections.featured)
+        assertEquals("event-road-of-legends-2026", sections.featured?.id)
+        assertTrue(sections.allActive.any { it.id == "event-road-of-legends-2026" })
+    }
+
+    @Test
+    fun `detail modal state path is opened from compact card selection`() {
+        // Compact cards set a selected EventContext; non-null means a visible modal/dialog path.
+        var clickedEventDetail: EventContext? = null
+        val rotation = EventContext(
+            id = "event-raidhour",
+            titleText = "Raid Hour",
+            contextType = EventContextType.GENERIC_EVENT,
+            eventCategory = EventCategory.ROUTINE_ROTATION,
+            startDate = "2026-07-15",
+            endDate = "2026-07-15",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+        val news = EventContext(
+            id = "event-twitch",
+            titleText = "Twitch Drops",
+            contextType = EventContextType.GENERIC_EVENT,
+            eventCategory = EventCategory.REWARD_DROP,
+            startDate = "2026-07-09",
+            endDate = "2026-07-12",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+        val gameplay = EventContext(
+            id = "event-go-fest",
+            titleText = "GO Fest",
+            contextType = EventContextType.GENERIC_EVENT,
+            eventCategory = EventCategory.MAJOR_GAMEPLAY,
+            startDate = "2026-07-11",
+            endDate = "2026-07-12",
+            noteText = "N",
+            summaryText = "S",
+            prepText = "P",
+            suggestedSearch = "age0",
+            eventNotesText = "N"
+        )
+        // Simulate compact-card onClick for each category.
+        listOf(rotation, news, gameplay).forEach { event ->
+            clickedEventDetail = event
+            assertNotNull(clickedEventDetail)
+            assertEquals(event.id, clickedEventDetail?.id)
+            assertTrue(clickedEventDetail!!.dateLabel("tr").orEmpty().isNotBlank())
+            assertFalse(Regex("""20\d{2}-\d{2}-\d{2}""").containsMatchIn(clickedEventDetail!!.dateLabel("tr").orEmpty()))
+        }
+    }
+
+    @Test
+    fun `production feed is not a tiny fixture feed`() {
+        val production = File("docs/event-feed/pokequery-events.json")
+        if (!production.exists()) {
+            // Unit test cwd may be app/; try repo-relative path.
+            val alt = File("../docs/event-feed/pokequery-events.json")
+            assertTrue("production feed must exist for size check", alt.exists() || production.exists())
+            if (alt.exists()) {
+                val feed = EventFeedParser.parse(alt.readText()).getOrThrow()
+                assertTrue("production feed must be live-sized, not 6-event fixture", feed.events.size >= 20)
+                assertTrue(feed.events.none { it.suggestedSearch.orEmpty().contains("|") })
+            }
+            return
+        }
+        val feed = EventFeedParser.parse(production.readText()).getOrThrow()
+        assertTrue("production feed must be live-sized, not 6-event fixture", feed.events.size >= 20)
+        assertTrue(feed.events.none { it.suggestedSearch.orEmpty().contains("|") })
     }
 }

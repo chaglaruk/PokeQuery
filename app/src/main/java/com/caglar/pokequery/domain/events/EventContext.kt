@@ -82,7 +82,10 @@ data class EventContext(
     val themeKey: String = "generic_event",
     val isManual: Boolean = true,
     val importanceTier: String = "STANDARD",
-    val eventCategory: String? = null
+    val eventCategory: String? = null,
+    val sourceName: String? = null,
+    val sourceUrl: String? = null,
+    val sourceNotes: String? = null
 )
 
 data class EventPokemonEntry(
@@ -320,6 +323,100 @@ fun EventContext.localizedNotes(lang: String = Locale.getDefault().language): St
 fun EventContext.localizedRaids(lang: String = Locale.getDefault().language): String =
     localized(raidsText, raidsTextTr, raidsTextDe, raidsTextEs, raidsTextFr, raidsTextIt, lang)
 
+/**
+ * Generator fallback strings that are not real event facts.
+ * UI must hide fact tiles that only contain these placeholders.
+ */
+private val genericEventFactBodies = setOf(
+    "verify details in-game before acting.",
+    "prepare for event catches and inventory limits.",
+    "review recent catches before transfer.",
+    "işlem yapmadan önce oyun içi detayları kontrol edin.",
+    "etkinlik yakalamaları ve envanter limitleri için hazırlık yapın.",
+    "transferden önce son yakalamaları kontrol edin."
+)
+
+/** True when text is blank or a known generator placeholder. */
+fun isGenericEventFact(text: String?): Boolean {
+    if (text.isNullOrBlank()) return true
+    return text.trim().lowercase(Locale.US) in genericEventFactBodies
+}
+
+/** Useful non-placeholder fact text, or null. */
+fun usefulEventFact(text: String?): String? =
+    text?.takeUnless { isGenericEventFact(it) }
+
+private fun looksLikeCostumeBackground(text: String): Boolean {
+    val lower = text.lowercase(Locale.US)
+    return listOf(
+        "costume", "kostüm", "kostumlu", "background", "arka plan",
+        "special-background", "özel arka", "special background"
+    ).any { it in lower }
+}
+
+/**
+ * Pure visibility model for event detail tiles.
+ * Empty/generic placeholders never produce a visible tile.
+ */
+data class EventDetailTileVisibility(
+    val showFeatured: Boolean,
+    val showResearch: Boolean,
+    val showRaids: Boolean,
+    val showBonuses: Boolean,
+    val showPrep: Boolean,
+    val showCostumeBackground: Boolean,
+    val showEventNotes: Boolean,
+    val showHonestFallback: Boolean,
+    val featuredBody: String,
+    val researchBody: String,
+    val raidsBody: String,
+    val bonusesBody: String,
+    val prepBody: String,
+    val notesBody: String
+)
+
+fun EventContext.detailTileVisibility(lang: String = Locale.getDefault().language): EventDetailTileVisibility {
+    val featuredBody = usefulEventFact(localizedFeatured(lang)).orEmpty()
+    val researchBody = usefulEventFact(localizedResearch(lang)).orEmpty()
+    val raidsBody = usefulEventFact(localizedRaids(lang)).orEmpty()
+    val bonusesBody = usefulEventFact(localizedBonuses(lang)).orEmpty()
+    val prepBody = usefulEventFact(localizedPrep(lang)).orEmpty()
+    val notesBody = usefulEventFact(localizedNotes(lang)).orEmpty()
+    val hasPokemon = pokemon.isNotEmpty()
+
+    val showFeatured = featuredBody.isNotBlank() || hasPokemon
+    val showResearch = researchBody.isNotBlank()
+    val showRaids = raidsBody.isNotBlank()
+    val showBonuses = bonusesBody.isNotBlank()
+    val showPrep = prepBody.isNotBlank()
+    val showCostumeBackground = notesBody.isNotBlank() && looksLikeCostumeBackground(notesBody)
+    // General notes only when useful and not already shown as costume/background.
+    val showEventNotes = notesBody.isNotBlank() && !showCostumeBackground
+    val hasAny = showFeatured || showResearch || showRaids || showBonuses || showPrep ||
+        showCostumeBackground || showEventNotes
+
+    return EventDetailTileVisibility(
+        showFeatured = showFeatured,
+        showResearch = showResearch,
+        showRaids = showRaids,
+        showBonuses = showBonuses,
+        showPrep = showPrep,
+        showCostumeBackground = showCostumeBackground,
+        showEventNotes = showEventNotes,
+        showHonestFallback = !hasAny,
+        featuredBody = if (featuredBody.isNotBlank()) featuredBody else pokemon.joinToString { it.name },
+        researchBody = researchBody,
+        raidsBody = raidsBody,
+        bonusesBody = bonusesBody,
+        prepBody = prepBody,
+        notesBody = notesBody
+    )
+}
+
+/** Pure helper used by tests to assert compact-card date formatting. */
+fun compactEventDateText(event: EventContext, lang: String): String =
+    event.dateLabel(lang).orEmpty()
+
 fun EventPokemonEntry.localizedName(lang: String = Locale.getDefault().language): String =
     localized(name, nameTr, nameDe, nameEs, nameFr, nameIt, lang)
 
@@ -336,60 +433,59 @@ fun EventContext.dateLabel(lang: String = Locale.getDefault().language): String?
     val start = startDate?.takeIf { it.isNotBlank() }
     val end = endDate?.takeIf { it.isNotBlank() }
     if (start == null && end == null) return null
-    
+
     val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     val parsedStart = start.let { runCatching { sdfInput.parse(it) }.getOrNull() }
     val parsedEnd = end?.let { runCatching { sdfInput.parse(it) }.getOrNull() }
-    
+
     val locale = Locale(lang)
-    
-    if (parsedStart != null && (parsedEnd == null || parsedEnd == parsedStart)) {
-        val format = if (lang == "tr") {
-            SimpleDateFormat("d MMMM yyyy", locale)
-        } else {
-            SimpleDateFormat("MMMM d, yyyy", locale)
-        }
-        return format.format(parsedStart)
+
+    fun day(date: Date) = SimpleDateFormat("d", locale).format(date)
+    fun month(date: Date) = SimpleDateFormat("MMMM", locale).format(date)
+    fun year(date: Date) = SimpleDateFormat("yyyy", locale).format(date)
+    fun single(date: Date): String = when (lang) {
+        "en" -> "${month(date)} ${day(date)}, ${year(date)}"
+        "de" -> "${day(date)}. ${month(date)} ${year(date)}"
+        "es" -> "${day(date)} de ${month(date)} de ${year(date)}"
+        else -> "${day(date)} ${month(date)} ${year(date)}"
     }
-    
+    fun partial(date: Date): String = when (lang) {
+        "en" -> "${month(date)} ${day(date)}"
+        "de" -> "${day(date)}. ${month(date)}"
+        "es" -> "${day(date)} de ${month(date)}"
+        else -> "${day(date)} ${month(date)}"
+    }
+
+    if (parsedStart != null && (parsedEnd == null || parsedEnd == parsedStart)) {
+        return single(parsedStart)
+    }
+
     if (parsedStart != null && parsedEnd != null) {
         val startCal = java.util.Calendar.getInstance().apply { time = parsedStart }
         val endCal = java.util.Calendar.getInstance().apply { time = parsedEnd }
-        
+
         val sameMonth = startCal.get(java.util.Calendar.MONTH) == endCal.get(java.util.Calendar.MONTH)
         val sameYear = startCal.get(java.util.Calendar.YEAR) == endCal.get(java.util.Calendar.YEAR)
-        
+
         return if (sameYear) {
             if (sameMonth) {
-                if (lang == "tr") {
-                    val monthNameFormatter = SimpleDateFormat("MMMM yyyy", locale)
-                    "${startCal.get(java.util.Calendar.DAY_OF_MONTH)}–${endCal.get(java.util.Calendar.DAY_OF_MONTH)} ${monthNameFormatter.format(parsedStart)}"
-                } else {
-                    val monthFormatter = SimpleDateFormat("MMMM", locale)
-                    val yearFormatter = SimpleDateFormat("yyyy", locale)
-                    "${monthFormatter.format(parsedStart)} ${startCal.get(java.util.Calendar.DAY_OF_MONTH)}–${endCal.get(java.util.Calendar.DAY_OF_MONTH)}, ${yearFormatter.format(parsedStart)}"
+                when (lang) {
+                    "en" -> "${month(parsedStart)} ${day(parsedStart)}–${day(parsedEnd)}, ${year(parsedStart)}"
+                    "de" -> "${day(parsedStart)}.–${day(parsedEnd)}. ${month(parsedStart)} ${year(parsedStart)}"
+                    "es" -> "${day(parsedStart)}–${day(parsedEnd)} de ${month(parsedStart)} de ${year(parsedStart)}"
+                    else -> "${day(parsedStart)}–${day(parsedEnd)} ${month(parsedStart)} ${year(parsedStart)}"
                 }
             } else {
-                if (lang == "tr") {
-                    val startFormatter = SimpleDateFormat("d MMMM", locale)
-                    val endFormatter = SimpleDateFormat("d MMMM yyyy", locale)
-                    "${startFormatter.format(parsedStart)} – ${endFormatter.format(parsedEnd)}"
-                } else {
-                    val startFormatter = SimpleDateFormat("MMMM d", locale)
-                    val endFormatter = SimpleDateFormat("MMMM d, yyyy", locale)
-                    "${startFormatter.format(parsedStart)} – ${endFormatter.format(parsedEnd)}"
+                when (lang) {
+                    "en" -> "${partial(parsedStart)} – ${single(parsedEnd)}"
+                    else -> "${partial(parsedStart)} – ${single(parsedEnd)}"
                 }
             }
         } else {
-            val formatter = if (lang == "tr") {
-                SimpleDateFormat("d MMMM yyyy", locale)
-            } else {
-                SimpleDateFormat("MMMM d, yyyy", locale)
-            }
-            "${formatter.format(parsedStart)} – ${formatter.format(parsedEnd)}"
+            "${single(parsedStart)} – ${single(parsedEnd)}"
         }
     }
-    
+
     return startText ?: endText
 }
 
@@ -423,6 +519,10 @@ fun EventContext.remainingTimeLabel(
     return when (status) {
         EventStatus.ENDED -> localizedTimerLabel("ended", lang = lang)
         EventStatus.UPCOMING -> {
+            when (daysBetween(todayIso, startDate)) {
+                0L -> return localizedStartsToday(lang)
+                1L -> return localizedStartsTomorrow(lang)
+            }
             val startMs = startDate?.let { runCatching { sdf.parse(it)?.time }.getOrNull() }
             if (startMs != null && startMs > nowMillis) {
                 val diffMs = startMs - nowMillis
@@ -448,47 +548,59 @@ fun EventContext.remainingTimeLabel(
     }
 }
 
+private fun localizedStartsToday(lang: String): String = when (lang) {
+    "tr" -> "Bugün başlıyor"
+    "de" -> "Beginnt heute"
+    "es" -> "Empieza hoy"
+    "fr" -> "Commence aujourd'hui"
+    "it" -> "Inizia oggi"
+    else -> "Starts today"
+}
+
+private fun localizedStartsTomorrow(lang: String): String = when (lang) {
+    "tr" -> "Yarın başlıyor"
+    "de" -> "Beginnt morgen"
+    "es" -> "Empieza mañana"
+    "fr" -> "Commence demain"
+    "it" -> "Inizia domani"
+    else -> "Starts tomorrow"
+}
+
 private fun formatRemainingTime(diffMs: Long, prefix: Boolean, lang: String): String {
     val totalHours = (diffMs / (1000 * 60 * 60)).toInt()
     val days = totalHours / 24
     val hours = totalHours % 24
-    
+
     return if (prefix) {
         when (lang) {
             "tr" -> when {
                 days > 0 && hours > 0 -> "$days gün $hours saat kaldı"
                 days > 0 -> "$days gün kaldı"
-                hours > 0 -> "$hours saat kaldı"
                 else -> "Bugün bitiyor"
             }
             "de" -> when {
                 days > 0 && hours > 0 -> "noch $days Tg. $hours Std."
                 days > 0 -> "noch $days Tg."
-                hours > 0 -> "noch $hours Std."
                 else -> "Endet heute"
             }
             "es" -> when {
                 days > 0 && hours > 0 -> "quedan $days d. $hours h."
                 days > 0 -> "quedan $days d."
-                hours > 0 -> "quedan $hours h."
                 else -> "Termina hoy"
             }
             "fr" -> when {
                 days > 0 && hours > 0 -> "il reste $days j. $hours h."
                 days > 0 -> "il reste $days j."
-                hours > 0 -> "il reste $hours h."
                 else -> "Se termine aujourd'hui"
             }
             "it" -> when {
                 days > 0 && hours > 0 -> "mancano $days g. $hours o."
                 days > 0 -> "mancano $days g."
-                hours > 0 -> "mancano $hours o."
                 else -> "Termina oggi"
             }
             else -> when {
                 days > 0 && hours > 0 -> "${days}d ${hours}h left"
                 days > 0 -> "${days}d left"
-                hours > 0 -> "${hours}h left"
                 else -> "Ends today"
             }
         }

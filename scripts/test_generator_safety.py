@@ -1,11 +1,13 @@
-import unittest
+import json
 import os
 import sys
+import unittest
 from unittest.mock import patch, mock_open
 
 # Adjust path to import generate_event_feed
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from generate_event_feed import generate_feed
+from generate_event_feed import generate_feed, resolve_event_metadata, METADATA_ID_ALIASES
+
 
 class TestGeneratorSafety(unittest.TestCase):
     @patch("os.path.exists", return_value=True)
@@ -14,11 +16,14 @@ class TestGeneratorSafety(unittest.TestCase):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         project_dir = os.path.dirname(script_dir)
         prod_path = os.path.join(project_dir, "docs", "event-feed", "pokequery-events.json")
-        
+
         with self.assertRaises(SystemExit) as cm:
             generate_feed(fixture_mode=True, output_path=prod_path)
-            
-        self.assertIn("Fixture mode cannot write to docs/event-feed/pokequery-events.json", str(cm.exception))
+
+        self.assertIn(
+            "Fixture mode cannot write to docs/event-feed/pokequery-events.json",
+            str(cm.exception),
+        )
 
     @patch("os.path.exists", return_value=True)
     @patch("builtins.open", new_callable=mock_open, read_data='{"sources": []}')
@@ -26,7 +31,7 @@ class TestGeneratorSafety(unittest.TestCase):
     def test_fixture_mode_with_test_output_succeeds(self, mock_makedirs, mock_file, mock_exists):
         # Setting output path to a test file should not trigger sys.exit
         test_path = "docs/event-feed/pokequery-events.generated.test.json"
-        
+
         # This should execute and open files without raising SystemExit for path validation
         try:
             generate_feed(fixture_mode=True, output_path=test_path)
@@ -36,6 +41,45 @@ class TestGeneratorSafety(unittest.TestCase):
             # We expect normal file parsing exceptions since we mocked open with empty data,
             # but it should not fail on the path safety check.
             pass
+
+    def test_workflow_production_step_has_no_fixture_mode(self):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_dir = os.path.dirname(script_dir)
+        workflow = os.path.join(project_dir, ".github", "workflows", "update-event-feed.yml")
+        self.assertTrue(os.path.exists(workflow), "workflow file missing")
+        text = open(workflow, encoding="utf-8").read()
+        self.assertNotIn("--fixture-mode", text)
+        self.assertIn("python scripts/generate_event_feed.py", text)
+
+    def test_production_feed_is_not_tiny_fixture(self):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_dir = os.path.dirname(script_dir)
+        prod_path = os.path.join(project_dir, "docs", "event-feed", "pokequery-events.json")
+        self.assertTrue(os.path.exists(prod_path))
+        data = json.load(open(prod_path, encoding="utf-8"))
+        events = data.get("events", [])
+        self.assertGreaterEqual(len(events), 20, "production feed must not be a tiny fixture feed")
+        # Generated search strings must never contain pipe characters.
+        for ev in events:
+            self.assertNotIn("|", ev.get("suggestedSearch", ""))
+            for value in ev.values():
+                if isinstance(value, str):
+                    self.assertNotIn("|", value, f"pipe found in event {ev.get('id')}")
+
+    def test_metadata_aliases_resolve_go_fest(self):
+        metadata = {
+            "event-go-fest-global-2026": {
+                "featuredPokemon": "Mewtwo",
+                "startDate": "2026-07-11",
+                "endDate": "2026-07-12",
+            }
+        }
+        resolved = resolve_event_metadata(
+            metadata, "event-pokemon-go-fest-2026-global", "Pokémon GO Fest 2026: Global"
+        )
+        self.assertEqual(resolved.get("featuredPokemon"), "Mewtwo")
+        self.assertIn("event-pokemon-go-fest-2026-global", METADATA_ID_ALIASES)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -288,6 +288,50 @@ def get_importance_tier(category):
     else:
         return "STANDARD"
 
+# Map alternate scraped event IDs to curated metadata keys.
+METADATA_ID_ALIASES = {
+    "event-pokemon-go-fest-2026-global": "event-go-fest-global-2026",
+    "event-go-fest-2026-global-final-details": "event-go-fest-global-2026",
+    "event-10th-anniversary-party": "event-10th-anniversary-party-2026",
+}
+
+def resolve_event_metadata(metadata, event_id, title=""):
+    """Resolve enrichment metadata for an event id, including known aliases."""
+    if not isinstance(metadata, dict):
+        return {}
+    if event_id in metadata:
+        return metadata[event_id]
+    alias = METADATA_ID_ALIASES.get(event_id)
+    if alias and alias in metadata:
+        return metadata[alias]
+    # Soft match for GO Fest Global when ids drift across sources.
+    title_l = (title or "").lower()
+    if "go fest" in title_l and "global" in title_l:
+        for key, value in metadata.items():
+            if "go-fest" in key and "global" in key:
+                return value
+    return {}
+
+def format_default_note(start, end, lang="en"):
+    """Avoid raw ISO date ranges in default note strings."""
+    def pretty(iso):
+        try:
+            dt = datetime.strptime(iso, "%Y-%m-%d")
+            if lang == "tr":
+                months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+                          "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+                return f"{dt.day} {months[dt.month - 1]} {dt.year}"
+            return dt.strftime("%B %d, %Y")
+        except Exception:
+            return iso
+    if lang == "tr":
+        if start == end:
+            return f"Resmi etkinlik aralığı: {pretty(start)} yerel saat."
+        return f"Resmi etkinlik aralığı: {pretty(start)} – {pretty(end)} yerel saat."
+    if start == end:
+        return f"Official event window: {pretty(start)} local time."
+    return f"Official event window: {pretty(start)} – {pretty(end)} local time."
+
 def generate_feed(fixture_mode, output_path):
     # Determine base directories
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -435,12 +479,13 @@ def generate_feed(fixture_mode, output_path):
     final_events = []
     
     for ev_id, ev in raw_events.items():
-        meta = metadata.get(ev_id, {})
+        meta = resolve_event_metadata(metadata, ev_id, ev.get("title", ""))
         
         # Determine status dynamically based on current date (defaults to UPCOMING)
+        # Curated metadata may override scraped article dates with real event windows.
         today = datetime.now().strftime("%Y-%m-%d")
-        start = ev["startDate"]
-        end = ev["endDate"]
+        start = meta.get("startDate") or ev["startDate"]
+        end = meta.get("endDate") or ev["endDate"]
         if end < today:
             status = "ENDED"
         elif start <= today <= end:
@@ -458,14 +503,14 @@ def generate_feed(fixture_mode, output_path):
             "titleIt": meta.get("titleIt"),
             "kind": ev["kind"],
             "status": status,
-            "note": meta.get("note", f"Official event window: {start} to {end} local time."),
-            "noteTr": meta.get("noteTr", f"Resmi etkinlik aralığı: {start} ile {end} yerel saat."),
+            "note": meta.get("note", format_default_note(start, end, "en")),
+            "noteTr": meta.get("noteTr", format_default_note(start, end, "tr")),
             "noteDe": meta.get("noteDe"),
             "noteEs": meta.get("noteEs"),
             "noteFr": meta.get("noteFr"),
             "noteIt": meta.get("noteIt"),
-            "month": ev["month"],
-            "year": ev["year"],
+            "month": int(start.split("-")[1]) if isinstance(start, str) and len(start) >= 7 else ev["month"],
+            "year": int(start.split("-")[0]) if isinstance(start, str) and len(start) >= 4 else ev["year"],
             "startDate": start,
             "endDate": end,
             "start": meta.get("start", start),

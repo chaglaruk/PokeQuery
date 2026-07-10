@@ -144,7 +144,10 @@ object EventFeedParser {
                 themeKey = themeKey,
                 isManual = false,
                 importanceTier = optionalStringField(body, "importanceTier") ?: "STANDARD",
-                eventCategory = optionalStringField(body, "eventCategory")
+                eventCategory = optionalStringField(body, "eventCategory"),
+                sourceName = optionalStringField(body, "sourceName"),
+                sourceUrl = optionalStringField(body, "sourceUrl"),
+                sourceNotes = optionalStringField(body, "sourceNotes")
             )
         }.toList()
         require(events.isNotEmpty()) { "empty events" }
@@ -275,7 +278,7 @@ object EventFeedCache {
 
 object EventFeedLoader {
     fun defaultProvider(context: Context): EventDataProvider =
-        HttpEventDataProvider()
+        if (BuildConfig.DEBUG) RawEventDataProvider(context) else HttpEventDataProvider()
 
     suspend fun load(
         context: Context,
