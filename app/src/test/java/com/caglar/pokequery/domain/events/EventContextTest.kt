@@ -1,6 +1,7 @@
 package com.caglar.pokequery.domain.events
 
 import com.caglar.pokequery.AppVersion
+import com.caglar.pokequery.ui.screens.formatEventCheckTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -10,6 +11,7 @@ import org.junit.Test
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 /**
@@ -509,7 +511,7 @@ private val sampleCachedFeed: EventFeed = EventFeed(
             year = 2026,
             summaryText = "Cached summary.",
             prepText = "Cached prep.",
-            suggestedSearch = "age0-2",
+            suggestedSearch = "age0-2&!traded",
             eventNotesText = "Cached notes.",
             themeKey = "community_day",
             isManual = false
@@ -535,6 +537,26 @@ class EventFeedLoaderTest {
         val stale = state as ContextFeedState.StaleCache
         assertEquals("2026-06-20", stale.lastUpdated)
         assertEquals(1, stale.events.size)
+        assertEquals(1, stale.events.single().suggestedSearch.orEmpty().split('&').count { it == "!traded" })
+    }
+
+    @Test
+    fun `later failed refresh changes previously live data to stale cache`() {
+        val successfulRemote = ContextFeedState.Online(
+            monthly = null,
+            events = sampleCachedFeed.events,
+            lastUpdated = sampleCachedFeed.lastUpdated
+        )
+        assertTrue(successfulRemote is ContextFeedState.Online)
+
+        val afterFailure = EventFeedLoader.decideAfterFetchFailure(
+            manualMonthly = successfulRemote.monthly,
+            cached = EventFeed(successfulRemote.lastUpdated, successfulRemote.events)
+        )
+
+        assertTrue(afterFailure is ContextFeedState.StaleCache)
+        assertFalse(afterFailure is ContextFeedState.Online)
+        assertEquals(successfulRemote.events, afterFailure.events)
     }
 
     @Test
@@ -546,6 +568,7 @@ class EventFeedLoaderTest {
         val offline = state as ContextFeedState.OfflineOnly
         assertEquals(1, offline.events.size)
         assertEquals("cached-event", offline.events.single().id)
+        assertEquals(1, offline.events.single().suggestedSearch.orEmpty().split('&').count { it == "!traded" })
     }
 
     @Test
@@ -581,6 +604,12 @@ class EventFeedLoaderTest {
         assertEquals(1, parsed.events.size)
         assertFalse("feed events must not be flagged manual", parsed.events.single().isManual)
         assertFalse(parsed.events.single().isManual)
+    }
+
+    @Test
+    fun `last check time uses locale short format without seconds`() {
+        val text = formatEventCheckTime(Date(), Locale.forLanguageTag("tr-TR"))
+        assertTrue("unexpected short time: $text", Regex("""\d{1,2}:\d{2}""").matches(text))
     }
 
     // ---- Provider seam: the fetch Result shapes the outcome ----

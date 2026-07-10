@@ -68,6 +68,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.R
+import com.caglar.pokequery.BuildConfig
 import androidx.compose.ui.platform.LocalConfiguration
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
@@ -91,11 +92,14 @@ import com.caglar.pokequery.ui.motion.rememberReducedMotion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
+import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
+
+internal fun formatEventCheckTime(date: Date, locale: Locale): String =
+    DateFormat.getTimeInstance(DateFormat.SHORT, locale).format(date)
 
 /**
  * v0.6.9 Event Guide — human-friendly single main event card.
@@ -106,12 +110,14 @@ import kotlin.math.sin
  */
 @Composable
 fun EventContextScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    debugEventFeedUrl: String? = null
 ) {
     val density = currentDensity()
     val context = LocalContext.current
     val currentLocale = LocalConfiguration.current.locales[0]
     val lang = currentLocale.language
+    val debugFeedUrl = if (BuildConfig.DEBUG) debugEventFeedUrl else null
     val scope = rememberCoroutineScope()
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
@@ -127,10 +133,12 @@ fun EventContextScreen(
             feedState = withContext(Dispatchers.IO) {
                 EventFeedLoader.load(
                     context.applicationContext,
+                    provider = debugFeedUrl?.let(::HttpEventDataProvider)
+                        ?: EventFeedLoader.defaultProvider(context.applicationContext),
                     preferCachedOnFailure = userPrefs?.eventGuidePreferSavedOffline ?: true
                 )
             }
-            lastChecked = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+            lastChecked = formatEventCheckTime(Date(), currentLocale)
             refreshing = false
         }
     }
@@ -615,7 +623,7 @@ private fun eventNotesBadge(lang: String): String = when (lang) {
 private fun sectionTitle(section: String, lang: String): String = when (lang) {
     "tr" -> when (section) {
         "featured" -> "Öne çıkan"
-        "upcoming" -> "Yakında önemli"
+        "upcoming" -> "Yaklaşan önemli etkinlikler"
         "live" -> "Şu an olanlar"
         "rotations" -> "Rotasyonlar ve ligler"
         "news" -> "Duyurular ve ödüller"
@@ -624,7 +632,7 @@ private fun sectionTitle(section: String, lang: String): String = when (lang) {
     }
     "de" -> when (section) {
         "featured" -> "Hervorgehoben"
-        "upcoming" -> "Wichtig & Bevorstehend"
+        "upcoming" -> "Wichtige bevorstehende Events"
         "live" -> "Jetzt aktiv"
         "rotations" -> "Rotationen & Ligen"
         "news" -> "Neuigkeiten & Belohnungen"
@@ -633,7 +641,7 @@ private fun sectionTitle(section: String, lang: String): String = when (lang) {
     }
     "es" -> when (section) {
         "featured" -> "Destacado"
-        "upcoming" -> "Importante Próximo"
+        "upcoming" -> "Próximos eventos importantes"
         "live" -> "Activo ahora"
         "rotations" -> "Rotaciones y Ligas"
         "news" -> "Noticias y Recompensas"
@@ -642,7 +650,7 @@ private fun sectionTitle(section: String, lang: String): String = when (lang) {
     }
     "fr" -> when (section) {
         "featured" -> "Vedette"
-        "upcoming" -> "Important à venir"
+        "upcoming" -> "Événements importants à venir"
         "live" -> "Actif maintenant"
         "rotations" -> "Rotations & Ligues"
         "news" -> "Nouvelles & Récompenses"
@@ -651,7 +659,7 @@ private fun sectionTitle(section: String, lang: String): String = when (lang) {
     }
     "it" -> when (section) {
         "featured" -> "In evidenza"
-        "upcoming" -> "Importante in arrivo"
+        "upcoming" -> "Prossimi eventi importanti"
         "live" -> "Attivo ora"
         "rotations" -> "Rotazioni e Leghe"
         "news" -> "Notizie e Premi"
@@ -660,7 +668,7 @@ private fun sectionTitle(section: String, lang: String): String = when (lang) {
     }
     else -> when (section) {
         "featured" -> "Featured"
-        "upcoming" -> "Important upcoming"
+        "upcoming" -> "Upcoming important events"
         "live" -> "Happening now"
         "rotations" -> "Rotations and leagues"
         "news" -> "News and rewards"
@@ -792,7 +800,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         raids = "Akın hedefleri",
         raidsBadge = "Akın Hazırlığı",
         raidsAction = "Transferden önce kontrol et.",
-        raidsGroupAction = "Akın yakalamalarını ve araştırma ödüllerini transfer etmeden önce ayrı olarak gözden geçirin.",
+        raidsGroupAction = "Akınlardan ve araştırma karşılaşmalarından yakaladığın Pokémonları transfer etmeden önce ayrı ayrı kontrol et.",
         research = "Araştırma",
         researchBadge = "Araştırma Ödülleri",
         collectionTitle = "Kostümler ve Arka Planlar",
@@ -814,7 +822,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         raids = "Raid-Ziele",
         raidsBadge = "Raid-Vorbereitung",
         raidsAction = "Vor dem Transfer prüfen.",
-        raidsGroupAction = "Raid- und Forschungsbelohnungen vor Transfers getrennt prüfen.",
+        raidsGroupAction = "Pokémon aus Raids und Forschungsbegegnungen vor dem Verschicken getrennt prüfen.",
         research = "Forschung",
         researchBadge = "Forschungsbelohnungen",
         collectionTitle = "Kostüme & Hintergründe",
@@ -836,7 +844,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         raids = "Objetivos de raid",
         raidsBadge = "Preparar incursiones",
         raidsAction = "Revisa antes de transferir.",
-        raidsGroupAction = "Revisa recompensas de incursión e investigación por separado antes de transferir.",
+        raidsGroupAction = "Revisa por separado los Pokémon de incursiones y encuentros de investigación antes de transferirlos.",
         research = "Investigación",
         researchBadge = "Recompensas de investigación",
         collectionTitle = "Disfraces y fondos",
@@ -858,7 +866,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         raids = "Cibles de raid",
         raidsBadge = "Prépa raids",
         raidsAction = "Vérifie avant transfert.",
-        raidsGroupAction = "Vérifie séparément raids et récompenses d’étude avant tout transfert.",
+        raidsGroupAction = "Vérifie séparément les Pokémon des raids et rencontres d’étude avant de les transférer.",
         research = "Recherches",
         researchBadge = "Récompenses d’étude",
         collectionTitle = "Costumes et arrière-plans",
@@ -880,7 +888,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         raids = "Obiettivi raid",
         raidsBadge = "Preparazione raid",
         raidsAction = "Controlla IV e piani raid nel gioco.",
-        raidsGroupAction = "Controlla raid e ricompense ricerca separatamente prima di trasferire.",
+        raidsGroupAction = "Controlla separatamente i Pokémon da raid e incontri di ricerca prima di trasferirli.",
         research = "Ricerche",
         researchBadge = "Ricompense ricerca",
         collectionTitle = "Costumi e sfondi",
@@ -902,7 +910,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         raids = "Raid targets",
         raidsBadge = "Raid prep",
         raidsAction = "Check before transfer.",
-        raidsGroupAction = "Review raid and research rewards separately before transferring anything.",
+        raidsGroupAction = "Check Pokémon caught from raids and research encounters separately before transferring them.",
         research = "Research",
         researchBadge = "Research rewards",
         collectionTitle = "Costumes & backgrounds",
@@ -1030,7 +1038,8 @@ private fun EventDashboardContent(
             EventGroupCard(
                 title = labels.featuredPokemon,
                 badge = labels.featuredBadge,
-                body = tiles.featuredBody,
+                body = stringResource(R.string.event_group_featured_body),
+                detailBody = tiles.featuredBody,
                 action = labels.featuredAction,
                 tone = tone,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey != null }?.spriteKey,
@@ -1044,7 +1053,8 @@ private fun EventDashboardContent(
             EventGroupCard(
                 title = labels.raids,
                 badge = labels.raidsBadge,
-                body = tiles.raidsBody,
+                body = stringResource(R.string.event_group_raids_body),
+                detailBody = tiles.raidsBody,
                 action = labels.raidsAction,
                 tone = CyanGlow,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey == "mewtwo" || it.spriteKey == "necrozma" }?.spriteKey,
@@ -1058,10 +1068,11 @@ private fun EventDashboardContent(
             EventGroupCard(
                 title = labels.research,
                 badge = labels.researchBadge,
-                body = tiles.researchBody,
+                body = stringResource(R.string.event_summary_research_body),
+                detailBody = tiles.researchBody,
                 action = labels.raidsGroupAction,
                 tone = PurpleIV,
-                spriteKey = event.pokemon.getOrNull(1)?.spriteKey,
+                spriteKey = "prep_list",
                 onOpen = onOpen,
                 cardKey = null
             )
@@ -1072,7 +1083,8 @@ private fun EventDashboardContent(
             EventGroupCard(
                 title = labels.collectionTitle,
                 badge = labels.collectionBadge,
-                body = tiles.notesBody,
+                body = stringResource(R.string.event_group_collection_body),
+                detailBody = tiles.notesBody,
                 action = labels.collectionAction,
                 tone = GoldCaution,
                 spriteKey = event.pokemon.firstOrNull { it.spriteKey == "pikachu" || it.spriteKey == "eevee" }?.spriteKey,
@@ -1103,7 +1115,8 @@ private fun EventDashboardContent(
             EventGroupCard(
                 title = labels.bonuses,
                 badge = labels.bonusesBadge,
-                body = tiles.bonusesBody,
+                body = stringResource(R.string.event_group_bonuses_body),
+                detailBody = tiles.bonusesBody,
                 action = labels.bonusesAction,
                 tone = AmberWarning,
                 spriteKey = if (hasFusion) "link_energy" else null,
@@ -1117,7 +1130,8 @@ private fun EventDashboardContent(
             EventGroupCard(
                 title = labels.prepTitle,
                 badge = labels.prepBadge,
-                body = tiles.prepBody,
+                body = stringResource(R.string.event_group_prep_body),
+                detailBody = tiles.prepBody,
                 action = labels.prepAction,
                 tone = TealPrimary,
                 spriteKey = "prep_list",
@@ -1261,6 +1275,7 @@ private fun EventGroupCard(
     title: String,
     badge: String,
     body: String,
+    detailBody: String = body,
     action: String,
     tone: Color,
     spriteKey: String?,
@@ -1273,7 +1288,7 @@ private fun EventGroupCard(
             .clip(RoundedCornerShape(16.dp))
             .background(CardPremium.copy(alpha = 0.86f))
             .border(1.dp, tone.copy(alpha = 0.24f), RoundedCornerShape(16.dp))
-            .clickable { onOpen(EventDialogContent(title, badge, body, action, spriteKey, cardKey)) }
+            .clickable { onOpen(EventDialogContent(title, badge, detailBody, action, spriteKey, cardKey)) }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1444,6 +1459,8 @@ private fun EventInfoDialog(
                 Column {
                     val detailBody = cardKeyBody(content.cardKey, event, lang, localCtx)
                     val detailAction = cardKeyAction(content.cardKey, event, lang, localCtx)
+                    SectionLabel(stringResource(R.string.event_card_summary), TealPrimary)
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = detailBody ?: content.body,
                         color = TextSecondary,
@@ -1595,13 +1612,9 @@ private fun PrepChecklist(items: List<String>) {
 
 private fun cardKeyBody(cardKey: String?, event: EventContext, lang: String, context: android.content.Context): String? = when (cardKey) {
     "raid_targets" -> {
-        val specific = event.localizedRaids(lang)
-        val bodyPrefix = if (specific.isNotBlank()) {
-            if (lang == "tr") "Akın Detayları:\n$specific\n\n" else "Raid Details:\n$specific\n\n"
-        } else ""
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends")
         val resId = if (isGoFest) R.string.event_detail_raid_targets_body_gofest else R.string.event_detail_raid_targets_body
-        bodyPrefix + context.getString(resId)
+        context.getString(resId)
     }
     "link_energy", "fusion_energy" -> {
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
