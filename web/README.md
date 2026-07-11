@@ -8,10 +8,11 @@ Installable web app for generating safe Pokemon GO search strings. Review before
 cd web
 npm run typecheck    # tsc --noEmit
 npm run lint         # eslint .
-npm test             # vitest run (111 tests)
+npm test             # vitest run (111 unit tests)
+npm run check:golden-corpus  # verify web/Android corpus byte-identical
 npm run build        # tsc -b && vite build (produces dist/ with PWA SW)
 npm run dev          # vite dev server
-npm run test:e2e     # playwright e2e tests (20 scenarios, requires build first)
+npm run test:e2e     # playwright e2e tests (56 cases x 5 projects = 280 executions)
 ```
 
 ## Project Structure
@@ -23,7 +24,7 @@ npm run test:e2e     # playwright e2e tests (20 scenarios, requires build first)
 - `src/ui/screens/` — React screens (Home, GoalDetail, Events, Explain, Settings, Onboarding, Changelog)
 - `src/ui/components/` — Shared UI components (BottomNav)
 - `src/parity/golden-corpus.json` — Shared parity corpus (44 cases, also used by Android JUnit)
-- `e2e/` — Playwright E2E tests (20 scenarios across Chromium + WebKit)
+- `e2e/` — Playwright E2E tests (56 cases across 8 spec files, 5 browser projects)
 - `scripts/` — Codegen scripts (extract-strings, generate-icons, generate-golden-corpus)
 
 ## Engine Parity
@@ -48,7 +49,9 @@ The golden corpus at `src/parity/golden-corpus.json` (44 test cases) is shared b
 - **Web**: `src/__tests__/golden-corpus.test.ts` (Vitest)
 - **Android**: `app/src/test/resources/golden-corpus.json` consumed by `GoldenCorpusParityTest.kt`
 
-Both copies must be byte-identical. Regenerate with `node scripts/generate-golden-corpus.mjs`.
+Both copies must be byte-identical (MD5 `8DAEE7923811390863ABF74DF3F521C4`, 17670 bytes).
+Verify with `npm run check:golden-corpus`. Sync web -> Android with `npm run sync:golden-corpus`.
+This check runs in CI before any tests.
 
 ## Routing
 
@@ -80,6 +83,16 @@ node scripts/generate-golden-corpus.mjs  # Regenerate parity corpus
 ## Deployment
 
 GitHub Actions workflow at `.github/workflows/deploy-pwa.yml`:
-- **Push to master**: full CI (typecheck, lint, unit tests, E2E) then deploy to GitHub Pages
-- **Manual dispatch (any branch)**: full CI validation without deploy (preview)
+- **Push to master** (paths: `web/**`, workflow file): full CI (golden-corpus
+  check, typecheck, lint, 111 unit tests, build, 280 E2E executions across
+  chromium-mobile + WebKit iPhone SE/13/14 Pro Max + desktop) then deploy to
+  GitHub Pages at `https://chaglaruk.github.io/PokeQuery/`
+- **Manual dispatch**: `workflow_dispatch` trigger allows running the full CI
+  validation from any branch. The `pokequery-dist` artifact (production build)
+  is uploaded for download. Pages deployment is gated to master only.
+- **Limitation**: GitHub Actions only recognizes `workflow_dispatch` triggers
+  for workflow files present on the default branch (master). While the workflow
+  file exists only on a feature branch, manual dispatch is unavailable. After
+  the PR merges, the workflow is available for dispatch.
 - Build uses `VITE_BASE=/PokeQuery/` for GitHub Pages subpath
+- Artifacts: `playwright-report` (30-day retention), `pokequery-dist` (production build)
