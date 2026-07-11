@@ -1,5 +1,14 @@
 ﻿import { defineConfig, devices } from '@playwright/test'
 
+const PREVIEW_PORT = 4173
+
+// When VITE_BASE=/PokeQuery/ the preview server serves at /PokeQuery/.
+// Playwright baseURL must point there so page.goto('/') resolves correctly.
+const basePath = process.env.VITE_BASE || '/'
+const baseURL = basePath !== '/'
+  ? `http://localhost:${PREVIEW_PORT}${basePath}`
+  : `http://localhost:${PREVIEW_PORT}`
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -8,7 +17,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -21,10 +30,10 @@ export default defineConfig({
   ],
   webServer: {
     command: process.env.CI
-      ? 'npm run build && npm run preview -- --port 4173'
-      : 'npm run preview -- --port 4173',
-    url: 'http://localhost:4173',
+      ? 'npm run build && npm run preview'
+      : 'npm run preview',
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 60000,
+    timeout: 120000,
   },
 })

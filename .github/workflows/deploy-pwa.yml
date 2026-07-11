@@ -6,6 +6,7 @@ on:
     paths:
       - 'web/**'
       - '.github/workflows/deploy-pwa.yml'
+      - 'app/src/test/resources/golden-corpus.json'
   workflow_dispatch:
 
 permissions:
@@ -34,6 +35,10 @@ jobs:
         run: npm ci
         working-directory: web
 
+      - name: Golden corpus sync check
+        run: npm run check:golden-corpus
+        working-directory: web
+
       - name: Typecheck
         run: npm run typecheck
         working-directory: web
@@ -50,24 +55,39 @@ jobs:
         run: npm run build
         working-directory: web
         env:
-          # GitHub Pages serves at https://<user>.github.io/PokeQuery/
           VITE_BASE: /PokeQuery/
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
         working-directory: web
 
-      - name: Run E2E tests
-        run: npx playwright test --project=chromium-mobile
+      - name: Run E2E tests (all projects)
+        run: npx playwright test
         working-directory: web
         env:
           CI: 'true'
+          VITE_BASE: /PokeQuery/
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report
+          retention-days: 30
+
+      - name: Upload production artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pokequery-dist
+          path: web/dist
+          retention-days: 30
 
       - name: Setup Pages
         if: github.ref == 'refs/heads/master'
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact
+      - name: Upload Pages artifact
         if: github.ref == 'refs/heads/master'
         uses: actions/upload-pages-artifact@v3
         with:
