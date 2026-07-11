@@ -18,8 +18,10 @@ import org.junit.Test
  * Android Kotlin engine produces byte-identical output on every test case.
  *
  * The JSON lives at app/src/test/resources/golden-corpus.json and must be
- * kept byte-identical with web/src/parity/golden-corpus.json (verified
- * separately by the build). Do not regenerate one without the other.
+ * kept byte-identical with web/src/parity/golden-corpus.json.  Byte-identity
+ * is enforced by `npm run check:golden-corpus` in the web directory, which
+ * runs in CI before any tests.  Do not regenerate one without the other;
+ * use `npm run sync:golden-corpus` to copy web → Android.
  *
  * If any case fails, the assertion message includes the test case id so the
  * failing scenario can be located in either the web or Android test runner.
