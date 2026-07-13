@@ -1,13 +1,14 @@
 import { NavLink } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
+import { goalIcon } from './SpriteIcon'
 
 export function BottomNav() {
   const { t } = useI18n()
 
   const items = [
-    { to: '/', icon: '🏠', label: t('nav_home') },
-    { to: '/events', icon: '📅', label: t('goal_events') },
-    { to: '/settings', icon: '⚙️', label: t('nav_settings') },
+    { to: '/', icon: goalIcon('home'), label: t('nav_home') },
+    { to: '/events', icon: goalIcon('events'), label: t('goal_events') },
+    { to: '/settings', icon: goalIcon('settings'), label: t('nav_settings') },
   ]
 
   return (

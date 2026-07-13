@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
+import { SpriteIcon, goalIcon } from '../components/SpriteIcon'
 
 const ONBOARDING_FLAG = 'pq_onboarding_complete'
 
@@ -38,9 +39,9 @@ export function OnboardingScreen() {
   }
 
   const features = [
-    { icon: '🔒', titleKey: 'onboarding_feature_plan_title', descKey: 'onboarding_feature_plan_desc' },
-    { icon: '☁️', titleKey: 'onboarding_feature_protect_title', descKey: 'onboarding_feature_protect_desc' },
-    { icon: '📋', titleKey: 'onboarding_feature_copy_title', descKey: 'onboarding_feature_copy_desc' },
+    { icon: goalIcon('lock'), titleKey: 'onboarding_feature_plan_title', descKey: 'onboarding_feature_plan_desc' },
+    { icon: goalIcon('cloud_off'), titleKey: 'onboarding_feature_protect_title', descKey: 'onboarding_feature_protect_desc' },
+    { icon: goalIcon('copy'), titleKey: 'onboarding_feature_copy_title', descKey: 'onboarding_feature_copy_desc' },
   ]
 
   return (
@@ -57,9 +58,10 @@ export function OnboardingScreen() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         {page === 0 && (
           <div>
-            <h1 style={{ fontSize: '32px', fontWeight: 800, textAlign: 'center', marginBottom: '12px' }}>
-              PokeQuery
-            </h1>
+            <h1 className="visually-hidden">PokeQuery</h1>
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <SpriteIcon sprite="pokequery_wordmark" alt="PokeQuery" size={200} />
+            </div>
             <div
               style={{
                 background: 'rgba(11,140,156,0.10)',
