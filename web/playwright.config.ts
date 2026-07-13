@@ -11,6 +11,7 @@ const baseURL = basePath !== '/'
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: process.env.SCREENSHOTS ? [] : ['screenshots.spec.ts'],
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

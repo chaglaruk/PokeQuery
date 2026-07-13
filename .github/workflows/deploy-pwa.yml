@@ -7,6 +7,11 @@ on:
       - 'web/**'
       - '.github/workflows/deploy-pwa.yml'
       - 'app/src/test/resources/golden-corpus.json'
+  pull_request:
+    paths:
+      - 'web/**'
+      - '.github/workflows/deploy-pwa.yml'
+      - 'app/src/test/resources/golden-corpus.json'
   workflow_dispatch:
 
 permissions:
