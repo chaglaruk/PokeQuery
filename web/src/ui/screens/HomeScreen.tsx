@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
-import { SpriteIcon, goalIcon } from '../components/SpriteIcon'
+import { AppIcon, SpriteIcon } from '../components/SpriteIcon'
 
 interface GoalCard {
   goalId: string
@@ -57,7 +57,7 @@ export function HomeScreen() {
             style={{ padding: '12px 10px' }}
           >
             <span style={{ fontSize: '22px', lineHeight: 1, display: 'block', color: 'var(--accent)', marginBottom: '4px' }}>
-              {goalIcon(goal.goalId)}
+              <AppIcon name={goal.goalId} size={22} />
             </span>
             <p style={{ fontSize: '13px', fontWeight: 600, lineHeight: 1.2 }}>{t(goal.titleKey)}</p>
             <p className="text-muted" style={{ marginTop: '2px', fontSize: '11px', lineHeight: 1.3 }}>{t(goal.descKey)}</p>
@@ -75,7 +75,7 @@ export function HomeScreen() {
           style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}
         >
           <span style={{ fontSize: '24px', lineHeight: 1, flexShrink: 0, color: 'var(--accent)' }}>
-            {goalIcon(tool.goalId)}
+            <AppIcon name={tool.goalId} size={24} />
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: '15px', fontWeight: 600 }}>{t(tool.titleKey)}</p>
@@ -93,7 +93,7 @@ export function HomeScreen() {
             width: '26px', height: '26px', borderRadius: '50%',
             background: 'rgba(11,140,156,0.12)', color: 'var(--accent)',
             fontSize: '14px', fontWeight: 700, flexShrink: 0,
-          }}>{'\u29BF'}</span>
+          }}><AppIcon name="lock" size={14} /></span>
           {t('trust_home_no_access')}
         </p>
         <p className="text-muted" style={{ fontSize: '12px' }}>{t('home_chip_no_access_desc')}</p>
@@ -105,7 +105,7 @@ export function HomeScreen() {
             width: '26px', height: '26px', borderRadius: '50%',
             background: 'rgba(11,140,156,0.12)', color: 'var(--accent)',
             fontSize: '14px', fontWeight: 700, flexShrink: 0,
-          }}>{'\u2714'}</span>
+          }}><AppIcon name="check" size={14} /></span>
           {t('trust_home_review_first')}
         </p>
         <p className="text-muted" style={{ fontSize: '12px' }}>{t('home_chip_review_desc')}</p>

@@ -8,6 +8,7 @@ import { explain, type ExplainedString } from '@engine/searchStringExplainer'
 import { translateSyntax, findUnverifiedTokens, resolveLanguage } from '@engine/searchTermMapper'
 import { copyToClipboard, type ClipboardStatus } from '@ui/clipboard'
 import type { ClipboardResult } from '@ui/clipboard'
+import { AppIcon } from '@ui/components/SpriteIcon'
 
 const scopeBreadthKeys: Record<string, string> = {
   'All (no filter)': 'explainer_scope_all',
@@ -146,7 +147,7 @@ export function SearchAssistantScreen() {
                 {warnings.map((w, i) => (
                   <li key={i} style={{ fontSize: '12px', lineHeight: 1.5, marginBottom: '4px', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
                     <span className={w.isError ? 'lint-marker-error' : 'lint-marker-advisory'} aria-hidden="true">
-                      {w.isError ? '\u2716' : '\u26A0'}
+                      <AppIcon name={w.isError ? 'error' : 'warning'} size={16} />
                     </span>
                     <span>{w.message}</span>
                   </li>

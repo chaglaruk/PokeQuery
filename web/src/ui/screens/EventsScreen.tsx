@@ -13,6 +13,7 @@ import {
 } from '@event/eventLifecycle'
 import { getLocalized } from '@event/eventFeedService'
 import { Dialog } from '@ui/components/Dialog'
+import { AppIcon } from '@ui/components/SpriteIcon'
 import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
 import type { EventFeedEntry, EventPokemonEntry, LocaleCode } from '@/types'
 
@@ -147,7 +148,7 @@ export function EventsScreen() {
           aria-label={t('events_refresh')}
           style={{ width: 'auto', padding: '6px 14px', fontSize: '13px' }}
         >
-          <span style={{ marginRight: '4px', fontSize: '16px', lineHeight: 1 }} aria-hidden="true">{'\u21bb'}</span>
+          <span style={{ marginRight: '4px' }}><AppIcon name="refresh" size={16} /></span>
           {t('events_refresh')}
         </button>
       </div>
@@ -402,7 +403,7 @@ function EventMainCard({
           onClick={onOpenDetail}
           style={{ background: `${tone}1a` }}
         >
-          {'\u2139'}
+          <AppIcon name="info" size={18} />
         </button>
       </div>
 

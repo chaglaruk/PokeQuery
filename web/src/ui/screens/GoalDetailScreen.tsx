@@ -6,6 +6,7 @@ import { buildFinal } from '@engine/goalStringBuilder'
 import { lint } from '@engine/linter'
 import { canCopy } from '@engine/expertCopyPolicy'
 import type { RiskLevel } from '@/types'
+import { AppIcon } from '@ui/components/SpriteIcon'
 
 const riskBadgeClass: Record<RiskLevel, string> = {
   Info: 'badge-info',
@@ -102,7 +103,7 @@ export function GoalDetailScreen() {
                     color: w.isError ? 'var(--danger)' : 'var(--warning)',
                   }}
                 >
-                  {w.isError ? '\u2716 ' : '\u26A0 '}{w.message}
+                  <AppIcon name={w.isError ? 'error' : 'warning'} size={16} /> {w.message}
                 </p>
               ))}
             </div>
@@ -202,7 +203,7 @@ export function GoalDetailScreen() {
       {/* Warnings */}
       {finalString.warnings.length > 0 && (
         <div className="card">
-          <div className="section-title" style={{ margin: '0 0 10px' }}>⚠ {t('goal_detail_watch_out')}</div>
+          <div className="section-title" style={{ margin: '0 0 10px', display: 'flex', gap: '6px', alignItems: 'center' }}><AppIcon name="warning" size={16} /> {t('goal_detail_watch_out')}</div>
           {finalString.warnings.map((w, i) => (
             <p key={i} className="text-muted" style={{ marginTop: i > 0 ? '8px' : 0, lineHeight: 1.5 }}>
               {'\u2022'} {w}
@@ -214,7 +215,7 @@ export function GoalDetailScreen() {
       {/* Engine warnings for expert */}
       {goalId === 'expert' && goal.warnings.length > 0 && (
         <div className="card">
-          <div className="section-title" style={{ margin: '0 0 10px' }}>⚠ {t('goal_detail_watch_out')}</div>
+          <div className="section-title" style={{ margin: '0 0 10px', display: 'flex', gap: '6px', alignItems: 'center' }}><AppIcon name="warning" size={16} /> {t('goal_detail_watch_out')}</div>
           {goal.warnings.map((w, i) => (
             <p key={i} className="text-muted" style={{ marginTop: i > 0 ? '8px' : 0 }}>
               • {w}

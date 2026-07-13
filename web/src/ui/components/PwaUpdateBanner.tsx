@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useI18n } from '@i18n/I18nContext'
+import { AppIcon } from './SpriteIcon'
 
 export function PwaUpdateBanner() {
   const { t } = useI18n()
@@ -40,7 +41,7 @@ export function PwaUpdateBanner() {
     return (
       <div className="pwa-banner pwa-banner-update" role="alert" aria-live="assertive" data-testid="pwa-update-banner">
         <div className="pwa-banner-body">
-          <div className="pwa-banner-icon" aria-hidden="true">{'\u21bb'}</div>
+          <div className="pwa-banner-icon"><AppIcon name="refresh" size={20} /></div>
           <div className="pwa-banner-text">
             <p className="pwa-banner-title">{t('pwa_update_title')}</p>
             <p className="pwa-banner-desc">{t('pwa_update_desc')}</p>
@@ -62,7 +63,7 @@ export function PwaUpdateBanner() {
   return (
     <div className="pwa-banner pwa-banner-offline" role="status" aria-live="polite" data-testid="pwa-offline-banner">
       <div className="pwa-banner-body">
-        <div className="pwa-banner-icon" aria-hidden="true">{'\u2713'}</div>
+        <div className="pwa-banner-icon"><AppIcon name="check" size={20} /></div>
         <div className="pwa-banner-text">
           <p className="pwa-banner-title">{t('pwa_offline_ready_title')}</p>
           <p className="pwa-banner-desc">{t('pwa_offline_ready_desc')}</p>
