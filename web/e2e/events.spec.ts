@@ -35,10 +35,19 @@ function mockFeed() {
         sourceUrl: 'https://example.com',
         sourceType: 'official',
         lastUpdated: '2026-07-10',
+        pokemon: [{
+          name: 'Pikachu',
+          nameTr: 'Pikachu',
+          source: 'wild',
+          note: 'Featured encounter guidance',
+          badges: 'Featured',
+          spriteKey: 'pikachu',
+        }],
       },
       {
         id: 'mock-upcoming-event',
         title: 'Upcoming Test Event',
+        titleTr: 'Yaklaşan Test Etkinliği',
         status: 'UPCOMING',
         importanceTier: 'STANDARD',
         startDate: '2026-12-01',
@@ -72,6 +81,42 @@ function mockFeed() {
         sourceType: 'official',
         lastUpdated: '2026-07-10',
       },
+      {
+        id: 'event-pokemon-go-fest-2026-global',
+        title: 'GO Fest Test',
+        status: 'UPCOMING',
+        importanceTier: 'MAJOR',
+        startDate: '2026-07-20',
+        endDate: '2026-07-21',
+        note: 'note',
+        summary: 'GO Fest summary',
+        prep: 'GO Fest prep',
+        suggestedSearch: 'shiny',
+        eventNotes: 'event notes',
+        themeKey: 'generic_event',
+        sourceName: 'test',
+        sourceUrl: 'https://example.com',
+        sourceType: 'official',
+        lastUpdated: '2026-07-10',
+      },
+      {
+        id: 'event-go-fest-2026-global-final-details',
+        title: 'GO Fest Test Duplicate',
+        status: 'UPCOMING',
+        importanceTier: 'MAJOR',
+        startDate: '2026-07-20',
+        endDate: '2026-07-21',
+        note: 'duplicate',
+        summary: 'duplicate',
+        prep: 'duplicate',
+        suggestedSearch: 'shiny',
+        eventNotes: 'duplicate',
+        themeKey: 'generic_event',
+        sourceName: 'test',
+        sourceUrl: 'https://example.com',
+        sourceType: 'official',
+        lastUpdated: '2026-07-10',
+      },
     ],
   }
 }
@@ -92,7 +137,7 @@ async function interceptFeedFailure(page: Page) {
   })
 }
 
-test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
+test.describe('Events and feed scenarios (scenarios 17-23, 29-31)', () => {
   test.beforeEach(async ({ page }) => {
     await skipOnboarding(page)
   })
@@ -101,7 +146,7 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
     await interceptFeedSuccess(page)
     await gotoRoute(page, '/events')
     // Wait for cards to appear (loading spinner removed)
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
     // Verify the live feed status badge is shown
     await expect(page.getByText('Live event feed', { exact: false }).first()).toBeVisible()
   })
@@ -109,25 +154,25 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
   test('18. manual event refresh button re-fetches', async ({ page }) => {
     await interceptFeedSuccess(page)
     await gotoRoute(page, '/events')
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
 
-    // Count cards: 2 active (CURRENT + UPCOMING). ENDED is filtered out by lifecyle.
-    const initialCount = await page.locator('.card.card-tap').count()
-    expect(initialCount).toBe(2)
+    // Three canonical active events remain; the GO Fest alias and ENDED event are filtered out.
+    const initialCount = await page.locator('[data-event-id]').count()
+    expect(initialCount).toBe(3)
 
     // Click the Refresh button
     await page.getByText('Refresh now').click()
     // Cards should still be visible after refresh
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
-    const postRefreshCount = await page.locator('.card.card-tap').count()
-    expect(postRefreshCount).toBe(2)
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
+    const postRefreshCount = await page.locator('[data-event-id]').count()
+    expect(postRefreshCount).toBe(3)
   })
 
   test('19. failed network → cached feed is used', async ({ page }) => {
     // First load: succeed and populate cache
     await interceptFeedSuccess(page)
     await gotoRoute(page, '/events')
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
     // Wait for cache to be written
     await page.waitForFunction(() => localStorage.getItem('pq_event_feed_cache') !== null)
 
@@ -138,7 +183,7 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
     // Refresh — should use cache (not crash, cards appear)
     await page.getByText('Refresh now').click()
     // Wait for cards visible after refresh (cache path)
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
     // Source should be cached (Saved feed badge)
     await expect(page.getByText('Saved feed', { exact: false }).first()).toBeVisible()
   })
@@ -155,7 +200,7 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
     await gotoRoute(page, '/events')
 
     // Wait for cards from bundled fallback (197 KB file, should load fast locally)
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
     // Source badge should say "Bundled fallback guidance"
     await expect(page.getByText('Bundled fallback', { exact: false }).first()).toBeVisible()
   })
@@ -163,16 +208,16 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
   test('21. ended events are hidden, current sorted before upcoming', async ({ page }) => {
     await interceptFeedSuccess(page)
     await gotoRoute(page, '/events')
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
 
     // Get the titles in document order
-    const cards = page.locator('.card.card-tap')
+    const cards = page.locator('[data-event-id]')
     const count = await cards.count()
-    // ENDED is filtered out by lifecyle; only CURRENT + UPCOMING remain
-    expect(count).toBe(2)
+    // ENDED and the canonical GO Fest duplicate are filtered out.
+    expect(count).toBe(3)
 
     const firstTitle = await cards.nth(0).locator('p').first().textContent()
-    const lastTitle = await cards.nth(1).locator('p').first().textContent()
+    const lastTitle = await cards.nth(count - 1).locator('p').first().textContent()
     // CURRENT sorts first, UPCOMING second
     expect(firstTitle).toContain('Current Test Event')
     expect(lastTitle).toContain('Upcoming Test Event')
@@ -182,41 +227,39 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
   })
 
   test('22. all rendered cards are active (ended excluded) and no duplicates', async ({ page }) => {
-    // Use bundled fallback (production may have duplicates that the feed already filters)
-    await interceptFeedFailure(page)
-    await page.addInitScript(() => {
-      localStorage.removeItem('pq_event_feed_cache')
-      localStorage.removeItem('pq_event_feed_cache_ts')
-    })
+    await interceptFeedSuccess(page)
     await gotoRoute(page, '/events')
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    const cards = page.locator('[data-event-id]')
+    await expect(cards.first()).toBeVisible({ timeout: 20000 })
 
-    // Count all visible compact cards — sections may render the same event in multiple categories
-    // (e.g., a current GO Fest appears in both "happening now" and "all active"), so total > unique.
-    const cards = page.locator('.card.card-tap')
-    const count = await cards.count()
+    const ids = await cards.evaluateAll(elements => elements.map(element => element.getAttribute('data-event-id') ?? ''))
+    const canonicalIds = ids.map(id => id === 'event-go-fest-2026-global-final-details'
+      ? 'event-pokemon-go-fest-2026-global'
+      : id)
+    expect(ids).toHaveLength(3)
+    expect(new Set(canonicalIds).size).toBe(ids.length)
+    expect(canonicalIds).toEqual(expect.arrayContaining([
+      'mock-current-event',
+      'mock-upcoming-event',
+      'event-pokemon-go-fest-2026-global',
+    ]))
+    expect(canonicalIds.filter(id => id === 'event-pokemon-go-fest-2026-global')).toHaveLength(1)
+    await expect(page.locator('[data-event-id="mock-ended-event"]')).toHaveCount(0)
 
-    // At least 30 active cards should be visible (many events in the 64-entry fallback are
-    // still active relative to 2026-07-12).
-    expect(count).toBeGreaterThan(30)
-
-    // Verify no ended events in compact cards
-    const titles: string[] = []
-    for (let i = 0; i < count; i++) {
-      const text = await cards.nth(i).locator('p').first().textContent()
-      titles.push(text ?? '')
-    }
-    const uniqueTitles = new Set(titles)
-    // With section duplication, unique titles will be fewer than total cards. But we
-    // should still have many unique events.
-    expect(uniqueTitles.size).toBeGreaterThan(15)
+    const featuredId = await page.locator('[data-event-section="featured"]').getAttribute('data-event-id')
+    expect(ids.filter(id => id === featuredId)).toHaveLength(1)
+    const priorityIds = await page.locator('[data-event-section]:not([data-event-section="remainder"])')
+      .evaluateAll(elements => elements.map(element => element.getAttribute('data-event-id')))
+    const remainderIds = await page.locator('[data-event-section="remainder"]')
+      .evaluateAll(elements => elements.map(element => element.getAttribute('data-event-id')))
+    expect(remainderIds.every(id => !priorityIds.includes(id))).toBe(true)
   })
 
   test('23. offline reload after successful online load uses cache', async ({ page }) => {
     // Step 1: initial online load populates cache
     await interceptFeedSuccess(page)
     await gotoRoute(page, '/events')
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
     await expect(page.getByText('Live event feed', { exact: false }).first()).toBeVisible()
     await page.waitForFunction(() => localStorage.getItem('pq_event_feed_cache') !== null)
 
@@ -226,7 +269,7 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
 
     // Reload — should pull from cache, not crash
     await page.reload()
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
     // Source badge should now be "Saved feed"
     await expect(page.getByText('Saved feed', { exact: false }).first()).toBeVisible()
   })
@@ -234,12 +277,67 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29)', () => {
   test('29. featured event card shows summary, notes, and search string', async ({ page }) => {
     await interceptFeedSuccess(page)
     await gotoRoute(page, '/events')
-    await expect(page.locator('.card.card-tap').first()).toBeVisible({ timeout: 20000 })
+    await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
 
     // The featured hero card already shows full content (summary, search string, copy)
     // without needing a click. Verify these are visible.
     await expect(page.getByText('summary text').first()).toBeVisible({ timeout: 10000 })
     await expect(page.locator('.search-string').first()).toBeVisible({ timeout: 10000 })
     await expect(page.getByText('Copy search').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('30. compact event dialog supports close, Escape, and backdrop dismissal', async ({ page }) => {
+    await interceptFeedSuccess(page)
+    await page.addInitScript(() => localStorage.setItem('pq_app_language', 'Türkçe'))
+    await gotoRoute(page, '/events')
+    const trigger = page.locator('[data-event-id="mock-upcoming-event"]')
+    await expect(trigger).toBeVisible({ timeout: 20000 })
+
+    await trigger.click()
+    let dialog = page.getByRole('dialog', { name: 'Yaklaşan Test Etkinliği' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByText('summary text')).toBeVisible()
+    await expect(dialog.getByText('Aramayı kopyala')).toBeVisible()
+    const close = dialog.getByRole('button', { name: /close/i })
+    await expect(close).toBeFocused()
+    await close.click()
+    await expect(dialog).toBeHidden()
+    await expect(trigger).toBeFocused()
+
+    await trigger.click()
+    dialog = page.getByRole('dialog', { name: 'Yaklaşan Test Etkinliği' })
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+
+    await trigger.click()
+    dialog = page.getByRole('dialog', { name: 'Yaklaşan Test Etkinliği' })
+    await page.locator('.dialog-overlay').click({ position: { x: 5, y: 5 } })
+    await expect(dialog).toBeHidden()
+  })
+
+  test('31. featured Pokemon dialog traps and restores focus within the viewport', async ({ page }) => {
+    await interceptFeedSuccess(page)
+    await gotoRoute(page, '/events')
+    const trigger = page.locator('[data-pokemon-name="Pikachu"]').first()
+    await expect(trigger).toBeVisible({ timeout: 20000 })
+    await trigger.click()
+
+    const dialog = page.getByRole('dialog', { name: 'Pikachu' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByText('Featured encounter guidance')).toBeVisible()
+    await expect(dialog).toHaveCSS('transform', 'none')
+    const close = dialog.getByRole('button', { name: /close/i })
+    await expect(close).toBeFocused()
+
+    const box = await dialog.boundingBox()
+    const viewport = page.viewportSize()
+    expect(box).not.toBeNull()
+    expect(viewport).not.toBeNull()
+    expect(box!.y).toBeGreaterThanOrEqual(0)
+    expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height)
+
+    await close.click()
+    await expect(dialog).toBeHidden()
+    await expect(trigger).toBeFocused()
   })
 })

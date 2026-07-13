@@ -220,6 +220,7 @@ export function EventsScreen() {
               <CompactEventCard
                 key={`now-${event.id}`}
                 event={event}
+                section="happening-now"
                 clock={clock}
                 locale={locale}
                 statusLabel={t(statusLabelKey(status))}
@@ -241,6 +242,7 @@ export function EventsScreen() {
               <CompactEventCard
                 key={`up-${event.id}`}
                 event={event}
+                section="important-upcoming"
                 clock={clock}
                 locale={locale}
                 statusLabel={t(statusLabelKey(status))}
@@ -262,6 +264,7 @@ export function EventsScreen() {
               <CompactEventCard
                 key={`rot-${event.id}`}
                 event={event}
+                section="rotations"
                 clock={clock}
                 locale={locale}
                 statusLabel={t(statusLabelKey(status))}
@@ -283,6 +286,7 @@ export function EventsScreen() {
               <CompactEventCard
                 key={`news-${event.id}`}
                 event={event}
+                section="news"
                 clock={clock}
                 locale={locale}
                 statusLabel={t(statusLabelKey(status))}
@@ -304,6 +308,7 @@ export function EventsScreen() {
               <CompactEventCard
                 key={`all-${event.id}`}
                 event={event}
+                section="remainder"
                 clock={clock}
                 locale={locale}
                 statusLabel={t(categoryLabelKey(cat))}
@@ -386,7 +391,7 @@ function EventMainCard({
   if (!localized) return null
 
   return (
-    <div className="card" style={{ borderColor: tone, position: 'relative' }}>
+    <div className="card" data-event-id={event.id} data-event-section="featured" style={{ borderColor: tone, position: 'relative' }}>
       {/* Timer badge + theme mark */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <span className="badge" style={{ background: `${tone}22`, color: tone }}>{timerLabel}</span>
@@ -417,8 +422,12 @@ function EventMainCard({
             <div
               key={`sprite-${idx}`}
               className="card card-tap"
+              data-pokemon-name={p.name}
+              role="button"
+              tabIndex={0}
               style={{ padding: '8px', textAlign: 'center' }}
               onClick={() => onOpenPokemon(p)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenPokemon(p) } }}
             >
               {p.spriteKey ? (
                 <img src={spriteSrc(p.spriteKey) ?? ''} alt={pokeLocalizedName(p, locale)}
@@ -476,6 +485,7 @@ function EventMainCard({
 
 function CompactEventCard({
   event,
+  section,
   clock,
   locale,
   statusLabel,
@@ -483,6 +493,7 @@ function CompactEventCard({
   onClick,
 }: {
   event: EventFeedEntry
+  section: string
   clock: Clock
   locale: LocaleCode
   statusLabel: string
@@ -493,7 +504,7 @@ function CompactEventCard({
   const dLabel = dateLabel(event, locale)
 
   return (
-    <div className="card card-tap" onClick={onClick} role="button" tabIndex={0}
+    <div className="card card-tap" data-event-id={event.id} data-event-section={section} onClick={onClick} role="button" tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
       aria-label={`${eventLocaleTitle(event, locale)} — ${statusLabel}`}
     >
@@ -655,8 +666,12 @@ function EventDetailDialog({
               <div
                 key={`pk-${idx}`}
                 className="card card-tap"
+                data-pokemon-name={p.name}
+                role="button"
+                tabIndex={0}
                 style={{ padding: '8px', textAlign: 'center' }}
                 onClick={() => onOpenPokemon(p)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenPokemon(p) } }}
               >
                 {p.spriteKey ? (
                   <img src={spriteSrc(p.spriteKey) ?? ''} alt={pokeLocalizedName(p, locale)}

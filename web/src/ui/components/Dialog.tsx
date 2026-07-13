@@ -23,7 +23,11 @@ export function Dialog({ open, title, onClose, closeLabel, children }: DialogPro
       if (firstFocusable) firstFocusable.focus()
       else dialogRef.current?.focus()
     }, 0)
-    return () => clearTimeout(t)
+    return () => {
+      clearTimeout(t)
+      previousFocusRef.current?.focus()
+      previousFocusRef.current = null
+    }
   }, [open])
 
   useEffect(() => {
@@ -37,14 +41,6 @@ export function Dialog({ open, title, onClose, closeLabel, children }: DialogPro
     document.addEventListener('keydown', onKey, true)
     return () => document.removeEventListener('keydown', onKey, true)
   }, [open, onClose])
-
-  // Restore previous focus when the dialog closes.
-  useEffect(() => {
-    if (!open && previousFocusRef.current) {
-      previousFocusRef.current.focus?.()
-      previousFocusRef.current = null
-    }
-  }, [open])
 
   // Lock body scroll while open.
   useEffect(() => {
