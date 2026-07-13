@@ -9,11 +9,9 @@ import type { Page } from '@playwright/test'
 // HashRouter makes routes live in the URL fragment, so we append `#route`
 // to the base URL rather than replacing the path with `/route`.
 
-const ONBOARDING_FLAG = 'pq_onboarding_complete'
-
 // Clears all localStorage keys so the app re-enters first-run onboarding.
 export async function clearStorage(page: Page): Promise<void> {
-  await page.addInitScript(() => { try { window.localStorage.clear() } catch {} })
+  await page.addInitScript(() => { try { window.localStorage.clear() } catch { /* private mode */ } })
 }
 
 // Pre-sets the onboarding-complete flag so the app starts directly at Home,
@@ -50,5 +48,5 @@ export async function waitForEventCards(page: Page): Promise<void> {
 
 // Installs a localStorage entry before the page loads.
 export async function setStorage(page: Page, key: string, value: string): Promise<void> {
-  await page.addInitScript(([k, v]) => { try { window.localStorage.setItem(k, v) } catch {} }, [key, value])
+  await page.addInitScript(([k, v]) => { try { window.localStorage.setItem(k, v) } catch { /* private mode */ } }, [key, value])
 }

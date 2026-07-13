@@ -39,7 +39,7 @@ async function screenshot(page: Page, projectName: string, stateName: string) {
 test.describe('Visual QA screenshots', () => {
   test.skip(!process.env.SCREENSHOTS, 'Set SCREENSHOTS=true to generate visual QA screenshots')
 
-  test('generate all PWA screenshots', async ({ page, browserName }) => {
+  test('generate all PWA screenshots', async ({ page }) => {
     const projectName = test.info().project.name
     test.setTimeout(120000)
 
