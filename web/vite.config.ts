@@ -5,10 +5,13 @@ import path from 'path'
 
 const base = process.env.VITE_BASE || '/'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base,
   resolve: {
     alias: {
+      ...(mode === 'screenshots' ? {
+        'virtual:pwa-register/react': path.resolve(__dirname, './e2e/mocks/pwa-register-react.ts'),
+      } : {}),
       '@': path.resolve(__dirname, './src'),
       '@engine': path.resolve(__dirname, './src/engine'),
       '@i18n': path.resolve(__dirname, './src/i18n'),
@@ -60,4 +63,4 @@ export default defineConfig({
     target: 'es2020',
     sourcemap: false,
   },
-})
+}))

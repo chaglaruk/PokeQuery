@@ -4,7 +4,12 @@ from PIL import Image
 
 def create_contact_sheet(device_dir, output_path):
     """Create a single contact sheet from all PNGs in a device directory."""
-    files = sorted(glob.glob(os.path.join(device_dir, "*.png")))
+    files = sorted(
+        path for path in glob.glob(os.path.join(device_dir, "*.png"))
+        if "contact_sheet" not in os.path.basename(path).lower()
+        and "thumbnail" not in os.path.basename(path).lower()
+        and not os.path.basename(path).lower().startswith(("thumb", "tmp", "temp"))
+    )
     if not files:
         print(f"No screenshots found in {device_dir}")
         return False
@@ -28,10 +33,12 @@ def create_contact_sheet(device_dir, output_path):
     padding = 12
     label_h = 20
     cell_w = thumb_w + padding
-    cell_h = thumbs[0].height + padding + label_h
-
     sheet_w = cols * cell_w + padding
-    sheet_h = rows * cell_h + padding
+    row_heights = [
+        max(thumb.height for thumb in thumbs[row * cols:(row + 1) * cols]) + padding + label_h
+        for row in range(rows)
+    ]
+    sheet_h = sum(row_heights) + padding
 
     sheet = Image.new("RGBA", (sheet_w, sheet_h), (11, 15, 23, 255))
 
@@ -42,11 +49,11 @@ def create_contact_sheet(device_dir, output_path):
         col = idx % cols
         row = idx // cols
         x = padding + col * cell_w
-        y = padding + row * cell_h + label_h
+        y = padding + sum(row_heights[:row]) + label_h
         sheet.paste(thumb, (x, y))
 
         label = os.path.basename(f).replace(".png", "")
-        draw.text((x, padding + row * cell_h), label[:30], fill=(232, 234, 240, 255))
+        draw.text((x, padding + sum(row_heights[:row])), label[:30], fill=(232, 234, 240, 255))
 
     sheet.save(output_path)
     print(f"  Saved: {output_path} ({sheet_w}x{sheet_h})")
