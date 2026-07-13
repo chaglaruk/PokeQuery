@@ -25,6 +25,16 @@ test.describe('Onboarding flow (scenarios 2-5)', () => {
     await expect(page.getByText('Next', { exact: false })).toBeVisible()
   })
 
+  test('3b. both onboarding pages finish their entrance animation', async ({ page }) => {
+    await gotoRoute(page, '/onboarding')
+    const panel = page.locator('.onboarding-page-enter')
+    await expect(panel).toHaveCSS('opacity', '1')
+    await expect(panel).toHaveCSS('transform', 'none')
+    await page.getByText('Next', { exact: false }).click()
+    await expect(panel).toHaveCSS('opacity', '1')
+    await expect(panel).toHaveCSS('transform', 'none')
+  })
+
   test('4. onboarding completion persists across reload (Start building)', async ({ page }) => {
     await gotoRoute(page, '/onboarding')
     // Advance to page 2

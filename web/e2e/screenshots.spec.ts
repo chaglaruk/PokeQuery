@@ -69,11 +69,22 @@ function deviceLabel(projectName: string): string {
   }
 }
 
-async function screenshot(page: Page, projectName: string, stateName: string, fullPage = true) {
+async function waitForEntrance(page: Page) {
+  const panel = page.locator('.onboarding-page-enter')
+  await expect(panel).toHaveCSS('opacity', '1')
+  await expect(panel).toHaveCSS('transform', 'none')
+  await panel.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)))
+}
+
+async function screenshot(page: Page, projectName: string, stateName: string, capture: 'viewport' | 'full-content' = 'viewport') {
   const dir = path.join(SCREENSHOT_DIR, deviceLabel(projectName))
   fs.mkdirSync(dir, { recursive: true })
   const filePath = path.join(dir, `${stateName}.png`)
-  await page.screenshot({ path: filePath, fullPage })
+  const qaStyle = capture === 'full-content'
+    ? await page.addStyleTag({ content: '.bottom-nav { display: none !important; } .content-with-nav { padding-bottom: 16px !important; }' })
+    : null
+  await page.screenshot({ path: filePath, fullPage: capture === 'full-content' })
+  await qaStyle?.evaluate(element => element.remove())
   console.log(`  Saved: ${filePath}`)
 }
 
@@ -84,42 +95,50 @@ test('generate current PWA visual QA states', async ({ page }) => {
   await page.goto('')
   await expect(page).toHaveURL(/#\/onboarding/)
   await expect(page.locator('img[src*="onboarding_hero"]')).toBeVisible()
-  await screenshot(page, projectName, '01-onboarding-page-1')
+  await waitForEntrance(page)
+  await screenshot(page, projectName, '01-onboarding-page-1-viewport')
 
   await page.getByText('Next', { exact: false }).click()
   await expect(page.getByText('Review first, act second')).toBeVisible()
-  await screenshot(page, projectName, '02-onboarding-page-2')
+  await waitForEntrance(page)
+  await screenshot(page, projectName, '02-onboarding-page-2-viewport')
 
   await page.getByText('Start building', { exact: false }).click()
   await expect(page).toHaveURL(/#\/$/)
-  await screenshot(page, projectName, '03-home-en')
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await screenshot(page, projectName, '03-home-en-viewport')
 
   await gotoRoute(page, '/settings')
   await page.locator('select').first().selectOption('Türkçe')
   await gotoRoute(page, '/')
   await expect(page.getByText('Güvenli Temizlik').first()).toBeVisible()
-  await screenshot(page, projectName, '04-home-tr')
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await screenshot(page, projectName, '04-home-tr-viewport')
   await gotoRoute(page, '/settings')
   await page.locator('select').first().selectOption('English')
 
   await gotoRoute(page, '/assistant')
   const assistantInput = page.getByRole('textbox', { name: 'Search Assistant' })
   await expect(assistantInput).toBeVisible()
-  await screenshot(page, projectName, '05-search-assistant-empty')
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await screenshot(page, projectName, '05-search-assistant-empty-viewport')
 
   await assistantInput.fill('shiny legendary')
   await assistantInput.press('Enter')
   await expect(page.locator('.search-string')).toBeVisible()
-  await screenshot(page, projectName, '06-search-assistant-success')
+  await page.locator('.search-string').scrollIntoViewIfNeeded()
+  await screenshot(page, projectName, '06-search-assistant-success-viewport')
 
   await assistantInput.fill('xyz qwerty')
   await assistantInput.press('Enter')
   await expect(page.getByRole('status')).toBeVisible()
-  await screenshot(page, projectName, '07-search-assistant-unknown')
+  await page.getByRole('status').scrollIntoViewIfNeeded()
+  await screenshot(page, projectName, '07-search-assistant-unknown-viewport')
 
   await gotoRoute(page, '/goal/safe_cleanup')
   await expect(page.locator('.search-string')).toBeVisible()
-  await screenshot(page, projectName, '08-safe-cleanup')
+  await page.locator('.search-string').scrollIntoViewIfNeeded()
+  await screenshot(page, projectName, '08-safe-cleanup-viewport')
 
   await page.route(PRODUCTION_FEED_URL, route => route.fulfill({
     status: 200,
@@ -128,27 +147,30 @@ test('generate current PWA visual QA states', async ({ page }) => {
   }))
   await gotoRoute(page, '/events')
   await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
-  await screenshot(page, projectName, '09-event-guide-top', false)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await screenshot(page, projectName, '09-event-guide-top-viewport')
 
   await page.locator('[data-event-id="screenshot-upcoming"]').click()
   const eventDialog = page.getByRole('dialog', { name: 'Upcoming Review Event' })
   await expect(eventDialog).toHaveCSS('transform', 'none')
-  await screenshot(page, projectName, '10-event-detail-dialog', false)
+  await screenshot(page, projectName, '10-event-detail-dialog-viewport')
   await eventDialog.getByRole('button', { name: /close/i }).click()
 
   await page.locator('[data-pokemon-name="Pikachu"]').first().click()
   const pokemonDialog = page.getByRole('dialog', { name: 'Pikachu' })
   await expect(pokemonDialog).toHaveCSS('transform', 'none')
-  await screenshot(page, projectName, '11-pokemon-detail-dialog', false)
+  await screenshot(page, projectName, '11-pokemon-detail-dialog-viewport')
   await pokemonDialog.getByRole('button', { name: /close/i }).click()
 
   await gotoRoute(page, '/settings')
   await expect(page.locator('select').first()).toBeVisible()
-  await screenshot(page, projectName, '12-settings')
+  await expect(page.locator('.bottom-nav .nav-item.active')).toHaveText('Settings')
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await screenshot(page, projectName, '12-settings-viewport')
 
   await page.getByText('What Changed / Changelog').click()
   await expect(page).toHaveURL(/#\/changelog/)
-  await screenshot(page, projectName, '13-changelog')
+  await screenshot(page, projectName, '13-changelog-full-content', 'full-content')
 
   await gotoRoute(page, '/events')
   await page.waitForFunction(() => localStorage.getItem('pq_event_feed_cache') !== null)
@@ -156,15 +178,17 @@ test('generate current PWA visual QA states', async ({ page }) => {
   await page.route(PRODUCTION_FEED_URL, route => route.fulfill({ status: 503, body: 'Service Unavailable' }))
   await page.getByText('Refresh now').click()
   await expect(page.getByText('Saved feed', { exact: false }).first()).toBeVisible({ timeout: 20000 })
-  await screenshot(page, projectName, '14-offline-cached-feed', false)
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await screenshot(page, projectName, '14-offline-cached-feed-viewport')
 
   await gotoRoute(page, '/')
   await page.evaluate(() => localStorage.setItem('pq_screenshot_need_refresh', 'true'))
   await page.reload()
   const updateBanner = page.getByTestId('pwa-update-banner')
   await expect(updateBanner).toBeVisible()
+  await page.evaluate(() => window.scrollTo(0, 0))
   await updateBanner.evaluate(element => Promise.all(
     element.getAnimations().map(animation => animation.finished)
   ))
-  await screenshot(page, projectName, '15-update-banner', false)
+  await screenshot(page, projectName, '15-update-banner-viewport')
 })

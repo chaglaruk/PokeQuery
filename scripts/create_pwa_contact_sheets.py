@@ -78,7 +78,7 @@ def main():
 
     # Create a combined contact sheet with one screenshot per device (Home screen)
     print("\nCreating cross-device comparison contact sheet...")
-    state = "03-home-en.png"
+    state = "03-home-en-viewport.png"
     files = []
     for device in device_dirs:
         f = os.path.join(base_dir, device, state)
