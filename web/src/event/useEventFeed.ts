@@ -1,7 +1,8 @@
 // React hook for loading and caching the event feed.
 
 import { useState, useEffect, useCallback } from 'react'
-import { fetchEventFeed, sortByImportanceThenDate, getLocalized, type FeedSource } from './eventFeedService'
+import { fetchEventFeed, getLocalized, type FeedSource } from './eventFeedService'
+import { activeEvents, systemClock, type Clock } from './eventLifecycle'
 import type { EventFeed, EventFeedEntry, LocaleCode } from '../types'
 
 export interface UseEventFeedResult {
@@ -13,7 +14,7 @@ export interface UseEventFeedResult {
   refresh: () => void
 }
 
-export function useEventFeed(_locale: LocaleCode): UseEventFeedResult {
+export function useEventFeed(_locale: LocaleCode, clock: Clock = systemClock): UseEventFeedResult {
   const [feed, setFeed] = useState<EventFeed | null>(null)
   const [source, setSource] = useState<FeedSource | null>(null)
   const [loading, setLoading] = useState(true)
@@ -47,7 +48,9 @@ export function useEventFeed(_locale: LocaleCode): UseEventFeedResult {
     return () => { cancelled = true }
   }, [refreshKey])
 
-  const events = feed ? sortByImportanceThenDate(feed.events) : []
+  // Lifecycle-aware view: hide ENDED events, sort CURRENT-first by start date.
+  // Injecting the clock allows tests to pin "today".
+  const events = feed ? activeEvents(feed.events, clock) : []
 
   return { events, source, loading, error, lastChecked, refresh }
 }

@@ -67,12 +67,12 @@ export interface EventPokemonEntry {
   noteEs?: string | null
   noteFr?: string | null
   noteIt?: string | null
-  badges?: string[] | null
-  badgesTr?: string[] | null
-  badgesDe?: string[] | null
-  badgesEs?: string[] | null
-  badgesFr?: string[] | null
-  badgesIt?: string[] | null
+  badges?: string | string[] | null
+  badgesTr?: string | string[] | null
+  badgesDe?: string | string[] | null
+  badgesEs?: string | string[] | null
+  badgesFr?: string | string[] | null
+  badgesIt?: string | string[] | null
   spriteKey?: string | null
 }
 
