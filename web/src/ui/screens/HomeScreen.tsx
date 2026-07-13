@@ -47,7 +47,7 @@ export function HomeScreen() {
       </div>
 
       {/* Goal grid — compact 2-column layout */}
-      <div className="section-title" style={{ marginTop: 0 }}>{t('home_more_tools')}</div>
+      <div className="section-title" style={{ marginTop: 0 }}>{t('home_goals')}</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         {goals.map(goal => (
           <div
@@ -66,7 +66,7 @@ export function HomeScreen() {
       </div>
 
       {/* Tools */}
-      <div className="section-title">{t('goal_explain')}</div>
+      <div className="section-title">{t('home_more_tools')}</div>
       {tools.map(tool => (
         <div
           key={tool.goalId}
