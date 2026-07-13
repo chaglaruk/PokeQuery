@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { useEventFeed, useLocalizedEvent } from '@event/useEventFeed'
@@ -6,9 +6,14 @@ import {
   groupEvents,
   remainingTimeLabel,
   dateLabel,
+  effectiveStatus,
+  determineCategory,
   systemClock,
+  type Clock,
 } from '@event/eventLifecycle'
 import { getLocalized } from '@event/eventFeedService'
+import { Dialog } from '@ui/components/Dialog'
+import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
 import type { EventFeedEntry, EventPokemonEntry, LocaleCode } from '@/types'
 
 // Sprite src helper — maps spriteKey to public/sprites/event_*.png
@@ -36,42 +41,27 @@ function themeTone(themeKey: string): string {
   }
 }
 
-// Category → compact chip label + color
-function categoryChip(event: EventFeedEntry, lang: string): { label: string; color: string } {
-  const cat = determineCategoryLabel(event)
-  const t: Record<string, Record<string, string>> = {
-    MAJOR_GAMEPLAY: { en: 'Major', tr: 'Buyuk', de: 'Gross', es: 'Mayor', fr: 'Majeur', it: 'Maggiore' },
-    LIMITED_GAMEPLAY: { en: 'Limited', tr: 'Sinirli', de: 'Begrenzt', es: 'Limitado', fr: 'Limite', it: 'Limitato' },
-    ROUTINE_ROTATION: { en: 'Rotation', tr: 'Rotasyon', de: 'Rotation', es: 'Rotacion', fr: 'Rotation', it: 'Rotazione' },
-    RAID_ROTATION: { en: 'Rotation', tr: 'Rotasyon', de: 'Rotation', es: 'Rotacion', fr: 'Rotation', it: 'Rotazione' },
-    SEASON_GBL: { en: 'Rotation', tr: 'Rotasyon', de: 'Rotation', es: 'Rotacion', fr: 'Rotation', it: 'Rotazione' },
-    NEWS_PROMO: { en: 'News', tr: 'Duyuru', de: 'News', es: 'News', fr: 'News', it: 'News' },
-    REWARD_DROP: { en: 'News', tr: 'Duyuru', de: 'News', es: 'News', fr: 'News', it: 'News' },
-    ANNOUNCEMENT: { en: 'News', tr: 'Duyuru', de: 'News', es: 'News', fr: 'News', it: 'News' },
-  }
-  const colors: Record<string, string> = {
-    MAJOR_GAMEPLAY: 'var(--accent)',
-    LIMITED_GAMEPLAY: 'var(--warning)',
-    ROUTINE_ROTATION: 'var(--info)',
-    RAID_ROTATION: 'var(--info)',
-    SEASON_GBL: 'var(--info)',
-  }
-  return { label: t[cat]?.[lang] ?? cat, color: colors[cat] ?? 'var(--text-dim)' }
+function categoryChipColor(category: string): string {
+  if (category === 'MAJOR_GAMEPLAY') return 'var(--accent)'
+  if (category === 'LIMITED_GAMEPLAY') return 'var(--warning)'
+  if (category === 'SEASON_GBL' || category === 'ROUTINE_ROTATION' || category === 'RAID_ROTATION') return 'var(--info)'
+  return 'var(--text-dim)'
 }
 
-function determineCategoryLabel(event: EventFeedEntry): string {
-  const cat = (event.eventCategory ?? '').toUpperCase().trim()
-  if (cat) return cat
-  const title = (event.title ?? '').toLowerCase()
-  const kind = (event.themeKey ?? '').toLowerCase()
-  if (title.includes('gbl') || title.includes('go battle league') || title.includes('league') || title.includes('cup')) return 'SEASON_GBL'
-  if (title.includes('spotlight hour') || title.includes('raid hour') || title.includes('max monday') || kind === 'spotlight_hour') return 'ROUTINE_ROTATION'
-  if (!title.includes('raid day') && (title.includes('5-star') || title.includes('mega raid') || title.includes('shadow raid') || title.includes('raid rotation'))) return 'RAID_ROTATION'
-  if (title.includes('go fest') || title.includes('go tour') || title.includes('safari zone') || title.includes('community day') || title.includes('road of legends') || kind === 'community_day') return 'MAJOR_GAMEPLAY'
-  if (title.includes('twitch drops') || title.includes('prime gaming') || title.includes('reward') || title.includes('drop')) return 'REWARD_DROP'
-  if (title.includes('save the date') || title.includes('wallpapers') || title.includes('diary') || title.includes('promo') || title.includes('store') || title.includes('coupon') || title.includes('code')) return 'NEWS_PROMO'
-  if (title.includes('announcement') || title.includes('partnership') || title.includes('showcase') || title.includes('professor willow') || title.includes('scopely')) return 'ANNOUNCEMENT'
-  return 'LIMITED_GAMEPLAY'
+function categoryLabelKey(category: string): string {
+  switch (category) {
+    case 'MAJOR_GAMEPLAY': return 'event_chip_major'
+    case 'LIMITED_GAMEPLAY': return 'event_chip_limited'
+    case 'SEASON_GBL':
+    case 'ROUTINE_ROTATION':
+    case 'RAID_ROTATION':
+      return 'event_chip_rotation'
+    case 'NEWS_PROMO':
+    case 'REWARD_DROP':
+    case 'ANNOUNCEMENT':
+      return 'event_chip_news'
+    default: return 'event_chip_news'
+  }
 }
 
 // Localized title (reuses getLocalized with new fields)
@@ -104,15 +94,24 @@ function pokeLocalizedBadges(entry: EventPokemonEntry, locale: LocaleCode): stri
   return typeof val === 'string' ? val : val.join(', ')
 }
 
+// Status label keys — replaces all hardcoded `locale === 'tr' ? '...' : '...'`
+function statusLabelKey(status: 'CURRENT' | 'UPCOMING' | 'ENDED'): string {
+  switch (status) {
+    case 'CURRENT': return 'event_chip_live'
+    case 'UPCOMING': return 'event_chip_upcoming'
+    default: return 'event_main_card_ended'
+  }
+}
+
 export function EventsScreen() {
   const { t, locale } = useI18n()
   const navigate = useNavigate()
   const { events: allEvents, source, loading, error, lastChecked, refresh } = useEventFeed(locale)
-  const [dialogs, setDialogs] = useState<Record<string, { entry?: EventPokemonEntry; kind?: string }>>({})
+  const [openEvent, setOpenEvent] = useState<EventFeedEntry | null>(null)
+  const [openPokemon, setOpenPokemon] = useState<{ entry: EventPokemonEntry; event: EventFeedEntry } | null>(null)
   const clock = systemClock
 
-  // Use full groupEvents for parity with Android Event Guide sections.
-  const sections = groupEvents(allEvents, clock)
+  const sections = useMemo(() => groupEvents(allEvents, clock), [allEvents, clock])
 
   const sourceLabel = source === 'online' ? t('event_status_live_feed')
     : source === 'cached' ? t('event_status_saved_guide')
@@ -120,19 +119,35 @@ export function EventsScreen() {
     : ''
   const isLoading = loading && sections.allActive.length === 0
 
+  // ── Deduplication proof ──
+  // We collect every event ID rendered into any priority section
+  // (featured/happeningNow/importantUpcoming/rotations/news) and feed the
+  // remainder (only events NOT rendered elsewhere) to "All Active". This
+  // guarantees each event appears EXACTLY once across all visible sections.
+  const remainder = useMemo(() => {
+    const renderedIds = new Set<string>()
+    if (sections.featured) renderedIds.add(sections.featured.id)
+    for (const e of sections.happeningNow) renderedIds.add(e.id)
+    for (const e of sections.importantUpcoming) renderedIds.add(e.id)
+    for (const e of sections.rotations) renderedIds.add(e.id)
+    for (const e of sections.news) renderedIds.add(e.id)
+    return sections.allActive.filter(e => !renderedIds.has(e.id))
+  }, [sections])
+
   return (
     <div className="page content-with-nav">
       {/* Header */}
       <div className="page-header">
-        <button className="back-btn" onClick={() => navigate('/')}>‹</button>
+        <button className="back-btn" onClick={() => navigate('/')} aria-label={t('back')}>{'\u2039'}</button>
         <h1 style={{ flex: 1 }}>{t('events_title')}</h1>
         <button
           className="btn btn-secondary"
           onClick={refresh}
           disabled={loading && sections.allActive.length > 0}
+          aria-label={t('events_refresh')}
           style={{ width: 'auto', padding: '6px 14px', fontSize: '13px' }}
         >
-          <span style={{ marginRight: '4px', fontSize: '16px', lineHeight: 1 }}>{'\u21bb'}</span>
+          <span style={{ marginRight: '4px', fontSize: '16px', lineHeight: 1 }} aria-hidden="true">{'\u21bb'}</span>
           {t('events_refresh')}
         </button>
       </div>
@@ -141,7 +156,7 @@ export function EventsScreen() {
       {source && (
         <div style={{ marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
+            <span aria-hidden="true" style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
             <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)' }}>{sourceLabel}</span>
           </div>
           {lastChecked && (
@@ -154,17 +169,17 @@ export function EventsScreen() {
 
       {/* Loading spinner (only when empty) */}
       {isLoading && (
-        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+        <div style={{ textAlign: 'center', padding: '48px 0' }} role="status">
           <div style={{
             width: '32px', height: '32px', border: '3px solid var(--border)',
             borderTopColor: 'var(--accent)', borderRadius: '50%',
             animation: 'spin 0.8s linear infinite', margin: '0 auto',
-          }} />
+          }} aria-hidden="true" />
         </div>
       )}
 
       {error && (
-        <div className="card" style={{ borderColor: 'var(--danger)' }}>
+        <div className="card" style={{ borderColor: 'var(--danger)' }} role="alert">
           <p style={{ color: 'var(--danger)', fontSize: '14px' }}>{error}</p>
         </div>
       )}
@@ -189,7 +204,8 @@ export function EventsScreen() {
             lastChecked={lastChecked}
             clock={clock}
             locale={locale}
-            onOpenPokemon={(entry) => setDialogs(d => ({ ...d, [entry.name]: { entry } }))}
+            onOpenPokemon={(entry) => setOpenPokemon({ entry, event: sections.featured! })}
+            onOpenDetail={() => setOpenEvent(sections.featured)}
           />
         </>
       )}
@@ -198,17 +214,20 @@ export function EventsScreen() {
       {sections.happeningNow.length > 0 && (
         <>
           <div className="section-title">{t('event_section_live')}</div>
-          {sections.happeningNow.slice(0, 3).map(event => (
-            <CompactEventCard
-              key={`now-${event.id}`}
-              event={event}
-              clock={clock}
-              locale={locale}
-              statusLabel={locale === 'tr' ? 'Canli' : 'Live'}
-              statusColor="var(--accent)"
-              onClick={() => setDialogs(d => ({ ...d, [event.id]: { kind: 'detail' } }))}
-            />
-          ))}
+          {sections.happeningNow.map(event => {
+            const status = effectiveStatus(event, clock.todayIso())
+            return (
+              <CompactEventCard
+                key={`now-${event.id}`}
+                event={event}
+                clock={clock}
+                locale={locale}
+                statusLabel={t(statusLabelKey(status))}
+                statusColor="var(--accent)"
+                onClick={() => setOpenEvent(event)}
+              />
+            )
+          })}
         </>
       )}
 
@@ -216,17 +235,20 @@ export function EventsScreen() {
       {sections.importantUpcoming.length > 0 && (
         <>
           <div className="section-title">{t('event_section_upcoming')}</div>
-          {sections.importantUpcoming.map(event => (
-            <CompactEventCard
-              key={`up-${event.id}`}
-              event={event}
-              clock={clock}
-              locale={locale}
-              statusLabel={locale === 'tr' ? 'Yakinda' : 'Upcoming'}
-              statusColor="var(--warning)"
-              onClick={() => setDialogs(d => ({ ...d, [event.id]: { kind: 'detail' } }))}
-            />
-          ))}
+          {sections.importantUpcoming.map(event => {
+            const status = effectiveStatus(event, clock.todayIso())
+            return (
+              <CompactEventCard
+                key={`up-${event.id}`}
+                event={event}
+                clock={clock}
+                locale={locale}
+                statusLabel={t(statusLabelKey(status))}
+                statusColor="var(--warning)"
+                onClick={() => setOpenEvent(event)}
+              />
+            )
+          })}
         </>
       )}
 
@@ -234,17 +256,20 @@ export function EventsScreen() {
       {sections.rotations.length > 0 && (
         <>
           <div className="section-title">{t('event_section_rotations')}</div>
-          {sections.rotations.map(event => (
-            <CompactEventCard
-              key={`rot-${event.id}`}
-              event={event}
-              clock={clock}
-              locale={locale}
-              statusLabel={locale === 'tr' ? 'Rotasyon' : 'Rotation'}
-              statusColor="var(--info)"
-              onClick={() => setDialogs(d => ({ ...d, [event.id]: { kind: 'detail' } }))}
-            />
-          ))}
+          {sections.rotations.map(event => {
+            const status = effectiveStatus(event, clock.todayIso())
+            return (
+              <CompactEventCard
+                key={`rot-${event.id}`}
+                event={event}
+                clock={clock}
+                locale={locale}
+                statusLabel={t(statusLabelKey(status))}
+                statusColor="var(--info)"
+                onClick={() => setOpenEvent(event)}
+              />
+            )
+          })}
         </>
       )}
 
@@ -252,35 +277,41 @@ export function EventsScreen() {
       {sections.news.length > 0 && (
         <>
           <div className="section-title">{t('event_section_news')}</div>
-          {sections.news.map(event => (
-            <CompactEventCard
-              key={`news-${event.id}`}
-              event={event}
-              clock={clock}
-              locale={locale}
-              statusLabel={locale === 'tr' ? 'Duyuru' : 'News'}
-              statusColor="var(--text-dim)"
-              onClick={() => setDialogs(d => ({ ...d, [event.id]: { kind: 'detail' } }))}
-            />
-          ))}
+          {sections.news.map(event => {
+            const status = effectiveStatus(event, clock.todayIso())
+            return (
+              <CompactEventCard
+                key={`news-${event.id}`}
+                event={event}
+                clock={clock}
+                locale={locale}
+                statusLabel={t(statusLabelKey(status))}
+                statusColor="var(--text-dim)"
+                onClick={() => setOpenEvent(event)}
+              />
+            )
+          })}
         </>
       )}
 
-      {/* ── All Active ── */}
-      {sections.allActive.length > 0 && (
+      {/* ── Remainder (events not already shown in any priority section) ── */}
+      {remainder.length > 0 && (
         <>
           <div className="section-title">{t('event_section_all')}</div>
-          {sections.allActive.map(event => (
-            <CompactEventCard
-              key={`all-${event.id}`}
-              event={event}
-              clock={clock}
-              locale={locale}
-              statusLabel={categoryChip(event, locale).label}
-              statusColor={categoryChip(event, locale).color}
-              onClick={() => setDialogs(d => ({ ...d, [event.id]: { kind: 'detail' } }))}
-            />
-          ))}
+          {remainder.map(event => {
+            const cat = determineCategory(event)
+            return (
+              <CompactEventCard
+                key={`all-${event.id}`}
+                event={event}
+                clock={clock}
+                locale={locale}
+                statusLabel={t(categoryLabelKey(cat))}
+                statusColor={categoryChipColor(cat)}
+                onClick={() => setOpenEvent(event)}
+              />
+            )
+          })}
         </>
       )}
 
@@ -291,9 +322,26 @@ export function EventsScreen() {
         </p>
       </div>
 
-      {Object.keys(dialogs).length > 0 && (
-        <div style={{ display: 'none' }} /> /* placeholder until dialog overlay wired */
-      )}
+      {/* Compact event detail dialog */}
+      <EventDetailDialog
+        event={openEvent}
+        onClose={() => setOpenEvent(null)}
+        closeLabel={t('event_dialog_close')}
+        clock={clock}
+        locale={locale}
+        sourceLabel={sourceLabel}
+        lastChecked={lastChecked}
+        onOpenPokemon={(entry) => setOpenPokemon({ entry, event: openEvent! })}
+      />
+
+      {/* Pokémon-entry dialog */}
+      <PokemonDetailDialog
+        data={openPokemon}
+        onClose={() => setOpenPokemon(null)}
+        closeLabel={t('event_dialog_close')}
+        locale={locale}
+        eventTitle={openPokemon?.event ? eventLocaleTitle(openPokemon.event, locale) : ''}
+      />
     </div>
   )
 }
@@ -307,17 +355,19 @@ function EventMainCard({
   clock,
   locale,
   onOpenPokemon,
+  onOpenDetail,
 }: {
   event: EventFeedEntry
   sourceLabel: string
   lastChecked: string | null
-  clock: { todayIso: () => string; nowMillis: () => number }
+  clock: Clock
   locale: LocaleCode
   onOpenPokemon: (entry: EventPokemonEntry) => void
+  onOpenDetail: () => void
 }) {
   const { t } = useI18n()
   const localized = useLocalizedEvent(event, locale)
-  const [copied, setCopied] = useState(false)
+  const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
   const tone = themeTone(event.themeKey)
   const timerLabel = remainingTimeLabel(event, clock, locale)
   const dLabel = dateLabel(event, locale)
@@ -326,7 +376,11 @@ function EventMainCard({
 
   const handleCopy = useCallback(async () => {
     if (!search) return
-    try { await navigator.clipboard.writeText(search); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* no clipboard */ }
+    const res = await copyToClipboard(search)
+    setClipboard(res)
+    if (res.status === 'copied') {
+      setTimeout(() => setClipboard(null), 2500)
+    }
   }, [search])
 
   if (!localized) return null
@@ -336,9 +390,15 @@ function EventMainCard({
       {/* Timer badge + theme mark */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <span className="badge" style={{ background: `${tone}22`, color: tone }}>{timerLabel}</span>
-        <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: `${tone}1a`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: '18px', opacity: 0.6 }}>{'\u2728'}</span>
-        </div>
+        <button
+          type="button"
+          className="dialog-close"
+          aria-label={t('event_open_details')}
+          onClick={onOpenDetail}
+          style={{ background: `${tone}1a` }}
+        >
+          {'\u2139'}
+        </button>
       </div>
 
       {/* Title + date */}
@@ -350,14 +410,14 @@ function EventMainCard({
         <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.4, marginBottom: '10px' }}>{localized.summary}</p>
       )}
 
-      {/* Pokemon sprite row */}
+      {/* Pokémon sprite row */}
       {pokemon.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
           {pokemon.slice(0, 6).map((p: EventPokemonEntry, idx: number) => (
             <div
               key={`sprite-${idx}`}
-              className="card"
-              style={{ padding: '8px', cursor: 'pointer', textAlign: 'center' }}
+              className="card card-tap"
+              style={{ padding: '8px', textAlign: 'center' }}
               onClick={() => onOpenPokemon(p)}
             >
               {p.spriteKey ? (
@@ -365,15 +425,17 @@ function EventMainCard({
                   style={{ width: '48px', height: '48px', margin: '0 auto', display: 'block' }} />
               ) : (
                 <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `${tone}1a`, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '22px' }}>?</span>
+                  <span style={{ fontSize: '22px' }} aria-hidden="true">?</span>
                 </div>
               )}
               <p style={{ fontSize: '12px', fontWeight: 700, marginTop: '4px', color: tone }}>
                 {pokeLocalizedName(p, locale)}
               </p>
-              <p style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
-                {pokeLocalizedBadges(p, locale)}
-              </p>
+              {pokeLocalizedBadges(p, locale) && (
+                <p style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
+                  {pokeLocalizedBadges(p, locale)}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -387,8 +449,13 @@ function EventMainCard({
           </p>
           <div className="search-string" style={{ fontSize: '12px', padding: '10px 12px', marginBottom: '8px' }}>{search}</div>
           <button className="btn btn-primary" onClick={handleCopy} style={{ padding: '8px 12px', fontSize: '13px', width: 'auto' }}>
-            {copied ? t('event_copied') : t('event_copy_search')}
+            {t('event_copy_search')}
           </button>
+          {clipboard && (
+            <div className={`clipboard-feedback ${clipboard.status}`} role="status" aria-live="polite">
+              {t(clipboard.i18nKey)}
+            </div>
+          )}
         </>
       ) : (
         <p style={{ fontSize: '13px', color: 'var(--text-dim)', fontStyle: 'italic' }}>
@@ -416,8 +483,8 @@ function CompactEventCard({
   onClick,
 }: {
   event: EventFeedEntry
-  clock: { todayIso: () => string; nowMillis: () => number }
-  locale: string
+  clock: Clock
+  locale: LocaleCode
   statusLabel: string
   statusColor: string
   onClick: () => void
@@ -426,15 +493,18 @@ function CompactEventCard({
   const dLabel = dateLabel(event, locale)
 
   return (
-    <div className="card card-tap" onClick={onClick}>
+    <div className="card card-tap" onClick={onClick} role="button" tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
+      aria-label={`${eventLocaleTitle(event, locale)} — ${statusLabel}`}
+    >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
         {/* Status dot */}
-        <span style={{
+        <span aria-hidden="true" style={{
           width: '8px', height: '8px', borderRadius: '50%', background: statusColor,
           flexShrink: 0, marginTop: '4px',
         }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{eventLocaleTitle(event, locale as LocaleCode)}</p>
+          <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{eventLocaleTitle(event, locale)}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginTop: '3px' }}>
             <span style={{ padding: '1px 5px', borderRadius: '4px', background: `${statusColor}1a`, color: statusColor, fontSize: '9px', fontWeight: 700 }}>
               {statusLabel}
@@ -447,5 +517,273 @@ function CompactEventCard({
         </span>
       </div>
     </div>
+  )
+}
+
+/* ──────────────── EventDetailDialog ──────────────── */
+
+function EventDetailDialog({
+  event,
+  onClose,
+  closeLabel,
+  clock,
+  locale,
+  sourceLabel,
+  lastChecked,
+  onOpenPokemon,
+}: {
+  event: EventFeedEntry | null
+  onClose: () => void
+  closeLabel: string
+  clock: Clock
+  locale: LocaleCode
+  sourceLabel: string
+  lastChecked: string | null
+  onOpenPokemon: (entry: EventPokemonEntry) => void
+}) {
+  const { t } = useI18n()
+  const localized = useLocalizedEvent(event, locale)
+  const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
+  const tone = themeTone(event?.themeKey ?? '')
+  const timerLabel = event ? remainingTimeLabel(event, clock, locale) : ''
+  const dLabel = event ? dateLabel(event, locale) : ''
+  const search = event?.suggestedSearch ?? ''
+  const pokemon = event?.pokemon ?? []
+  const status = event ? effectiveStatus(event, clock.todayIso()) : 'ENDED'
+  const cat = event ? determineCategory(event) : ''
+
+  const handleCopy = useCallback(async () => {
+    if (!search) return
+    const res = await copyToClipboard(search)
+    setClipboard(res)
+    if (res.status === 'copied') setTimeout(() => setClipboard(null), 2500)
+  }, [search])
+
+  const title = event ? eventLocaleTitle(event, locale) : ''
+
+  if (!event) return null
+
+  return (
+    <Dialog
+      open={!!event}
+      title={title}
+      onClose={onClose}
+      closeLabel={closeLabel}
+    >
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+        <span className="badge" style={{ background: `${tone}22`, color: tone }}>{timerLabel}</span>
+        <span className="badge" style={{ background: `${categoryChipColor(cat)}1a`, color: categoryChipColor(cat) }}>
+          {t(categoryLabelKey(cat))}
+        </span>
+        <span className="badge badge-beta">{t(statusLabelKey(status))}</span>
+      </div>
+
+      {dLabel && (
+        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+          <strong>{t('event_dialog_dates')}:</strong> {dLabel}
+        </p>
+      )}
+
+      {localized?.summary && (
+        <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5, marginBottom: '12px' }}>
+          {localized.summary}
+        </p>
+      )}
+
+      {/* Why it matters */}
+      {localized?.note && localized.note.length > 0 && (
+        <div style={{ marginBottom: '12px' }}>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)', marginBottom: '4px' }}>
+            {t('event_dialog_why_matters')}
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>
+            {localized.note}
+          </p>
+        </div>
+      )}
+
+      {/* What to do */}
+      {localized?.prep && localized.prep.length > 0 && (
+        <div style={{ marginBottom: '12px' }}>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--warning)', marginBottom: '4px' }}>
+            {t('event_dialog_what_to_do')}
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>
+            {localized.prep}
+          </p>
+        </div>
+      )}
+
+      {/* Bonus section — only if data exists */}
+      {localized?.bonuses && localized.bonuses.length > 0 && (
+        <div style={{ marginBottom: '12px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--warning)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {t('event_chip_bonus')}
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>{localized.bonuses}</p>
+        </div>
+      )}
+
+      {/* Raid section — only if data exists */}
+      {localized?.raids && localized.raids.length > 0 && (
+        <div style={{ marginBottom: '12px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Raids
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>{localized.raids}</p>
+        </div>
+      )}
+
+      {/* Research section — only if data exists */}
+      {localized?.research && localized.research.length > 0 && (
+        <div style={{ marginBottom: '12px' }}>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Research
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>{localized.research}</p>
+        </div>
+      )}
+
+      {/* Pokémon list */}
+      {pokemon.length > 0 && (
+        <div style={{ marginBottom: '12px' }}>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)', marginBottom: '6px' }}>
+            {t('event_dialog_pokemon')}
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {pokemon.map((p: EventPokemonEntry, idx: number) => (
+              <div
+                key={`pk-${idx}`}
+                className="card card-tap"
+                style={{ padding: '8px', textAlign: 'center' }}
+                onClick={() => onOpenPokemon(p)}
+              >
+                {p.spriteKey ? (
+                  <img src={spriteSrc(p.spriteKey) ?? ''} alt={pokeLocalizedName(p, locale)}
+                    style={{ width: '48px', height: '48px', margin: '0 auto', display: 'block' }} />
+                ) : (
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `${tone}1a`, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '22px' }} aria-hidden="true">?</span>
+                  </div>
+                )}
+                <p style={{ fontSize: '12px', fontWeight: 700, marginTop: '4px', color: tone }}>
+                  {pokeLocalizedName(p, locale)}
+                </p>
+                {pokeLocalizedBadges(p, locale) && (
+                  <p style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
+                    {pokeLocalizedBadges(p, locale)}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suggested search */}
+      {search ? (
+        <>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: tone, marginBottom: '4px' }}>
+            {t('event_suggested_for_event')}
+          </p>
+          <div className="search-string" style={{ fontSize: '12px', padding: '10px 12px', marginBottom: '8px' }}>{search}</div>
+          <button className="btn btn-primary" onClick={handleCopy} style={{ padding: '8px 12px', fontSize: '13px', width: 'auto' }}>
+            {t('event_copy_search')}
+          </button>
+          {clipboard && (
+            <div className={`clipboard-feedback ${clipboard.status}`} role="status" aria-live="polite">
+              {t(clipboard.i18nKey)}
+            </div>
+          )}
+        </>
+      ) : (
+        <p style={{ fontSize: '13px', color: 'var(--text-dim)', fontStyle: 'italic' }}>
+          {t('event_dialog_no_search')}
+        </p>
+      )}
+
+      {/* Source + status */}
+      <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
+        {event.sourceName && (
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            <strong>{t('event_dialog_source')}:</strong> {event.sourceName}
+          </p>
+        )}
+        <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+          <strong>{t('event_status_label', t(statusLabelKey(status)))}</strong>{sourceLabel && ` · ${sourceLabel}`}
+        </p>
+        {lastChecked && (
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            {t('event_context_last_checked', new Date(lastChecked).toLocaleString())}
+          </p>
+        )}
+      </div>
+    </Dialog>
+  )
+}
+
+/* ──────────────── PokemonDetailDialog ──────────────── */
+
+function PokemonDetailDialog({
+  data,
+  onClose,
+  closeLabel,
+  locale,
+  eventTitle,
+}: {
+  data: { entry: EventPokemonEntry; event: EventFeedEntry } | null
+  onClose: () => void
+  closeLabel: string
+  locale: LocaleCode
+  eventTitle: string
+}) {
+  if (!data) return null
+  const { entry, event } = data
+  const tone = themeTone(event.themeKey)
+  const name = pokeLocalizedName(entry, locale)
+  const badges = pokeLocalizedBadges(entry, locale)
+
+  return (
+    <Dialog
+      open={!!data}
+      title={name}
+      onClose={onClose}
+      closeLabel={closeLabel}
+    >
+      {/* Featured-in context */}
+      <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+        {eventTitle}
+      </p>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+        {entry.spriteKey ? (
+          <img src={spriteSrc(entry.spriteKey) ?? ''} alt={name}
+            style={{ width: '96px', height: '96px', display: 'block' }} />
+        ) : (
+          <div style={{
+            width: '96px', height: '96px', borderRadius: '16px', background: `${tone}1a`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ fontSize: '40px' }} aria-hidden="true">?</span>
+          </div>
+        )}
+      </div>
+
+      <p style={{ fontSize: '15px', fontWeight: 700, textAlign: 'center', marginBottom: '6px', color: tone }}>
+        {name}
+      </p>
+
+      {badges && (
+        <p style={{ fontSize: '12px', color: 'var(--text-dim)', textAlign: 'center', marginBottom: '12px' }}>
+          {badges}
+        </p>
+      )}
+
+      {entry.note && (
+        <p style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.5, marginBottom: '12px' }}>
+          {entry.note}
+        </p>
+      )}
+    </Dialog>
   )
 }

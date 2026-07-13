@@ -284,7 +284,7 @@ describe('remainingTimeLabel', () => {
 
   it('returns "Starts tomorrow" for upcoming event starting next day', () => {
     expect(remainingTimeLabel(makeEntry({ startDate: '2026-07-13', endDate: null, status: 'UPCOMING' }), pinnedClock('2026-07-12'), 'en')).toBe('Starts tomorrow')
-    expect(remainingTimeLabel(makeEntry({ startDate: '2026-07-13', endDate: null, status: 'UPCOMING' }), pinnedClock('2026-07-12'), 'tr')).toBe('Yarin basliyor')
+    expect(remainingTimeLabel(makeEntry({ startDate: '2026-07-13', endDate: null, status: 'UPCOMING' }), pinnedClock('2026-07-12'), 'tr')).toBe('Yarın başlıyor')
   })
 
   it('returns coming-up when event UPCOMING but cannot compute precise time', () => {

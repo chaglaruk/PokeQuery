@@ -87,16 +87,26 @@ export function HomeScreen() {
 
       {/* Trust strips */}
       <div className="card" style={{ marginTop: '20px' }}>
-        <p style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>
-          <span style={{ marginRight: '6px' }}>{'\uD83D\uDD12'}</span>
-          {t('home_chip_no_access_title')}
+        <p style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span aria-hidden="true" style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: '26px', height: '26px', borderRadius: '50%',
+            background: 'rgba(11,140,156,0.12)', color: 'var(--accent)',
+            fontSize: '14px', fontWeight: 700, flexShrink: 0,
+          }}>{'\u29BF'}</span>
+          {t('trust_home_no_access')}
         </p>
         <p className="text-muted" style={{ fontSize: '12px' }}>{t('home_chip_no_access_desc')}</p>
       </div>
       <div className="card" style={{ marginBottom: '0' }}>
-        <p style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px' }}>
-          <span style={{ marginRight: '6px' }}>{'\uD83D\uDCE6'}</span>
-          {t('home_chip_review_title')}
+        <p style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span aria-hidden="true" style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: '26px', height: '26px', borderRadius: '50%',
+            background: 'rgba(11,140,156,0.12)', color: 'var(--accent)',
+            fontSize: '14px', fontWeight: 700, flexShrink: 0,
+          }}>{'\u2714'}</span>
+          {t('trust_home_review_first')}
         </p>
         <p className="text-muted" style={{ fontSize: '12px' }}>{t('home_chip_review_desc')}</p>
       </div>

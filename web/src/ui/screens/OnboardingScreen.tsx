@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { SpriteIcon, goalIcon } from '../components/SpriteIcon'
@@ -24,6 +24,20 @@ export function OnboardingScreen() {
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
   const pageCount = 2
+  const [reducedMotion, setReducedMotion] = useState(false)
+  const pageRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReducedMotion(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches)
+    if (mq.addEventListener) mq.addEventListener('change', handler)
+    else if (mq.addListener) mq.addListener(handler)
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', handler)
+      else if (mq.removeListener) mq.removeListener(handler)
+    }
+  }, [])
 
   const handleComplete = () => {
     markOnboardingComplete()
@@ -55,12 +69,20 @@ export function OnboardingScreen() {
         </button>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div ref={pageRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         {page === 0 && (
-          <div>
+          <div
+            className="onboarding-page onboarding-page-enter"
+            data-reduced-motion={reducedMotion ? 'true' : 'false'}
+          >
             <h1 className="visually-hidden">PokeQuery</h1>
+            {/* Hero artwork from existing project assets */}
             <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-              <SpriteIcon sprite="pokequery_wordmark" alt="PokeQuery" size={200} />
+              <SpriteIcon sprite="onboarding_hero" alt="PokeQuery" size={200} />
+            </div>
+            {/* Wordmark below hero */}
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <SpriteIcon sprite="pokequery_wordmark" alt="PokeQuery" size={180} />
             </div>
             <div
               style={{
@@ -79,7 +101,12 @@ export function OnboardingScreen() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {features.map(f => (
                 <div key={f.titleKey} className="card" style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '24px', flexShrink: 0 }}>{f.icon}</span>
+                  <span aria-hidden="true" style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: '40px', height: '40px', borderRadius: '12px',
+                    background: 'rgba(11,140,156,0.12)', color: 'var(--accent)',
+                    fontSize: '20px', flexShrink: 0,
+                  }}>{f.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: '14px', fontWeight: 700 }}>{t(f.titleKey)}</p>
                     <p className="text-muted" style={{ marginTop: '2px' }}>{t(f.descKey)}</p>
@@ -91,7 +118,7 @@ export function OnboardingScreen() {
         )}
 
         {page === 1 && (
-          <div style={{ textAlign: 'center' }}>
+          <div className="onboarding-page onboarding-page-enter" data-reduced-motion={reducedMotion ? 'true' : 'false'} style={{ textAlign: 'center' }}>
             <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '16px', lineHeight: 1.25 }}>
               {t('onboarding_card2_title')}
             </h1>
@@ -112,22 +139,24 @@ export function OnboardingScreen() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '18px', paddingBottom: 'calc(18px + var(--safe-bottom))' }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px' }} role="presentation">
           {Array.from({ length: pageCount }).map((_, i) => (
             <div
               key={i}
+              aria-hidden="true"
               style={{
                 width: i === page ? '10px' : '8px',
                 height: i === page ? '10px' : '8px',
                 borderRadius: '50%',
                 background: i === page ? 'var(--accent)' : 'var(--text-muted)',
                 opacity: i === page ? 1 : 0.5,
+                transition: 'all 0.2s ease',
               }}
             />
           ))}
         </div>
         <button className="btn btn-primary" onClick={handleNext} style={{ width: 'auto', minWidth: '200px' }}>
-          {page === pageCount - 1 ? t('onboarding_start_building') : t('onboarding_next')} →
+          {page === pageCount - 1 ? t('onboarding_start_building') : t('onboarding_next')} {'\u2192'}
         </button>
       </div>
     </div>

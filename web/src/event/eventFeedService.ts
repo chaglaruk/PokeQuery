@@ -76,13 +76,18 @@ const localeSuffixMap: Record<LocaleCode, 'Tr' | 'De' | 'Es' | 'Fr' | 'It' | nul
   it: 'It',
 }
 
-export function getLocalized(entry: EventFeedEntry, locale: LocaleCode): {
+export interface LocalizedEvent {
   title: string
   note: string
   summary: string
   prep: string
   eventNotes: string
-} {
+  bonuses?: string | null
+  raids?: string | null
+  research?: string | null
+}
+
+export function getLocalized(entry: EventFeedEntry, locale: LocaleCode): LocalizedEvent {
   const suffix = localeSuffixMap[locale]
   if (!suffix) {
     return {
@@ -91,11 +96,18 @@ export function getLocalized(entry: EventFeedEntry, locale: LocaleCode): {
       summary: entry.summary,
       prep: entry.prep,
       eventNotes: entry.eventNotes,
+      bonuses: entry.bonuses,
+      raids: entry.raids,
+      research: entry.research,
     }
   }
 
   const pick = (en: string, localized: string | null | undefined) =>
     (localized && localized.length > 0) ? localized : en
+  const pickNullable = (en: string | null | undefined, localized: string | null | undefined) => {
+    if (localized && localized.length > 0) return localized
+    return en ?? null
+  }
 
   return {
     title: pick(entry.title, entry[`title${suffix}` as keyof EventFeedEntry] as string | null),
@@ -103,6 +115,9 @@ export function getLocalized(entry: EventFeedEntry, locale: LocaleCode): {
     summary: pick(entry.summary, entry[`summary${suffix}` as keyof EventFeedEntry] as string | null),
     prep: pick(entry.prep, entry[`prep${suffix}` as keyof EventFeedEntry] as string | null),
     eventNotes: pick(entry.eventNotes, entry[`eventNotes${suffix}` as keyof EventFeedEntry] as string | null),
+    bonuses: pickNullable(entry.bonuses, entry[`bonuses${suffix}` as keyof EventFeedEntry] as string | null),
+    raids: pickNullable(entry.raids, entry[`raids${suffix}` as keyof EventFeedEntry] as string | null),
+    research: pickNullable(entry.research, entry[`research${suffix}` as keyof EventFeedEntry] as string | null),
   }
 }
 

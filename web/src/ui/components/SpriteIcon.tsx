@@ -1,22 +1,52 @@
 // Reusable sprite image component for PokeQuery sprites in public/sprites/.
+// Supports both PNG and WebP (auto-detected from the sprite name).
 
 interface SpriteIconProps {
   sprite: string
   alt?: string
   size?: number
+  width?: number
+  height?: number
   className?: string
 }
 
-export function SpriteIcon({ sprite, alt = '', size = 48, className }: SpriteIconProps) {
-  const src = `${import.meta.env.BASE_URL}sprites/${sprite}.png`
+const KNOWN_WEBP = new Set([
+  'onboarding_hero',
+  'onboarding_hero_scene',
+  'onboarding_hero_wide',
+  'home_header_bg',
+  'safe_cleanup_header',
+  'candy_prep_header',
+  'detail_header_blue',
+  'detail_header_gold',
+  'lucky_trade_header',
+  'nundo_header',
+  'pvp_header',
+  'trade_fodder_header',
+  'goal_safe_cleanup_icon',
+  'goal_hundo_icon',
+  'goal_candy_prep_icon',
+  'goal_expert_icon',
+  'goal_tag_icon',
+  'goal_trade_icon',
+  'empty_favorites',
+  'app_icon_source',
+  'logo_wordmark_source',
+])
+
+export function SpriteIcon({ sprite, alt = '', size = 48, width, height, className }: SpriteIconProps) {
+  const ext = KNOWN_WEBP.has(sprite) ? 'webp' : 'png'
+  const src = `${import.meta.env.BASE_URL}sprites/${sprite}.${ext}`
+  const w = width ?? size
+  const h = height ?? size
   return (
     <img
       src={src}
       alt={alt}
-      width={size}
-      height={size}
+      width={w}
+      height={h}
       className={className}
-      style={{ display: 'block' }}
+      style={{ display: 'block', maxWidth: '100%' }}
     />
   )
 }
@@ -37,7 +67,7 @@ const iconGlyphs: Record<string, string> = {
   assistant: '\u2728',         // ✨
   home: '\u2302',              // ⌂ (house)
   settings: '\u2699',          // ⚙
-  lock: '\uD83D\uDD12',        // 🔒
+  lock: '\u29BF',              // ⦿ circled bullet — NO emoji; geometric replacement for 🔒
   cloud_off: '\u2601',         // ☁
   copy: '\u29C9',              // ⧉
 }

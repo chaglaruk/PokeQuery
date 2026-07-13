@@ -138,6 +138,8 @@ function determineCategory(entry: EventFeedEntry): string {
   return 'LIMITED_GAMEPLAY'
 }
 
+export { determineCategory }
+
 /**
  * Hero score — lower is higher priority for featured selection.
  * Pure port of Android `EventContext.heroScore(todayIso)`.
@@ -334,19 +336,19 @@ export function remainingTimeLabel(
 }
 
 function startsToday(lang: string): string {
-  return ({ tr: 'Bugun basliyor', de: 'Beginnt heute', es: 'Empieza hoy', fr: "Commence aujourd'hui", it: 'Inizia oggi' } as Record<string, string>)[lang] ?? 'Starts today'
+  return ({ tr: 'Bugün başlıyor', de: 'Beginnt heute', es: 'Empieza hoy', fr: "Commence aujourd'hui", it: 'Inizia oggi' } as Record<string, string>)[lang] ?? 'Starts today'
 }
 function startsTomorrow(lang: string): string {
-  return ({ tr: 'Yarin basliyor', de: 'Beginnt morgen', es: 'Empiesa manana', fr: 'Commence demain', it: 'Inizia domani' } as Record<string, string>)[lang] ?? 'Starts tomorrow'
+  return ({ tr: 'Yarın başlıyor', de: 'Beginnt morgen', es: 'Empieza mañana', fr: 'Commence demain', it: 'Inizia domani' } as Record<string, string>)[lang] ?? 'Starts tomorrow'
 }
 function labelEnded(lang: string): string {
-  return ({ tr: 'Sona erdi', de: 'Beendet', es: 'Finalizado', fr: 'Termine', it: 'Terminato' } as Record<string, string>)[lang] ?? 'Ended'
+  return ({ tr: 'Sona erdi', de: 'Beendet', es: 'Finalizado', fr: 'Terminé', it: 'Terminato' } as Record<string, string>)[lang] ?? 'Ended'
 }
 function comingUp(lang: string): string {
-  return ({ tr: 'Yakinda', de: 'Demnaechst', es: 'Proximamente', fr: 'Bientot', it: 'In arrivo' } as Record<string, string>)[lang] ?? 'Coming up'
+  return ({ tr: 'Yakında', de: 'Demnächst', es: 'Próximamente', fr: 'Bientôt', it: 'In arrivo' } as Record<string, string>)[lang] ?? 'Coming up'
 }
 function liveNow(lang: string): string {
-  return ({ tr: 'Su an canli', de: 'Jetzt live', es: 'En vivo', fr: 'En cours', it: 'In corso' } as Record<string, string>)[lang] ?? 'Live now'
+  return ({ tr: 'Şu an canlı', de: 'Jetzt live', es: 'En vivo', fr: 'En cours', it: 'In corso' } as Record<string, string>)[lang] ?? 'Live now'
 }
 
 function prefixLabel(diffMs: number, lang: string): string {
@@ -354,9 +356,9 @@ function prefixLabel(diffMs: number, lang: string): string {
   const days = Math.trunc(totalHours / 24)
   const hours = totalHours % 24
   if (lang === 'tr') {
-    if (days > 0 && hours > 0) return `${days} gun ${hours} saat kald\u0131`
-    if (days > 0) return `${days} gun kald\u0131`
-    return 'Bugun bitiyor'
+    if (days > 0 && hours > 0) return `${days} gün ${hours} saat kaldı`
+    if (days > 0) return `${days} gün kaldı`
+    return 'Bugün bitiyor'
   }
   if (lang === 'de') {
     if (days > 0 && hours > 0) return `noch ${days} Tg. ${hours} Std.`
@@ -388,11 +390,11 @@ function forwardLabel(diffMs: number, lang: string): string {
   const days = Math.trunc(totalHours / 24)
   const hours = totalHours % 24
   if (lang === 'tr') {
-    if (days === 1) return 'Yarin basliyor'
-    if (days > 1 && hours > 0) return `${days} gun ${hours} saat sonra`
-    if (days > 1) return `${days} gun sonra`
+    if (days === 1) return 'Yarın başlıyor'
+    if (days > 1 && hours > 0) return `${days} gün ${hours} saat sonra`
+    if (days > 1) return `${days} gün sonra`
     if (hours > 0) return `${hours} saat sonra`
-    return 'Bugun basliyor'
+    return 'Bugün başlıyor'
   }
   if (lang === 'de') {
     if (days === 1) return 'Beginnt morgen'
@@ -402,11 +404,11 @@ function forwardLabel(diffMs: number, lang: string): string {
     return 'Beginnt heute'
   }
   if (lang === 'es') {
-    if (days === 1) return 'Empiesa manana'
+    if (days === 1) return 'Empieza mañana'
     if (days > 1 && hours > 0) return `en ${days} d. ${hours} h.`
     if (days > 1) return `en ${days} d.`
     if (hours > 0) return `en ${hours} h.`
-    return 'Empiesa hoy'
+    return 'Empieza hoy'
   }
   if (lang === 'fr') {
     if (days === 1) return 'Commence demain'

@@ -102,7 +102,7 @@ export function GoalDetailScreen() {
                     color: w.isError ? 'var(--danger)' : 'var(--warning)',
                   }}
                 >
-                  {w.isError ? '⛔ ' : '⚠️ '}{w.message}
+                  {w.isError ? '\u2716 ' : '\u26A0 '}{w.message}
                 </p>
               ))}
             </div>
@@ -202,10 +202,10 @@ export function GoalDetailScreen() {
       {/* Warnings */}
       {finalString.warnings.length > 0 && (
         <div className="card">
-          <div className="section-title" style={{ margin: '0 0 10px' }}>⚠️ {t('goal_detail_watch_out')}</div>
+          <div className="section-title" style={{ margin: '0 0 10px' }}>⚠ {t('goal_detail_watch_out')}</div>
           {finalString.warnings.map((w, i) => (
             <p key={i} className="text-muted" style={{ marginTop: i > 0 ? '8px' : 0, lineHeight: 1.5 }}>
-              • {w}
+              {'\u2022'} {w}
             </p>
           ))}
         </div>
@@ -214,7 +214,7 @@ export function GoalDetailScreen() {
       {/* Engine warnings for expert */}
       {goalId === 'expert' && goal.warnings.length > 0 && (
         <div className="card">
-          <div className="section-title" style={{ margin: '0 0 10px' }}>⚠️ {t('goal_detail_watch_out')}</div>
+          <div className="section-title" style={{ margin: '0 0 10px' }}>⚠ {t('goal_detail_watch_out')}</div>
           {goal.warnings.map((w, i) => (
             <p key={i} className="text-muted" style={{ marginTop: i > 0 ? '8px' : 0 }}>
               • {w}
@@ -246,7 +246,7 @@ export function GoalDetailScreen() {
           onClick={handleCopy}
           disabled={!canCopyResult}
         >
-          {copied ? `✅ ${t('goal_detail_copied')}` : t('goal_detail_copy_search_string')}
+          {copied ? `\u2714 ${t('goal_detail_copied')}` : t('goal_detail_copy_search_string')}
         </button>
         {!canCopyResult && (
           <p className="text-muted" style={{ textAlign: 'center', marginTop: '8px' }}>
@@ -256,8 +256,8 @@ export function GoalDetailScreen() {
       </div>
 
       <div className="card" style={{ marginTop: '16px' }}>
-        <p className="text-muted">🔒 {t('goal_detail_review_matches')}</p>
-        <p className="text-muted" style={{ marginTop: '4px' }}>🚫 {t('goal_detail_never_blind')}</p>
+        <p className="text-muted">{'\u29BF'} {t('goal_detail_review_matches')}</p>
+        <p className="text-muted" style={{ marginTop: '4px' }}>{'\u2716'} {t('goal_detail_never_blind')}</p>
       </div>
     </div>
   )

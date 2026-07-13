@@ -110,7 +110,7 @@ export function ExplainScreen() {
           {/* Copy */}
           <div style={{ marginTop: '16px' }}>
             <button className="btn btn-primary" onClick={handleCopy}>
-              {copied ? `✅ ${t('explain_copied')}` : t('explain_copy_search_string')}
+              {copied ? `\u2714 ${t('explain_copied')}` : t('explain_copy_search_string')}
             </button>
           </div>
         </>
