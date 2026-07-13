@@ -257,7 +257,7 @@ export function dateLabel(entry: EventFeedEntry, locale: string): string | null 
   const parsedStart = start ? Date.parse(start) : NaN
   const parsedEnd = end ? Date.parse(end) : NaN
   if (!Number.isNaN(parsedStart) && (Number.isNaN(parsedEnd) || parsedEnd === parsedStart)) {
-    return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long' }).format(new Date(parsedStart))
+    return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(parsedStart))
   }
   if (!Number.isNaN(parsedStart) && !Number.isNaN(parsedEnd)) {
     const d1 = new Date(parsedStart)
@@ -265,19 +265,22 @@ export function dateLabel(entry: EventFeedEntry, locale: string): string | null 
     const sameYear = d1.getFullYear() === d2.getFullYear()
     const sameMonth = sameYear && d1.getMonth() === d2.getMonth()
     if (sameYear && sameMonth) {
-      const monthYear = new Intl.DateTimeFormat(intlLocale, { month: 'long', year: 'numeric' }).format(d1)
-      const dayStart = new Intl.DateTimeFormat(intlLocale, { day: 'numeric' }).format(d1)
-      const dayEnd = new Intl.DateTimeFormat(intlLocale, { day: 'numeric' }).format(d2)
-      return `${monthYear} ${dayStart}\u2013${dayEnd}`
+      const month = new Intl.DateTimeFormat(intlLocale, { month: 'long', timeZone: 'UTC' }).format(d1)
+      const days = `${d1.getUTCDate()}\u2013${d2.getUTCDate()}`
+      const year = d1.getUTCFullYear()
+      if (locale === 'en') return `${month} ${days}, ${year}`
+      if (locale === 'de') return `${d1.getUTCDate()}.\u2013${d2.getUTCDate()}. ${month} ${year}`
+      if (locale === 'es') return `${days} de ${month} de ${year}`
+      return `${days} ${month} ${year}`
     }
-    const fmtFull = new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long' })
+    const fmtFull = new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long', timeZone: 'UTC' })
     return `${fmtFull.format(d1)} \u2013 ${fmtFull.format(d2)}`
   }
   if (!Number.isNaN(parsedStart)) {
-    return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long' }).format(new Date(parsedStart))
+    return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(parsedStart))
   }
   if (!Number.isNaN(parsedEnd)) {
-    return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long' }).format(new Date(parsedEnd))
+    return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(parsedEnd))
   }
   return null
 }
@@ -361,27 +364,27 @@ function prefixLabel(diffMs: number, lang: string): string {
     return 'Bugün bitiyor'
   }
   if (lang === 'de') {
-    if (days > 0 && hours > 0) return `noch ${days} Tg. ${hours} Std.`
-    if (days > 0) return `noch ${days} Tg.`
+    if (days > 0 && hours > 0) return `Noch ${days} ${days === 1 ? 'Tag' : 'Tage'} und ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`
+    if (days > 0) return `Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}`
     return 'Endet heute'
   }
   if (lang === 'es') {
-    if (days > 0 && hours > 0) return `quedan ${days} d. ${hours} h.`
-    if (days > 0) return `quedan ${days} d.`
+    if (days > 0 && hours > 0) return `Quedan ${days} ${days === 1 ? 'día' : 'días'} y ${hours} ${hours === 1 ? 'hora' : 'horas'}`
+    if (days > 0) return `Quedan ${days} ${days === 1 ? 'día' : 'días'}`
     return 'Termina hoy'
   }
   if (lang === 'fr') {
-    if (days > 0 && hours > 0) return `il reste ${days} j. ${hours} h.`
-    if (days > 0) return `il reste ${days} j.`
+    if (days > 0 && hours > 0) return `Plus que ${days} ${days === 1 ? 'jour' : 'jours'} et ${hours} ${hours === 1 ? 'heure' : 'heures'}`
+    if (days > 0) return `Plus que ${days} ${days === 1 ? 'jour' : 'jours'}`
     return "Se termine aujourd'hui"
   }
   if (lang === 'it') {
-    if (days > 0 && hours > 0) return `mancano ${days} g. ${hours} o.`
-    if (days > 0) return `mancano ${days} g.`
+    if (days > 0 && hours > 0) return `Mancano ${days} ${days === 1 ? 'giorno' : 'giorni'} e ${hours} ${hours === 1 ? 'ora' : 'ore'}`
+    if (days > 0) return `Mancano ${days} ${days === 1 ? 'giorno' : 'giorni'}`
     return 'Termina oggi'
   }
-  if (days > 0 && hours > 0) return `${days}d ${hours}h left`
-  if (days > 0) return `${days}d left`
+  if (days > 0 && hours > 0) return `${days} ${days === 1 ? 'day' : 'days'} ${hours} ${hours === 1 ? 'hour' : 'hours'} left`
+  if (days > 0) return `${days} ${days === 1 ? 'day' : 'days'} left`
   return 'Ends today'
 }
 
@@ -398,35 +401,35 @@ function forwardLabel(diffMs: number, lang: string): string {
   }
   if (lang === 'de') {
     if (days === 1) return 'Beginnt morgen'
-    if (days > 1 && hours > 0) return `in ${days} Tg. ${hours} Std.`
-    if (days > 1) return `in ${days} Tg.`
-    if (hours > 0) return `in ${hours} Std.`
+    if (days > 1 && hours > 0) return `in ${days} Tagen und ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`
+    if (days > 1) return `in ${days} Tagen`
+    if (hours > 0) return `in ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`
     return 'Beginnt heute'
   }
   if (lang === 'es') {
     if (days === 1) return 'Empieza mañana'
-    if (days > 1 && hours > 0) return `en ${days} d. ${hours} h.`
-    if (days > 1) return `en ${days} d.`
-    if (hours > 0) return `en ${hours} h.`
+    if (days > 1 && hours > 0) return `en ${days} días y ${hours} ${hours === 1 ? 'hora' : 'horas'}`
+    if (days > 1) return `en ${days} días`
+    if (hours > 0) return `en ${hours} ${hours === 1 ? 'hora' : 'horas'}`
     return 'Empieza hoy'
   }
   if (lang === 'fr') {
     if (days === 1) return 'Commence demain'
-    if (days > 1 && hours > 0) return `dans ${days} j. ${hours} h.`
-    if (days > 1) return `dans ${days} j.`
-    if (hours > 0) return `dans ${hours} h.`
+    if (days > 1 && hours > 0) return `dans ${days} jours et ${hours} ${hours === 1 ? 'heure' : 'heures'}`
+    if (days > 1) return `dans ${days} jours`
+    if (hours > 0) return `dans ${hours} ${hours === 1 ? 'heure' : 'heures'}`
     return "Commence aujourd'hui"
   }
   if (lang === 'it') {
     if (days === 1) return 'Inizia domani'
-    if (days > 1 && hours > 0) return `tra ${days} g. ${hours} o.`
-    if (days > 1) return `tra ${days} g.`
-    if (hours > 0) return `tra ${hours} o.`
+    if (days > 1 && hours > 0) return `tra ${days} giorni e ${hours} ${hours === 1 ? 'ora' : 'ore'}`
+    if (days > 1) return `tra ${days} giorni`
+    if (hours > 0) return `tra ${hours} ${hours === 1 ? 'ora' : 'ore'}`
     return 'Inizia oggi'
   }
   if (days === 1) return 'Starts tomorrow'
-  if (days > 1 && hours > 0) return `in ${days}d ${hours}h`
-  if (days > 1) return `in ${days}d`
-  if (hours > 0) return `in ${hours}h`
+  if (days > 1 && hours > 0) return `in ${days} days and ${hours} ${hours === 1 ? 'hour' : 'hours'}`
+  if (days > 1) return `in ${days} days`
+  if (hours > 0) return `in ${hours} ${hours === 1 ? 'hour' : 'hours'}`
   return 'Starts today'
 }

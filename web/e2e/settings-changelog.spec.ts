@@ -53,6 +53,14 @@ test.describe('Settings and Changelog (scenario 30)', () => {
     expect(optionTexts.some(t => t.includes('T\u00fcrk\u00e7e'))).toBeTruthy()
   })
 
+  test('30e. Settings keeps native selects dark and touch-sized', async ({ page }) => {
+    for (const select of await page.locator('select').all()) {
+      await expect(select).toHaveCSS('color-scheme', 'dark')
+      await expect(select).not.toHaveCSS('background-color', 'rgb(255, 255, 255)')
+      expect((await select.boundingBox())?.height).toBeGreaterThanOrEqual(44)
+    }
+  })
+
   test('30c. Changelog is reachable from Settings and shows version entries', async ({ page }) => {
     const changelogLink = page.locator('.card.card-tap').filter({ hasText: 'What Changed' })
     await expect(changelogLink).toBeVisible()

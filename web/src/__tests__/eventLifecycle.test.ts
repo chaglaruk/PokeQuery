@@ -242,6 +242,17 @@ describe('canonicalEventKey', () => {
 })
 
 describe('dateLabel', () => {
+  it.each([
+    ['en', 'July 1–31, 2026'],
+    ['tr', '1–31 Temmuz 2026'],
+    ['de', '1.–31. Juli 2026'],
+    ['es', '1–31 de julio de 2026'],
+    ['fr', '1–31 juillet 2026'],
+    ['it', '1–31 luglio 2026'],
+  ])('formats a natural same-month range for %s', (locale, expected) => {
+    expect(dateLabel(makeEntry({ startDate: '2026-07-01', endDate: '2026-07-31' }), locale)).toBe(expected)
+  })
+
   it('formats a single-day event with long date style', () => {
     const label = dateLabel(makeEntry({ startDate: '2026-07-21', endDate: '2026-07-21' }), 'en')
     expect(label).toBeTruthy()
@@ -277,6 +288,18 @@ describe('dateLabel', () => {
 })
 
 describe('remainingTimeLabel', () => {
+  it.each([
+    ['en', '18 days left'],
+    ['tr', '18 gün kaldı'],
+    ['de', 'Noch 18 Tage'],
+    ['es', 'Quedan 18 días'],
+    ['fr', 'Plus que 18 jours'],
+    ['it', 'Mancano 18 giorni'],
+  ])('uses natural countdown copy for %s', (locale, expected) => {
+    const now = Date.parse('2026-07-14') - 1
+    expect(remainingTimeLabel(makeEntry({ startDate: '2026-07-01', endDate: '2026-07-31' }), pinnedClock('2026-07-13', now), locale)).toBe(expected)
+  })
+
   it('returns "Ended" / localized equivalent for ENDED events', () => {
     expect(remainingTimeLabel(makeEntry({ startDate: '2026-06-01', endDate: '2026-06-05' }), pinnedClock('2026-07-12'), 'en')).toBe('Ended')
     expect(remainingTimeLabel(makeEntry({ startDate: '2026-06-01', endDate: '2026-06-05' }), pinnedClock('2026-07-12'), 'tr')).toBe('Sona erdi')
@@ -294,15 +317,14 @@ describe('remainingTimeLabel', () => {
 
   it('returns forward-looking label for upcoming event >1 day away', () => {
     const label = remainingTimeLabel(makeEntry({ startDate: '2026-08-01', endDate: '2026-08-10', status: 'UPCOMING' }), pinnedClock('2026-07-12', Date.parse('2026-07-12') + 12 * 3600 * 1000), 'en')
-    expect(label).toMatch(/^in \d+d/)
+    expect(label).toMatch(/^in \d+ days/)
   })
 
   it('returns countdown prefix when CURRENT', () => {
     // today=2026-07-12, ends 2026-07-15 23:59:59, now=2026-07-12 noon
     const nowMs = Date.parse('2026-07-12') + 12 * 3600 * 1000
     const label = remainingTimeLabel(makeEntry({ startDate: '2026-07-01', endDate: '2026-07-15', status: 'CURRENT' }), pinnedClock('2026-07-12', nowMs), 'en')
-    // 3 days + ~12 hours = "3d 12h left" or "3d 11h left"
-    expect(label).toMatch(/^\d+d \d+h left$|^\d+d left$|^Ends today$/)
+    expect(label).toMatch(/^\d+ days \d+ hours left$|^\d+ days left$|^Ends today$/)
   })
 
   it('returns "Live now" when end-of-day already past', () => {
