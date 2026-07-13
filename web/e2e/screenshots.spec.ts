@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { skipOnboarding, gotoRoute, setStorage } from './helpers'
+import { gotoRoute } from './helpers'
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
@@ -155,17 +155,17 @@ test.describe('Visual QA screenshots', () => {
     await expect(page.getByText('Saved feed', { exact: false }).first()).toBeVisible({ timeout: 20000 })
     await screenshot(page, projectName, '12-offline-cached-feed')
 
-    // 13. Update state (update-available prompt — best-effort)
-    // The PWA plugin uses registerType: 'prompt'. In normal operation, an update
-    // prompt appears only when a new SW version is detected. We simulate the
-    // prompt by dispatching the custom event the plugin listens for.
-    await page.unroute(PRODUCTION_FEED_URL)
-    await page.evaluate(() => {
-      // Dispatch the event that triggers the update prompt UI
-      window.dispatchEvent(new CustomEvent('vite-pwa:updated'))
-    })
-    await page.waitForTimeout(1000)
-    await screenshot(page, projectName, '13-update-prompt')
+    // 13. Update state (PWA update prompt — best-effort)
+    // The PWA plugin uses registerType: 'prompt'. A prompt fires only when a
+    // new SW version is detected by the browser, which cannot be reliably
+    // reproduced in E2E without modifying the SW files mid-run. The previous
+    // approach dispatched a 'vite-pwa:updated' custom event, but nothing
+    // listens for it now that we use the official useRegisterSW hook.
+    // Skip the update-prompt screenshot and document why we can't generate it.
+    // To capture this screenshot manually: build twice with different content
+    // hashes, install the first SW, then load the second build — the banner
+    // will appear automatically.
+    console.log('  Skipped: 13-update-prompt (requires real SW version change)')
 
     expect(true).toBe(true) // All screenshots captured
   })

@@ -7,7 +7,9 @@ import { EventsScreen } from './ui/screens/EventsScreen'
 import { ExplainScreen } from './ui/screens/ExplainScreen'
 import { OnboardingScreen, isOnboardingComplete } from './ui/screens/OnboardingScreen'
 import { ChangelogScreen } from './ui/screens/ChangelogScreen'
+import { SearchAssistantScreen } from './ui/screens/SearchAssistantScreen'
 import { BottomNav } from './ui/components/BottomNav'
+import { PwaUpdateBanner } from './ui/components/PwaUpdateBanner'
 
 export default function App() {
   const location = useLocation()
@@ -24,6 +26,7 @@ export default function App() {
 
   return (
     <>
+      <PwaUpdateBanner />
       <Routes>
         <Route path="/" element={<HomeScreen />} />
         <Route path="/goal/:goalId" element={<GoalDetailScreen />} />
@@ -32,8 +35,10 @@ export default function App() {
         <Route path="/settings" element={<SettingsScreen />} />
         <Route path="/onboarding" element={<OnboardingScreen />} />
         <Route path="/changelog" element={<ChangelogScreen />} />
+        <Route path="/assistant" element={<SearchAssistantScreen />} />
       </Routes>
       {showBottomNav && <BottomNav />}
     </>
   )
 }
+
