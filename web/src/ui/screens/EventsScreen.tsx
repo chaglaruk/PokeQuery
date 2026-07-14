@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { useEventFeed, useLocalizedEvent } from '@event/useEventFeed'
@@ -135,8 +135,13 @@ export function EventsScreen() {
     return sections.allActive.filter(e => !renderedIds.has(e.id))
   }, [sections])
 
+  const pickerEvents = useMemo(() => {
+    const candidates = [sections.featured, ...sections.happeningNow, ...sections.importantUpcoming]
+    return candidates.filter((event, index, list): event is EventFeedEntry => Boolean(event) && list.findIndex(item => item?.id === event?.id) === index).slice(0, 3)
+  }, [sections])
+
   return (
-    <div className="page content-with-nav">
+    <div className="page events-page content-with-nav">
       {/* Header */}
       <div className="page-header">
         <button className="back-btn" onClick={() => navigate('/')} aria-label={t('back')}>{'\u2039'}</button>
@@ -195,10 +200,25 @@ export function EventsScreen() {
         </div>
       )}
 
+      {pickerEvents.length > 1 && (
+        <nav className="event-picker" aria-label={t('events_title')}>
+          {pickerEvents.map(event => (
+            <button
+              type="button"
+              key={event.id}
+              className={`event-picker-button ${event.id === sections.featured?.id ? 'active' : ''}`}
+              data-event-picker-id={event.id}
+              onClick={() => event.id === sections.featured?.id ? undefined : setOpenEvent(event)}
+            >
+              {eventLocaleTitle(event, locale)}
+            </button>
+          ))}
+        </nav>
+      )}
+
       {/* ── Featured hero card ── */}
       {sections.featured && (
         <>
-          <div className="section-title">{t('event_section_featured')}</div>
           <EventMainCard
             event={sections.featured}
             sourceLabel={sourceLabel}
@@ -392,9 +412,9 @@ function EventMainCard({
   if (!localized) return null
 
   return (
-    <div className="card" data-event-id={event.id} data-event-section="featured" style={{ borderColor: tone, position: 'relative' }}>
+    <div className="event-hero" data-event-id={event.id} data-event-section="featured" style={{ '--event-tone': tone } as CSSProperties}>
       {/* Timer badge + theme mark */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+      <div className="event-hero-head" style={{ marginBottom: '10px' }}>
         <span className="badge" style={{ background: `${tone}22`, color: tone }}>{timerLabel}</span>
         <button
           type="button"
@@ -418,15 +438,14 @@ function EventMainCard({
 
       {/* Pokémon sprite row */}
       {pokemon.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <div className="event-pokemon-grid" style={{ marginBottom: '10px' }}>
           {pokemon.slice(0, 6).map((p: EventPokemonEntry, idx: number) => (
             <div
               key={`sprite-${idx}`}
-              className="card card-tap"
+              className="card card-tap event-pokemon-tile"
               data-pokemon-name={p.name}
               role="button"
               tabIndex={0}
-              style={{ padding: '8px', textAlign: 'center' }}
               onClick={() => onOpenPokemon(p)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenPokemon(p) } }}
             >
@@ -450,6 +469,13 @@ function EventMainCard({
           ))}
         </div>
       )}
+
+      <div className="event-feature-list">
+        {localized.research && <EventFeatureCard icon="info" title={t('event_research')} body={localized.research} tone="#B14BFF" />}
+        {localized.bonuses && <EventFeatureCard icon="check" title={t('event_chip_bonus')} body={localized.bonuses} tone="#FFD700" />}
+        {localized.raids && <EventFeatureCard icon="pvp_candidates" title="Raids" body={localized.raids} tone="#4FC3F7" />}
+        {localized.prep && <EventFeatureCard icon="warning" title={t('event_dialog_what_to_do')} body={localized.prep} tone="#00E5FF" />}
+      </div>
 
       {/* Suggested search + copy */}
       {search ? (
@@ -484,6 +510,15 @@ function EventMainCard({
 
 /* ──────────────── CompactEventCard ──────────────── */
 
+function EventFeatureCard({ icon, title, body, tone }: { icon: string; title: string; body: string; tone: string }) {
+  return (
+    <div className="event-feature-card" style={{ '--feature-tone': tone } as CSSProperties}>
+      <span className="event-feature-icon"><AppIcon name={icon} size={22} /></span>
+      <span className="event-feature-copy"><strong>{title}</strong><span>{body}</span></span>
+    </div>
+  )
+}
+
 function CompactEventCard({
   event,
   section,
@@ -505,7 +540,7 @@ function CompactEventCard({
   const dLabel = dateLabel(event, locale)
 
   return (
-    <div className="card card-tap" data-event-id={event.id} data-event-section={section} onClick={onClick} role="button" tabIndex={0}
+    <div className="card card-tap compact-event" data-event-id={event.id} data-event-section={section} onClick={onClick} role="button" tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
       aria-label={`${eventLocaleTitle(event, locale)} — ${statusLabel}`}
     >
