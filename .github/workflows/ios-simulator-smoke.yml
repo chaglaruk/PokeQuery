@@ -280,8 +280,20 @@ jobs:
             xcrun simctl bootstatus "$udid" -b
             xcrun simctl list devices > "$OUT/logs/$slug-simctl-devices.txt"
 
-            if ! xcrun simctl openurl "$udid" "$PWA_URL" > "$OUT/logs/$slug-openurl.txt" 2>&1; then
-              cat "$OUT/logs/$slug-openurl.txt"
+            xcrun simctl launch "$udid" com.apple.mobilesafari > "$OUT/logs/$slug-safari-launch.txt" 2>&1 || true
+            sleep 5
+
+            safari_opened=false
+            for attempt in 1 2 3; do
+              openurl_log="$OUT/logs/$slug-openurl-attempt-$attempt.txt"
+              if xcrun simctl openurl "$udid" "$PWA_URL" > "$openurl_log" 2>&1; then
+                safari_opened=true
+                break
+              fi
+              cat "$openurl_log"
+              sleep 10
+            done
+            if test "$safari_opened" != true; then
               exit 1
             fi
 
