@@ -17,6 +17,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:screenshots": "playwright test --config=playwright.screenshots.config.ts",
+    "screenshots:compare": "node scripts/create-parity-comparisons.mjs",
     "extract:i18n": "node scripts/extract-strings.mjs",
     "check:golden-corpus": "node scripts/check-golden-corpus.mjs",
     "sync:golden-corpus": "node scripts/check-golden-corpus.mjs --sync"

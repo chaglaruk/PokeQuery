@@ -5,7 +5,9 @@ import { fileURLToPath } from 'url'
 import { gotoRoute, skipOnboarding } from '../helpers'
 
 const FEED_URL = 'https://raw.githubusercontent.com/chaglaruk/PokeQuery/master/docs/event-feed/pokequery-events.json'
-const OUTPUT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../docs/screenshots/pwa_visual_parity_pass_20260714/iphone-13')
+const OUTPUT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../docs/screenshots/pwa_android_parity_comparison_20260714/pwa_iphone13')
+
+test.use({ serviceWorkers: 'block' })
 
 const parityFeed = {
   schemaVersion: 1,
@@ -26,7 +28,7 @@ const parityFeed = {
       suggestedSearch: 'age0-7&!traded', eventNotes: 'Visual parity fixture', eventNotesTr: 'Görsel eşlik test verisi',
       sourceName: 'PokeQuery visual fixture', sourceUrl: 'https://example.com', sourceType: 'official', lastUpdated: '2026-07-14',
       pokemon: [
-        { name: 'Mewtwo', source: 'Raids', sourceTr: 'Baskınlar', badges: 'Shiny, Raid, Background', badgesTr: 'Parlak, Baskın, Özel arka plan', spriteKey: 'mewtwo' },
+        { name: 'Mewtwo', source: 'Raids', sourceTr: 'Baskınlar', badges: 'Shiny, Raid, Background', badgesTr: 'Parlak, Baskın, Özel arka plan', note: 'Check raid IVs, shiny status, and special background before cleanup.', noteTr: 'Temizlikten önce akın IV’lerini, shiny durumunu ve özel arka planı kontrol et.', spriteKey: 'mewtwo' },
         { name: 'Zeraora', source: 'Research', sourceTr: 'Araştırma', badges: 'Research, Mythical check', badgesTr: 'Araştırma, Efsanevi kontrol', spriteKey: 'zeraora' },
         { name: 'Pikachu', source: 'Wild', sourceTr: 'Vahşi', badges: 'Shiny, Costume', badgesTr: 'Parlak, Kostümlü', spriteKey: 'pikachu' },
         { name: 'Necrozma', source: 'Raids', sourceTr: 'Baskınlar', badges: 'Raid, Trade, Storage', badgesTr: 'Baskın, Takas, Depo', spriteKey: 'necrozma' },
@@ -76,6 +78,7 @@ test('generate Android parity acceptance screenshots', async ({ page }) => {
   await setLanguage(page, 'Türkçe')
   await expect(page.getByText('Güvenli Temizlik').first()).toBeVisible()
   await capture(page, 'home_tr.png')
+  await capture(page, 'five_tab_home.png')
 
   await gotoRoute(page, '/settings')
   await expect(page.getByRole('heading', { name: 'Ayarlar' })).toBeVisible()
@@ -83,7 +86,7 @@ test('generate Android parity acceptance screenshots', async ({ page }) => {
 
   await gotoRoute(page, '/goal/safe_cleanup')
   await expect(page.locator('.search-string')).toBeVisible()
-  await capture(page, 'goal_detail.png')
+  await capture(page, 'safe_cleanup_tr.png')
   await gotoRoute(page, '/goal/pvp_candidates')
   await expect(page.locator('.search-string')).toBeVisible()
   await capture(page, 'pvp_great.png')
@@ -105,6 +108,10 @@ test('generate Android parity acceptance screenshots', async ({ page }) => {
   await page.keyboard.press('Escape')
 
   await setLanguage(page, 'Türkçe')
+  await page.evaluate(() => {
+    localStorage.removeItem('pq_event_feed_cache')
+    localStorage.removeItem('pq_event_feed_cache_ts')
+  })
   await gotoRoute(page, '/events')
   await expect(page.locator('[data-event-id="parity-featured"]')).toBeVisible({ timeout: 20000 })
   await capture(page, 'event_guide_tr_main.png')
@@ -117,4 +124,22 @@ test('generate Android parity acceptance screenshots', async ({ page }) => {
   await page.locator('[data-pokemon-name="Mewtwo"]').first().click()
   await expect(page.getByRole('dialog', { name: 'Mewtwo' })).toBeVisible()
   await capture(page, 'event_guide_en_popup.png')
+  await page.keyboard.press('Escape')
+
+  const saved = [{ id: 'visual-favorite', name: 'Güvenli Temizlik', rawSyntax: '1*&!shiny&!legendary&!favorite&!traded', goalId: 'safe_cleanup', riskLevel: 'Medium', createdAt: Date.now() }]
+  await page.evaluate(items => {
+    localStorage.setItem('pq_app_language', 'Türkçe')
+    localStorage.setItem('pq_favorites', JSON.stringify(items))
+    localStorage.setItem('pq_history', JSON.stringify([{ ...items[0], id: 'visual-history', name: 'PvP IV Adayları', rawSyntax: '0-1attack&3-4defense&3-4hp&cp-1500', goalId: 'pvp_candidates', riskLevel: 'Info' }]))
+  }, saved)
+  await page.reload()
+  await gotoRoute(page, '/favorites')
+  await expect(page.getByRole('heading', { name: 'Favoriler' })).toBeVisible()
+  await capture(page, 'favorites_tr.png')
+  await gotoRoute(page, '/history')
+  await expect(page.getByRole('heading', { name: 'Geçmiş' })).toBeVisible()
+  await capture(page, 'history_tr.png')
+  await gotoRoute(page, '/knowledge')
+  await expect(page.locator('.knowledge-term').first()).toBeVisible({ timeout: 20000 })
+  await capture(page, 'knowledge_tr.png')
 })
