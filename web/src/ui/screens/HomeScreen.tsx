@@ -19,7 +19,7 @@ export function HomeScreen() {
     { id: 'safe_cleanup', titleKey: 'goal_safe_cleanup', descKey: 'goal_safe_cleanup_desc', route: '/goal/safe_cleanup', accent: '#00E5FF' },
     { id: 'candy_prep', titleKey: 'goal_candy_prep', descKey: 'goal_candy_prep_desc', route: '/goal/candy_prep', accent: '#FFD700' },
     { id: 'lucky_trade', titleKey: 'goal_lucky_trade', descKey: 'goal_lucky_trade_desc', route: '/goal/lucky_trade', accent: '#FFD700' },
-    { id: 'assistant', titleKey: 'search_assistant_title', descKey: 'search_assistant_desc_text', route: '/assistant', accent: '#B14BFF' },
+    { id: 'assistant', titleKey: 'goal_assistant', descKey: 'goal_assistant_desc', route: '/assistant', accent: '#B14BFF' },
     { id: 'pvp_candidates', titleKey: 'goal_pvp_candidates', descKey: 'goal_pvp_candidates_desc', route: '/goal/pvp_candidates', accent: '#4FC3F7' },
     { id: 'events', titleKey: 'goal_events', descKey: 'goal_events_desc', route: '/events', accent: '#00E5FF' },
     { id: 'presets', titleKey: 'goal_presets', descKey: 'goal_presets_desc', route: '/presets', accent: '#64B5F6' },

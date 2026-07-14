@@ -35,7 +35,7 @@ describe('visual localization hygiene', () => {
     expect(tr.trust_home_no_access).toBe('Hesap erişimi yok')
     expect(tr.trust_home_review_first).toBe('Transferden önce incele')
     expect(tr.goal_pvp_candidates_desc).toBe('Büyük ve Ultra Lig')
-    expect(tr.goal_lucky_trade).toBe('Şanslı Takas Hazırlığı')
+    expect(tr.goal_lucky_trade).toBe('Lucky Takas Hazırlığı')
   })
 
   it('contains no platform-dependent emoji or icon glyphs in production TSX or locales', () => {
