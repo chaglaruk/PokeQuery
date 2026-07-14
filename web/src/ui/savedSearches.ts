@@ -71,6 +71,7 @@ export function useSavedSearches(kind: SavedSearchKind): SavedSearch[] {
 
   useEffect(() => {
     const refresh = () => setSearches(readSavedSearches(kind))
+    refresh()
     const onChanged = (event: Event) => {
       if ((event as CustomEvent<SavedSearchKind>).detail === kind) refresh()
     }

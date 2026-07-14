@@ -5,11 +5,17 @@ import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
 import { addHistory, removeFavorite, useSavedSearches, type SavedSearchKind } from '@ui/savedSearches'
 import { AppIcon } from '@ui/components/SpriteIcon'
 
+const goalIds = new Set([
+  'safe_cleanup', 'candy_prep', 'lucky_trade', 'pvp_candidates', 'nundo_finder',
+  'hundo_check', 'trade_fodder', 'untagged', 'expert',
+])
+
 export function SavedSearchesScreen({ kind }: { kind: SavedSearchKind }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const navigate = useNavigate()
   const searches = useSavedSearches(kind)
   const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
+  const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' })
 
   const handleCopy = async (index: number) => {
     const search = searches[index]
@@ -47,7 +53,10 @@ export function SavedSearchesScreen({ kind }: { kind: SavedSearchKind }) {
           {searches.map((search, index) => (
             <article className={`card saved-search-card risk-${search.riskLevel.toLowerCase()}`} key={search.id}>
               <div className="saved-search-head">
-                <div><h2>{search.name}</h2><p>{search.goalId}</p></div>
+                <div>
+                  <h2>{goalIds.has(search.goalId) ? t(`goal_${search.goalId}`) : search.name}</h2>
+                  <p>{dateFormatter.format(search.createdAt)}</p>
+                </div>
                 <span className={`badge badge-${search.riskLevel.toLowerCase()}`}>{t(`risk_${search.riskLevel.toLowerCase()}_display`)}</span>
               </div>
               <div className="search-string">{search.rawSyntax}</div>
