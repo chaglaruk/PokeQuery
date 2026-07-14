@@ -1,0 +1,165 @@
+﻿name: Deploy PWA to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'web/**'
+      - '.github/workflows/deploy-pwa.yml'
+      - 'app/src/test/resources/golden-corpus.json'
+  pull_request:
+    paths:
+      - 'web/**'
+      - '.github/workflows/deploy-pwa.yml'
+      - 'app/src/test/resources/golden-corpus.json'
+      - 'app/src/**'
+      - 'app/build.gradle*'
+      - 'build.gradle*'
+      - 'gradle*'
+      - 'scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/master' && 'pages' || format('pr-{0}', github.event.number) }}
+  cancel-in-progress: true
+
+jobs:
+  # Web PWA validation (all PRs + master)
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'web/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: web
+
+      - name: Golden corpus sync check
+        run: npm run check:golden-corpus
+        working-directory: web
+
+      - name: Fallback freshness check
+        run: python scripts/check_web_fallback_fresh.py
+
+      - name: Typecheck
+        run: npm run typecheck
+        working-directory: web
+
+      - name: Lint
+        run: npm run lint
+        working-directory: web
+
+      - name: Run unit tests
+        run: npm test
+        working-directory: web
+
+      - name: Build
+        run: npm run build
+        working-directory: web
+        env:
+          VITE_BASE: /PokeQuery/
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+        working-directory: web
+
+      - name: Run E2E tests (all projects)
+        run: npx playwright test
+        working-directory: web
+        env:
+          CI: 'true'
+          VITE_BASE: /PokeQuery/
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report
+          retention-days: 30
+
+      - name: Upload production artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pokequery-dist
+          path: web/dist
+          retention-days: 30
+
+      - name: Setup Pages
+        if: github.ref == 'refs/heads/master'
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  # Android validation — runs on PRs when app/ files change
+  android-validate:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Setup Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run Android unit tests (includes GoldenCorpusParityTest)
+        run: ./gradlew :app:testDebugUnitTest
+        shell: bash
+
+      - name: Run Android lint
+        run: ./gradlew :app:lintDebug
+        shell: bash
+
+      - name: Validate event feed
+        run: python scripts/validate_event_feed.py docs/event-feed/pokequery-events.json
+        shell: bash
+
+      - name: Install runtime asset validator dependency
+        run: python -m pip install Pillow
+
+      - name: Validate runtime assets
+        run: python scripts/check_runtime_assets.py
+        shell: bash
+
+  # Deploy — only on master push
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
