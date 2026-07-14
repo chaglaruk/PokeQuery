@@ -32,8 +32,8 @@ test.describe('Home screen and navigation (scenarios 6-8)', () => {
     await expect(page).toHaveURL(/#\/$/)
   })
 
-  test('7b. Browser Back: events -> back -> home', async ({ page }) => {
-    await page.locator('.bottom-nav .nav-item').filter({ hasText: 'Event Guide' }).click()
+  test('7b. Browser Back: Home Event Guide card -> back -> home', async ({ page }) => {
+    await page.locator('.page').getByText('Event Guide').first().click()
     await expect(page).toHaveURL(/#\/events/)
     await page.goBack()
     await expect(page).toHaveURL(/#\/$/)
@@ -44,12 +44,19 @@ test.describe('Home screen and navigation (scenarios 6-8)', () => {
     await expect(homeNav).toHaveClass(/active/)
   })
 
-  test('8b. bottom nav: Events item navigates to Events screen', async ({ page }) => {
-    await page.locator('.bottom-nav .nav-item').filter({ hasText: 'Event Guide' }).click()
-    await expect(page).toHaveURL(/#\/events/)
-    // Events nav now active
-    const eventsNav = page.locator('.bottom-nav .nav-item').filter({ hasText: 'Event Guide' })
-    await expect(eventsNav).toHaveClass(/active/)
+  test('8b. bottom nav matches Android five-tab order and routes', async ({ page }) => {
+    const nav = page.locator('.bottom-nav .nav-item')
+    await expect(nav).toHaveCount(5)
+    await expect(nav).toHaveText(['Home', 'Favorites', 'History', 'Knowledge', 'Settings'])
+    for (const destination of [
+      { label: 'Favorites', route: 'favorites' },
+      { label: 'History', route: 'history' },
+      { label: 'Knowledge', route: 'knowledge' },
+    ]) {
+      await nav.filter({ hasText: destination.label }).click()
+      await expect(page).toHaveURL(new RegExp(`#/${destination.route}`))
+      await expect(nav.filter({ hasText: destination.label })).toHaveClass(/active/)
+    }
   })
 
   test('8c. bottom nav: Settings item navigates to Settings screen', async ({ page }) => {
@@ -57,5 +64,12 @@ test.describe('Home screen and navigation (scenarios 6-8)', () => {
     await expect(page).toHaveURL(/#\/settings/)
     const settingsNav = page.locator('.bottom-nav .nav-item').filter({ hasText: 'Settings' })
     await expect(settingsNav).toHaveClass(/active/)
+  })
+
+  test('8d. target routes have no horizontal overflow', async ({ page }) => {
+    for (const route of ['/', '/favorites', '/history', '/knowledge', '/settings', '/presets', '/events']) {
+      await gotoRoute(page, route)
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    }
   })
 })
