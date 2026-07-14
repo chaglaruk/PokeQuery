@@ -8,6 +8,7 @@ import { ExplainScreen } from './ui/screens/ExplainScreen'
 import { OnboardingScreen, isOnboardingComplete } from './ui/screens/OnboardingScreen'
 import { ChangelogScreen } from './ui/screens/ChangelogScreen'
 import { SearchAssistantScreen } from './ui/screens/SearchAssistantScreen'
+import { PresetsScreen } from './ui/screens/PresetsScreen'
 import { BottomNav } from './ui/components/BottomNav'
 import { PwaUpdateBanner } from './ui/components/PwaUpdateBanner'
 
@@ -36,6 +37,8 @@ export default function App() {
         <Route path="/onboarding" element={<OnboardingScreen />} />
         <Route path="/changelog" element={<ChangelogScreen />} />
         <Route path="/assistant" element={<SearchAssistantScreen />} />
+        <Route path="/presets" element={<PresetsScreen />} />
+        <Route path="/my-presets" element={<PresetsScreen personal />} />
       </Routes>
       {showBottomNav && <BottomNav />}
     </>
