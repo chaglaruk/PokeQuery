@@ -298,7 +298,7 @@ test.describe('Events and feed scenarios (scenarios 17-23, 29-31)', () => {
     await expect(dialog).toBeVisible()
     await expect(dialog.getByText('summary text')).toBeVisible()
     await expect(dialog.getByText('Aramayı kopyala')).toBeVisible()
-    const close = dialog.getByRole('button', { name: /close/i })
+    const close = dialog.locator('.dialog-close')
     await expect(close).toBeFocused()
     await close.click()
     await expect(dialog).toBeHidden()

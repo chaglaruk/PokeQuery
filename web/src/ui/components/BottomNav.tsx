@@ -7,7 +7,9 @@ export function BottomNav() {
 
   const items = [
     { to: '/', icon: 'home', label: t('nav_home') },
-    { to: '/events', icon: 'events', label: t('goal_events') },
+    { to: '/favorites', icon: 'favorite', label: t('nav_favorites') },
+    { to: '/history', icon: 'history', label: t('nav_history') },
+    { to: '/knowledge', icon: 'info', label: t('nav_knowledge') },
     { to: '/settings', icon: 'settings', label: t('nav_settings') },
   ]
 

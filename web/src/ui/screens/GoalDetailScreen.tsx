@@ -1,265 +1,169 @@
-import { useState, useMemo, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { buildGoal } from '@engine/stringBuilderEngine'
 import { buildFinal } from '@engine/goalStringBuilder'
 import { lint } from '@engine/linter'
 import { canCopy } from '@engine/expertCopyPolicy'
-import type { RiskLevel } from '@/types'
 import { AppIcon } from '@ui/components/SpriteIcon'
-
-const riskBadgeClass: Record<RiskLevel, string> = {
-  Info: 'badge-info',
-  Low: 'badge-low',
-  Medium: 'badge-medium',
-  High: 'badge-high',
-}
+import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
+import { addFavorite, addHistory, findFavorite, removeFavorite, type SavedSearch } from '@ui/savedSearches'
 
 export function GoalDetailScreen() {
   const { goalId = '' } = useParams<{ goalId: string }>()
   const navigate = useNavigate()
   const { t, resolvedSearchLanguage } = useI18n()
-
-  const [config, setConfig] = useState<string>('')
-  const [expertQuery, setExpertQuery] = useState<string>('')
-  const [copied, setCopied] = useState(false)
+  const [config, setConfig] = useState('')
+  const [expertQuery, setExpertQuery] = useState('')
+  const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
+  const [favorite, setFavorite] = useState<SavedSearch | null>(null)
+  const [showRefine, setShowRefine] = useState(false)
   const [optionalProtections, setOptionalProtections] = useState<string[]>([])
 
-  const goal = useMemo(() => {
-    return buildGoal(goalId, config, expertQuery, resolvedSearchLanguage)
-  }, [goalId, config, expertQuery, resolvedSearchLanguage])
+  const goal = useMemo(
+    () => buildGoal(goalId, config, expertQuery, resolvedSearchLanguage),
+    [goalId, config, expertQuery, resolvedSearchLanguage],
+  )
+  const finalString = useMemo(
+    () => buildFinal(goal, optionalProtections, resolvedSearchLanguage),
+    [goal, optionalProtections, resolvedSearchLanguage],
+  )
+  const expertWarnings = useMemo(
+    () => goalId === 'expert' ? lint(expertQuery || goal.rawSyntax) : [],
+    [goalId, expertQuery, goal.rawSyntax],
+  )
+  const canCopyResult = useMemo(
+    () => goalId !== 'expert' || canCopy(expertQuery || goal.rawSyntax),
+    [goalId, expertQuery, goal.rawSyntax],
+  )
+  const hasOptions = ['safe_cleanup', 'pvp_candidates', 'lucky_trade'].includes(goalId)
 
-  const finalString = useMemo(() => {
-    return buildFinal(goal, optionalProtections, resolvedSearchLanguage)
-  }, [goal, optionalProtections, resolvedSearchLanguage])
-
-  const expertWarnings = useMemo(() => {
-    if (goalId !== 'expert') return []
-    return lint(expertQuery || goal.rawSyntax)
-  }, [goalId, expertQuery, goal.rawSyntax])
-
-  const canCopyResult = useMemo(() => {
-    if (goalId === 'expert') return canCopy(expertQuery || goal.rawSyntax)
-    return true
-  }, [goalId, expertQuery, goal.rawSyntax])
+  useEffect(() => {
+    setFavorite(findFavorite(finalString.rawSyntax) ?? null)
+  }, [finalString.rawSyntax])
 
   const handleCopy = useCallback(async () => {
     if (!canCopyResult) return
-    try {
-      await navigator.clipboard.writeText(finalString.rawSyntax)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Fallback: select text
+    const result = await copyToClipboard(finalString.rawSyntax)
+    setClipboard(result)
+    if (result.status === 'copied') {
+      addHistory({ name: t(`goal_${goalId}`), rawSyntax: finalString.rawSyntax, goalId, riskLevel: finalString.riskLevel })
+      setTimeout(() => setClipboard(null), 2000)
     }
-  }, [finalString.rawSyntax, canCopyResult])
+  }, [finalString.rawSyntax, finalString.riskLevel, canCopyResult, goalId, t])
+
+  const toggleFavorite = useCallback(() => {
+    if (favorite) {
+      removeFavorite(favorite.id)
+      setFavorite(null)
+      return
+    }
+    setFavorite(addFavorite({ name: t(`goal_${goalId}`), rawSyntax: finalString.rawSyntax, goalId, riskLevel: finalString.riskLevel }))
+  }, [favorite, finalString.rawSyntax, finalString.riskLevel, goalId, t])
 
   const toggleProtection = useCallback((token: string) => {
-    setOptionalProtections(prev =>
-      prev.includes(token) ? prev.filter(p => p !== token) : [...prev, token]
-    )
+    setOptionalProtections(current => current.includes(token) ? current.filter(value => value !== token) : [...current, token])
   }, [])
 
-  const hasOptions = ['safe_cleanup', 'pvp_candidates', 'lucky_trade', 'expert'].includes(goalId)
+  const renderLeagueSelector = () => (
+    <>
+      <div className="segmented" role="tablist" aria-label={t('goal_pvp_candidates')}>
+        <button type="button" className={`segment ${config !== 'ultra' ? 'active' : ''}`} onClick={() => setConfig('great')}>{t('goal_detail_great_league')}</button>
+        <button type="button" className={`segment ${config === 'ultra' ? 'active' : ''}`} onClick={() => setConfig('ultra')}>{t('goal_detail_ultra_league')}</button>
+      </div>
+      <div className="league-copy">
+        <p className="league-limit">{config === 'ultra' ? t('goal_detail_under_2500') : t('goal_detail_under_1500')}</p>
+        <p className="league-note">{t('goal_detail_pvp_rank_note')}</p>
+      </div>
+    </>
+  )
 
   return (
-    <div className="page content-with-nav">
-      <div className="page-header">
-        <button className="back-btn" onClick={() => navigate('/')}>‹</button>
+    <main className="page content-with-nav">
+      <header className="page-header">
+        <button type="button" className="back-btn" onClick={() => navigate('/')} aria-label="Back">←</button>
         <h1>{t(`goal_${goalId}`)}</h1>
-      </div>
+        <button type="button" className={`header-action ${favorite ? 'active' : ''}`} onClick={toggleFavorite} aria-label={t('nav_favorites')}>
+          <AppIcon name="favorite" size={21} />
+        </button>
+      </header>
 
-      {/* Risk badge */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-        <span className={`badge ${riskBadgeClass[finalString.riskLevel]}`}>
-          {t(`risk_${finalString.riskLevel.toLowerCase()}`)}
-        </span>
-        <span className="badge badge-beta">{finalString.scopeBreadth}</span>
-      </div>
-
-      {/* Explanation */}
-      <div className="card">
-        <p style={{ fontSize: '15px', lineHeight: 1.6 }}>{finalString.plainLanguageExplanation}</p>
-      </div>
-
-      {/* Expert input */}
-      {goalId === 'expert' && (
-        <div className="card">
-          <p style={{ fontWeight: 600, marginBottom: '12px' }}>{t('goal_detail_your_string')}</p>
-          <input
-            type="text"
-            value={expertQuery}
-            onChange={e => setExpertQuery(e.target.value)}
-            placeholder={t('explain_placeholder')}
-          />
-          {expertWarnings.length > 0 && (
-            <div style={{ marginTop: '10px' }}>
-              {expertWarnings.map((w, i) => (
-                <p
-                  key={i}
-                  style={{
-                    fontSize: '13px',
-                    marginTop: '6px',
-                    color: w.isError ? 'var(--danger)' : 'var(--warning)',
-                  }}
-                >
-                  <AppIcon name={w.isError ? 'error' : 'warning'} size={16} /> {w.message}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Options */}
-      {hasOptions && (
-        <div className="card">
-          <div className="section-title" style={{ margin: '0 0 12px' }}>{t('goal_detail_refine')}</div>
-
-          {goalId === 'safe_cleanup' && (
-            <div className="toggle">
-              <div>
-                <div className="toggle-label">{t('goal_detail_include_0star')}</div>
-                <div className="toggle-desc">{t('goal_detail_collector_interest')}</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={config === 'include0Star'}
-                onChange={e => setConfig(e.target.checked ? 'include0Star' : '')}
-              />
-            </div>
-          )}
-
-          {goalId === 'pvp_candidates' && (
-            <div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  className={`btn ${config !== 'ultra' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setConfig('great')}
-                  style={{ flex: 1 }}
-                >
-                  {t('goal_detail_great_league')}
-                </button>
-                <button
-                  className={`btn ${config === 'ultra' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setConfig('ultra')}
-                  style={{ flex: 1 }}
-                >
-                  {t('goal_detail_ultra_league')}
-                </button>
-              </div>
-              <p className="text-muted" style={{ marginTop: '10px' }}>
-                {config === 'ultra' ? t('goal_detail_under_2500') : t('goal_detail_under_1500')}
+      <section className={`detail-result ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`}>
+        <h2 className="detail-result-title">{t('goal_detail_result')}</h2>
+        {goalId === 'pvp_candidates' && renderLeagueSelector()}
+        {goalId === 'expert' && (
+          <div style={{ marginBottom: '12px' }}>
+            <label className="setting-label" htmlFor="expert-query">{t('goal_detail_your_string')}</label>
+            <input id="expert-query" type="text" value={expertQuery} onChange={event => setExpertQuery(event.target.value)} placeholder={t('explain_placeholder')} />
+            {expertWarnings.map((warning, index) => (
+              <p key={index} className="setting-help" style={{ color: warning.isError ? 'var(--danger)' : 'var(--warning)' }}>
+                <AppIcon name={warning.isError ? 'error' : 'warning'} size={14} /> {t(warning.isError ? 'goal_detail_fix_errors' : 'search_intent_lint_advisory')}
               </p>
-              <p className="text-muted" style={{ marginTop: '4px' }}>{t('goal_detail_pvp_rank_note')}</p>
-            </div>
-          )}
-
-          {goalId === 'lucky_trade' && (
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                className={`btn ${config !== 'distance' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setConfig('age')}
-                style={{ flex: 1 }}
-              >
-                {t('goal_detail_older_candidates')}
-              </button>
-              <button
-                className={`btn ${config === 'distance' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setConfig('distance')}
-                style={{ flex: 1 }}
-              >
-                {t('goal_detail_distance_candidates')}
-              </button>
-            </div>
-          )}
-
-          {/* Optional protections (non-passthrough goals) */}
-          {goalId !== 'expert' && ['safe_cleanup', 'untagged'].includes(goalId) && (
-            <div style={{ marginTop: '16px' }}>
-              <div className="section-title" style={{ margin: '0 0 8px' }}>{t('goal_detail_protected')}</div>
-              {['shiny', 'legendary', 'costume', '4*'].map(token => {
-                const isAlreadyIn = finalString.rawSyntax.includes(`!${token}`)
-                const isChecked = isAlreadyIn || optionalProtections.includes(token)
-                return (
-                  <div key={token} className="toggle">
-                    <div className="toggle-label">
-                      {t(`goal_detail_exclude_${token === '4*' ? 'hundos' : token === 'legendary' ? 'legendaries' : token === 'costume' ? 'costumes' : 'shinies'}`)}
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      disabled={isAlreadyIn}
-                      onChange={() => toggleProtection(token)}
-                    />
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Warnings */}
-      {finalString.warnings.length > 0 && (
-        <div className="card">
-          <div className="section-title" style={{ margin: '0 0 10px', display: 'flex', gap: '6px', alignItems: 'center' }}><AppIcon name="warning" size={16} /> {t('goal_detail_watch_out')}</div>
-          {finalString.warnings.map((w, i) => (
-            <p key={i} className="text-muted" style={{ marginTop: i > 0 ? '8px' : 0, lineHeight: 1.5 }}>
-              {'\u2022'} {w}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {/* Engine warnings for expert */}
-      {goalId === 'expert' && goal.warnings.length > 0 && (
-        <div className="card">
-          <div className="section-title" style={{ margin: '0 0 10px', display: 'flex', gap: '6px', alignItems: 'center' }}><AppIcon name="warning" size={16} /> {t('goal_detail_watch_out')}</div>
-          {goal.warnings.map((w, i) => (
-            <p key={i} className="text-muted" style={{ marginTop: i > 0 ? '8px' : 0 }}>
-              • {w}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {/* Result */}
-      <div className="card">
-        <div className="section-title" style={{ margin: '0 0 10px' }}>{t('goal_detail_result')}</div>
-        <div className="search-string">{finalString.rawSyntax}</div>
-        {finalString.protectedCategories.length > 0 && (
-          <div style={{ marginTop: '10px' }}>
-            <p className="text-muted" style={{ marginBottom: '6px' }}>{t('goal_detail_protected')}:</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {finalString.protectedCategories.map(cat => (
-                <span key={cat} className="badge badge-low">!{cat}</span>
-              ))}
-            </div>
+            ))}
           </div>
         )}
-      </div>
+        <div className="search-string">{finalString.rawSyntax}</div>
+        <div className="detail-actions">
+          {hasOptions && (
+            <button type="button" className="btn btn-edit" onClick={() => setShowRefine(value => !value)}><AppIcon name="assistant" size={18} /> {t('goal_detail_edit_search')}</button>
+          )}
+          <button type="button" className={`btn btn-copy ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`} onClick={handleCopy} disabled={!canCopyResult}>
+            <AppIcon name="copy" size={18} /> {clipboard?.status === 'copied' ? t('goal_detail_copied') : t('goal_detail_copy_search_string')}
+          </button>
+        </div>
+        {clipboard && <div className={`clipboard-feedback ${clipboard.status}`} role="status" aria-live="polite">{t(clipboard.i18nKey)}</div>}
+        {!canCopyResult && <p className="setting-help">{t('goal_detail_fix_errors')}</p>}
+      </section>
 
-      {/* Copy button */}
-      <div style={{ marginTop: '16px' }}>
-        <button
-          className="btn btn-primary"
-          onClick={handleCopy}
-          disabled={!canCopyResult}
-        >
-          {copied ? `\u2714 ${t('goal_detail_copied')}` : t('goal_detail_copy_search_string')}
-        </button>
-        {!canCopyResult && (
-          <p className="text-muted" style={{ textAlign: 'center', marginTop: '8px' }}>
-            {t('goal_detail_fix_errors')}
-          </p>
-        )}
-      </div>
+      {showRefine && hasOptions && (
+        <section className="card">
+          <h2 className="section-title" style={{ marginTop: 0 }}>{t('goal_detail_refine')}</h2>
+          {goalId === 'safe_cleanup' && (
+            <label className="setting-row">
+              <span className="setting-copy"><strong className="setting-label">{t('goal_detail_include_0star')}</strong><span className="setting-help">{t('goal_detail_collector_interest')}</span></span>
+              <span className="switch"><input type="checkbox" checked={config === 'include0Star'} onChange={event => setConfig(event.target.checked ? 'include0Star' : '')} /><span className="switch-track" /></span>
+            </label>
+          )}
+          {goalId === 'pvp_candidates' && renderLeagueSelector()}
+          {goalId === 'lucky_trade' && (
+            <div className="segmented">
+              <button type="button" className={`segment ${config !== 'distance' ? 'active' : ''}`} onClick={() => setConfig('age')}>{t('goal_detail_older_candidates')}</button>
+              <button type="button" className={`segment ${config === 'distance' ? 'active' : ''}`} onClick={() => setConfig('distance')}>{t('goal_detail_distance_candidates')}</button>
+            </div>
+          )}
+          {goalId === 'safe_cleanup' && (
+            <div style={{ marginTop: '16px' }}>
+              <h3 className="section-title" style={{ marginTop: 0 }}>{t('goal_detail_protected')}</h3>
+              <div className="protection-chips">
+                {['shiny', 'legendary', 'costume', '4*'].map(token => {
+                  const isAlreadyIn = finalString.rawSyntax.includes(`!${token}`)
+                  const isChecked = isAlreadyIn || optionalProtections.includes(token)
+                  const key = token === '4*' ? 'hundos' : token === 'legendary' ? 'legendaries' : token === 'costume' ? 'costumes' : 'shinies'
+                  return <button type="button" key={token} className="protection-chip" disabled={isAlreadyIn} onClick={() => toggleProtection(token)}>{isChecked && <AppIcon name="check" size={13} />}{t(`goal_detail_exclude_${key}`)}</button>
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
-      <div className="card" style={{ marginTop: '16px' }}>
-        <p className="text-muted">{'\u29BF'} {t('goal_detail_review_matches')}</p>
-        <p className="text-muted" style={{ marginTop: '4px' }}>{'\u2716'} {t('goal_detail_never_blind')}</p>
-      </div>
-    </div>
+      <section className={`card info-card ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`}>
+        <h2 className="info-heading"><AppIcon name="info" size={16} /> {t('goal_detail_what_does_this_do')}</h2>
+        <p style={{ marginTop: '8px' }}>{t(`risk_${goalId}_short`)}</p>
+        <h3 className="info-heading warning-heading"><AppIcon name="warning" size={16} /> {t('goal_detail_watch_out')}</h3>
+        <p style={{ marginTop: '5px' }}>• {t(`risk_${goalId}_check1`)}</p>
+        <h3 className="info-heading warning-heading"><AppIcon name="warning" size={16} /> {t('goal_detail_review_aid')}</h3>
+        <p>{t('goal_detail_review_matches')} {t('goal_detail_never_blind')}</p>
+      </section>
+
+      {finalString.protectedCategories.length > 0 && (
+        <section>
+          <h2 className="section-title">{t('goal_detail_protected')}</h2>
+          <div className="protection-chips">
+            {finalString.protectedCategories.map(category => <span key={category} className="protection-chip"><AppIcon name="check" size={13} /> {category}</span>)}
+          </div>
+        </section>
+      )}
+    </main>
   )
 }

@@ -8,6 +8,9 @@ import { ExplainScreen } from './ui/screens/ExplainScreen'
 import { OnboardingScreen, isOnboardingComplete } from './ui/screens/OnboardingScreen'
 import { ChangelogScreen } from './ui/screens/ChangelogScreen'
 import { SearchAssistantScreen } from './ui/screens/SearchAssistantScreen'
+import { PresetsScreen } from './ui/screens/PresetsScreen'
+import { SavedSearchesScreen } from './ui/screens/SavedSearchesScreen'
+import { KnowledgeScreen } from './ui/screens/KnowledgeScreen'
 import { BottomNav } from './ui/components/BottomNav'
 import { PwaUpdateBanner } from './ui/components/PwaUpdateBanner'
 
@@ -33,9 +36,14 @@ export default function App() {
         <Route path="/events" element={<EventsScreen />} />
         <Route path="/explain" element={<ExplainScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
+        <Route path="/favorites" element={<SavedSearchesScreen kind="favorites" />} />
+        <Route path="/history" element={<SavedSearchesScreen kind="history" />} />
+        <Route path="/knowledge" element={<KnowledgeScreen />} />
         <Route path="/onboarding" element={<OnboardingScreen />} />
         <Route path="/changelog" element={<ChangelogScreen />} />
         <Route path="/assistant" element={<SearchAssistantScreen />} />
+        <Route path="/presets" element={<PresetsScreen />} />
+        <Route path="/my-presets" element={<PresetsScreen personal />} />
       </Routes>
       {showBottomNav && <BottomNav />}
     </>

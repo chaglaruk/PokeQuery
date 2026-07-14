@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { useEventFeed, useLocalizedEvent } from '@event/useEventFeed'
@@ -6,6 +6,7 @@ import {
   groupEvents,
   remainingTimeLabel,
   dateLabel,
+  dateTimeLabel,
   effectiveStatus,
   determineCategory,
   systemClock,
@@ -16,6 +17,7 @@ import { Dialog } from '@ui/components/Dialog'
 import { AppIcon } from '@ui/components/SpriteIcon'
 import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
 import type { EventFeedEntry, EventPokemonEntry, LocaleCode } from '@/types'
+import { addHistory } from '@ui/savedSearches'
 
 // Sprite src helper — maps spriteKey to public/sprites/event_*.png
 function spriteSrc(key: string | null): string | null {
@@ -95,6 +97,13 @@ function pokeLocalizedBadges(entry: EventPokemonEntry, locale: LocaleCode): stri
   return typeof val === 'string' ? val : val.join(', ')
 }
 
+function pokeLocalizedText(entry: EventPokemonEntry, field: 'note' | 'source', locale: LocaleCode): string {
+  const suffix: Record<string, string> = { tr: 'Tr', de: 'De', es: 'Es', fr: 'Fr', it: 'It' }
+  const localized = entry[`${field}${suffix[locale] ?? ''}` as keyof EventPokemonEntry]
+  const fallback = entry[field]
+  return typeof localized === 'string' && localized.length > 0 ? localized : (typeof fallback === 'string' ? fallback : '')
+}
+
 // Status label keys — replaces all hardcoded `locale === 'tr' ? '...' : '...'`
 function statusLabelKey(status: 'CURRENT' | 'UPCOMING' | 'ENDED'): string {
   switch (status) {
@@ -135,8 +144,13 @@ export function EventsScreen() {
     return sections.allActive.filter(e => !renderedIds.has(e.id))
   }, [sections])
 
+  const pickerEvents = useMemo(() => {
+    const candidates = [sections.featured, ...sections.happeningNow, ...sections.importantUpcoming]
+    return candidates.filter((event, index, list): event is EventFeedEntry => Boolean(event) && list.findIndex(item => item?.id === event?.id) === index).slice(0, 3)
+  }, [sections])
+
   return (
-    <div className="page content-with-nav">
+    <div className="page events-page content-with-nav">
       {/* Header */}
       <div className="page-header">
         <button className="back-btn" onClick={() => navigate('/')} aria-label={t('back')}>{'\u2039'}</button>
@@ -162,7 +176,7 @@ export function EventsScreen() {
           </div>
           {lastChecked && (
             <p style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-              {t('event_context_last_checked', new Date(lastChecked).toLocaleString())}
+              {t('event_context_last_checked', dateTimeLabel(lastChecked, locale))}
             </p>
           )}
         </div>
@@ -181,7 +195,7 @@ export function EventsScreen() {
 
       {error && (
         <div className="card" style={{ borderColor: 'var(--danger)' }} role="alert">
-          <p style={{ color: 'var(--danger)', fontSize: '14px' }}>{error}</p>
+          <p style={{ color: 'var(--danger)', fontSize: '14px' }}>{t('event_context_invalid_banner')}</p>
         </div>
       )}
 
@@ -195,10 +209,25 @@ export function EventsScreen() {
         </div>
       )}
 
+      {pickerEvents.length > 1 && (
+        <nav className="event-picker" aria-label={t('events_title')}>
+          {pickerEvents.map(event => (
+            <button
+              type="button"
+              key={event.id}
+              className={`event-picker-button ${event.id === sections.featured?.id ? 'active' : ''}`}
+              data-event-picker-id={event.id}
+              onClick={() => event.id === sections.featured?.id ? undefined : setOpenEvent(event)}
+            >
+              {eventLocaleTitle(event, locale)}
+            </button>
+          ))}
+        </nav>
+      )}
+
       {/* ── Featured hero card ── */}
       {sections.featured && (
         <>
-          <div className="section-title">{t('event_section_featured')}</div>
           <EventMainCard
             event={sections.featured}
             sourceLabel={sourceLabel}
@@ -385,16 +414,17 @@ function EventMainCard({
     const res = await copyToClipboard(search)
     setClipboard(res)
     if (res.status === 'copied') {
+      addHistory({ name: localized?.title ?? eventLocaleTitle(event, locale), rawSyntax: search, goalId: 'events', riskLevel: 'Info' })
       setTimeout(() => setClipboard(null), 2500)
     }
-  }, [search])
+  }, [search, localized?.title, event, locale])
 
   if (!localized) return null
 
   return (
-    <div className="card" data-event-id={event.id} data-event-section="featured" style={{ borderColor: tone, position: 'relative' }}>
+    <div className="event-hero" data-event-id={event.id} data-event-section="featured" style={{ '--event-tone': tone } as CSSProperties}>
       {/* Timer badge + theme mark */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+      <div className="event-hero-head" style={{ marginBottom: '10px' }}>
         <span className="badge" style={{ background: `${tone}22`, color: tone }}>{timerLabel}</span>
         <button
           type="button"
@@ -418,15 +448,14 @@ function EventMainCard({
 
       {/* Pokémon sprite row */}
       {pokemon.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+        <div className="event-pokemon-grid" style={{ marginBottom: '10px' }}>
           {pokemon.slice(0, 6).map((p: EventPokemonEntry, idx: number) => (
             <div
               key={`sprite-${idx}`}
-              className="card card-tap"
+              className="card card-tap event-pokemon-tile"
               data-pokemon-name={p.name}
               role="button"
               tabIndex={0}
-              style={{ padding: '8px', textAlign: 'center' }}
               onClick={() => onOpenPokemon(p)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenPokemon(p) } }}
             >
@@ -450,6 +479,13 @@ function EventMainCard({
           ))}
         </div>
       )}
+
+      <div className="event-feature-list">
+        {localized.research && <EventFeatureCard icon="info" title={t('event_research')} body={localized.research} tone="#B14BFF" />}
+        {localized.bonuses && <EventFeatureCard icon="check" title={t('event_chip_bonus')} body={localized.bonuses} tone="#FFD700" />}
+        {localized.raids && <EventFeatureCard icon="pvp_candidates" title={t('event_raids')} body={localized.raids} tone="#4FC3F7" />}
+        {localized.prep && <EventFeatureCard icon="warning" title={t('event_dialog_what_to_do')} body={localized.prep} tone="#00E5FF" />}
+      </div>
 
       {/* Suggested search + copy */}
       {search ? (
@@ -476,13 +512,22 @@ function EventMainCard({
       {/* Source badge in bottom-right */}
       <div style={{ marginTop: '12px', textAlign: 'right', opacity: 0.7 }}>
         <span className="badge badge-beta">{sourceLabel}</span>
-        {lastChecked && <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: '6px' }}>{t('event_context_last_checked', lastChecked)}</span>}
+        {lastChecked && <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: '6px' }}>{t('event_context_last_checked', dateTimeLabel(lastChecked, locale))}</span>}
       </div>
     </div>
   )
 }
 
 /* ──────────────── CompactEventCard ──────────────── */
+
+function EventFeatureCard({ icon, title, body, tone }: { icon: string; title: string; body: string; tone: string }) {
+  return (
+    <div className="event-feature-card" style={{ '--feature-tone': tone } as CSSProperties}>
+      <span className="event-feature-icon"><AppIcon name={icon} size={22} /></span>
+      <span className="event-feature-copy"><strong>{title}</strong><span>{body}</span></span>
+    </div>
+  )
+}
 
 function CompactEventCard({
   event,
@@ -505,7 +550,7 @@ function CompactEventCard({
   const dLabel = dateLabel(event, locale)
 
   return (
-    <div className="card card-tap" data-event-id={event.id} data-event-section={section} onClick={onClick} role="button" tabIndex={0}
+    <div className="card card-tap compact-event" data-event-id={event.id} data-event-section={section} onClick={onClick} role="button" tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
       aria-label={`${eventLocaleTitle(event, locale)} — ${statusLabel}`}
     >
@@ -568,8 +613,11 @@ function EventDetailDialog({
     if (!search) return
     const res = await copyToClipboard(search)
     setClipboard(res)
-    if (res.status === 'copied') setTimeout(() => setClipboard(null), 2500)
-  }, [search])
+    if (res.status === 'copied') {
+      addHistory({ name: localized?.title ?? (event ? eventLocaleTitle(event, locale) : ''), rawSyntax: search, goalId: 'events', riskLevel: 'Info' })
+      setTimeout(() => setClipboard(null), 2500)
+    }
+  }, [search, localized?.title, event, locale])
 
   const title = event ? eventLocaleTitle(event, locale) : ''
 
@@ -640,7 +688,7 @@ function EventDetailDialog({
       {localized?.raids && localized.raids.length > 0 && (
         <div style={{ marginBottom: '12px' }}>
           <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Raids
+            {t('event_raids')}
           </p>
           <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>{localized.raids}</p>
         </div>
@@ -650,7 +698,7 @@ function EventDetailDialog({
       {localized?.research && localized.research.length > 0 && (
         <div style={{ marginBottom: '12px' }}>
           <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Research
+            {t('event_research')}
           </p>
           <p style={{ fontSize: '13px', color: 'var(--text-dim)', lineHeight: 1.5 }}>{localized.research}</p>
         </div>
@@ -730,7 +778,7 @@ function EventDetailDialog({
         </p>
         {lastChecked && (
           <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            {t('event_context_last_checked', new Date(lastChecked).toLocaleString())}
+            {t('event_context_last_checked', dateTimeLabel(lastChecked, locale))}
           </p>
         )}
       </div>
@@ -753,11 +801,14 @@ function PokemonDetailDialog({
   locale: LocaleCode
   eventTitle: string
 }) {
+  const { t } = useI18n()
   if (!data) return null
   const { entry, event } = data
+  const localizedEvent = getLocalized(event, locale)
   const tone = themeTone(event.themeKey)
   const name = pokeLocalizedName(entry, locale)
   const badges = pokeLocalizedBadges(entry, locale)
+  const note = pokeLocalizedText(entry, 'note', locale)
 
   return (
     <Dialog
@@ -771,34 +822,35 @@ function PokemonDetailDialog({
         {eventTitle}
       </p>
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+      <div className="pokemon-dialog-summary">
         {entry.spriteKey ? (
           <img src={spriteSrc(entry.spriteKey) ?? ''} alt={name}
-            style={{ width: '96px', height: '96px', display: 'block' }} />
+            style={{ width: '56px', height: '56px', display: 'block' }} />
         ) : (
           <div style={{
-            width: '96px', height: '96px', borderRadius: '16px', background: `${tone}1a`,
+            width: '56px', height: '56px', borderRadius: '13px', background: `${tone}1a`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <span style={{ fontSize: '40px' }} aria-hidden="true">?</span>
           </div>
         )}
+        <div>
+          <p style={{ fontSize: '14px', fontWeight: 700, color: tone }}>{name}</p>
+          {badges && <p style={{ fontSize: '10px', color: 'var(--accent)', marginTop: '3px' }}>{badges}</p>}
+        </div>
       </div>
 
-      <p style={{ fontSize: '15px', fontWeight: 700, textAlign: 'center', marginBottom: '6px', color: tone }}>
-        {name}
-      </p>
-
-      {badges && (
-        <p style={{ fontSize: '12px', color: 'var(--text-dim)', textAlign: 'center', marginBottom: '12px' }}>
-          {badges}
-        </p>
+      {note && (
+        <section className="pokemon-dialog-copy">
+          <h3>{t('event_dialog_why_matters')}</h3>
+          <p>{note}</p>
+        </section>
       )}
-
-      {entry.note && (
-        <p style={{ fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.5, marginBottom: '12px' }}>
-          {entry.note}
-        </p>
+      {localizedEvent.prep && (
+        <section className="pokemon-dialog-copy warning">
+          <h3>{t('event_dialog_what_to_do')}</h3>
+          <p>{localizedEvent.prep}</p>
+        </section>
       )}
     </Dialog>
   )

@@ -1,115 +1,80 @@
+import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { AppIcon, SpriteIcon } from '../components/SpriteIcon'
 
 interface GoalCard {
-  goalId: string
+  id: string
   titleKey: string
   descKey: string
-  route?: string
+  route: string
+  accent: string
 }
 
 export function HomeScreen() {
   const { t } = useI18n()
   const navigate = useNavigate()
 
-  const goals: GoalCard[] = [
-    { goalId: 'safe_cleanup', titleKey: 'goal_safe_cleanup', descKey: 'goal_safe_cleanup_desc' },
-    { goalId: 'candy_prep', titleKey: 'goal_candy_prep', descKey: 'goal_candy_prep_desc' },
-    { goalId: 'trade_fodder', titleKey: 'goal_trade_fodder', descKey: 'goal_trade_fodder_desc' },
-    { goalId: 'hundo_check', titleKey: 'goal_hundo_check', descKey: 'goal_hundo_check_desc' },
-    { goalId: 'nundo_finder', titleKey: 'goal_nundo_finder', descKey: 'goal_nundo_finder_desc' },
-    { goalId: 'pvp_candidates', titleKey: 'goal_pvp_candidates', descKey: 'goal_pvp_candidates_desc' },
-    { goalId: 'lucky_trade', titleKey: 'goal_lucky_trade', descKey: 'goal_lucky_trade_desc' },
-    { goalId: 'untagged', titleKey: 'goal_untagged', descKey: 'goal_untagged_cleanup' },
-    { goalId: 'expert', titleKey: 'goal_expert', descKey: 'goal_expert_desc' },
+  const primaryGoals: GoalCard[] = [
+    { id: 'safe_cleanup', titleKey: 'goal_safe_cleanup', descKey: 'goal_safe_cleanup_desc', route: '/goal/safe_cleanup', accent: '#00E5FF' },
+    { id: 'candy_prep', titleKey: 'goal_candy_prep', descKey: 'goal_candy_prep_desc', route: '/goal/candy_prep', accent: '#FFD700' },
+    { id: 'lucky_trade', titleKey: 'goal_lucky_trade', descKey: 'goal_lucky_trade_desc', route: '/goal/lucky_trade', accent: '#FFD700' },
+    { id: 'assistant', titleKey: 'goal_assistant', descKey: 'goal_assistant_desc', route: '/assistant', accent: '#B14BFF' },
+    { id: 'pvp_candidates', titleKey: 'goal_pvp_candidates', descKey: 'goal_pvp_candidates_desc', route: '/goal/pvp_candidates', accent: '#4FC3F7' },
+    { id: 'events', titleKey: 'goal_events', descKey: 'goal_events_desc', route: '/events', accent: '#00E5FF' },
+    { id: 'presets', titleKey: 'goal_presets', descKey: 'goal_presets_desc', route: '/presets', accent: '#64B5F6' },
+    { id: 'my_presets', titleKey: 'goal_my_presets', descKey: 'goal_my_presets_desc', route: '/my-presets', accent: '#1DE9FF' },
   ]
 
-  const tools: GoalCard[] = [
-    { goalId: 'assistant', titleKey: 'search_assistant_title', descKey: 'search_assistant_desc_text', route: '/assistant' },
-    { goalId: 'events', titleKey: 'goal_events', descKey: 'goal_events_desc', route: '/events' },
-    { goalId: 'explain', titleKey: 'goal_explain', descKey: 'goal_explain_desc', route: '/explain' },
+  const moreGoals: GoalCard[] = [
+    { id: 'nundo_finder', titleKey: 'goal_nundo_finder', descKey: 'goal_nundo_finder_desc', route: '/goal/nundo_finder', accent: '#4FC3F7' },
+    { id: 'hundo_check', titleKey: 'goal_hundo_check', descKey: 'goal_hundo_check_desc', route: '/goal/hundo_check', accent: '#FF6B8A' },
+    { id: 'trade_fodder', titleKey: 'goal_trade_fodder', descKey: 'goal_trade_fodder_desc', route: '/goal/trade_fodder', accent: '#FFD700' },
+    { id: 'untagged', titleKey: 'goal_untagged', descKey: 'goal_untagged_cleanup', route: '/goal/untagged', accent: '#00E676' },
+    { id: 'expert', titleKey: 'goal_expert', descKey: 'goal_expert_desc', route: '/goal/expert', accent: '#B14BFF' },
+    { id: 'explain', titleKey: 'goal_explain', descKey: 'goal_explain_desc', route: '/explain', accent: '#4FC3F7' },
   ]
+
+  const renderCard = (goal: GoalCard) => (
+    <button
+      key={goal.id}
+      type="button"
+      className="goal-card"
+      onClick={() => navigate(goal.route)}
+      style={{ '--goal-accent': goal.accent } as CSSProperties}
+    >
+      <span className="goal-card-heading">
+        <span className="goal-icon"><AppIcon name={goal.id} size={18} /></span>
+        <strong className="goal-card-title">{t(goal.titleKey)}</strong>
+      </span>
+      <span className="goal-card-desc">{t(goal.descKey)}</span>
+      <span className="goal-card-art" aria-hidden="true"><AppIcon name={goal.id} size={42} /></span>
+    </button>
+  )
 
   return (
-    <div className="page content-with-nav">
-      {/* Wordmark logo */}
-      <div style={{ paddingTop: '16px', paddingBottom: '16px', textAlign: 'center' }}>
-        <h1 className="visually-hidden">PokeQuery</h1>
-        <SpriteIcon sprite="pokequery_wordmark" alt="PokeQuery" size={200} />
-        <p className="text-dim" style={{ marginTop: '6px', fontSize: '14px' }}>{t('home_header_desc')}</p>
-      </div>
-
-      {/* Intro card */}
-      <div className="card" style={{ marginBottom: '20px' }}>
-        <p style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>{t('home_subtitle')}</p>
-        <p className="text-muted">{t('home_subtitle_secondary')}</p>
-      </div>
-
-      {/* Goal grid — compact 2-column layout */}
-      <div className="section-title" style={{ marginTop: 0 }}>{t('home_goals')}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        {goals.map(goal => (
-          <div
-            key={goal.goalId}
-            className="card card-tap"
-            onClick={() => navigate(`/goal/${goal.goalId}`)}
-            style={{ padding: '12px 10px' }}
-          >
-            <span style={{ fontSize: '22px', lineHeight: 1, display: 'block', color: 'var(--accent)', marginBottom: '4px' }}>
-              <AppIcon name={goal.goalId} size={22} />
-            </span>
-            <p style={{ fontSize: '13px', fontWeight: 600, lineHeight: 1.2 }}>{t(goal.titleKey)}</p>
-            <p className="text-muted" style={{ marginTop: '2px', fontSize: '11px', lineHeight: 1.3 }}>{t(goal.descKey)}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Tools */}
-      <div className="section-title">{t('home_more_tools')}</div>
-      {tools.map(tool => (
-        <div
-          key={tool.goalId}
-          className="card card-tap"
-          onClick={() => navigate(tool.route ?? `/goal/${tool.goalId}`)}
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}
-        >
-          <span style={{ fontSize: '24px', lineHeight: 1, flexShrink: 0, color: 'var(--accent)' }}>
-            <AppIcon name={tool.goalId} size={24} />
-          </span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: '15px', fontWeight: 600 }}>{t(tool.titleKey)}</p>
-            <p className="text-muted" style={{ marginTop: '2px', fontSize: '12px' }}>{t(tool.descKey)}</p>
-          </div>
-          <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>›</span>
+    <main className="page home-page content-with-nav">
+      <section className="home-hero" aria-labelledby="home-title">
+        <span className="home-hero-line" aria-hidden="true" />
+        <span className="home-hero-dot" aria-hidden="true" />
+        <div className="home-hero-content">
+          <h1 id="home-title" className="visually-hidden">PokeQuery</h1>
+          <SpriteIcon sprite="pokequery_wordmark" alt="PokeQuery" width={188} height={50} />
+          <h2 className="home-title">{t('home_subtitle')}</h2>
+          <p className="home-subtitle">{t('home_subtitle_secondary')}</p>
         </div>
-      ))}
+      </section>
 
-      {/* Trust strips */}
-      <div className="card" style={{ marginTop: '20px' }}>
-        <p style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span aria-hidden="true" style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: '26px', height: '26px', borderRadius: '50%',
-            background: 'rgba(11,140,156,0.12)', color: 'var(--accent)',
-            fontSize: '14px', fontWeight: 700, flexShrink: 0,
-          }}><AppIcon name="lock" size={14} /></span>
-          {t('trust_home_no_access')}
-        </p>
-        <p className="text-muted" style={{ fontSize: '12px' }}>{t('home_chip_no_access_desc')}</p>
+      <div className="goal-grid" aria-label={t('home_goals')}>
+        {primaryGoals.map(renderCard)}
       </div>
-      <div className="card" style={{ marginBottom: '0' }}>
-        <p style={{ fontWeight: 600, marginBottom: '6px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span aria-hidden="true" style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: '26px', height: '26px', borderRadius: '50%',
-            background: 'rgba(11,140,156,0.12)', color: 'var(--accent)',
-            fontSize: '14px', fontWeight: 700, flexShrink: 0,
-          }}><AppIcon name="check" size={14} /></span>
-          {t('trust_home_review_first')}
-        </p>
-        <p className="text-muted" style={{ fontSize: '12px' }}>{t('home_chip_review_desc')}</p>
-      </div>
-    </div>
+
+      <section className="more-tools">
+        <div className="more-tools-heading">
+          <span className="more-tools-copy"><strong>{t('home_more_tools')}</strong><span>{t('home_more_tools_subtitle')}</span></span>
+        </div>
+        <div className="goal-grid">{moreGoals.map(renderCard)}</div>
+      </section>
+    </main>
   )
 }

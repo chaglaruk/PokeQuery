@@ -50,16 +50,15 @@ test.describe('Goal selection and search text (scenarios 8-13)', () => {
     await input.fill('shiny|4*')
     await expect(input).toHaveValue('shiny|4*')
     // Copy button should be disabled
-    await expect(page.getByText('Copy', { exact: false }).first()).toBeDisabled()
-    // An error warning should appear (pipe operator is forbidden)
-    await expect(page.locator('text=/pipe|\\|/i').first()).toBeVisible()
+    await expect(page.locator('.btn-copy')).toBeDisabled()
+    await expect(page.getByText('Fix errors to copy').first()).toBeVisible()
   })
 
   test('10b. valid expert builder input enables copy', async ({ page }) => {
     await gotoRoute(page, '/goal/expert')
     const input = page.locator('input[type="text"]').first()
     await input.fill('shiny&4*')
-    await expect(page.getByText('Copy', { exact: false }).first()).toBeEnabled()
+    await expect(page.locator('.btn-copy')).toBeEnabled()
   })
 
   test('11. !traded appears exactly once in Safe Cleanup search', async ({ page }) => {

@@ -7,6 +7,7 @@ import {
   heroScore,
   daysBetween,
   dateLabel,
+  dateTimeLabel,
   remainingTimeLabel,
   canonicalEventKey,
   systemClock,
@@ -284,6 +285,20 @@ describe('dateLabel', () => {
     const label = dateLabel(makeEntry({ startDate: '2026-07-21', endDate: '2026-07-21' }), 'tr')
     expect(label).toBeTruthy()
     expect(label!.length).toBeGreaterThan(0)
+  })
+})
+
+describe('dateTimeLabel', () => {
+  it('formats last-checked timestamps using the selected UI locale', () => {
+    const value = '2026-07-14T12:30:00.000Z'
+    const english = dateTimeLabel(value, 'en')
+    const turkish = dateTimeLabel(value, 'tr')
+    expect(english).not.toBe(turkish)
+    expect(turkish.toLocaleLowerCase('tr-TR')).toContain('tem')
+  })
+
+  it('returns malformed source values unchanged', () => {
+    expect(dateTimeLabel('not-a-date', 'fr')).toBe('not-a-date')
   })
 })
 

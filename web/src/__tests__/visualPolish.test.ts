@@ -18,7 +18,11 @@ describe('visual localization hygiene', () => {
   })
 
   it('defines every established Home, Settings, Search Assistant and onboarding key', () => {
-    const screenNames = ['HomeScreen.tsx', 'SettingsScreen.tsx', 'SearchAssistantScreen.tsx', 'OnboardingScreen.tsx']
+    const screenNames = [
+      'HomeScreen.tsx', 'SettingsScreen.tsx', 'SearchAssistantScreen.tsx', 'OnboardingScreen.tsx',
+      'GoalDetailScreen.tsx', 'PresetsScreen.tsx', 'EventsScreen.tsx', 'ExplainScreen.tsx',
+      'SavedSearchesScreen.tsx', 'KnowledgeScreen.tsx',
+    ]
     const screenText = screenNames.map(name => tsxSources[`../ui/screens/${name}`]).join('\n')
     const keys = [...new Set([...screenText.matchAll(/['"]([a-z][a-z0-9_]+)['"]/g)].map(match => match[1]).filter(key => key in en))]
 
@@ -31,7 +35,7 @@ describe('visual localization hygiene', () => {
     expect(tr.trust_home_no_access).toBe('Hesap erişimi yok')
     expect(tr.trust_home_review_first).toBe('Transferden önce incele')
     expect(tr.goal_pvp_candidates_desc).toBe('Büyük ve Ultra Lig')
-    expect(tr.goal_lucky_trade).toBe('Şanslı Takas Hazırlığı')
+    expect(tr.goal_lucky_trade).toBe('Lucky Takas Hazırlığı')
   })
 
   it('contains no platform-dependent emoji or icon glyphs in production TSX or locales', () => {
