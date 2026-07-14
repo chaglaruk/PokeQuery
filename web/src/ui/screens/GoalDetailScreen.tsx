@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { buildGoal } from '@engine/stringBuilderEngine'
@@ -6,6 +6,8 @@ import { buildFinal } from '@engine/goalStringBuilder'
 import { lint } from '@engine/linter'
 import { canCopy } from '@engine/expertCopyPolicy'
 import { AppIcon } from '@ui/components/SpriteIcon'
+import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
+import { addFavorite, addHistory, findFavorite, removeFavorite, type SavedSearch } from '@ui/savedSearches'
 
 export function GoalDetailScreen() {
   const { goalId = '' } = useParams<{ goalId: string }>()
@@ -13,7 +15,8 @@ export function GoalDetailScreen() {
   const { t, resolvedSearchLanguage } = useI18n()
   const [config, setConfig] = useState('')
   const [expertQuery, setExpertQuery] = useState('')
-  const [copied, setCopied] = useState(false)
+  const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
+  const [favorite, setFavorite] = useState<SavedSearch | null>(null)
   const [showRefine, setShowRefine] = useState(false)
   const [optionalProtections, setOptionalProtections] = useState<string[]>([])
 
@@ -35,16 +38,28 @@ export function GoalDetailScreen() {
   )
   const hasOptions = ['safe_cleanup', 'pvp_candidates', 'lucky_trade'].includes(goalId)
 
+  useEffect(() => {
+    setFavorite(findFavorite(finalString.rawSyntax) ?? null)
+  }, [finalString.rawSyntax])
+
   const handleCopy = useCallback(async () => {
     if (!canCopyResult) return
-    try {
-      await navigator.clipboard.writeText(finalString.rawSyntax)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard permission can be unavailable; the generated text stays selectable.
+    const result = await copyToClipboard(finalString.rawSyntax)
+    setClipboard(result)
+    if (result.status === 'copied') {
+      addHistory({ name: t(`goal_${goalId}`), rawSyntax: finalString.rawSyntax, goalId, riskLevel: finalString.riskLevel })
+      setTimeout(() => setClipboard(null), 2000)
     }
-  }, [finalString.rawSyntax, canCopyResult])
+  }, [finalString.rawSyntax, finalString.riskLevel, canCopyResult, goalId, t])
+
+  const toggleFavorite = useCallback(() => {
+    if (favorite) {
+      removeFavorite(favorite.id)
+      setFavorite(null)
+      return
+    }
+    setFavorite(addFavorite({ name: t(`goal_${goalId}`), rawSyntax: finalString.rawSyntax, goalId, riskLevel: finalString.riskLevel }))
+  }, [favorite, finalString.rawSyntax, finalString.riskLevel, goalId, t])
 
   const toggleProtection = useCallback((token: string) => {
     setOptionalProtections(current => current.includes(token) ? current.filter(value => value !== token) : [...current, token])
@@ -68,6 +83,9 @@ export function GoalDetailScreen() {
       <header className="page-header">
         <button type="button" className="back-btn" onClick={() => navigate('/')} aria-label="Back">←</button>
         <h1>{t(`goal_${goalId}`)}</h1>
+        <button type="button" className={`header-action ${favorite ? 'active' : ''}`} onClick={toggleFavorite} aria-label={t('nav_favorites')}>
+          <AppIcon name="favorite" size={21} />
+        </button>
       </header>
 
       <section className={`detail-result ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`}>
@@ -79,7 +97,7 @@ export function GoalDetailScreen() {
             <input id="expert-query" type="text" value={expertQuery} onChange={event => setExpertQuery(event.target.value)} placeholder={t('explain_placeholder')} />
             {expertWarnings.map((warning, index) => (
               <p key={index} className="setting-help" style={{ color: warning.isError ? 'var(--danger)' : 'var(--warning)' }}>
-                <AppIcon name={warning.isError ? 'error' : 'warning'} size={14} /> {warning.message}
+                <AppIcon name={warning.isError ? 'error' : 'warning'} size={14} /> {t(warning.isError ? 'goal_detail_fix_errors' : 'search_intent_lint_advisory')}
               </p>
             ))}
           </div>
@@ -90,9 +108,10 @@ export function GoalDetailScreen() {
             <button type="button" className="btn btn-edit" onClick={() => setShowRefine(value => !value)}><AppIcon name="assistant" size={18} /> {t('goal_detail_edit_search')}</button>
           )}
           <button type="button" className={`btn btn-copy ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`} onClick={handleCopy} disabled={!canCopyResult}>
-            <AppIcon name="copy" size={18} /> {copied ? t('goal_detail_copied') : t('goal_detail_copy_search_string')}
+            <AppIcon name="copy" size={18} /> {clipboard?.status === 'copied' ? t('goal_detail_copied') : t('goal_detail_copy_search_string')}
           </button>
         </div>
+        {clipboard && <div className={`clipboard-feedback ${clipboard.status}`} role="status" aria-live="polite">{t(clipboard.i18nKey)}</div>}
         {!canCopyResult && <p className="setting-help">{t('goal_detail_fix_errors')}</p>}
       </section>
 
@@ -128,15 +147,11 @@ export function GoalDetailScreen() {
         </section>
       )}
 
-      <section className="card info-card">
+      <section className={`card info-card ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`}>
         <h2 className="info-heading"><AppIcon name="info" size={16} /> {t('goal_detail_what_does_this_do')}</h2>
-        <p style={{ marginTop: '8px' }}>{finalString.plainLanguageExplanation}</p>
-        {(finalString.warnings.length > 0 || (goalId === 'expert' && goal.warnings.length > 0)) && (
-          <>
-            <h3 className="info-heading warning-heading"><AppIcon name="warning" size={16} /> {t('goal_detail_watch_out')}</h3>
-            {[...finalString.warnings, ...(goalId === 'expert' ? goal.warnings : [])].map((warning, index) => <p key={index} style={{ marginTop: '5px' }}>• {warning}</p>)}
-          </>
-        )}
+        <p style={{ marginTop: '8px' }}>{t(`risk_${goalId}_short`)}</p>
+        <h3 className="info-heading warning-heading"><AppIcon name="warning" size={16} /> {t('goal_detail_watch_out')}</h3>
+        <p style={{ marginTop: '5px' }}>• {t(`risk_${goalId}_check1`)}</p>
         <h3 className="info-heading warning-heading"><AppIcon name="warning" size={16} /> {t('goal_detail_review_aid')}</h3>
         <p>{t('goal_detail_review_matches')} {t('goal_detail_never_blind')}</p>
       </section>

@@ -4,6 +4,8 @@ import { useI18n } from '@i18n/I18nContext'
 import { explain } from '@engine/searchStringExplainer'
 import type { ExplainedToken } from '@engine/searchStringExplainer'
 import type { RiskLevel } from '@/types'
+import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
+import { addHistory } from '@ui/savedSearches'
 
 const riskBadgeClass: Record<RiskLevel, string> = {
   Info: 'badge-info',
@@ -32,16 +34,17 @@ export function ExplainScreen() {
   const { t, locale } = useI18n()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
-  const [copied, setCopied] = useState(false)
+  const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
 
   const result = useMemo(() => explain(query), [query])
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(result.original)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch { /* clipboard may not be available */ }
+    const copyResult = await copyToClipboard(result.original)
+    setClipboard(copyResult)
+    if (copyResult.status === 'copied') {
+      addHistory({ name: t('goal_explain'), rawSyntax: result.original, goalId: 'explain', riskLevel: result.totalRisk })
+      setTimeout(() => setClipboard(null), 2000)
+    }
   }
 
   return (
@@ -110,8 +113,9 @@ export function ExplainScreen() {
           {/* Copy */}
           <div style={{ marginTop: '16px' }}>
             <button className="btn btn-primary" onClick={handleCopy}>
-              {copied ? `\u2714 ${t('explain_copied')}` : t('explain_copy_search_string')}
+              {clipboard?.status === 'copied' ? `\u2714 ${t('explain_copied')}` : t('explain_copy_search_string')}
             </button>
+            {clipboard && <div className={`clipboard-feedback ${clipboard.status}`} role="status" aria-live="polite">{t(clipboard.i18nKey)}</div>}
           </div>
         </>
       )}

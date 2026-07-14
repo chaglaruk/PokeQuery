@@ -9,6 +9,7 @@ import { translateSyntax, findUnverifiedTokens, resolveLanguage } from '@engine/
 import { copyToClipboard, type ClipboardStatus } from '@ui/clipboard'
 import type { ClipboardResult } from '@ui/clipboard'
 import { AppIcon } from '@ui/components/SpriteIcon'
+import { addHistory } from '@ui/savedSearches'
 
 const scopeBreadthKeys: Record<string, string> = {
   'All (no filter)': 'explainer_scope_all',
@@ -69,9 +70,10 @@ export function SearchAssistantScreen() {
     const res = await copyToClipboard(target)
     setClipboard(res)
     if (res.status === 'copied') {
+      addHistory({ name: t('goal_assistant'), rawSyntax: target, goalId: 'assistant', riskLevel: explained?.totalRisk ?? 'Low' })
       setTimeout(() => setClipboard(null), 2500)
     }
-  }, [result, translatedQuery, copyBlocked])
+  }, [result, translatedQuery, copyBlocked, explained, t])
 
   return (
     <div className="page content-with-nav">

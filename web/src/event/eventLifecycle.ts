@@ -285,6 +285,15 @@ export function dateLabel(entry: EventFeedEntry, locale: string): string | null 
   return null
 }
 
+export function dateTimeLabel(value: string, locale: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat(localeToIntl(locale), {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
+}
+
 function localeToIntl(locale: string): string {
   switch (locale) {
     case 'en': return 'en-US'

@@ -2,56 +2,27 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { copyToClipboard } from '@ui/clipboard'
+import type { ClipboardResult } from '@ui/clipboard'
 import { AppIcon } from '@ui/components/SpriteIcon'
 import { Dialog } from '@ui/components/Dialog'
-
-type PresetRisk = 'low' | 'medium' | 'info'
-type PresetCategory = 'cleanup' | 'candy_event' | 'trading' | 'battle_iv' | 'collection'
-
-interface Preset {
-  titleKey: string
-  descKey: string
-  syntax: string
-  risk: PresetRisk
-  category: PresetCategory
-}
-
-const PRESETS: Preset[] = [
-  { titleKey: 'preset_recent_catches', descKey: 'preset_desc_recent_catches', syntax: 'age0-7', risk: 'low', category: 'cleanup' },
-  { titleKey: 'preset_low_iv_cleanup', descKey: 'preset_desc_low_iv_cleanup', syntax: '0*,1*&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!#&!traded&!costume&!background&!locationbackground&!specialbackground', risk: 'medium', category: 'cleanup' },
-  { titleKey: 'preset_duplicate_cleanup', descKey: 'preset_desc_duplicate_cleanup', syntax: 'count2-&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!#&!traded&!costume&!background&!locationbackground&!specialbackground', risk: 'medium', category: 'cleanup' },
-  { titleKey: 'preset_untagged_review', descKey: 'preset_desc_untagged_review', syntax: '!#&!shiny&!legendary&!mythical&!ultrabeast&!shadow&!purified&!favorite&!lucky&!traded&!costume&!background&!locationbackground&!specialbackground', risk: 'low', category: 'cleanup' },
-  { titleKey: 'preset_evolve_ready', descKey: 'preset_desc_evolve_ready', syntax: 'evolve', risk: 'low', category: 'candy_event' },
-  { titleKey: 'preset_recent_event_review', descKey: 'preset_desc_recent_event_review', syntax: 'age0-3', risk: 'low', category: 'candy_event' },
-  { titleKey: 'preset_untraded_duplicates', descKey: 'preset_desc_untraded_duplicates', syntax: 'count2-&!traded', risk: 'medium', category: 'trading' },
-  { titleKey: 'preset_older_untraded', descKey: 'preset_desc_older_untraded', syntax: 'age365-&!traded', risk: 'medium', category: 'trading' },
-  { titleKey: 'preset_distance_trade', descKey: 'preset_desc_distance_trade', syntax: 'distance100-&!traded', risk: 'medium', category: 'trading' },
-  { titleKey: 'preset_special_trade', descKey: 'preset_desc_special_trade', syntax: 'shiny,legendary,mythical', risk: 'info', category: 'trading' },
-  { titleKey: 'preset_hundo', descKey: 'preset_desc_hundo', syntax: '4*', risk: 'info', category: 'battle_iv' },
-  { titleKey: 'preset_nundo', descKey: 'preset_desc_nundo', syntax: '0attack&0defense&0hp', risk: 'info', category: 'battle_iv' },
-  { titleKey: 'preset_great_league', descKey: 'preset_desc_great_league', syntax: '0-1attack&3-4defense&3-4hp&cp-1500', risk: 'info', category: 'battle_iv' },
-  { titleKey: 'preset_ultra_league', descKey: 'preset_desc_ultra_league', syntax: '0-1attack&3-4defense&3-4hp&cp-2500', risk: 'info', category: 'battle_iv' },
-  { titleKey: 'preset_perfect_shadows', descKey: 'preset_desc_perfect_shadows', syntax: 'shadow&4*', risk: 'info', category: 'battle_iv' },
-  { titleKey: 'preset_shiny_review', descKey: 'preset_desc_shiny_review', syntax: 'shiny', risk: 'info', category: 'collection' },
-  { titleKey: 'preset_costume_review', descKey: 'preset_desc_costume_review', syntax: 'costume', risk: 'info', category: 'collection' },
-  { titleKey: 'preset_lucky_review', descKey: 'preset_desc_lucky_review', syntax: 'lucky', risk: 'info', category: 'collection' },
-]
-
-const CATEGORIES: PresetCategory[] = ['cleanup', 'candy_event', 'trading', 'battle_iv', 'collection']
+import { addHistory } from '@ui/savedSearches'
+import { buildPresetOutput, PRESETS, PRESET_CATEGORIES, type Preset } from '@ui/presetCatalog'
 
 export function PresetsScreen({ personal = false }: { personal?: boolean }) {
-  const { t } = useI18n()
+  const { t, resolvedSearchLanguage } = useI18n()
   const navigate = useNavigate()
   const [preview, setPreview] = useState<Preset | null>(null)
-  const [copied, setCopied] = useState(false)
-  const groups = useMemo(() => CATEGORIES.map(category => ({ category, presets: PRESETS.filter(preset => preset.category === category) })), [])
+  const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
+  const groups = useMemo(() => PRESET_CATEGORIES.map(category => ({ category, presets: PRESETS.filter(preset => preset.category === category) })), [])
+  const previewOutput = useMemo(() => preview ? buildPresetOutput(preview, resolvedSearchLanguage) : null, [preview, resolvedSearchLanguage])
 
   const copyPreview = async () => {
-    if (!preview) return
-    const result = await copyToClipboard(preview.syntax)
+    if (!preview || !previewOutput || previewOutput.copyBlocked) return
+    const result = await copyToClipboard(previewOutput.rawSyntax)
+    setClipboard(result)
     if (result.status === 'copied') {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
+      addHistory({ name: t(preview.titleKey), rawSyntax: previewOutput.rawSyntax, goalId: 'preset', riskLevel: previewOutput.riskLevel })
+      setTimeout(() => setClipboard(null), 2000)
     }
   }
 
@@ -74,7 +45,7 @@ export function PresetsScreen({ personal = false }: { personal?: boolean }) {
           <h2 className="section-title">{t(`preset_cat_${group.category}`)}</h2>
           <div className="preset-grid">
             {group.presets.map(preset => (
-              <button type="button" className="card preset-card" key={preset.titleKey} onClick={() => { setCopied(false); setPreview(preset) }}>
+              <button type="button" className="card preset-card" key={preset.titleKey} onClick={() => { setClipboard(null); setPreview(preset) }}>
                 <span className="preset-card-top">
                   <span className="preset-letter">{t(preset.titleKey).slice(0, 1)}</span>
                   <span className={`badge badge-${preset.risk}`}>{t(`risk_${preset.risk}_display`)}</span>
@@ -94,11 +65,13 @@ export function PresetsScreen({ personal = false }: { personal?: boolean }) {
             <p className="preset-preview-kicker">{t('presets_preview')}</p>
             <h3 style={{ marginTop: '8px', fontSize: '13px' }}>{t('presets_what_finds')} <span className={`badge badge-${preview.risk}`}>{t(`risk_${preview.risk}_display`)}</span></h3>
             <p className="text-dim" style={{ marginTop: '6px', fontSize: '11px' }}>{t(preview.descKey)}</p>
-            <div className="search-string" style={{ marginTop: '12px' }}>{preview.syntax}</div>
-            {preview.risk === 'medium' && <p className="setting-help" style={{ color: 'var(--warning)', display: 'flex', gap: '6px' }}><AppIcon name="warning" size={14} /> {t('presets_review_matches')}</p>}
+            <div className="search-string preset-output">{previewOutput?.rawSyntax}</div>
+            {(preview.risk === 'medium' || (previewOutput?.warnings.length ?? 0) > 0) && <p className="setting-help preset-advisory"><AppIcon name="warning" size={14} /> {t('presets_review_matches')}</p>}
+            {previewOutput?.copyBlocked && <p className="setting-help preset-blocked"><AppIcon name="error" size={14} /> {t('goal_detail_fix_errors')}</p>}
+            {clipboard && <div className={`clipboard-feedback ${clipboard.status}`} role="status" aria-live="polite">{t(clipboard.i18nKey)}</div>}
             <div className="dialog-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setPreview(null)}>{t('action_cancel')}</button>
-              <button type="button" className="btn btn-primary" onClick={copyPreview}><AppIcon name="copy" size={16} /> {copied ? t('goal_detail_copied') : t('goal_detail_copy_search_string')}</button>
+              <button type="button" className="btn btn-primary" onClick={copyPreview} disabled={previewOutput?.copyBlocked}><AppIcon name="copy" size={16} /> {clipboard?.status === 'copied' ? t('goal_detail_copied') : t('goal_detail_copy_search_string')}</button>
             </div>
           </>
         )}
