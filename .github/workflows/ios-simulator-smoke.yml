@@ -1,0 +1,349 @@
+name: iOS Simulator Safari smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ios-simulator-smoke:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      PWA_URL: https://chaglaruk.github.io/PokeQuery/
+      OUT: ios-simulator-smoke
+
+    steps:
+      - name: Inspect runner and select simulator targets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"/{http,logs,screenshots}
+
+          if ! xcrun simctl list runtimes >/dev/null 2>&1; then
+            xcode_app="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort | tail -1)"
+            test -n "$xcode_app"
+            sudo xcode-select --switch "$xcode_app/Contents/Developer"
+          fi
+
+          {
+            echo "== macOS =="
+            sw_vers
+            echo
+            echo "== Xcode =="
+            xcodebuild -version
+            echo
+            echo "== Selected developer directory =="
+            xcode-select -p
+            echo
+            echo "== Available iOS runtimes =="
+            xcrun simctl list runtimes
+            echo
+            echo "== Available iPhone simulator device types =="
+            xcrun simctl list devicetypes | grep -E 'iPhone|^=='
+          } | tee "$OUT/runtime-device-info.txt"
+
+          xcrun simctl list runtimes --json > "$OUT/runtimes.json"
+          xcrun simctl list devicetypes --json > "$OUT/device-types.json"
+
+          python3 - "$OUT" <<'PY'
+          import json
+          import re
+          import sys
+          from pathlib import Path
+
+          out = Path(sys.argv[1])
+          runtimes = json.loads((out / "runtimes.json").read_text())["runtimes"]
+          available = [
+              runtime for runtime in runtimes
+              if runtime.get("isAvailable", False)
+              and "SimRuntime.iOS" in runtime.get("identifier", "")
+          ]
+          if not available:
+              raise SystemExit("No available iOS simulator runtime was found")
+
+          def version_key(runtime):
+              return tuple(int(part) for part in re.findall(r"\d+", runtime.get("version", "0")))
+
+          runtime = max(available, key=version_key)
+          device_types = json.loads((out / "device-types.json").read_text())["devicetypes"]
+          iphones = [item for item in device_types if item.get("name", "").startswith("iPhone")]
+
+          se = next(
+              (item for item in iphones if item["name"] == "iPhone SE (3rd generation)"),
+              None,
+          )
+          if not se:
+              raise SystemExit("iPhone SE (3rd generation) device type is unavailable")
+
+          preferences = [
+              "iPhone 16 Pro",
+              "iPhone 16 Pro Max",
+              "iPhone 16 Plus",
+              "iPhone 16",
+          ]
+          large = next(
+              (item for name in preferences for item in iphones if item["name"] == name),
+              None,
+          )
+          if not large:
+              modern = [
+                  item for item in iphones
+                  if "SE" not in item["name"] and re.search(r"iPhone \d+", item["name"])
+              ]
+              if not modern:
+                  raise SystemExit("No modern large iPhone device type was found")
+
+              def device_key(item):
+                  name = item["name"]
+                  generation = int(re.search(r"iPhone (\d+)", name).group(1))
+                  style = 3 if "Pro Max" in name else 2 if "Pro" in name else 1 if "Plus" in name else 0
+                  return generation, style
+
+              large = max(modern, key=device_key)
+
+          if large["identifier"] == se["identifier"]:
+              raise SystemExit("The compact and large simulator targets must be distinct")
+
+          (out / "selected-devices.tsv").write_text(
+              f"compact\t{se['name']}\t{se['identifier']}\n"
+              f"large\t{large['name']}\t{large['identifier']}\n"
+          )
+          (out / "selected-runtime.txt").write_text(
+              f"{runtime['name']} ({runtime['identifier']})\n"
+          )
+          (out / "selected-runtime-id.txt").write_text(runtime["identifier"] + "\n")
+          print((out / "selected-runtime.txt").read_text(), end="")
+          print((out / "selected-devices.tsv").read_text(), end="")
+          PY
+
+      - name: Verify deployed PWA files
+        shell: bash
+        run: |
+          set -euo pipefail
+          results="$OUT/http-results.tsv"
+          printf 'asset\tstatus\turl\n' > "$results"
+
+          verify_url() {
+            local name="$1" url="$2" destination="$3" status
+            mkdir -p "$(dirname "$destination")"
+            if ! status="$(curl --location --silent --show-error --retry 3 --output "$destination.tmp" --write-out '%{http_code}' "$url")"; then
+              printf '%s\t%s\t%s\n' "$name" "curl-error" "$url" | tee -a "$results"
+              return 1
+            fi
+            printf '%s\t%s\t%s\n' "$name" "$status" "$url" | tee -a "$results"
+            test "$status" = "200"
+            mv "$destination.tmp" "$destination"
+          }
+
+          verify_url root "$PWA_URL" "$OUT/http/root.html"
+
+          python3 - "$PWA_URL" "$OUT" <<'PY'
+          import sys
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urljoin
+
+          root_url, out_arg = sys.argv[1:]
+          out = Path(out_arg)
+
+          class Assets(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.manifest = None
+                  self.apple_icon = None
+                  self.scripts = []
+
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  if tag == "link":
+                      rel = set(attrs.get("rel", "").lower().split())
+                      if "manifest" in rel:
+                          self.manifest = attrs.get("href")
+                      if "apple-touch-icon" in rel:
+                          self.apple_icon = attrs.get("href")
+                  elif tag == "script" and attrs.get("src"):
+                      self.scripts.append(attrs["src"])
+
+          parser = Assets()
+          parser.feed((out / "http/root.html").read_text())
+          if not parser.manifest or not parser.apple_icon:
+              raise SystemExit("The deployed HTML does not expose the manifest and Apple touch icon")
+          if not parser.scripts:
+              raise SystemExit("The deployed HTML does not expose a script bundle")
+
+          (out / "manifest-url.txt").write_text(urljoin(root_url, parser.manifest) + "\n")
+          (out / "apple-icon-url.txt").write_text(urljoin(root_url, parser.apple_icon) + "\n")
+          (out / "script-urls.txt").write_text(
+              "".join(urljoin(root_url, src) + "\n" for src in parser.scripts)
+          )
+          PY
+
+          manifest_url="$(tr -d '\r\n' < "$OUT/manifest-url.txt")"
+          apple_icon_url="$(tr -d '\r\n' < "$OUT/apple-icon-url.txt")"
+          verify_url manifest "$manifest_url" "$OUT/http/manifest.webmanifest"
+          verify_url apple-touch-icon "$apple_icon_url" "$OUT/http/apple-touch-icon"
+
+          : > "$OUT/script-files.txt"
+          index=0
+          while IFS= read -r script_url; do
+            script_url="$(printf '%s' "$script_url" | tr -d '\r')"
+            index=$((index + 1))
+            script_file="$OUT/http/script-$index.js"
+            curl --fail --location --silent --show-error --retry 3 --output "$script_file" "$script_url"
+            printf '%s\t%s\n' "$script_url" "$script_file" >> "$OUT/script-files.txt"
+          done < "$OUT/script-urls.txt"
+
+          python3 - "$PWA_URL" "$OUT" <<'PY'
+          import json
+          import re
+          import sys
+          from pathlib import Path
+          from urllib.parse import urljoin
+
+          root_url, out_arg = sys.argv[1:]
+          out = Path(out_arg)
+          manifest_url = (out / "manifest-url.txt").read_text().strip()
+          manifest = json.loads((out / "http/manifest.webmanifest").read_text())
+
+          def icon_url(size):
+              for icon in manifest.get("icons", []):
+                  if size in icon.get("sizes", "").split():
+                      return urljoin(manifest_url, icon["src"])
+              raise SystemExit(f"The deployed manifest has no {size} icon")
+
+          bundle = ""
+          for line in (out / "script-files.txt").read_text().splitlines():
+              _, filename = line.split("\t", 1)
+              bundle += Path(filename).read_text(errors="replace") + "\n"
+
+          def bundled_path(filename):
+              pattern = rf'["\x27]([^"\x27]*{re.escape(filename)}(?:\?[^"\x27]*)?)["\x27]'
+              candidates = sorted(set(re.findall(pattern, bundle)), key=len)
+              if not candidates:
+                  raise SystemExit(f"Could not derive {filename} from the deployed script bundle")
+              return urljoin(root_url, candidates[0])
+
+          rows = [
+              ("service-worker", bundled_path("sw.js"), "service-worker.js"),
+              ("icon-192", icon_url("192x192"), "icon-192"),
+              ("icon-512", icon_url("512x512"), "icon-512"),
+              (
+                  "event-feed-fallback",
+                  bundled_path("event-feed-fallback.json"),
+                  "event-feed-fallback.json",
+              ),
+          ]
+          (out / "derived-assets.tsv").write_text(
+              "".join("\t".join(row) + "\n" for row in rows)
+          )
+          PY
+
+          while IFS=$'\t' read -r name url filename; do
+            url="$(printf '%s' "$url" | tr -d '\r')"
+            filename="$(printf '%s' "$filename" | tr -d '\r')"
+            verify_url "$name" "$url" "$OUT/http/$filename"
+          done < "$OUT/derived-assets.tsv"
+
+      - name: Smoke test Mobile Safari
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime_id="$(tr -d '\r\n' < "$OUT/selected-runtime-id.txt")"
+          created_udids=()
+
+          cleanup() {
+            for udid in "${created_udids[@]}"; do
+              xcrun simctl shutdown "$udid" >/dev/null 2>&1 || true
+              xcrun simctl delete "$udid" >/dev/null 2>&1 || true
+            done
+          }
+          trap cleanup EXIT
+
+          while IFS=$'\t' read -r label device_name device_type; do
+            slug="$(printf '%s' "$device_name" | tr '[:upper:] ()' '[:lower:]---' | tr -cd '[:alnum:]-')"
+            simulator_name="PokeQuery Smoke $label $GITHUB_RUN_ID"
+            echo "Creating $simulator_name with $device_name on $runtime_id"
+            udid="$(xcrun simctl create "$simulator_name" "$device_type" "$runtime_id")"
+            test -n "$udid"
+            created_udids+=("$udid")
+
+            {
+              echo "name=$simulator_name"
+              echo "device_type=$device_name"
+              echo "runtime=$runtime_id"
+              echo "udid=$udid"
+            } | tee "$OUT/logs/$slug-device.txt"
+
+            xcrun simctl boot "$udid"
+            xcrun simctl bootstatus "$udid" -b
+            xcrun simctl list devices > "$OUT/logs/$slug-simctl-devices.txt"
+
+            if ! xcrun simctl openurl "$udid" "$PWA_URL" > "$OUT/logs/$slug-openurl.txt" 2>&1; then
+              cat "$OUT/logs/$slug-openurl.txt"
+              exit 1
+            fi
+
+            # Mobile Safari has no supported simctl DOM-ready probe. Allow the
+            # successful navigation time to render and settle before capture.
+            sleep 12
+            screenshot="$OUT/screenshots/$slug.png"
+            xcrun simctl io "$udid" screenshot "$screenshot"
+            test -s "$screenshot"
+
+            xcrun simctl spawn "$udid" log show --last 3m --style compact --predicate 'process == "MobileSafari" OR subsystem BEGINSWITH "com.apple.WebKit"' > "$OUT/logs/$slug-safari-webkit.log" 2>&1 || true
+
+            xcrun simctl shutdown "$udid"
+            xcrun simctl delete "$udid"
+          done < "$OUT/selected-devices.tsv"
+
+          test "$(find "$OUT/screenshots" -type f -name '*.png' -size +0c | wc -l | tr -d ' ')" -ge 2
+
+      - name: Write job summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## iOS Simulator Safari smoke"
+            echo
+            echo "- PWA URL: $PWA_URL"
+            if test -f "$OUT/selected-runtime.txt"; then
+              echo "- Tested iOS runtime: $(cat "$OUT/selected-runtime.txt")"
+            fi
+            if test -f "$OUT/selected-devices.tsv"; then
+              echo "- Tested simulator devices: $(cut -f2 "$OUT/selected-devices.tsv" | paste -sd ',' - | sed 's/,/, /g')"
+            fi
+            echo
+            echo "### HTTP results"
+            if test -f "$OUT/http-results.tsv"; then
+              echo
+              echo '| Asset | HTTP | URL |'
+              echo '|---|---:|---|'
+              tail -n +2 "$OUT/http-results.tsv" | while IFS=$'\t' read -r asset status url; do
+                echo "| $asset | $status | $url |"
+              done
+            else
+              echo
+              echo "HTTP verification did not complete."
+            fi
+            echo
+            echo "### Screenshots"
+            if compgen -G "$OUT/screenshots/*.png" >/dev/null; then
+              find "$OUT/screenshots" -maxdepth 1 -name '*.png' -exec basename {} \; | sort | sed 's/^/- /'
+            else
+              echo "- No screenshots were generated."
+            fi
+            echo
+            echo "### Limitations"
+            echo
+            echo "This simulator smoke test does not validate Add to Home Screen, installed standalone mode, real-device clipboard permissions, or real service-worker persistence."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload smoke-test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-smoke
+          path: ios-simulator-smoke
+          if-no-files-found: error
