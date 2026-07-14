@@ -1,4 +1,4 @@
-﻿{
+{
   "schemaVersion": 1,
   "lastUpdated": "2026-07-14",
   "notes": "Repository-maintained public feed for PokeQuery. Entries are prepared from official Pokémon GO public event pages; the Android app consumes this PokeQuery-owned JSON and does not scrape third-party sites at runtime.",
