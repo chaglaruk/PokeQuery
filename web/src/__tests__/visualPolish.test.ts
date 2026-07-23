@@ -17,9 +17,9 @@ describe('visual localization hygiene', () => {
     }
   })
 
-  it('defines every established Home, Settings, Search Assistant and onboarding key', () => {
+  it('defines every established production screen key', () => {
     const screenNames = [
-      'HomeScreen.tsx', 'SettingsScreen.tsx', 'SearchAssistantScreen.tsx', 'OnboardingScreen.tsx',
+      'HomeScreen.tsx', 'SettingsScreen.tsx', 'SearchAssistantScreen.tsx',
       'GoalDetailScreen.tsx', 'PresetsScreen.tsx', 'EventsScreen.tsx', 'ExplainScreen.tsx',
       'SavedSearchesScreen.tsx', 'KnowledgeScreen.tsx',
     ]

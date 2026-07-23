@@ -1,24 +1,13 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import type { AppLanguage, SearchStringLanguage } from '@/types'
-import { isOnboardingComplete, markOnboardingComplete } from './OnboardingScreen'
-
-const ONBOARDING_FLAG = 'pq_onboarding_complete'
 
 export function SettingsScreen() {
   const { t, appLanguage, setAppLanguage, searchLanguage, setSearchLanguage } = useI18n()
   const navigate = useNavigate()
-  const [showFirstUseGuide, setShowFirstUseGuide] = useState(() => !isOnboardingComplete())
 
   const appLanguages: AppLanguage[] = ['System Default', 'English', 'Deutsch', 'Español', 'Français', 'Italiano', 'Türkçe']
   const searchLanguages: SearchStringLanguage[] = ['Auto', 'Match App Language', 'English', 'German', 'Spanish', 'French', 'Italian', 'Turkish']
-
-  const updateFirstUseGuide = (show: boolean) => {
-    setShowFirstUseGuide(show)
-    if (show) localStorage.removeItem(ONBOARDING_FLAG)
-    else markOnboardingComplete()
-  }
 
   const searchLanguageLabel = (lang: SearchStringLanguage) => {
     const labels: Partial<Record<SearchStringLanguage, string>> = {
@@ -42,25 +31,6 @@ export function SettingsScreen() {
       </header>
 
       <div className="settings-stack">
-        <section className="settings-panel">
-          <h2 className="panel-title">{t('settings_general')}</h2>
-          <div className="setting-row">
-            <div className="setting-copy">
-              <div className="setting-label">{t('settings_first_use_guide')}</div>
-              <div className="setting-help">{t('settings_first_use_guide_desc')}</div>
-            </div>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={showFirstUseGuide}
-                onChange={event => updateFirstUseGuide(event.target.checked)}
-                aria-label={t('settings_first_use_guide')}
-              />
-              <span className="switch-track" />
-            </label>
-          </div>
-        </section>
-
         <section className="settings-panel accent">
           <h2 className="panel-title">{t('settings_search_language')}</h2>
           <div className="setting-block">
