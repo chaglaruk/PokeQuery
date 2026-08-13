@@ -29,7 +29,12 @@ class MonthlyContextTest {
 
     @Test
     fun `current note is marked manual and carries the app version`() {
-        val view = MonthlyContextRepository.currentWithStaleness()
+        val currentNote = requireNotNull(MonthlyContextRepository.current)
+        val currentNoteDate = Calendar.getInstance().apply {
+            clear()
+            set(currentNote.year, currentNote.month - 1, 1)
+        }
+        val view = MonthlyContextRepository.currentWithStaleness(currentNoteDate)
         assertNotNull(view)
         val note = view!!.note
         assertTrue("note must be manual confidence", note.isManual)
