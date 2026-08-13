@@ -10,21 +10,37 @@ import { skipOnboarding, gotoRoute } from './helpers'
 
 const PRODUCTION_FEED_URL = 'https://raw.githubusercontent.com/chaglaruk/PokeQuery/master/docs/event-feed/pokequery-events.json'
 
+function isoDateFromToday(days: number) {
+  const date = new Date()
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
 // A minimal mock event feed with CURRENT, UPCOMING, and ENDED events.
-// Dates are chosen so CURRENT/UPCOMING pass the lifecycle filter (aced with today's date),
-// while the ENDED event has dates wholly in the past → gets filtered out.
+// Dates are relative to the test run so CURRENT/UPCOMING always pass the lifecycle filter,
+// while the ENDED event is always wholly in the past and gets filtered out.
 function mockFeed() {
+  const today = isoDateFromToday(0)
+  const currentStart = isoDateFromToday(-1)
+  const currentEnd = isoDateFromToday(1)
+  const goFestStart = isoDateFromToday(10)
+  const goFestEnd = isoDateFromToday(11)
+  const upcomingStart = isoDateFromToday(30)
+  const upcomingEnd = isoDateFromToday(31)
+  const endedStart = isoDateFromToday(-31)
+  const endedEnd = isoDateFromToday(-30)
+
   return {
     schemaVersion: 1,
-    lastUpdated: '2026-07-10',
+    lastUpdated: today,
     events: [
       {
         id: 'mock-current-event',
         title: 'Current Test Event',
         status: 'CURRENT',
         importanceTier: 'MAJOR',
-        startDate: '2026-07-01',
-        endDate: '2026-07-31',
+        startDate: currentStart,
+        endDate: currentEnd,
         note: 'note',
         summary: 'summary text',
         prep: 'prep guidance',
@@ -34,7 +50,7 @@ function mockFeed() {
         sourceName: 'test',
         sourceUrl: 'https://example.com',
         sourceType: 'official',
-        lastUpdated: '2026-07-10',
+        lastUpdated: today,
         pokemon: [{
           name: 'Pikachu',
           nameTr: 'Pikachu',
@@ -50,8 +66,8 @@ function mockFeed() {
         titleTr: 'Yaklaşan Test Etkinliği',
         status: 'UPCOMING',
         importanceTier: 'STANDARD',
-        startDate: '2026-12-01',
-        endDate: '2026-12-31',
+        startDate: upcomingStart,
+        endDate: upcomingEnd,
         note: 'note',
         summary: 'summary text',
         prep: 'prep guidance',
@@ -61,15 +77,15 @@ function mockFeed() {
         sourceName: 'test',
         sourceUrl: 'https://example.com',
         sourceType: 'official',
-        lastUpdated: '2026-07-10',
+        lastUpdated: today,
       },
       {
         id: 'mock-ended-event',
         title: 'Ended Test Event',
         status: 'ENDED',
         importanceTier: 'STANDARD',
-        startDate: '2026-01-01',
-        endDate: '2026-01-15',
+        startDate: endedStart,
+        endDate: endedEnd,
         note: 'note',
         summary: 'summary text',
         prep: 'prep guidance',
@@ -79,15 +95,15 @@ function mockFeed() {
         sourceName: 'test',
         sourceUrl: 'https://example.com',
         sourceType: 'official',
-        lastUpdated: '2026-07-10',
+        lastUpdated: today,
       },
       {
         id: 'event-pokemon-go-fest-2026-global',
         title: 'GO Fest Test',
         status: 'UPCOMING',
         importanceTier: 'MAJOR',
-        startDate: '2026-07-20',
-        endDate: '2026-07-21',
+        startDate: goFestStart,
+        endDate: goFestEnd,
         note: 'note',
         summary: 'GO Fest summary',
         prep: 'GO Fest prep',
@@ -97,15 +113,15 @@ function mockFeed() {
         sourceName: 'test',
         sourceUrl: 'https://example.com',
         sourceType: 'official',
-        lastUpdated: '2026-07-10',
+        lastUpdated: today,
       },
       {
         id: 'event-go-fest-2026-global-final-details',
         title: 'GO Fest Test Duplicate',
         status: 'UPCOMING',
         importanceTier: 'MAJOR',
-        startDate: '2026-07-20',
-        endDate: '2026-07-21',
+        startDate: goFestStart,
+        endDate: goFestEnd,
         note: 'duplicate',
         summary: 'duplicate',
         prep: 'duplicate',
@@ -115,7 +131,7 @@ function mockFeed() {
         sourceName: 'test',
         sourceUrl: 'https://example.com',
         sourceType: 'official',
-        lastUpdated: '2026-07-10',
+        lastUpdated: today,
       },
     ],
   }
