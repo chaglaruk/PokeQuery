@@ -1,6 +1,5 @@
 package com.caglar.pokequery.ui.components
 
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -20,10 +19,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.theme.BottomNavBackground
-import com.caglar.pokequery.theme.BottomNavSelected
 import com.caglar.pokequery.theme.TextSecondary
 import com.caglar.pokequery.theme.TealPrimary
-import com.caglar.pokequery.theme.CardPremium
 
 private data class NavTab(val route: String, val labelRes: Int, val icon: ImageVector)
 
@@ -40,7 +37,7 @@ fun BottomNavBar(
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
-    NavigationBar(containerColor = BottomNavBackground, contentColor = Color.White, modifier = Modifier.height(80.dp)) {
+    NavigationBar(containerColor = BottomNavBackground, contentColor = Color.White) {
         tabs.forEach { tab ->
             NavigationBarItem(
                 selected = currentRoute == tab.route,
