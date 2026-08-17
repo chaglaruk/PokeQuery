@@ -42,7 +42,7 @@ English strings unless the user separately picks Turkish for Search String Langu
    (`UNTESTED` / `RISKY` / `BETA` / `VERIFIED`).
 2. A human confirms the candidate in a live Pokémon GO client set to Turkish, and records it
    in `turkish_verification_matrix.md` (date, tester, device).
-3. Only then is the token's status promoted to `VERIFIED` and considered `safeToEmit`.
+3. Only then is the token's status promoted to `VERIFIED` and considered `isLiveVerified`.
 
 As of v0.5.2 **no token is VERIFIED**. The tokens the mapper currently emits (legacy beta
 behavior) are marked `BETA`/`RISKY`, never `VERIFIED`, and all carry the "verify before use"
