@@ -29,12 +29,28 @@ class MonthlyContextTest {
 
     @Test
     fun `current note is marked manual and carries the app version`() {
-        val view = MonthlyContextRepository.currentWithStaleness()
+        val currentNote = requireNotNull(MonthlyContextRepository.current)
+        val currentNoteDate = Calendar.getInstance().apply {
+            clear()
+            set(currentNote.year, currentNote.month - 1, 1)
+        }
+        val view = MonthlyContextRepository.currentWithStaleness(currentNoteDate)
         assertNotNull(view)
         val note = view!!.note
         assertTrue("note must be manual confidence", note.isManual)
         assertEquals(AppVersion.versionName, note.lastUpdatedInAppVersion)
-        assertFalse("current month/year should not be stale relative to now", view.isStale)
+        assertFalse("current month/year should not be stale relative to note date", view.isStale)
+    }
+
+    @Test
+    fun `production July 2026 note is flagged stale when evaluated against August 2026`() {
+        val august2026 = Calendar.getInstance().apply {
+            clear()
+            set(2026, Calendar.AUGUST, 17)
+        }
+        val view = MonthlyContextRepository.currentWithStaleness(august2026)
+        assertNotNull(view)
+        assertTrue("July 2026 note must be stale in August 2026", view!!.isStale)
     }
 
     @Test

@@ -294,11 +294,12 @@
           "parlak",
           "efsanevi",
           "count2-",
-          "!traded"
+          "!takas edilen"
         ],
         "rawSyntaxNotContains": [
           "!shiny",
-          "!legendary"
+          "!legendary",
+          "!traded"
         ],
         "riskLevel": "Medium",
         "goalId": "candy_prep"
@@ -314,7 +315,7 @@
         "language": "Turkish"
       },
       "expected": {
-        "rawSyntax": "yaş365-&!traded",
+        "rawSyntax": "yaş365-&!takas edilen",
         "riskLevel": "Medium",
         "goalId": "lucky_trade"
       }
@@ -348,11 +349,12 @@
           "schillernd",
           "legendär",
           "count2-",
-          "!traded"
+          "!getauscht"
         ],
         "rawSyntaxNotContains": [
           "!shiny",
-          "!legendary"
+          "!legendary",
+          "!traded"
         ],
         "riskLevel": "Medium",
         "goalId": "candy_prep"
@@ -640,11 +642,14 @@
           "variocolor",
           "legendario",
           "count2-",
-          "!traded"
+          "!con suerte",
+          "!intercambiados"
         ],
         "rawSyntaxNotContains": [
           "!shiny",
-          "!legendary"
+          "!legendary",
+          "!lucky",
+          "!traded"
         ],
         "riskLevel": "Medium"
       }
@@ -663,11 +668,12 @@
           "chromatique",
           "légendaire",
           "count2-",
-          "!traded"
+          "!échangé"
         ],
         "rawSyntaxNotContains": [
           "!shiny",
-          "!legendary"
+          "!legendary",
+          "!traded"
         ],
         "riskLevel": "Medium"
       }
@@ -686,11 +692,12 @@
           "cromatico",
           "leggendario",
           "count2-",
-          "!traded"
+          "!scambiato"
         ],
         "rawSyntaxNotContains": [
           "!shiny",
-          "!legendary"
+          "!legendary",
+          "!traded"
         ],
         "riskLevel": "Medium"
       }

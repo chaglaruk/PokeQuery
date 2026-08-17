@@ -9,48 +9,67 @@ const OUTPUT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 
 test.use({ serviceWorkers: 'block' })
 
-const parityFeed = {
-  schemaVersion: 1,
-  lastUpdated: '2026-07-14',
-  events: [
-    {
-      id: 'parity-featured', title: 'GO Fest 2026: Global', titleTr: 'GO Fest 2026: Küresel',
-      status: 'CURRENT', importanceTier: 'MAJOR', eventCategory: 'MAJOR_GAMEPLAY',
-      startDate: '2026-07-11', endDate: '2026-07-22', themeKey: 'candy_bonus',
-      note: 'Global GO Fest featuring Mewtwo and Zeraora.', noteTr: 'Mewtwo ve Zeraora odaklı küresel GO Fest etkinliği.',
-      summary: 'Global event with featured encounters, raids, research, shiny checks, and storage preparation.',
-      summaryTr: 'Öne çıkan karşılaşmalar, baskınlar, araştırma ve hazırlık önerileri içeren küresel etkinlik.',
-      prep: 'Tag rare, shiny, costume, and background catches before cleanup.', prepTr: 'Temizlikten önce nadir, parlak, kostümlü ve arka planlı yakalamaları etiketleyin.',
-      bonuses: 'Extra Candy, boosted shiny checks, and event backgrounds.', bonusesTr: 'Ekstra Şeker, artırılmış parlak kontrolleri ve etkinlik arka planları.',
-      raids: 'Mewtwo and featured legendary raids.', raidsTr: 'Mewtwo ve öne çıkan efsanevi baskınlar.',
-      research: 'Special Research leads to Zeraora. Do not mix research reward checks with bulk cleanup.',
-      researchTr: 'Özel Araştırma Zeraora ödülüne götürür. Araştırma ödüllerini toplu temizlikle karıştırmayın.',
-      suggestedSearch: 'age0-7&!traded', eventNotes: 'Visual parity fixture', eventNotesTr: 'Görsel eşlik test verisi',
-      sourceName: 'PokeQuery visual fixture', sourceUrl: 'https://example.com', sourceType: 'official', lastUpdated: '2026-07-14',
-      pokemon: [
-        { name: 'Mewtwo', source: 'Raids', sourceTr: 'Baskınlar', badges: 'Shiny, Raid, Background', badgesTr: 'Parlak, Baskın, Özel arka plan', note: 'Check raid IVs, shiny status, and special background before cleanup.', noteTr: 'Temizlikten önce akın IV’lerini, shiny durumunu ve özel arka planı kontrol et.', spriteKey: 'mewtwo' },
-        { name: 'Zeraora', source: 'Research', sourceTr: 'Araştırma', badges: 'Research, Mythical check', badgesTr: 'Araştırma, Efsanevi kontrol', spriteKey: 'zeraora' },
-        { name: 'Pikachu', source: 'Wild', sourceTr: 'Vahşi', badges: 'Shiny, Costume', badgesTr: 'Parlak, Kostümlü', spriteKey: 'pikachu' },
-        { name: 'Necrozma', source: 'Raids', sourceTr: 'Baskınlar', badges: 'Raid, Trade, Storage', badgesTr: 'Baskın, Takas, Depo', spriteKey: 'necrozma' },
-      ],
-    },
-    {
-      id: 'parity-anniversary', title: '10th Anniversary Party', titleTr: '10. Yıl Dönümü Etkinliği',
-      status: 'CURRENT', importanceTier: 'STANDARD', eventCategory: 'LIMITED_GAMEPLAY',
-      startDate: '2026-07-04', endDate: '2026-07-18', themeKey: 'generic_event',
-      note: 'Anniversary collection review.', noteTr: 'Yıl dönümü koleksiyon incelemesi.', summary: 'Anniversary featured catches.', summaryTr: 'Yıl dönümü öne çıkan yakalamaları.',
-      prep: 'Review costumes before cleanup.', prepTr: 'Temizlikten önce kostümleri kontrol edin.', suggestedSearch: 'costume&age0-14', eventNotes: 'Visual fixture',
-      sourceName: 'PokeQuery visual fixture', sourceUrl: 'https://example.com', sourceType: 'official', lastUpdated: '2026-07-14',
-    },
-    {
-      id: 'parity-upcoming', title: 'Road of Legends', titleTr: 'Efsaneler Yolu',
-      status: 'UPCOMING', importanceTier: 'STANDARD', eventCategory: 'MAJOR_GAMEPLAY',
-      startDate: '2026-07-25', endDate: '2026-07-27', themeKey: 'raid',
-      note: 'Prepare raid storage.', noteTr: 'Baskın deposunu hazırlayın.', summary: 'Upcoming raid event.', summaryTr: 'Yaklaşan baskın etkinliği.',
-      prep: 'Make room safely.', prepTr: 'Güvenli biçimde yer açın.', suggestedSearch: 'age365-&!traded', eventNotes: 'Visual fixture',
-      sourceName: 'PokeQuery visual fixture', sourceUrl: 'https://example.com', sourceType: 'official', lastUpdated: '2026-07-14',
-    },
-  ],
+function isoDateFromToday(days: number) {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+function getParityFeed() {
+  const today = isoDateFromToday(0)
+  const featStart = isoDateFromToday(-3)
+  const featEnd = isoDateFromToday(8)
+  const annivStart = isoDateFromToday(-10)
+  const annivEnd = isoDateFromToday(4)
+  const upStart = isoDateFromToday(11)
+  const upEnd = isoDateFromToday(13)
+
+  return {
+    schemaVersion: 1,
+    lastUpdated: today,
+    events: [
+      {
+        id: 'parity-featured', title: 'GO Fest 2026: Global', titleTr: 'GO Fest 2026: Küresel',
+        status: 'CURRENT', importanceTier: 'MAJOR', eventCategory: 'MAJOR_GAMEPLAY',
+        startDate: featStart, endDate: featEnd, themeKey: 'candy_bonus',
+        note: 'Global GO Fest featuring Mewtwo and Zeraora.', noteTr: 'Mewtwo ve Zeraora odaklı küresel GO Fest etkinliği.',
+        summary: 'Global event with featured encounters, raids, research, shiny checks, and storage preparation.',
+        summaryTr: 'Öne çıkan karşılaşmalar, baskınlar, araştırma ve hazırlık önerileri içeren küresel etkinlik.',
+        prep: 'Tag rare, shiny, costume, and background catches before cleanup.', prepTr: 'Temizlikten önce nadir, parlak, kostümlü ve arka planlı yakalamaları etiketleyin.',
+        bonuses: 'Extra Candy, boosted shiny checks, and event backgrounds.', bonusesTr: 'Ekstra Şeker, artırılmış parlak kontrolleri ve etkinlik arka planları.',
+        raids: 'Mewtwo and featured legendary raids.', raidsTr: 'Mewtwo ve öne çıkan efsanevi baskınlar.',
+        research: 'Special Research leads to Zeraora. Do not mix research reward checks with bulk cleanup.',
+        researchTr: 'Özel Araştırma Zeraora ödülüne götürür. Araştırma ödüllerini toplu temizlikle karıştırmayın.',
+        suggestedSearch: 'age0-7&!traded', eventNotes: 'Visual parity fixture', eventNotesTr: 'Görsel eşlik test verisi',
+        sourceName: 'PokeQuery visual fixture', sourceUrl: 'https://example.com', sourceType: 'official', lastUpdated: today,
+        pokemon: [
+          { name: 'Mewtwo', source: 'Raids', sourceTr: 'Baskınlar', badges: 'Shiny, Raid, Background', badgesTr: 'Parlak, Baskın, Özel arka plan', note: 'Check raid IVs, shiny status, and special background before cleanup.', noteTr: "Temizlikten önce akın IV'lerini, shiny durumunu ve özel arka planı kontrol et.", spriteKey: 'mewtwo' },
+          { name: 'Zeraora', source: 'Research', sourceTr: 'Araştırma', badges: 'Research, Mythical check', badgesTr: 'Araştırma, Efsanevi kontrol', spriteKey: 'zeraora' },
+          { name: 'Pikachu', source: 'Wild', sourceTr: 'Vahşi', badges: 'Shiny, Costume', badgesTr: 'Parlak, Kostümlü', spriteKey: 'pikachu' },
+          { name: 'Necrozma', source: 'Raids', sourceTr: 'Baskınlar', badges: 'Raid, Trade, Storage', badgesTr: 'Baskın, Takas, Depo', spriteKey: 'necrozma' },
+        ],
+      },
+      {
+        id: 'parity-anniversary', title: '10th Anniversary Party', titleTr: '10. Yıl Dönümü Etkinliği',
+        status: 'CURRENT', importanceTier: 'STANDARD', eventCategory: 'LIMITED_GAMEPLAY',
+        startDate: annivStart, endDate: annivEnd, themeKey: 'generic_event',
+        note: 'Anniversary collection review.', noteTr: 'Yıl dönümü koleksiyon incelemesi.', summary: 'Anniversary featured catches.', summaryTr: 'Yıl dönümü öne çıkan yakalamaları.',
+        prep: 'Review costumes before cleanup.', prepTr: 'Temizlikten önce kostümleri kontrol edin.', suggestedSearch: 'costume&age0-14', eventNotes: 'Visual fixture',
+        sourceName: 'PokeQuery visual fixture', sourceUrl: 'https://example.com', sourceType: 'official', lastUpdated: today,
+      },
+      {
+        id: 'parity-upcoming', title: 'Road of Legends', titleTr: 'Efsaneler Yolu',
+        status: 'UPCOMING', importanceTier: 'STANDARD', eventCategory: 'MAJOR_GAMEPLAY',
+        startDate: upStart, endDate: upEnd, themeKey: 'raid',
+        note: 'Prepare raid storage.', noteTr: 'Baskın deposunu hazırlayın.', summary: 'Upcoming raid event.', summaryTr: 'Yaklaşan baskın etkinliği.',
+        prep: 'Make room safely.', prepTr: 'Güvenli biçimde yer açın.', suggestedSearch: 'age365-&!traded', eventNotes: 'Visual fixture',
+        sourceName: 'PokeQuery visual fixture', sourceUrl: 'https://example.com', sourceType: 'official', lastUpdated: today,
+      },
+    ],
+  }
 }
 
 async function setLanguage(page: Page, language: 'English' | 'Türkçe') {
@@ -69,7 +88,7 @@ test('generate Android parity acceptance screenshots', async ({ page }) => {
   test.setTimeout(180000)
   await page.setViewportSize({ width: 390, height: 844 })
   await skipOnboarding(page)
-  await page.route(FEED_URL, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(parityFeed) }))
+  await page.route(FEED_URL, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(getParityFeed()) }))
 
   await gotoRoute(page, '/')
   await setLanguage(page, 'English')
@@ -109,8 +128,10 @@ test('generate Android parity acceptance screenshots', async ({ page }) => {
 
   await setLanguage(page, 'Türkçe')
   await page.evaluate(() => {
-    localStorage.removeItem('pq_event_feed_cache')
-    localStorage.removeItem('pq_event_feed_cache_ts')
+    try {
+      localStorage.removeItem('pq_event_feed_cache')
+      localStorage.removeItem('pq_event_feed_cache_ts')
+    } catch { /* ignore */ }
   })
   await gotoRoute(page, '/events')
   await expect(page.locator('[data-event-id="parity-featured"]')).toBeVisible({ timeout: 20000 })

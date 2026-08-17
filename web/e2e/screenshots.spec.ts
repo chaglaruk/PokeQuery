@@ -7,55 +7,72 @@ import { fileURLToPath } from 'url'
 const PRODUCTION_FEED_URL = 'https://raw.githubusercontent.com/chaglaruk/PokeQuery/master/docs/event-feed/pokequery-events.json'
 const SCREENSHOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../docs/screenshots/pwa_initial_qa')
 
-const screenshotFeed = {
-  schemaVersion: 1,
-  lastUpdated: '2026-07-13',
-  events: [
-    {
-      id: 'screenshot-featured',
-      title: 'Summer Showcase',
-      status: 'CURRENT',
-      importanceTier: 'MAJOR',
-      eventCategory: 'MAJOR_GAMEPLAY',
-      startDate: '2026-07-01',
-      endDate: '2026-07-31',
-      note: 'Review featured catches before cleanup.',
-      summary: 'A deterministic current event for visual review.',
-      prep: 'Tag featured catches and review the suggested search.',
-      suggestedSearch: '0*&!traded',
-      eventNotes: 'Visual QA fixture',
-      themeKey: 'generic_event',
-      sourceName: 'PokeQuery visual fixture',
-      sourceUrl: 'https://example.com',
-      sourceType: 'official',
-      lastUpdated: '2026-07-13',
-      pokemon: [{
-        name: 'Pikachu',
-        source: 'featured encounter',
-        note: 'Keep one for visual review.',
-        badges: 'Featured',
-        spriteKey: 'pikachu',
-      }],
-    },
-    {
-      id: 'screenshot-upcoming',
-      title: 'Upcoming Review Event',
-      status: 'UPCOMING',
-      importanceTier: 'STANDARD',
-      startDate: '2026-12-01',
-      endDate: '2026-12-02',
-      note: 'Plan storage before the event starts.',
-      summary: 'A compact event used to verify the detail dialog.',
-      prep: 'Open the detail sheet and review the action.',
-      suggestedSearch: '4*&!traded',
-      eventNotes: 'Visual QA fixture',
-      themeKey: 'generic_event',
-      sourceName: 'PokeQuery visual fixture',
-      sourceUrl: 'https://example.com',
-      sourceType: 'official',
-      lastUpdated: '2026-07-13',
-    },
-  ],
+function isoDateFromToday(days: number) {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+function getScreenshotFeed() {
+  const today = isoDateFromToday(0)
+  const currentStart = isoDateFromToday(-5)
+  const currentEnd = isoDateFromToday(15)
+  const upcomingStart = isoDateFromToday(20)
+  const upcomingEnd = isoDateFromToday(25)
+
+  return {
+    schemaVersion: 1,
+    lastUpdated: today,
+    events: [
+      {
+        id: 'screenshot-featured',
+        title: 'Summer Showcase',
+        status: 'CURRENT',
+        importanceTier: 'MAJOR',
+        eventCategory: 'MAJOR_GAMEPLAY',
+        startDate: currentStart,
+        endDate: currentEnd,
+        note: 'Review featured catches before cleanup.',
+        summary: 'A deterministic current event for visual review.',
+        prep: 'Tag featured catches and review the suggested search.',
+        suggestedSearch: '0*&!traded',
+        eventNotes: 'Visual QA fixture',
+        themeKey: 'generic_event',
+        sourceName: 'PokeQuery visual fixture',
+        sourceUrl: 'https://example.com',
+        sourceType: 'official',
+        lastUpdated: today,
+        pokemon: [{
+          name: 'Pikachu',
+          source: 'featured encounter',
+          note: 'Keep one for visual review.',
+          badges: 'Featured',
+          spriteKey: 'pikachu',
+        }],
+      },
+      {
+        id: 'screenshot-upcoming',
+        title: 'Upcoming Review Event',
+        status: 'UPCOMING',
+        importanceTier: 'STANDARD',
+        startDate: upcomingStart,
+        endDate: upcomingEnd,
+        note: 'Plan storage before the event starts.',
+        summary: 'A compact event used to verify the detail dialog.',
+        prep: 'Open the detail sheet and review the action.',
+        suggestedSearch: '4*&!traded',
+        eventNotes: 'Visual QA fixture',
+        themeKey: 'generic_event',
+        sourceName: 'PokeQuery visual fixture',
+        sourceUrl: 'https://example.com',
+        sourceType: 'official',
+        lastUpdated: today,
+      },
+    ],
+  }
 }
 
 function deviceLabel(projectName: string): string {
@@ -67,13 +84,6 @@ function deviceLabel(projectName: string): string {
     case 'desktop': return 'desktop'
     default: return projectName
   }
-}
-
-async function waitForEntrance(page: Page) {
-  const panel = page.locator('.onboarding-page-enter')
-  await expect(panel).toHaveCSS('opacity', '1')
-  await expect(panel).toHaveCSS('transform', 'none')
-  await panel.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)))
 }
 
 async function screenshot(page: Page, projectName: string, stateName: string, capture: 'viewport' | 'full-content' = 'viewport') {
@@ -93,27 +103,16 @@ test('generate current PWA visual QA states', async ({ page }) => {
   test.setTimeout(180000)
 
   await page.goto('')
-  await expect(page).toHaveURL(/#\/onboarding/)
-  await expect(page.locator('img[src*="onboarding_hero"]')).toBeVisible()
-  await waitForEntrance(page)
-  await screenshot(page, projectName, '01-onboarding-page-1-viewport')
-
-  await page.getByText('Next', { exact: false }).click()
-  await expect(page.getByText('Review first, act second')).toBeVisible()
-  await waitForEntrance(page)
-  await screenshot(page, projectName, '02-onboarding-page-2-viewport')
-
-  await page.getByText('Start building', { exact: false }).click()
-  await expect(page).toHaveURL(/#\/$/)
+  await expect(page).toHaveURL(/(?:\/PokeQuery\/|\/)(?:#\/)?$/)
   await page.evaluate(() => window.scrollTo(0, 0))
-  await screenshot(page, projectName, '03-home-en-viewport')
+  await screenshot(page, projectName, '01-home-en-viewport')
 
   await gotoRoute(page, '/settings')
   await page.locator('select').first().selectOption('Türkçe')
   await gotoRoute(page, '/')
   await expect(page.getByText('Güvenli Temizlik').first()).toBeVisible()
   await page.evaluate(() => window.scrollTo(0, 0))
-  await screenshot(page, projectName, '04-home-tr-viewport')
+  await screenshot(page, projectName, '02-home-tr-viewport')
   await gotoRoute(page, '/settings')
   await page.locator('select').first().selectOption('English')
 
@@ -121,56 +120,56 @@ test('generate current PWA visual QA states', async ({ page }) => {
   const assistantInput = page.getByRole('textbox', { name: 'Search Assistant' })
   await expect(assistantInput).toBeVisible()
   await page.evaluate(() => window.scrollTo(0, 0))
-  await screenshot(page, projectName, '05-search-assistant-empty-viewport')
+  await screenshot(page, projectName, '03-search-assistant-empty-viewport')
 
   await assistantInput.fill('shiny legendary')
   await assistantInput.press('Enter')
   await expect(page.locator('.search-string')).toBeVisible()
   await page.locator('.search-string').scrollIntoViewIfNeeded()
-  await screenshot(page, projectName, '06-search-assistant-success-viewport')
+  await screenshot(page, projectName, '04-search-assistant-success-viewport')
 
   await assistantInput.fill('xyz qwerty')
   await assistantInput.press('Enter')
   await expect(page.getByRole('status')).toBeVisible()
   await page.getByRole('status').scrollIntoViewIfNeeded()
-  await screenshot(page, projectName, '07-search-assistant-unknown-viewport')
+  await screenshot(page, projectName, '05-search-assistant-unknown-viewport')
 
   await gotoRoute(page, '/goal/safe_cleanup')
   await expect(page.locator('.search-string')).toBeVisible()
   await page.locator('.search-string').scrollIntoViewIfNeeded()
-  await screenshot(page, projectName, '08-safe-cleanup-viewport')
+  await screenshot(page, projectName, '06-safe-cleanup-viewport')
 
   await page.route(PRODUCTION_FEED_URL, route => route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify(screenshotFeed),
+    body: JSON.stringify(getScreenshotFeed()),
   }))
   await gotoRoute(page, '/events')
   await expect(page.locator('[data-event-id]').first()).toBeVisible({ timeout: 20000 })
   await page.evaluate(() => window.scrollTo(0, 0))
-  await screenshot(page, projectName, '09-event-guide-top-viewport')
+  await screenshot(page, projectName, '07-event-guide-top-viewport')
 
   await page.locator('[data-event-id="screenshot-upcoming"]').click()
   const eventDialog = page.getByRole('dialog', { name: 'Upcoming Review Event' })
   await expect(eventDialog).toHaveCSS('transform', 'none')
-  await screenshot(page, projectName, '10-event-detail-dialog-viewport')
+  await screenshot(page, projectName, '08-event-detail-dialog-viewport')
   await eventDialog.getByRole('button', { name: /close/i }).click()
 
   await page.locator('[data-pokemon-name="Pikachu"]').first().click()
   const pokemonDialog = page.getByRole('dialog', { name: 'Pikachu' })
   await expect(pokemonDialog).toHaveCSS('transform', 'none')
-  await screenshot(page, projectName, '11-pokemon-detail-dialog-viewport')
+  await screenshot(page, projectName, '09-pokemon-detail-dialog-viewport')
   await pokemonDialog.getByRole('button', { name: /close/i }).click()
 
   await gotoRoute(page, '/settings')
   await expect(page.locator('select').first()).toBeVisible()
   await expect(page.locator('.bottom-nav .nav-item.active')).toHaveText('Settings')
   await page.evaluate(() => window.scrollTo(0, 0))
-  await screenshot(page, projectName, '12-settings-viewport')
+  await screenshot(page, projectName, '10-settings-viewport')
 
   await page.getByText('What Changed / Changelog').click()
   await expect(page).toHaveURL(/#\/changelog/)
-  await screenshot(page, projectName, '13-changelog-full-content', 'full-content')
+  await screenshot(page, projectName, '11-changelog-full-content', 'full-content')
 
   await gotoRoute(page, '/events')
   await page.waitForFunction(() => localStorage.getItem('pq_event_feed_cache') !== null)
@@ -179,7 +178,7 @@ test('generate current PWA visual QA states', async ({ page }) => {
   await page.getByText('Refresh now').click()
   await expect(page.getByText('Saved feed', { exact: false }).first()).toBeVisible({ timeout: 20000 })
   await page.evaluate(() => window.scrollTo(0, 0))
-  await screenshot(page, projectName, '14-offline-cached-feed-viewport')
+  await screenshot(page, projectName, '12-offline-cached-feed-viewport')
 
   await gotoRoute(page, '/')
   await page.evaluate(() => localStorage.setItem('pq_screenshot_need_refresh', 'true'))
@@ -190,5 +189,5 @@ test('generate current PWA visual QA states', async ({ page }) => {
   await updateBanner.evaluate(element => Promise.all(
     element.getAnimations().map(animation => animation.finished)
   ))
-  await screenshot(page, projectName, '15-update-banner-viewport')
+  await screenshot(page, projectName, '13-update-banner-viewport')
 })

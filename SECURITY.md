@@ -1,35 +1,34 @@
 # Security Policy
 
-PokeQuery is a privacy-first, offline-only Android utility. This document explains
-the project's security posture, what is in scope for reports, and how to disclose
+PokeQuery is a privacy-first Android utility. Core search-string generation is local-only; the
+Event Guide may use the network to fetch the project's public event-feed JSON. This document
+explains the project's security posture, what is in scope for reports, and how to disclose
 responsibly.
 
 ## Privacy-first model
 
-PokeQuery is built to collect **nothing** and talk to **no one**.
+PokeQuery is built to collect **no personal data** and to avoid account or game-service access.
 
 | | |
 |---|---|
-| Network permissions | **None.** The manifest declares zero `<uses-permission>` entries. |
+| Network permission | The Android manifest declares `android.permission.INTERNET` for Event Guide public-feed retrieval. |
+| Event Guide network use | May fetch public PokeQuery event-feed JSON. No Pokémon GO account or Niantic API access is used. |
 | Accounts | None. No login, no sessions, no account access of any kind. |
-| Pokémon GO access | **None.** The app never connects to Pokémon GO, Niantic, or any game service. |
-| Analytics / telemetry | None. No crash SDKs, no analytics, no ads. |
+| Pokémon GO access | **None.** The app never signs in to Pokémon GO, reads a player's collection, or connects to a Pokémon GO account. |
+| Analytics / telemetry | None. No crash SDKs, analytics, ads, or tracking identifiers. |
 | Local storage | Favorites, history, and settings are stored on-device in DataStore. `allowBackup="false"`. |
 | Automation | None. The app generates text only; the user copies and pastes manually. |
 
-These properties are enforced by regression tests:
-
-- `ManifestPrivacyRegressionTest` — fails the build if any `<uses-permission>` is added.
-- `BuildConfigRegressionTest` — fails the build if network/ads/analytics build flags are introduced.
-
-If a contribution or a built APK ever violates one of these, that is a security issue.
+These properties are protected by regression tests and review rules. Network access must remain
+limited to explicitly documented public-data features; adding account access, telemetry, ads,
+tracking, or undisclosed remote calls is a security/privacy-sensitive change.
 
 ## What is in scope
 
 Please report security issues that affect this repository or the shipped app, for example:
 
-- A path that causes the app to make a network call or load a remote resource.
-- Inclusion of a permission, SDK, or dependency that breaks the privacy model above.
+- An unexpected or undisclosed network call outside the documented Event Guide public-feed path.
+- Inclusion of an account-access, tracking, analytics, advertising, or other privacy-sensitive SDK.
 - A logic bug that could cause an **unsafe** search string to bypass the Risk Warning
   gate or the Expert Builder linter, potentially exposing protected Pokémon.
 - Exposure of secrets, keystores, or signing material in the repo.
@@ -37,11 +36,13 @@ Please report security issues that affect this repository or the shipped app, fo
 
 ## What is out of scope
 
-- Pokémon GO itself, Niantic's services, or any third-party game infrastructure —
-  PokeQuery does not interact with them.
+- Pokémon GO itself, Niantic's services, or third-party game infrastructure — PokeQuery does not
+  authenticate to or control those services.
+- The public Event Guide feed being temporarily unavailable, provided the app fails safely and
+  does not expose private data.
 - "Attacks" that require physical access to an unlocked device.
-- Reports asking the project to add network, account, automation, scanning, or OCR
-  features. These are **by design** excluded and will not be fixed as security bugs.
+- Requests to add account automation, scanning, OCR, scraping, or Pokémon GO credential access;
+  those capabilities are intentionally excluded from the product.
 
 ## Reporting a vulnerability
 
@@ -74,9 +75,9 @@ timeline with you.
 
 ## Supported versions
 
-PokeQuery is in Google Play Closed Testing. Security fixes are targeted at the
-**latest** released version (currently **0.5.2**, versionCode 13). Older builds are
-not maintained; testers should always be on the newest closed-testing build.
+Security fixes are targeted at the latest released Android version, currently **0.7.4**
+(versionCode **24**). Older builds are not maintained; testers should use the newest available
+closed-testing build.
 
 ## Responsible use
 

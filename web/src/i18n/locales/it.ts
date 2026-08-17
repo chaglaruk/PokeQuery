@@ -495,6 +495,7 @@ export const it: Record<string, string> = {
   "settings_safety_stance": "Posizione sulla sicurezza",
   "settings_safety_disclaimer": "Ogni stringa generata è un ausilio per la revisione. Ispeziona sempre le corrispondenze in Pokémon GO prima di trasferire o scambiare.",
   "settings_about_privacy": "Info e Privacy",
+  "settings_privacy_policy": "Informativa sulla privacy",
   "settings_about_desc1": "PokeQuery è un'app helper indipendente.",
   "settings_about_desc2": "Genera solo stringhe di ricerca. Non si connette mai a Pokémon GO.",
   "settings_about_desc3": "Nessun login, nessun tracciamento, nessuna pubblicità, nessuna analisi.",

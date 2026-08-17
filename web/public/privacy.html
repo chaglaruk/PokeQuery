@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokeQuery Privacy Policy</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #0b8c9c;
+      --border: #334155;
+      --link: #38bdf8;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 24px 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 680px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    p, li {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin: 0 0 10px 0;
+    }
+    ul {
+      margin: 0 0 16px 0;
+      padding-left: 20px;
+    }
+    a {
+      color: var(--link);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(11, 140, 156, 0.2);
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 32px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">Privacy Policy</div>
+    <h1>PokeQuery Privacy Policy</h1>
+    <div class="subtitle">Effective Date: 17 August 2026</div>
+
+    <div class="card">
+      <h2>1. Product &amp; Developer Identity</h2>
+      <p><strong>App:</strong> PokeQuery (offline-first Android application and Web/PWA companion utility).</p>
+      <p><strong>Developer / Maintainer:</strong> chaglaruk</p>
+      <p><strong>Official Repository:</strong> <a href="https://github.com/chaglaruk/PokeQuery" target="_blank" rel="noopener noreferrer">https://github.com/chaglaruk/PokeQuery</a></p>
+      <p><strong>Privacy Enquiries:</strong> <a href="https://github.com/chaglaruk/PokeQuery/issues" target="_blank" rel="noopener noreferrer">https://github.com/chaglaruk/PokeQuery/issues</a></p>
+      <p>PokeQuery is an independent, unofficial companion tool created for Pokémon GO players. PokeQuery is not affiliated with, endorsed by, sponsored by, or associated with Niantic, Inc., Nintendo, or The Pokémon Company.</p>
+    </div>
+
+    <div class="card">
+      <h2>2. What PokeQuery Does Not Collect</h2>
+      <p>PokeQuery does not require a PokeQuery user account or Pokémon GO login credentials.</p>
+      <p>PokeQuery does not intentionally transmit to the developer:</p>
+      <ul>
+        <li>Pokémon GO usernames, passwords, or authentication tokens</li>
+        <li>Pokémon GO account information or inventory data</li>
+        <li>Locally stored search history, favourites, or personal presets</li>
+        <li>Advertising identifiers, tracking identifiers, or behavioural profiles</li>
+      </ul>
+      <p>PokeQuery does not access private Niantic or Pokémon GO APIs and does not perform gameplay automation or OCR.</p>
+    </div>
+
+    <div class="card">
+      <h2>3. Local Data Storage</h2>
+      <p>All app settings, search history, favourites, and personal presets are stored locally on your device:</p>
+      <ul>
+        <li><strong>Android App:</strong> Saved data and preferences are stored locally using Android storage mechanisms, including Jetpack DataStore.</li>
+        <li><strong>Web / PWA:</strong> Saved data and preferences are stored locally in browser site storage (LocalStorage).</li>
+      </ul>
+      <p>The PokeQuery developer does not receive, host, or sync these locally stored records.</p>
+    </div>
+
+    <div class="card">
+      <h2>4. Clipboard Usage</h2>
+      <p>When the user explicitly chooses Copy, PokeQuery places the generated search string on the system clipboard. Clipboard handling is managed by the operating system and browser. PokeQuery does not upload copied search strings to the developer.</p>
+    </div>
+
+    <div class="card">
+      <h2>5. Network Usage &amp; Public Event Guide Feed</h2>
+      <ul>
+        <li><strong>Android App:</strong> The Android application's feature-level Internet access is used for read-only retrieval of the public GitHub-hosted Event Guide feed. Event data is cached locally for offline reference with bundled fallback data.</li>
+        <li><strong>Web / PWA:</strong> The Web/PWA is served through its normal web host and therefore loads application assets over the network. Its feature-level external data retrieval is the public GitHub-hosted Event Guide feed.</li>
+      </ul>
+      <p>For both platforms, PokeQuery does not intentionally include Pokémon GO account data, search history, favourites, presets, or PokeQuery account identifiers in Event Guide requests. Standard HTTP connection metadata, such as IP address and User-Agent, may be processed by GitHub and network hosting providers to serve the request. The developer receives no user analytics or behavioural profiles from these requests.</p>
+    </div>
+
+    <div class="card">
+      <h2>6. Data Sharing &amp; Sale</h2>
+      <p>PokeQuery does not sell, rent, or monetize user data. PokeQuery does not intentionally share locally stored search queries, favourites, presets, or settings with third-party advertisers or data brokers. Standard HTTP metadata is processed by GitHub as the hosting provider solely to deliver public application and feed files.</p>
+    </div>
+
+    <div class="card">
+      <h2>7. Secure Data Handling</h2>
+      <ul>
+        <li>Event Guide feed requests are transmitted exclusively over encrypted HTTPS connections.</li>
+        <li>Android local data is protected by standard Android operating system sandbox permissions and device security mechanisms.</li>
+        <li>Web/PWA local data is protected by standard browser origin-isolation and site-storage protections.</li>
+        <li>PokeQuery integrates zero advertising SDKs, tracking frameworks, or third-party analytics libraries.</li>
+        <li>While reasonable platform protections are utilized, no method of electronic storage or network transmission is completely infallible.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>8. Data Retention &amp; Deletion</h2>
+      <p>Locally stored data remains on your device until you choose to remove it:</p>
+      <ul>
+        <li><strong>Android:</strong> You can delete all locally stored data at any time by clearing PokeQuery app data in Android Settings or by uninstalling the application.</li>
+        <li><strong>Web / PWA:</strong> You can delete all locally stored data at any time by clearing site data or cookies in your web browser settings.</li>
+      </ul>
+      <p>Because the developer does not maintain a server-side database of your searches, favourites, or presets, there is no remote user account to delete.</p>
+    </div>
+
+    <div class="card">
+      <h2>9. Contact &amp; Policy Updates</h2>
+      <p>For privacy enquiries, bug reports, or questions regarding this policy, please open an issue on the official project repository: <a href="https://github.com/chaglaruk/PokeQuery/issues" target="_blank" rel="noopener noreferrer">https://github.com/chaglaruk/PokeQuery/issues</a>.</p>
+      <p>If material changes are made to PokeQuery's privacy practices, this policy will be updated with a revised effective date.</p>
+    </div>
+
+    <footer>
+      PokeQuery — Independent Pokémon GO Search String Generator
+    </footer>
+  </div>
+</body>
+</html>

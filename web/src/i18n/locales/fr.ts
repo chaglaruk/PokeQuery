@@ -495,6 +495,7 @@ export const fr: Record<string, string> = {
   "settings_safety_stance": "Position de sécurité",
   "settings_safety_disclaimer": "Chaque chaîne générée est une aide à la révision. Inspectez toujours les correspondances dans Pokémon GO avant de transférer ou d'échanger.",
   "settings_about_privacy": "À propos et confidentialité",
+  "settings_privacy_policy": "Politique de confidentialité",
   "settings_about_desc1": "PokeQuery est une application d'assistance indépendante.",
   "settings_about_desc2": "Elle génère uniquement des chaînes de recherche. Elle ne se connecte jamais à Pokémon GO.",
   "settings_about_desc3": "Aucune connexion, aucun suivi, aucune publicité, aucune analyse.",

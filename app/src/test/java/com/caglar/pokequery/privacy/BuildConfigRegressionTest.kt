@@ -7,9 +7,9 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Package 7 Ã¢â‚¬â€ build-config / identity regression tests.
+ * Build-config, identity, and privacy configuration regression tests.
  *
- * Guards the production applicationId and the current version against accidental change.
+ * Guards the production applicationId, current version, and configured privacy URL against accidental change.
  */
 class BuildConfigRegressionTest {
 
@@ -25,7 +25,13 @@ class BuildConfigRegressionTest {
     @Test
     fun `version name is accessible and current`() {
         assertTrue("Version name should be non-empty", AppVersion.versionName.isNotBlank())
-        assertEquals("0.7.3", AppVersion.versionName)
-        assertEquals(23, AppVersion.versionCode)
+        assertEquals("0.7.4", AppVersion.versionName)
+        assertEquals(24, AppVersion.versionCode)
+    }
+
+    @Test
+    fun `privacy policy URL matches configured public HTTPS URL`() {
+        assertEquals("https://chaglaruk.github.io/PokeQuery/privacy.html", PrivacyPolicyConfig.URL)
+        assertTrue(PrivacyPolicyConfig.URL.startsWith("https://"))
     }
 }

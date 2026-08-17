@@ -400,6 +400,7 @@ export const tr: Record<string, string> = {
   "settings_safety_desc1": "PokeQuery sadece metin oluşturur. Onu kendiniz kopyalayıp yapıştırırsınız.",
   "settings_safety_desc2": "Oturum açma, izleme, reklam, analiz, Pokémon GO hesabı erişimi yoktur.",
   "settings_about_privacy": "Hakkında ve Gizlilik",
+  "settings_privacy_policy": "Gizlilik Politikası",
   "settings_about_desc1": "PokeQuery bağımsız bir yardımcı uygulamadır.",
   "settings_about_desc2": "Sadece arama metinleri üretir. Pokémon GO'ya asla bağlanmaz.",
   "settings_about_desc3": "Oturum açma, izleme, reklam, analiz yoktur.",

@@ -14,6 +14,26 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.7.4",
+            versionCode = 24,
+            releaseLabel = "Release",
+            title = "Bottom-Navigation Inset Fix",
+            highlights = listOf(
+                "Fixed bottom-navigation inset for proper content spacing on devices with gesture navigation",
+                "Google Play closed-testing release"
+            ),
+            safetyNotes = listOf(
+                "INTERNET is used only for public Event Guide notes with cache and safe fallback",
+                "No login, no tracking, no ads, no analytics",
+                "No Pokémon GO account access"
+            ),
+            testerNotes = listOf(
+                "Verify bottom-navigation padding on a device with gesture navigation",
+                "Confirm content is not obscured behind navigation bar"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.7.3",
             versionCode = 23,
             releaseLabel = "Phase 5 Patch",
@@ -21,22 +41,22 @@ object Changelog {
             highlights = listOf(
                 "Quick Access widget: search preview + copy/fallback",
                 "Goal Actions widget: Safe Cleanup & Candy Prep show query preview + copy; Assistant & Event Guide labeled clearly",
-                "Event Guide widget: current event title/date, featured PokÃƒÂ©mon, raid info, copy search, open as secondary",
+                "Event Guide widget: current event title/date, featured Pokémon, raid info, copy search, open as secondary",
                 "Widget design: dark card system, spacing, contrast, typography aligned to app visual language"
             ),
             safetyNotes = listOf(
                 "INTERNET is used only for public Event Guide notes with cache and safe fallback",
                 "No login, no tracking, no ads, no analytics",
-                "No PokÃƒÂ©mon GO account access",
-                "Widgets use standard start_route or clipboard fallback Ã¢â‚¬â€ no silent background writes"
+                "No Pokémon GO account access",
+                "Widgets use standard start_route or clipboard fallback - no silent background writes"
             ),
             testerNotes = listOf(
-                "Add Quick Access widget Ã¢â‚¬â€ verify search preview visible and copy/fallback works",
-                "Add Goal Actions widget Ã¢â‚¬â€ verify Safe Cleanup & Candy Prep show query preview + copy",
-                "Add Event Guide widget Ã¢â‚¬â€ verify event title/date, featured PokÃƒÂ©mon, raid info, copy search",
+                "Add Quick Access widget - verify search preview visible and copy/fallback works",
+                "Add Goal Actions widget - verify Safe Cleanup & Candy Prep show query preview + copy",
+                "Add Event Guide widget - verify event title/date, featured Pokémon, raid info, copy search",
                 "Verify all widgets work after reboot and locale change"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.7.0",
@@ -51,12 +71,12 @@ object Changelog {
             safetyNotes = listOf(
                 "INTERNET is used only for public Event Guide notes with cache and safe fallback",
                 "No login, no tracking, no ads, no analytics",
-                "No PokÃƒÂ©mon GO account access",
-                "Widgets open app via standard start_route Ã¢â‚¬â€ no silent clipboard writes"
+                "No Pokémon GO account access",
+                "Widgets open app via standard start_route - no silent clipboard writes"
             ),
             testerNotes = listOf(
-                "Add Goal Actions widget (4Ãƒâ€”2) and tap each action",
-                "Add Event Guide widget (4Ãƒâ€”3) and tap Open Event Guide",
+                "Add Goal Actions widget (4x2) and tap each action",
+                "Add Event Guide widget (4x3) and tap Open Event Guide",
                 "Verify Quick Access widget still opens Safe Cleanup",
                 "Verify widgets work after reboot and locale change"
             ),
@@ -76,8 +96,8 @@ object Changelog {
             safetyNotes = listOf(
                 "INTERNET is used only for public Event Guide notes with cache and safe fallback",
                 "No login, no tracking, no ads, no analytics",
-                "No PokÃƒÂ©mon GO account access",
-                "Turkish search tokens remain beta Ã¢â‚¬â€ verify results in PokÃƒÂ©mon GO"
+                "No Pokémon GO account access",
+                "Turkish search tokens remain beta - verify results in Pokémon GO"
             ),
             testerNotes = listOf(
                 "Verify Turkish localization applies to all visible UI",
@@ -101,9 +121,9 @@ object Changelog {
             ),
             safetyNotes = listOf(
                 "No login, no tracking, no ads, no analytics",
-                "No PokÃƒÂ©mon GO account access",
+                "No Pokémon GO account access",
                 "No INTERNET permission, no CAMERA permission",
-                "Journal is user-entered memory only Ã¢â‚¬â€ the app never knows what changed in-game",
+                "Journal is user-entered memory only - the app never knows what changed in-game",
                 "Practice Mode uses a fake sandbox; it never reads your real inventory"
             ),
             testerNotes = listOf(
@@ -121,7 +141,7 @@ object Changelog {
             releaseLabel = "Phase 1",
             title = "Trust & Education",
             highlights = listOf("Risk explanations", "Common misconceptions", "Changelog screen", "Inventory size context"),
-            safetyNotes = listOf("No login", "No tracking", "No ads", "No analytics", "No PokÃƒÂ©mon GO account access"),
+            safetyNotes = listOf("No login", "No tracking", "No ads", "No analytics", "No Pokémon GO account access"),
             testerNotes = listOf("Check Why this risk?", "Try Common Misconceptions", "Change inventory size context"),
             isCurrent = false
         ),
