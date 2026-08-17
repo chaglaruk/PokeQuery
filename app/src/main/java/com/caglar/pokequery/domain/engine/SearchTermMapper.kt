@@ -6,8 +6,9 @@ object SearchTermMapper {
     // Official Help Center-backed search-term maps.
     //
     // Source: Niantic Help Center FAQ 1486, locale paths en/de/es/fr/it/tr.
-    // Conservative rule: only map single parser-safe tokens visible in the official pages.
-    // `count`, `specialbackground`, and multi-word terms such as Turkish/Spanish traded stay English.
+    // Conservative rule: map terms explicitly documented by the official inventory-search
+    // pages. Multi-word terms are allowed only when the official page itself documents the
+    // phrase as the search term (for example Spanish `con suerte`).
     // ---------------------------------------------------------------------------
     private val turkishMap = mapOf(
         "shiny" to "parlak",
@@ -68,6 +69,8 @@ object SearchTermMapper {
         "shadow" to "oscuro",
         "purified" to "purificado",
         "favorite" to "favorito",
+        "lucky" to "con suerte",
+        "traded" to "intercambiados",
         "costume" to "disfraz",
         "attack" to "ataque",
         "defense" to "defensa",
@@ -197,7 +200,9 @@ object SearchTermMapper {
         for (key in keys) {
             val tr = map[key]!!
 
-            // Regex to match the key as a word/prefix (handles cases like distance100-)
+            // Regex to match the key as a word/prefix (handles cases like distance100-).
+            // Replacement values may contain spaces when the official Help Center documents a
+            // multi-word search term, e.g. Spanish `lucky` -> `con suerte`.
             val regex = Regex("(?<=^|[&!,])($key)(?=[0-9\\-&,]|\$)")
             translated = regex.replace(translated, tr)
         }
