@@ -9,7 +9,8 @@ import java.io.File
 /**
  * Build-config, identity, and privacy configuration regression tests.
  *
- * Guards the production applicationId, current version, and configured privacy URL against accidental change.
+ * Guards the production applicationId, current version, configured privacy URL, and narrowly scoped
+ * package visibility needed by the tester-feedback email intent against accidental change.
  */
 class BuildConfigRegressionTest {
 
@@ -33,5 +34,13 @@ class BuildConfigRegressionTest {
     fun `privacy policy URL matches configured public HTTPS URL`() {
         assertEquals("https://chaglaruk.github.io/PokeQuery/privacy.html", PrivacyPolicyConfig.URL)
         assertTrue(PrivacyPolicyConfig.URL.startsWith("https://"))
+    }
+
+    @Test
+    fun `tester feedback mailto handler remains query visible`() {
+        val manifest = File("app/src/main/AndroidManifest.xml").readText()
+        assertTrue(manifest.contains("<queries>"))
+        assertTrue(manifest.contains("""<action android:name="android.intent.action.SENDTO" />"""))
+        assertTrue(manifest.contains("""<data android:scheme="mailto" />"""))
     }
 }
