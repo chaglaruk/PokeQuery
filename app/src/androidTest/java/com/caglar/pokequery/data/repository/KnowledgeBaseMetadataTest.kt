@@ -1,6 +1,7 @@
 package com.caglar.pokequery.data.repository
 
 import com.caglar.pokequery.data.model.VerificationStatus
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -104,7 +105,7 @@ class KnowledgeBaseMetadataTest {
     }
 
     @Test
-    fun shipped_knowledgebase_loads_with_metadata_every_term_has_a_status() {
+    fun shipped_knowledgebase_loads_with_metadata_every_term_has_a_status() = runBlocking {
         val result = KnowledgeBaseRepository(androidx.test.core.app.ApplicationProvider.getApplicationContext()).load()
         assertTrue(result.isSuccess)
         result.getOrThrow().forEach { term ->

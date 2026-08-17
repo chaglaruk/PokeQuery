@@ -1,12 +1,13 @@
 package com.caglar.pokequery.data.repository
 
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class KnowledgeBaseRepositoryTest {
     @Test
-    fun expandedKnowledgeBaseLoadsSafely() {
+    fun expandedKnowledgeBaseLoadsSafely() = runBlocking {
         val result = KnowledgeBaseRepository(ApplicationProvider.getApplicationContext()).load()
         assertTrue(result.isSuccess)
         val syntax = result.getOrThrow().map { it.syntax }.toSet()
