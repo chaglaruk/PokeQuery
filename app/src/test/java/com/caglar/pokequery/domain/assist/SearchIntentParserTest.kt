@@ -178,4 +178,178 @@ class SearchIntentParserTest {
             }
         }
     }
+
+    @Test
+    fun testFindHundosAndExcludeShinies() {
+        val result = SearchIntentParser.parse("Find hundos and exclude shinies")
+        assertTrue(result.canBuild)
+        assertTrue(result.tokens.contains("4*"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.exclusions.contains("4*"))
+        assertEquals("4*&!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    @Test
+    fun testExcludeShiniesAndFindHundos() {
+        val result = SearchIntentParser.parse("exclude shinies and find hundos")
+        assertTrue(result.canBuild)
+        assertTrue(result.tokens.contains("4*"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.exclusions.contains("4*"))
+        assertEquals("4*&!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    // PQ-ZAI-FINAL-01: Negated controls
+    @Test
+    fun testDontHideShiny() {
+        val result = SearchIntentParser.parse("don't hide shiny")
+        assertTrue(result.canBuild)
+        assertTrue(result.tokens.contains("shiny"))
+        assertFalse(result.exclusions.contains("shiny"))
+        assertEquals("shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    @Test
+    fun testDontHideShinyVariants() {
+        val r1 = SearchIntentParser.parse("dont hide shiny")
+        assertTrue(r1.canBuild)
+        assertTrue(r1.tokens.contains("shiny"))
+        assertFalse(r1.exclusions.contains("shiny"))
+        assertEquals("shiny", r1.rawQuery)
+
+        val r2 = SearchIntentParser.parse("do not hide shiny")
+        assertTrue(r2.canBuild)
+        assertTrue(r2.tokens.contains("shiny"))
+        assertFalse(r2.exclusions.contains("shiny"))
+        assertEquals("shiny", r2.rawQuery)
+
+        val r3 = SearchIntentParser.parse("don't exclude shiny")
+        assertTrue(r3.canBuild)
+        assertTrue(r3.tokens.contains("shiny"))
+        assertFalse(r3.exclusions.contains("shiny"))
+        assertEquals("shiny", r3.rawQuery)
+    }
+
+    @Test
+    fun testDontIncludeShiny() {
+        val result = SearchIntentParser.parse("don't include shiny")
+        assertTrue(result.canBuild)
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertEquals("!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+
+        val r2 = SearchIntentParser.parse("don't show shiny")
+        assertTrue(r2.canBuild)
+        assertTrue(r2.exclusions.contains("shiny"))
+        assertFalse(r2.tokens.contains("shiny"))
+        assertEquals("!shiny", r2.rawQuery)
+    }
+
+    @Test
+    fun testNotShiny() {
+        val result = SearchIntentParser.parse("not shiny")
+        assertTrue(result.canBuild)
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertEquals("!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    // PQ-ZAI-FINAL-02: Contrast with explicit positive control
+    @Test
+    fun testWithoutShinyButWithHundo() {
+        val result = SearchIntentParser.parse("without shiny but with hundo")
+        assertTrue(result.canBuild)
+        assertTrue(result.tokens.contains("4*"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.exclusions.contains("4*"))
+        assertEquals("4*&!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    // PQ-ZAI-FINAL-03: Contrast polarity inheritance
+    @Test
+    fun testShowAllButHundos() {
+        val result = SearchIntentParser.parse("show all but hundos")
+        assertTrue(result.canBuild)
+        assertTrue(result.exclusions.contains("4*"))
+        assertFalse(result.tokens.contains("4*"))
+        assertEquals("!4*", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    @Test
+    fun testFindAllButShiny() {
+        val result = SearchIntentParser.parse("find all but shiny")
+        assertTrue(result.canBuild)
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertEquals("!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    @Test
+    fun testEverythingButShinyAndLegendary() {
+        val result = SearchIntentParser.parse("everything but shiny and legendary")
+        assertTrue(result.canBuild)
+        assertTrue(result.exclusions.contains("shiny"))
+        assertTrue(result.exclusions.contains("legendary"))
+        assertTrue(result.tokens.isEmpty())
+        assertEquals("!shiny&!legendary", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    @Test
+    fun testShowAllButShinyAndHundos() {
+        val result = SearchIntentParser.parse("show all but shiny and hundos")
+        assertTrue(result.canBuild)
+        assertTrue(result.exclusions.contains("shiny"))
+        assertTrue(result.exclusions.contains("4*"))
+        assertTrue(result.tokens.isEmpty())
+        assertTrue(result.rawQuery == "!4*&!shiny" || result.rawQuery == "!shiny&!4*")
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    @Test
+    fun testHideShinyButHundo() {
+        val result = SearchIntentParser.parse("hide shiny but hundo")
+        assertTrue(result.canBuild)
+        assertTrue(result.tokens.contains("4*"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.exclusions.contains("4*"))
+        assertEquals("4*&!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    @Test
+    fun testFindHundoButExcludeShiny() {
+        val result = SearchIntentParser.parse("find hundo but exclude shiny")
+        assertTrue(result.canBuild)
+        assertTrue(result.tokens.contains("4*"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.exclusions.contains("4*"))
+        assertEquals("4*&!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
+
+    @Test
+    fun testExcludeShinyButFindHundo() {
+        val result = SearchIntentParser.parse("exclude shiny but find hundo")
+        assertTrue(result.canBuild)
+        assertTrue(result.tokens.contains("4*"))
+        assertFalse(result.tokens.contains("shiny"))
+        assertTrue(result.exclusions.contains("shiny"))
+        assertFalse(result.exclusions.contains("4*"))
+        assertEquals("4*&!shiny", result.rawQuery)
+        assertFalse(result.rawQuery.contains("|"))
+    }
 }

@@ -30,17 +30,81 @@ function normalize(text: string): string {
   return text.toLowerCase().trim().replace(/\s+/g, ' ')
 }
 
-const negativeControls = new Set([
-  'no', 'not', 'hide', 'exclude', 'without', 'except',
-  'gizle', 'hariç', 'haric', 'dışında', 'disinda',
+type ControlPolarity = 'POSITIVE' | 'NEGATIVE'
+
+const contrastRegex = /\b(?:but|ama|ancak|fakat|lakin)\b/gi
+
+const negatorPrefix = `(?:don'?t|do\\s+not|doesn'?t|does\\s+not|isn'?t|is\\s+not|aren'?t|are\\s+not|can'?t|cannot|won'?t|wont|wouldn'?t|wouldnt)`
+const negativeWords = `(?:hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|no|not)`
+const positiveWords = `(?:find|show|include|keep|want|get|with|bul|göster|goster|dahil|sakla|ile|birlikte)`
+
+const combinedControlRegex = new RegExp(
+  `\\b(?:(${negatorPrefix})\\s+(${negativeWords}|${positiveWords})|(${negativeWords})|(${positiveWords}))\\b`,
+  'gi'
+)
+
+const negativeWordSet = new Set([
+  'hide', 'exclude', 'without', 'except', 'gizle', 'hariç', 'haric', 'dışında', 'disinda', 'no', 'not',
 ])
-const positiveControls = new Set([
-  'find', 'show', 'include', 'keep', 'want', 'get',
-  'bul', 'göster', 'goster', 'dahil', 'sakla',
-])
-const controlRegex = /(?:^|\s)(no|not|hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|find|show|include|keep|want|get|bul|göster|goster|dahil|sakla)(?=\s|$)/g
+
 const clauseBreak = /\b(?:and|or|ve|veya)\b|[,&;:]/
-const suffixNegations = ['değil', 'degil', 'olmayan', 'yok', 'hariç', 'haric', 'dışında', 'disinda', 'excluded', 'hidden']
+const suffixNegations = ['degil', 'değil', 'olmayan', 'yok', 'hariç', 'haric', 'disinda', 'dışında', 'excluded', 'hidden']
+
+function isNegativeWord(word: string): boolean {
+  return negativeWordSet.has(word.toLowerCase())
+}
+
+function extractLastControl(text: string): ControlPolarity | null {
+  combinedControlRegex.lastIndex = 0
+  const matches: RegExpExecArray[] = []
+  let m: RegExpExecArray | null
+  while ((m = combinedControlRegex.exec(text)) !== null) {
+    matches.push(m)
+  }
+  const last = matches[matches.length - 1]
+  if (!last) return null
+
+  const negator = last[1]
+  const negatedWord = last[2]
+  const standaloneNeg = last[3]
+  const standalonePos = last[4]
+
+  if (negator && negatedWord) {
+    return isNegativeWord(negatedWord) ? 'POSITIVE' : 'NEGATIVE'
+  }
+  if (standaloneNeg) return 'NEGATIVE'
+  if (standalonePos) return 'POSITIVE'
+  return null
+}
+
+function polarityForPrefix(prefix: string): boolean {
+  const trimmedPrefix = prefix.trimEnd()
+  if (trimmedPrefix.endsWith('!')) return true
+
+  contrastRegex.lastIndex = 0
+  const contrastMatches: RegExpExecArray[] = []
+  let cm: RegExpExecArray | null
+  while ((cm = contrastRegex.exec(prefix)) !== null) {
+    contrastMatches.push(cm)
+  }
+
+  if (contrastMatches.length > 0) {
+    const lastContrast = contrastMatches[contrastMatches.length - 1]!
+    const preContrast = prefix.substring(0, lastContrast.index)
+    const postContrast = prefix.substring(lastContrast.index + lastContrast[0].length)
+
+    const postControl = extractLastControl(postContrast)
+    if (postControl !== null) {
+      return postControl === 'NEGATIVE'
+    }
+
+    const preControl = extractLastControl(preContrast) ?? 'POSITIVE'
+    return preControl === 'POSITIVE'
+  }
+
+  const control = extractLastControl(prefix)
+  return control === 'NEGATIVE'
+}
 
 function isPatternNegated(normalized: string, keyword: string): boolean {
   if (!keyword) return false
@@ -49,20 +113,8 @@ function isPatternNegated(normalized: string, keyword: string): boolean {
 
   const prefix = normalized.substring(0, index)
   const suffix = normalized.substring(index + keyword.length)
-  if (prefix.trimEnd().endsWith('!')) return true
 
-  let lastControl: string | null = null
-  controlRegex.lastIndex = 0
-  let match: RegExpExecArray | null
-  while ((match = controlRegex.exec(prefix)) !== null) {
-    lastControl = match[1] ?? null
-  }
-
-  const prefixNegated = lastControl !== null && negativeControls.has(lastControl)
-    ? true
-    : lastControl !== null && positiveControls.has(lastControl)
-      ? false
-      : false
+  const prefixNegated = polarityForPrefix(prefix)
 
   const suffixClause = (suffix.split(clauseBreak)[0] ?? '').trim()
   const suffixNegated = suffixNegations.some(neg =>

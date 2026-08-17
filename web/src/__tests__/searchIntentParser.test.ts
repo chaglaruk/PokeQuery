@@ -141,4 +141,173 @@ describe('parseSearchIntent', () => {
     const r = parseSearchIntent('favorite')
     expect(r.tokens).toContain('favorite')
   })
+
+  // Production mixed-intent baseline
+  it('handles "hide shiny and favourites" correctly', () => {
+    const r = parseSearchIntent('hide shiny and favourites')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).toContain('favorite')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.tokens).not.toContain('favorite')
+    expect(r.rawQuery).toBe('!shiny&!favorite')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('handles "Find hundos and exclude shinies" correctly', () => {
+    const r = parseSearchIntent('Find hundos and exclude shinies')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('handles "exclude shinies and find hundos" correctly', () => {
+    const r = parseSearchIntent('exclude shinies and find hundos')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  // PQ-ZAI-FINAL-01: Negated controls
+  it('PQ-ZAI-FINAL-01: parses "don\'t hide shiny" -> positive shiny', () => {
+    const r = parseSearchIntent("don't hide shiny")
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('shiny')
+    expect(r.exclusions).not.toContain('shiny')
+    expect(r.rawQuery).toBe('shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-01: parses "dont hide shiny", "do not hide shiny", "don\'t exclude shiny"', () => {
+    const r1 = parseSearchIntent('dont hide shiny')
+    expect(r1.tokens).toContain('shiny')
+    expect(r1.exclusions).not.toContain('shiny')
+    expect(r1.rawQuery).toBe('shiny')
+
+    const r2 = parseSearchIntent('do not hide shiny')
+    expect(r2.tokens).toContain('shiny')
+    expect(r2.exclusions).not.toContain('shiny')
+    expect(r2.rawQuery).toBe('shiny')
+
+    const r3 = parseSearchIntent("don't exclude shiny")
+    expect(r3.tokens).toContain('shiny')
+    expect(r3.exclusions).not.toContain('shiny')
+    expect(r3.rawQuery).toBe('shiny')
+  })
+
+  it('PQ-ZAI-FINAL-01: parses "don\'t include shiny" -> negative !shiny', () => {
+    const r = parseSearchIntent("don't include shiny")
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.rawQuery).toBe('!shiny')
+    expect(r.rawQuery).not.toContain('|')
+
+    const r2 = parseSearchIntent("don't show shiny")
+    expect(r2.canBuild).toBe(true)
+    expect(r2.exclusions).toContain('shiny')
+    expect(r2.tokens).not.toContain('shiny')
+    expect(r2.rawQuery).toBe('!shiny')
+  })
+
+  // PQ-ZAI-FINAL-02: Contrast with explicit positive control
+  it('PQ-ZAI-FINAL-02: parses "without shiny but with hundo" -> 4*&!shiny', () => {
+    const r = parseSearchIntent('without shiny but with hundo')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  // PQ-ZAI-FINAL-03: Contrast polarity inheritance
+  it('PQ-ZAI-FINAL-03: parses "show all but hundos" -> !4*', () => {
+    const r = parseSearchIntent('show all but hundos')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('4*')
+    expect(r.tokens).not.toContain('4*')
+    expect(r.rawQuery).toBe('!4*')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "find all but shiny" -> !shiny', () => {
+    const r = parseSearchIntent('find all but shiny')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.rawQuery).toBe('!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "show all but shiny" -> !shiny', () => {
+    const r = parseSearchIntent('show all but shiny')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.rawQuery).toBe('!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "everything but shiny and legendary" -> !shiny&!legendary', () => {
+    const r = parseSearchIntent('everything but shiny and legendary')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).toContain('legendary')
+    expect(r.tokens).toEqual([])
+    expect(r.rawQuery).toBe('!shiny&!legendary')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "show all but shiny and hundos" -> !4*&!shiny', () => {
+    const r = parseSearchIntent('show all but shiny and hundos')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).toContain('4*')
+    expect(r.tokens).toEqual([])
+    expect(r.rawQuery === '!4*&!shiny' || r.rawQuery === '!shiny&!4*').toBe(true)
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "hide shiny but hundo" -> 4*&!shiny', () => {
+    const r = parseSearchIntent('hide shiny but hundo')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "find hundo but exclude shiny" -> 4*&!shiny', () => {
+    const r = parseSearchIntent('find hundo but exclude shiny')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "exclude shiny but find hundo" -> 4*&!shiny', () => {
+    const r = parseSearchIntent('exclude shiny but find hundo')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
 })

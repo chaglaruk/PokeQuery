@@ -22,27 +22,79 @@ object SearchIntentParser {
     private fun normalize(text: String): String =
         text.lowercase().trim().replace(Regex("\\s+"), " ")
 
+    private enum class ControlPolarity { POSITIVE, NEGATIVE }
+
     private val clauseBreak = Regex("""\b(?:and|or|ve|veya)\b|[,&;:]""")
-    private val negativeControls = setOf(
-        "no", "not", "hide", "exclude", "without", "except",
-        "gizle", "hariç", "haric", "dışında", "disinda"
-    )
-    private val positiveControls = setOf(
-        "find", "show", "include", "keep", "want", "get",
-        "bul", "göster", "goster", "dahil", "sakla"
-    )
-    private val controlRegex = Regex(
-        """(?:^|\s)(no|not|hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|find|show|include|keep|want|get|bul|göster|goster|dahil|sakla)(?=\s|$)"""
-    )
-    private val suffixNegations = listOf(
-        "değil", "degil", "olmayan", "yok", "hariç", "haric", "dışında", "disinda", "excluded", "hidden"
+    private val contrastRegex = Regex("""\b(?:but|ama|ancak|fakat|lakin)\b""")
+
+    private val negatorPrefix = """(?:don'?t|do\s+not|doesn'?t|does\s+not|isn'?t|is\s+not|aren'?t|are\s+not|can'?t|cannot|won'?t|wont|wouldn'?t|wouldnt)"""
+    private val negativeWords = """(?:hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|no|not)"""
+    private val positiveWords = """(?:find|show|include|keep|want|get|with|bul|göster|goster|dahil|sakla|ile|birlikte)"""
+
+    private val combinedControlRegex = Regex(
+        """\b(?:($negatorPrefix)\s+($negativeWords|$positiveWords)|($negativeWords)|($positiveWords))\b"""
     )
 
+    private val negativeWordSet = setOf(
+        "hide", "exclude", "without", "except", "gizle", "hariç", "haric", "dışında", "disinda", "no", "not"
+    )
+
+    private val suffixNegations = listOf(
+        "degil", "değil", "olmayan", "yok", "hariç", "haric", "disinda", "dışında", "excluded", "hidden"
+    )
+
+    private fun isNegativeWord(word: String): Boolean = word.lowercase() in negativeWordSet
+
+    private fun extractLastControl(text: String): ControlPolarity? {
+        val matches = combinedControlRegex.findAll(text).toList()
+        val last = matches.lastOrNull() ?: return null
+
+        val negator = last.groups[1]?.value
+        val negatedWord = last.groups[2]?.value
+        val standaloneNeg = last.groups[3]?.value
+        val standalonePos = last.groups[4]?.value
+
+        return when {
+            negator != null && negatedWord != null -> {
+                if (isNegativeWord(negatedWord)) ControlPolarity.POSITIVE
+                else ControlPolarity.NEGATIVE
+            }
+            standaloneNeg != null -> ControlPolarity.NEGATIVE
+            standalonePos != null -> ControlPolarity.POSITIVE
+            else -> null
+        }
+    }
+
+    private fun polarityForPrefix(prefix: String): Boolean {
+        val trimmedPrefix = prefix.trimEnd()
+        if (trimmedPrefix.endsWith("!")) return true
+
+        val contrastMatches = contrastRegex.findAll(prefix).toList()
+        if (contrastMatches.isNotEmpty()) {
+            val lastContrast = contrastMatches.last()
+            val preContrast = prefix.substring(0, lastContrast.range.first)
+            val postContrast = prefix.substring(lastContrast.range.last + 1)
+
+            val postControl = extractLastControl(postContrast)
+            if (postControl != null) {
+                return postControl == ControlPolarity.NEGATIVE
+            }
+
+            val preControl = extractLastControl(preContrast) ?: ControlPolarity.POSITIVE
+            return preControl == ControlPolarity.POSITIVE
+        }
+
+        val control = extractLastControl(prefix)
+        return control == ControlPolarity.NEGATIVE
+    }
+
     /**
-     * Uses the most recent intent-control word before the matched keyword. This lets a list such
-     * as "hide shiny and favourites" inherit `hide` across the conjunction while keeping
-     * independent clauses correct: "find hundos and exclude shinies" -> 4*&!shiny, and
-     * "exclude shinies and find hundos" still keeps the hundo positive.
+     * Uses the polarity derived from controls, negators, and contrast markers before the matched keyword.
+     * This handles:
+     * - Inverted controls: "don't hide shiny" -> shiny, "don't include shiny" -> !shiny
+     * - Contrast: "without shiny but with hundo" -> 4*&!shiny, "show all but shiny" -> !shiny, "hide shiny but hundo" -> 4*&!shiny
+     * - List inheritance: "hide shiny and favourites" -> !shiny&!favorite
+     * - Independent clauses: "Find hundos and exclude shinies" -> 4*&!shiny
      */
     private fun isPatternNegated(normalized: String, keyword: String): Boolean {
         if (keyword.isBlank()) return false
@@ -51,19 +103,8 @@ object SearchIntentParser {
 
         val prefix = normalized.substring(0, index)
         val suffix = normalized.substring(index + keyword.length)
-        val trimmedPrefix = prefix.trimEnd()
-        if (trimmedPrefix.endsWith("!")) return true
 
-        val lastControl = controlRegex.findAll(prefix)
-            .lastOrNull()
-            ?.groupValues
-            ?.getOrNull(1)
-
-        val prefixNegated = when {
-            lastControl in negativeControls -> true
-            lastControl in positiveControls -> false
-            else -> false
-        }
+        val prefixNegated = polarityForPrefix(prefix)
 
         val suffixClause = suffix.split(clauseBreak).firstOrNull().orEmpty().trim()
         val suffixNegated = suffixNegations.any { neg ->
