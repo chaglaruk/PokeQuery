@@ -14,6 +14,9 @@ on:
       - 'scripts/check_runtime_assets.py'
       - 'scripts/validate_event_feed.py'
       - 'scripts/test_generator_safety.py'
+      - 'scripts/test_generator.py'
+      - 'scripts/check_web_fallback_fresh.py'
+      - 'scripts/test_check_web_fallback_fresh.py'
       - 'scripts/generate_event_feed.py'
       - 'docs/event-feed/**'
   pull_request:
@@ -28,6 +31,9 @@ on:
       - 'scripts/check_runtime_assets.py'
       - 'scripts/validate_event_feed.py'
       - 'scripts/test_generator_safety.py'
+      - 'scripts/test_generator.py'
+      - 'scripts/check_web_fallback_fresh.py'
+      - 'scripts/test_check_web_fallback_fresh.py'
       - 'scripts/generate_event_feed.py'
       - 'docs/event-feed/**'
   workflow_dispatch:
@@ -51,6 +57,15 @@ jobs:
           cmp -s web/src/parity/golden-corpus.json app/src/test/resources/golden-corpus.json || {
             echo "ERROR: web/src/parity/golden-corpus.json and app/src/test/resources/golden-corpus.json are not byte-identical!"
             diff -u web/src/parity/golden-corpus.json app/src/test/resources/golden-corpus.json
+            exit 1
+          }
+        shell: bash
+
+      - name: Android bundled Event Guide fallback freshness
+        run: |
+          cmp -s docs/event-feed/pokequery-events.json app/src/main/res/raw/event_context_fixture.json || {
+            echo "ERROR: Android bundled Event Guide fallback differs from canonical feed."
+            diff -u docs/event-feed/pokequery-events.json app/src/main/res/raw/event_context_fixture.json || true
             exit 1
           }
         shell: bash
@@ -82,6 +97,10 @@ jobs:
 
       - name: Test generator safety invariants
         run: python scripts/test_generator_safety.py
+        shell: bash
+
+      - name: Test generator and fallback validators
+        run: python -m unittest scripts.test_generator scripts.test_check_web_fallback_fresh
         shell: bash
 
       - name: Validate event feed

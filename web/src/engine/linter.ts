@@ -17,17 +17,29 @@ const reservedTerms = new Set([
 
 const riskyCategories = new Set(['shiny', 'legendary', 'mythical', 'lucky'])
 
+function tokenize(query: string): string[] {
+  return query.toLowerCase().split(/[&,;:]/).map(t => t.trim()).filter(Boolean)
+}
+
 export function lint(query: string): LintWarning[] {
   const warnings: LintWarning[] = []
   const lower = query.toLowerCase()
-  const tokens = lower.split(/[&,;:]/).map(t => t.trim())
+  const tokens = tokenize(query)
 
   if (query.includes('|')) {
     warnings.push({ message: "T3 uncertain operator '|'. Do not use it; use '&' or ',' instead.", isError: true })
   }
 
-  if (lower.includes('count')) {
-    const missing = COUNT_MANDATORY_PROTECTIONS.filter(p => !lower.includes(`!${p}`))
+  if (tokens.includes('!untraded') || tokens.includes('untraded')) {
+    warnings.push({
+      message: "Unsupported token 'untraded'. Use 'traded' to include traded Pokémon or '!traded' to exclude them.",
+      isError: true,
+    })
+  }
+
+  const hasCount = tokens.some(t => /^count\d*-?$/.test(t))
+  if (hasCount) {
+    const missing = COUNT_MANDATORY_PROTECTIONS.filter(p => !tokens.includes(`!${p}`))
     if (missing.length > 0) {
       warnings.push({
         message: `Unsafe count usage; missing mandatory exclusions: ${missing.map(p => `!${p}`).join(', ')}.`,
@@ -41,11 +53,10 @@ export function lint(query: string): LintWarning[] {
     warnings.push({ message: '0* is an IV band, not exact 0% IV.', isError: false })
   }
 
-  const isPvP = lower.includes('0-1attack') || lower.includes('3-4defense')
-  const isTradePrep = lower.includes('age365-') || lower.includes('distance100-')
-
+  const isPvP = tokens.some(t => t === '0-1attack' || t === '3-4defense')
+  const isTradePrep = tokens.some(t => t === 'age365-' || t === 'distance100-')
   const cleanupOrCount =
-    (lower.includes('count') || tokens.some(t => t === '0*' || t === '1*' || t === '2*')) &&
+    (hasCount || tokens.some(t => t === '0*' || t === '1*' || t === '2*')) &&
     !isPvP && !isTradePrep
 
   if (cleanupOrCount) {
@@ -90,7 +101,10 @@ export function lint(query: string): LintWarning[] {
   }
 
   if ([...query].some(c => c.charCodeAt(0) > 127)) {
-    warnings.push({ message: 'T4 localized search terms are unverified; MVP assumes an English game client.', isError: false })
+    warnings.push({
+      message: 'Localized search terms detected. Officially documented localized terms may still be beta until independently verified in the live game client.',
+      isError: false,
+    })
   }
 
   const seen = new Set<string>()

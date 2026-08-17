@@ -22,22 +22,38 @@ object SearchIntentParser {
     private fun normalize(text: String): String =
         text.lowercase().trim().replace(Regex("\\s+"), " ")
 
+    private val clauseBreak = Regex("""\b(?:and|or|ve|veya)\b|[,&;:]""")
+    private val prefixNegations = listOf(
+        "not", "no", "!", "non", "hide", "exclude", "without", "except",
+        "not show", "do not show", "don't show", "gizle", "hariç", "haric", "dışında", "disinda"
+    )
+    private val suffixNegations = listOf(
+        "değil", "degil", "olmayan", "yok", "hariç", "haric", "dışında", "disinda", "excluded", "hidden"
+    )
+
+    /**
+     * Negation is scoped to the clause immediately surrounding the matched keyword.
+     * A negator elsewhere in the sentence must not invert unrelated intents, e.g.
+     * "find hundos and exclude shinies" -> 4*&!shiny (not !4*&!shiny).
+     */
     private fun isPatternNegated(normalized: String, keyword: String): Boolean {
         if (keyword.isBlank()) return false
         val index = normalized.indexOf(keyword)
         if (index == -1) return false
+
         val prefix = normalized.substring(0, index)
         val suffix = normalized.substring(index + keyword.length)
-        if (normalized.contains("hide") || normalized.contains("exclude") || normalized.contains("without") || normalized.contains("gizle") || normalized.contains("hariç") || normalized.contains("haric") || normalized.contains("dışında") || normalized.contains("disinda")) return true
-
-        val prefixNegations = listOf("not", "no", "!", "non")
-        val suffixNegations = listOf("değil", "degil", "olmayan", "yok")
+        val prefixClause = prefix.split(clauseBreak).lastOrNull().orEmpty().trim()
+        val suffixClause = suffix.split(clauseBreak).firstOrNull().orEmpty().trim()
 
         val prefixMatch = prefixNegations.any { neg ->
-            prefix.trim().endsWith(neg) || prefix.contains("$neg ")
+            when (neg) {
+                "!" -> prefixClause.endsWith("!")
+                else -> prefixClause == neg || prefixClause.endsWith(" $neg") || prefixClause.endsWith(neg)
+            }
         }
         val suffixMatch = suffixNegations.any { neg ->
-            suffix.trim().startsWith(neg) || suffix.contains(" $neg")
+            suffixClause == neg || suffixClause.startsWith("$neg ") || suffixClause.startsWith(neg)
         }
         return prefixMatch || suffixMatch
     }
@@ -192,12 +208,10 @@ object SearchIntentParser {
             )
         }
 
-        // Combine ALL matched patterns — not just the "best" one.
         val allTokens = mutableSetOf<String>()
         val allExclusions = mutableSetOf<String>()
         val explanations = mutableListOf<String>()
         val allLimitations = mutableListOf<String>()
-        var anyCanBuild = false
 
         for (pattern in matched) {
             val matchedKeyword = pattern.keywords.firstOrNull { normalized.contains(it) } ?: ""
@@ -212,7 +226,6 @@ object SearchIntentParser {
             }
             explanations.add(pattern.explanation)
             allLimitations.addAll(pattern.limitations)
-            if (pattern.canBuild) anyCanBuild = true
         }
 
         val hasShiny = normalized.contains("shiny")
@@ -222,11 +235,8 @@ object SearchIntentParser {
         val extraTokens = buildList {
             if (hasShiny && "shiny" !in allTokens.map { it.lowercase() } && "shiny" !in allExclusions.map { it.lowercase() }) {
                 val negated = isPatternNegated(normalized, "shiny")
-                if (negated) {
-                    allExclusions.add("shiny")
-                } else {
-                    add("shiny"); allLimitations.add("Shiny search added based on your input. Verify before transferring.")
-                }
+                if (negated) allExclusions.add("shiny")
+                else { add("shiny"); allLimitations.add("Shiny search added based on your input. Verify before transferring.") }
             }
             if (hasLegendary && "legendary" !in allTokens.map { it.lowercase() } && "legendary" !in allExclusions.map { it.lowercase() }) {
                 val negated = isPatternNegated(normalized, "legendary")
@@ -246,12 +256,8 @@ object SearchIntentParser {
             return ParsedIntent(emptyList(), explanation = combinedExplanation, limitations = allLimitations.distinct(), canBuild = false)
         }
 
-        // canBuild when there are any tokens OR any exclusions (e.g. untagged → no tokens, !# exclusion)
         val canBuildResult = allTokens.isNotEmpty() || allExclusions.isNotEmpty()
-
         val combinedExplanation = explanations.distinct().joinToString(" ") + extraLabel
-
-        // Build rawQuery beautifully
         val distinctTokens = allTokens.toList().distinct()
         val distinctExclusions = allExclusions.toList().distinct()
         val parts = distinctTokens + distinctExclusions.map { "!$it" }

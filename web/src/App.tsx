@@ -32,6 +32,7 @@ export default function App() {
         <Route path="/presets" element={<PresetsScreen />} />
         <Route path="/my-presets" element={<PresetsScreen personal />} />
         <Route path="/privacy" element={<PrivacyScreen />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <BottomNav />
     </>

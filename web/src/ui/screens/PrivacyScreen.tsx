@@ -9,7 +9,7 @@ export function PrivacyScreen() {
   return (
     <main className="page content-with-nav">
       <header className="page-header">
-        <button type="button" className="back-btn" onClick={() => navigate(-1)} aria-label="Back">
+        <button type="button" className="back-btn" onClick={() => navigate('/')} aria-label="Back">
           ←
         </button>
         <h1>{t('settings_privacy_policy')}</h1>
@@ -21,12 +21,7 @@ export function PrivacyScreen() {
           <p className="setting-help">Effective Date: 17 August 2026</p>
           <p className="setting-help">
             This screen provides a concise overview of PokeQuery privacy practices. The full, authoritative policy document is available at{' '}
-            <a
-              href={fullPolicyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--accent)', textDecoration: 'underline' }}
-            >
+            <a href={fullPolicyUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
               privacy.html
             </a>.
           </p>
@@ -59,7 +54,7 @@ export function PrivacyScreen() {
         <section className="settings-panel">
           <h2 className="panel-title">4. Network Access &amp; Event Guide Requests</h2>
           <p className="setting-help">
-            The Android application&apos;s feature-level Internet access is used for read-only retrieval of the public GitHub-hosted Event Guide feed. The Web/PWA is served through its normal web host and loads application assets over the network, with feature-level external data retrieval limited to the public Event Guide feed.
+            The Android application's feature-level Internet access is used for read-only retrieval of the public GitHub-hosted Event Guide feed. The Web/PWA is served through its normal web host and loads application assets over the network, with feature-level external data retrieval limited to the public Event Guide feed.
           </p>
           <p className="setting-help">
             PokeQuery does not intentionally include Pokémon GO account data, search history, favourites, presets, or PokeQuery account identifiers in Event Guide requests. Standard HTTP connection metadata, such as IP address and User-Agent, may be processed by GitHub and network providers when serving the request.
@@ -77,21 +72,11 @@ export function PrivacyScreen() {
           <h2 className="panel-title">6. Enquiries &amp; Full Document</h2>
           <p className="setting-help">
             Read the complete policy document at{' '}
-            <a
-              href={fullPolicyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--accent)', textDecoration: 'underline' }}
-            >
+            <a href={fullPolicyUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
               privacy.html
             </a>{' '}
             or submit privacy enquiries on GitHub at{' '}
-            <a
-              href="https://github.com/chaglaruk/PokeQuery/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--accent)', textDecoration: 'underline' }}
-            >
+            <a href="https://github.com/chaglaruk/PokeQuery/issues" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
               https://github.com/chaglaruk/PokeQuery/issues
             </a>.
           </p>

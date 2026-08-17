@@ -27,12 +27,16 @@ internal fun openRouteIntent(context: Context, route: String, requestCode: Int):
     )
 }
 
+/**
+ * Clipboard writes use a dedicated non-exported Activity rather than MainActivity extras.
+ * This keeps the widget action explicit while preventing another app from forging a
+ * `copy_search` launch intent against the exported launcher activity.
+ */
 internal fun copySearchIntent(context: Context, search: String, route: String, requestCode: Int): PendingIntent {
-    val intent = Intent(context, MainActivity::class.java).apply {
-        action = Intent.ACTION_MAIN
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    val intent = Intent(context, WidgetCopyActivity::class.java).apply {
+        action = "com.caglar.pokequery.action.WIDGET_COPY"
         putExtra(START_ROUTE_EXTRA, route)
-        putExtra("copy_search", search)
+        putExtra(WidgetCopyActivity.EXTRA_COPY_SEARCH, search)
     }
     return PendingIntent.getActivity(
         context,
