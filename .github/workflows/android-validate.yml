@@ -1,0 +1,96 @@
+name: Android CI Validation
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'app/**'
+      - '.github/workflows/android-validate.yml'
+      - '.github/workflows/update-event-feed.yml'
+      - 'gradle/**'
+      - 'gradlew*'
+      - 'build.gradle*'
+      - 'settings.gradle*'
+      - 'scripts/check_runtime_assets.py'
+      - 'scripts/validate_event_feed.py'
+      - 'scripts/test_generator_safety.py'
+      - 'scripts/generate_event_feed.py'
+      - 'docs/event-feed/**'
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/android-validate.yml'
+      - '.github/workflows/update-event-feed.yml'
+      - 'gradle/**'
+      - 'gradlew*'
+      - 'build.gradle*'
+      - 'settings.gradle*'
+      - 'scripts/check_runtime_assets.py'
+      - 'scripts/validate_event_feed.py'
+      - 'scripts/test_generator_safety.py'
+      - 'scripts/generate_event_feed.py'
+      - 'docs/event-feed/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Android Unit Tests, Lint & Asset Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Golden corpus cross-platform identity check
+        run: |
+          cmp -s web/src/parity/golden-corpus.json app/src/test/resources/golden-corpus.json || {
+            echo "ERROR: web/src/parity/golden-corpus.json and app/src/test/resources/golden-corpus.json are not byte-identical!"
+            diff -u web/src/parity/golden-corpus.json app/src/test/resources/golden-corpus.json
+            exit 1
+          }
+        shell: bash
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Setup Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run Android unit tests (includes GoldenCorpusParityTest)
+        run: ./gradlew :app:testDebugUnitTest
+        shell: bash
+
+      - name: Run Android lint
+        run: ./gradlew :app:lintDebug
+        shell: bash
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Test generator safety invariants
+        run: python scripts/test_generator_safety.py
+        shell: bash
+
+      - name: Validate event feed
+        run: python scripts/validate_event_feed.py docs/event-feed/pokequery-events.json
+        shell: bash
+
+      - name: Install runtime asset validator dependency
+        run: python -m pip install Pillow
+
+      - name: Validate runtime assets
+        run: python scripts/check_runtime_assets.py
+        shell: bash
