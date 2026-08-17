@@ -22,27 +22,79 @@ object SearchIntentParser {
     private fun normalize(text: String): String =
         text.lowercase().trim().replace(Regex("\\s+"), " ")
 
+    private enum class ControlPolarity { POSITIVE, NEGATIVE }
+
     private val clauseBreak = Regex("""\b(?:and|or|ve|veya)\b|[,&;:]""")
-    private val negativeControls = setOf(
-        "no", "not", "hide", "exclude", "without", "except",
-        "gizle", "hariç", "haric", "dışında", "disinda"
-    )
-    private val positiveControls = setOf(
-        "find", "show", "include", "keep", "want", "get",
-        "bul", "göster", "goster", "dahil", "sakla"
-    )
-    private val controlRegex = Regex(
-        """(?:^|\s)(no|not|hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|find|show|include|keep|want|get|bul|göster|goster|dahil|sakla)(?=\s|$)"""
-    )
-    private val suffixNegations = listOf(
-        "değil", "degil", "olmayan", "yok", "hariç", "haric", "dışında", "disinda", "excluded", "hidden"
+    private val contrastRegex = Regex("""\b(?:but|ama|ancak|fakat|lakin)\b""")
+
+    private val negatorPrefix = """(?:don'?t|do\s+not|doesn'?t|does\s+not|isn'?t|is\s+not|aren'?t|are\s+not|can'?t|cannot|won'?t|wont|wouldn'?t|wouldnt)"""
+    private val negativeWords = """(?:hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|no|not)"""
+    private val positiveWords = """(?:find|show|include|keep|want|get|with|bul|göster|goster|dahil|sakla|ile|birlikte)"""
+
+    private val combinedControlRegex = Regex(
+        """\b(?:($negatorPrefix)\s+($negativeWords|$positiveWords)|($negativeWords)|($positiveWords))\b"""
     )
 
+    private val negativeWordSet = setOf(
+        "hide", "exclude", "without", "except", "gizle", "hariç", "haric", "dışında", "disinda", "no", "not"
+    )
+
+    private val suffixNegations = listOf(
+        "degil", "değil", "olmayan", "yok", "hariç", "haric", "disinda", "dışında", "excluded", "hidden"
+    )
+
+    private fun isNegativeWord(word: String): Boolean = word.lowercase() in negativeWordSet
+
+    private fun extractLastControl(text: String): ControlPolarity? {
+        val matches = combinedControlRegex.findAll(text).toList()
+        val last = matches.lastOrNull() ?: return null
+
+        val negator = last.groups[1]?.value
+        val negatedWord = last.groups[2]?.value
+        val standaloneNeg = last.groups[3]?.value
+        val standalonePos = last.groups[4]?.value
+
+        return when {
+            negator != null && negatedWord != null -> {
+                if (isNegativeWord(negatedWord)) ControlPolarity.POSITIVE
+                else ControlPolarity.NEGATIVE
+            }
+            standaloneNeg != null -> ControlPolarity.NEGATIVE
+            standalonePos != null -> ControlPolarity.POSITIVE
+            else -> null
+        }
+    }
+
+    private fun polarityForPrefix(prefix: String): Boolean {
+        val trimmedPrefix = prefix.trimEnd()
+        if (trimmedPrefix.endsWith("!")) return true
+
+        val contrastMatches = contrastRegex.findAll(prefix).toList()
+        if (contrastMatches.isNotEmpty()) {
+            val lastContrast = contrastMatches.last()
+            val preContrast = prefix.substring(0, lastContrast.range.first)
+            val postContrast = prefix.substring(lastContrast.range.last + 1)
+
+            val postControl = extractLastControl(postContrast)
+            if (postControl != null) {
+                return postControl == ControlPolarity.NEGATIVE
+            }
+
+            val preControl = extractLastControl(preContrast) ?: ControlPolarity.POSITIVE
+            return preControl == ControlPolarity.POSITIVE
+        }
+
+        val control = extractLastControl(prefix)
+        return control == ControlPolarity.NEGATIVE
+    }
+
     /**
-     * Uses the most recent intent-control word before the matched keyword. This lets a list such
-     * as "hide shiny and favourites" inherit `hide` across the conjunction while keeping
-     * independent clauses correct: "find hundos and exclude shinies" -> 4*&!shiny, and
-     * "exclude shinies and find hundos" still keeps the hundo positive.
+     * Uses the polarity derived from controls, negators, and contrast markers before the matched keyword.
+     * This handles:
+     * - Inverted controls: "don't hide shiny" -> shiny, "don't include shiny" -> !shiny
+     * - Contrast: "without shiny but with hundo" -> 4*&!shiny, "show all but shiny" -> !shiny, "hide shiny but hundo" -> 4*&!shiny
+     * - List inheritance: "hide shiny and favourites" -> !shiny&!favorite
+     * - Independent clauses: "Find hundos and exclude shinies" -> 4*&!shiny
      */
     private fun isPatternNegated(normalized: String, keyword: String): Boolean {
         if (keyword.isBlank()) return false
@@ -51,19 +103,8 @@ object SearchIntentParser {
 
         val prefix = normalized.substring(0, index)
         val suffix = normalized.substring(index + keyword.length)
-        val trimmedPrefix = prefix.trimEnd()
-        if (trimmedPrefix.endsWith("!")) return true
 
-        val lastControl = controlRegex.findAll(prefix)
-            .lastOrNull()
-            ?.groupValues
-            ?.getOrNull(1)
-
-        val prefixNegated = when {
-            lastControl in negativeControls -> true
-            lastControl in positiveControls -> false
-            else -> false
-        }
+        val prefixNegated = polarityForPrefix(prefix)
 
         val suffixClause = suffix.split(clauseBreak).firstOrNull().orEmpty().trim()
         val suffixNegated = suffixNegations.any { neg ->
@@ -88,73 +129,86 @@ object SearchIntentParser {
         IntentPattern(
             keywords = listOf("great league pvp", "great league candidate", "great league", "büyük lig", "buyuk lig"),
             tokens = listOf("0-1attack", "3-4defense", "3-4hp", "cp-1500"),
-            explanation = "Finds Great League PvP candidates (CP <= 1500) using CP cap/shortlist logic.",
-            limitations = listOf("CP cap filters by current CP only; exact PvP rank and level are not detectable via search strings.", "Not all matches are PvP-relevant — species and moveset also matter.")
+            explanation = "Finds Pokémon with low attack and high defense/HP IVs, capped at CP 1500 for Great League PvP.",
+            limitations = listOf("Rank 1 PvP IV spreads vary per species (some prefer 0/15/15, others 0/14/13). Use an external PvP ranker for exact ranks.", "Does not check evolved forms - a 0/15/15 base form may need CP checking.")
         ),
         IntentPattern(
             keywords = listOf("ultra league pvp", "ultra league candidate", "ultra league", "ultra lig"),
             tokens = listOf("0-1attack", "3-4defense", "3-4hp", "cp-2500"),
-            explanation = "Finds Ultra League PvP candidates (CP <= 2500) using CP cap/shortlist logic.",
-            limitations = listOf("CP cap filters by current CP only; exact PvP rank and level are not detectable via search strings.", "Not all matches are PvP-relevant — species and moveset also matter.")
+            explanation = "Finds Pokémon with low attack and high defense/HP IVs, capped at CP 2500 for Ultra League PvP.",
+            limitations = listOf("Rank 1 PvP IV spreads vary per species. Use an external PvP ranker for exact ranks.", "Does not check evolved forms.")
         ),
         IntentPattern(
-            keywords = listOf("pvp", "pvp iv", "pvp candidate", "pvp adayı", "pvp adayi", "kapışma", "kapisma", "düello", "duello"),
+            keywords = listOf("pvp", "pvp iv", "gbl", "battle league", "go battle league", "pvp adayı", "pvp adayi"),
             tokens = listOf("0-1attack", "3-4defense", "3-4hp"),
-            explanation = "Finds Pokémon with PvP-friendly IV spreads (low attack, high defense/HP). Suitable for Great League and Ultra League — exact PvP rank is not detectable via search strings; check CP manually in Pokémon GO.",
-            limitations = listOf("Pokémon GO search cannot detect exact PvP rank or level — only IV floor/ceil values.", "Not all matches are PvP-relevant — species and moveset also matter.", "Does not apply a league CP cap; use specific league name for cap.")
+            explanation = "Finds Pokémon with low attack and high defense/HP IVs (stat product optimization for Great/Ultra League).",
+            limitations = listOf("Different species have different rank 1 IV spreads. This is a shortlist, not a guarantee.", "Master League requires 15/15/15 (use Hundo search instead).")
         ),
         IntentPattern(
-            keywords = listOf("shiny", "shinies", "parlak", "şayni", "sayni"),
+            keywords = listOf("shiny", "shinies", "parlak", "schillernd", "chromatique", "cromatico", "brillante"),
             tokens = listOf("shiny"),
             explanation = "Filters to show only Shiny Pokémon.",
             limitations = listOf("Shiny search does not distinguish costume, event, or regional variants.", "You can also use !shiny to search for non-Shiny Pokémon.")
         ),
         IntentPattern(
-            keywords = listOf("legendary", "legendaries", "legend", "efsane", "efsanevi"),
+            keywords = listOf("legendary", "legendaries", "legend", "efsanevi", "legendaer", "leggendario"),
             tokens = listOf("legendary"),
             explanation = "Filters to show only Legendary Pokémon.",
             limitations = listOf("Mythical Pokémon are NOT included in this search.")
         ),
         IntentPattern(
-            keywords = listOf("mythical", "mythic", "mitolojik", "gizemli"),
+            keywords = listOf("mythical", "mythicals", "mitik", "mytisch", "mítico", "mitico"),
             tokens = listOf("mythical"),
             explanation = "Filters to show only Mythical Pokémon.",
-            limitations = listOf("This is a risky filter — mythical Pokémon are often valuable and cannot be re-obtained easily.")
+            limitations = listOf("Mythical Pokémon cannot be traded (except Meltan/Melmetal).")
         ),
         IntentPattern(
-            keywords = listOf("shadow", "shadows", "gölge", "golge", "karanlık", "karanlik"),
+            keywords = listOf("shadow", "shadows", "gölge", "golge", "erloest", "obscur", "ombra"),
             tokens = listOf("shadow"),
             explanation = "Filters to show only Shadow Pokémon.",
-            limitations = listOf("Shadow Pokémon are expensive to power up and cannot be traded.", "Purified Pokémon are NOT included.")
+            limitations = listOf("Shadow Pokémon cannot be traded.", "Shadow Pokémon deal +20% damage but take +20% defense penalty.")
         ),
         IntentPattern(
-            keywords = listOf("purified", "arınmış", "arinmis", "temizlenmiş", "temizlenmis"),
-            tokens = listOf("purified", "arınmış", "arinmis", "temizlenmiş", "temizlenmis"),
+            keywords = listOf("purified", "arındırılmış", "arindirilmis", "purifie", "purificato"),
+            tokens = listOf("purified"),
             explanation = "Filters to show only Purified Pokémon.",
-            limitations = listOf("Purified Pokémon cost 20% less stardust to power up.", "Purified Pokémon can be traded — they are not blocked from trading.", "Purified Pokémon cannot be re-shadowed.")
+            limitations = listOf("Purified Pokémon cost less candy and stardust to power up.")
         ),
         IntentPattern(
-            keywords = listOf("lucky", "şanslı", "sansli"),
-            tokens = listOf("lucky", "şanslı", "sansli"),
-            explanation = "Filters to show only Lucky Pokémon (received via trade with guaranteed higher IVs).",
-            limitations = listOf("Lucky Pokémon cost 50% less stardust to power up.", "Lucky Pokémon cannot be traded again.", "A Pokémon becoming Lucky is not guaranteed — it depends on trade context, not just age or distance.")
-        ),
-        IntentPattern(
-            keywords = listOf("costume", "event", "hat", "bow", "crown", "kostüm", "kostum", "şapka", "sapka", "etkinlik"),
+            keywords = listOf("costume", "costumes", "kostüm", "kostum", "costumato"),
             tokens = listOf("costume"),
-            explanation = "Filters to show only Costume Pokémon.",
-            limitations = listOf("Costume Pokémon cannot evolve (with rare event exceptions).")
+            explanation = "Filters to show only Costume/Event Pokémon.",
+            limitations = listOf("Some costume Pokémon cannot be evolved.")
         ),
         IntentPattern(
-            keywords = listOf("favorite", "fav", "starred", "favourite", "favourites", "favorites", "favori", "yıldızlı", "yildizli"),
+            keywords = listOf("favorite", "favorites", "favourite", "favourites", "fav", "favori", "favorit", "favorito"),
             tokens = listOf("favorite"),
-            explanation = "Filters to show only your Favorite (starred) Pokémon.",
-            limitations = listOf("You can also use !favorite to search for non-favorited Pokémon.")
+            explanation = "Filters to show only Favorited Pokémon.",
+            limitations = listOf("Favorites cannot be transferred.")
         ),
         IntentPattern(
-            keywords = listOf("cleanup", "transfer", "delete", "junk", "trash", "bulk transfer", "temizlik", "çöp", "cop", "gönder", "gonder"),
+            keywords = listOf("lucky", "şanslı", "sansli", "gluecklich", "chanceux", "fortunato"),
+            tokens = listOf("lucky"),
+            explanation = "Filters to show only Lucky Pokémon.",
+            limitations = listOf("Lucky Pokémon cost 50% less stardust to power up.")
+        ),
+        IntentPattern(
+            keywords = listOf("cleanup", "clean up", "transfer", "trash", "junk", "clear space", "box cleanup", "temizlik", "temizle", "silme", "sil"),
+            tokens = listOf("0*", "1*"),
+            exclusions = listOf("shiny", "legendary", "mythical", "ultrabeast", "costume", "background", "locationbackground", "specialbackground", "shadow", "purified", "favorite", "lucky", "#", "traded", "4*"),
+            explanation = "Builds a safe transfer candidate search (0* & 1* IV bands). Excludes all protected categories.",
+            limitations = listOf("0* and 1* are IV bands (0-65%), not exact appraisals.", "Always spot-check results before mass-transferring.")
+        ),
+        IntentPattern(
+            keywords = listOf("0*", "0 star", "zero star", "0 yıldız", "0 yildiz"),
+            tokens = listOf("0*"),
+            explanation = "Finds Pokémon in the 0-star appraisal band (0-49% total IVs).",
+            limitations = listOf("0* includes 0/0/0 (nundo) — lock/tag rare 0% Pokémon before transferring.")
+        ),
+        IntentPattern(
+            keywords = listOf("1*", "1 star", "one star", "1 yıldız", "1 yildiz"),
             tokens = listOf("1*"),
-            explanation = "Finds low-appraisal Pokémon for cleanup or transfer. Safe Cleanup excludes protected categories by default.",
+            explanation = "Finds Pokémon in the 1-star appraisal band (50-64% total IVs).",
             limitations = listOf("1* is an IV band (0-50%), not exact 1-star. Always review before transferring.", "Exclude shiny, legendary, mythical, costume, shadow, lucky, and trade-relevant Pokémon.")
         ),
         IntentPattern(
@@ -242,36 +296,13 @@ object SearchIntentParser {
             allLimitations.addAll(pattern.limitations)
         }
 
-        val hasShiny = normalized.contains("shiny")
-        val hasLegendary = normalized.contains("legendary")
-        val hasMythical = normalized.contains("mythical")
-
-        val extraTokens = buildList {
-            if (hasShiny && "shiny" !in allTokens.map { it.lowercase() } && "shiny" !in allExclusions.map { it.lowercase() }) {
-                val negated = isPatternNegated(normalized, "shiny")
-                if (negated) allExclusions.add("shiny")
-                else { add("shiny"); allLimitations.add("Shiny search added based on your input. Verify before transferring.") }
-            }
-            if (hasLegendary && "legendary" !in allTokens.map { it.lowercase() } && "legendary" !in allExclusions.map { it.lowercase() }) {
-                val negated = isPatternNegated(normalized, "legendary")
-                if (negated) allExclusions.add("legendary") else add("legendary")
-            }
-            if (hasMythical && "mythical" !in allTokens.map { it.lowercase() } && "mythical" !in allExclusions.map { it.lowercase() }) {
-                val negated = isPatternNegated(normalized, "mythical")
-                if (negated) allExclusions.add("mythical") else add("mythical")
-            }
-        }
-        allTokens.addAll(extraTokens)
-
-        val extraLabel = if (extraTokens.isNotEmpty()) " [Added: ${extraTokens.joinToString(", ")}]" else ""
-
         if (allTokens.isEmpty() && allExclusions.isEmpty()) {
-            val combinedExplanation = explanations.distinct().joinToString(" ") + extraLabel
+            val combinedExplanation = explanations.distinct().joinToString(" ")
             return ParsedIntent(emptyList(), explanation = combinedExplanation, limitations = allLimitations.distinct(), canBuild = false)
         }
 
         val canBuildResult = allTokens.isNotEmpty() || allExclusions.isNotEmpty()
-        val combinedExplanation = explanations.distinct().joinToString(" ") + extraLabel
+        val combinedExplanation = explanations.distinct().joinToString(" ")
         val distinctTokens = allTokens.toList().distinct()
         val distinctExclusions = allExclusions.toList().distinct()
         val parts = distinctTokens + distinctExclusions.map { "!$it" }

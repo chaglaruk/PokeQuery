@@ -1,4 +1,4 @@
-// SearchIntentParser — TypeScript port of Android SearchIntentParser.kt
+// SearchIntentParser - TypeScript port of Android SearchIntentParser.kt
 // Parses natural-language search intent into Pokemon GO search strings.
 
 export interface ParsedIntent {
@@ -30,17 +30,81 @@ function normalize(text: string): string {
   return text.toLowerCase().trim().replace(/\s+/g, ' ')
 }
 
-const negativeControls = new Set([
-  'no', 'not', 'hide', 'exclude', 'without', 'except',
-  'gizle', 'hariç', 'haric', 'dışında', 'disinda',
+type ControlPolarity = 'POSITIVE' | 'NEGATIVE'
+
+const contrastRegex = /\b(?:but|ama|ancak|fakat|lakin)\b/gi
+
+const negatorPrefix = `(?:don'?t|do\\s+not|doesn'?t|does\\s+not|isn'?t|is\\s+not|aren'?t|are\\s+not|can'?t|cannot|won'?t|wont|wouldn'?t|wouldnt)`
+const negativeWords = `(?:hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|no|not)`
+const positiveWords = `(?:find|show|include|keep|want|get|with|bul|göster|goster|dahil|sakla|ile|birlikte)`
+
+const combinedControlRegex = new RegExp(
+  `\\b(?:(${negatorPrefix})\\s+(${negativeWords}|${positiveWords})|(${negativeWords})|(${positiveWords}))\\b`,
+  'gi'
+)
+
+const negativeWordSet = new Set([
+  'hide', 'exclude', 'without', 'except', 'gizle', 'hariç', 'haric', 'dışında', 'disinda', 'no', 'not',
 ])
-const positiveControls = new Set([
-  'find', 'show', 'include', 'keep', 'want', 'get',
-  'bul', 'göster', 'goster', 'dahil', 'sakla',
-])
-const controlRegex = /(?:^|\s)(no|not|hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|find|show|include|keep|want|get|bul|göster|goster|dahil|sakla)(?=\s|$)/g
+
 const clauseBreak = /\b(?:and|or|ve|veya)\b|[,&;:]/
-const suffixNegations = ['değil', 'degil', 'olmayan', 'yok', 'hariç', 'haric', 'dışında', 'disinda', 'excluded', 'hidden']
+const suffixNegations = ['degil', 'değil', 'olmayan', 'yok', 'hariç', 'haric', 'disinda', 'dışında', 'excluded', 'hidden']
+
+function isNegativeWord(word: string): boolean {
+  return negativeWordSet.has(word.toLowerCase())
+}
+
+function extractLastControl(text: string): ControlPolarity | null {
+  combinedControlRegex.lastIndex = 0
+  const matches: RegExpExecArray[] = []
+  let m: RegExpExecArray | null
+  while ((m = combinedControlRegex.exec(text)) !== null) {
+    matches.push(m)
+  }
+  const last = matches[matches.length - 1]
+  if (!last) return null
+
+  const negator = last[1]
+  const negatedWord = last[2]
+  const standaloneNeg = last[3]
+  const standalonePos = last[4]
+
+  if (negator && negatedWord) {
+    return isNegativeWord(negatedWord) ? 'POSITIVE' : 'NEGATIVE'
+  }
+  if (standaloneNeg) return 'NEGATIVE'
+  if (standalonePos) return 'POSITIVE'
+  return null
+}
+
+function polarityForPrefix(prefix: string): boolean {
+  const trimmedPrefix = prefix.trimEnd()
+  if (trimmedPrefix.endsWith('!')) return true
+
+  contrastRegex.lastIndex = 0
+  const contrastMatches: RegExpExecArray[] = []
+  let cm: RegExpExecArray | null
+  while ((cm = contrastRegex.exec(prefix)) !== null) {
+    contrastMatches.push(cm)
+  }
+
+  if (contrastMatches.length > 0) {
+    const lastContrast = contrastMatches[contrastMatches.length - 1]!
+    const preContrast = prefix.substring(0, lastContrast.index)
+    const postContrast = prefix.substring(lastContrast.index + lastContrast[0].length)
+
+    const postControl = extractLastControl(postContrast)
+    if (postControl !== null) {
+      return postControl === 'NEGATIVE'
+    }
+
+    const preControl = extractLastControl(preContrast) ?? 'POSITIVE'
+    return preControl === 'POSITIVE'
+  }
+
+  const control = extractLastControl(prefix)
+  return control === 'NEGATIVE'
+}
 
 function isPatternNegated(normalized: string, keyword: string): boolean {
   if (!keyword) return false
@@ -49,22 +113,10 @@ function isPatternNegated(normalized: string, keyword: string): boolean {
 
   const prefix = normalized.substring(0, index)
   const suffix = normalized.substring(index + keyword.length)
-  if (prefix.trimEnd().endsWith('!')) return true
 
-  let lastControl: string | null = null
-  controlRegex.lastIndex = 0
-  let match: RegExpExecArray | null
-  while ((match = controlRegex.exec(prefix)) !== null) {
-    lastControl = match[1] ?? null
-  }
+  const prefixNegated = polarityForPrefix(prefix)
 
-  const prefixNegated = lastControl !== null && negativeControls.has(lastControl)
-    ? true
-    : lastControl !== null && positiveControls.has(lastControl)
-      ? false
-      : false
-
-  const suffixClause = (suffix.split(clauseBreak)[0] ?? '').trim()
+  const suffixClause = suffix.split(clauseBreak)[0]?.trim() ?? ''
   const suffixNegated = suffixNegations.some(neg =>
     suffixClause === neg || suffixClause.startsWith(`${neg} `) || suffixClause.startsWith(neg)
   )
@@ -74,55 +126,89 @@ function isPatternNegated(normalized: string, keyword: string): boolean {
 const patterns: IntentPattern[] = [
   {
     keywords: ['hundo', 'perfect', '100%', '15/15/15', '15 15 15', 'max iv', 'all 15', 'yüzde yüz', 'yuzde yuz', '100 iv', 'kusursuz', 'mükemmel', 'mukemmel', 'güçlü', 'guclu'],
-    tokens: ['4*'], explanationKey: 'search_intent_expl_hundo',
-    explanation: 'Finds Pokémon with perfect 15/15/15 IVs (exact 100% appraisal using 4*). Inspection only — does not filter or exclude anything.',
-    limitationKeys: ['search_intent_lim_hundo_purified', 'search_intent_lim_iv_approx'],
-    limitations: ['4* also matches purified Pokémon. Check manually if you want non-purified only.', 'IV appraisal is an approximation, not exact stats.'],
+    tokens: ['4*'], explanationKey: 'search_intent_expl_hundo', explanation: 'Finds Pokémon with perfect 15/15/15 IVs (exact 100% appraisal using 4*). Inspection only — does not filter or exclude anything.',
+    limitationKeys: ['search_intent_lim_hundo_purified', 'search_intent_lim_iv_approx'], limitations: ['4* also matches purified Pokémon. Check manually if you want non-purified only.', 'IV appraisal is an approximation, not exact stats.'],
   },
   {
     keywords: ['nundo', '0%', '0/0/0', '0 0 0', 'zero iv', 'lowest', 'minimum iv', 'sıfır iv', 'sifir iv', '0 iv', 'en düşük', 'en dusuk'],
-    tokens: ['0attack', '0defense', '0hp'], explanationKey: 'search_intent_expl_nundo',
-    explanation: 'Finds Pokémon with 0/0/0 IVs. This is an exact match — only true 0% appraisal shows.',
+    tokens: ['0attack', '0defense', '0hp'], explanationKey: 'search_intent_expl_nundo', explanation: 'Finds Pokémon with 0/0/0 IVs. This is an exact match — only true 0% appraisal shows.',
     limitationKeys: ['search_intent_lim_nundo_floor'], limitations: ['IV floor events (trades, weather boost, raids) make 0% IV impossible.'],
   },
   {
     keywords: ['great league pvp', 'great league candidate', 'great league', 'büyük lig', 'buyuk lig'],
-    tokens: ['0-1attack', '3-4defense', '3-4hp', 'cp-1500'], explanationKey: 'search_intent_expl_great_league',
-    explanation: 'Finds Great League PvP candidates (CP <= 1500) using CP cap/shortlist logic.',
-    limitationKeys: ['search_intent_lim_cp_cap_only', 'search_intent_lim_not_all_pvp'],
-    limitations: ['CP cap filters by current CP only; exact PvP rank and level are not detectable via search strings.', 'Not all matches are PvP-relevant — species and moveset also matter.'],
+    tokens: ['0-1attack', '3-4defense', '3-4hp', 'cp-1500'], explanationKey: 'search_intent_expl_great_league', explanation: 'Finds Pokémon with low attack and high defense/HP IVs, capped at CP 1500 for Great League PvP.',
+    limitationKeys: ['search_intent_lim_pvp_rank_varies', 'search_intent_lim_pvp_evolved'], limitations: ['Rank 1 PvP IV spreads vary per species (some prefer 0/15/15, others 0/14/13). Use an external PvP ranker for exact ranks.', 'Does not check evolved forms — a 0/15/15 base form may need CP checking.'],
   },
   {
     keywords: ['ultra league pvp', 'ultra league candidate', 'ultra league', 'ultra lig'],
-    tokens: ['0-1attack', '3-4defense', '3-4hp', 'cp-2500'], explanationKey: 'search_intent_expl_ultra_league',
-    explanation: 'Finds Ultra League PvP candidates (CP <= 2500) using CP cap/shortlist logic.',
-    limitationKeys: ['search_intent_lim_cp_cap_only', 'search_intent_lim_not_all_pvp'],
-    limitations: ['CP cap filters by current CP only; exact PvP rank and level are not detectable via search strings.', 'Not all matches are PvP-relevant — species and moveset also matter.'],
+    tokens: ['0-1attack', '3-4defense', '3-4hp', 'cp-2500'], explanationKey: 'search_intent_expl_ultra_league', explanation: 'Finds Pokémon with low attack and high defense/HP IVs, capped at CP 2500 for Ultra League PvP.',
+    limitationKeys: ['search_intent_lim_pvp_rank_varies', 'search_intent_lim_pvp_evolved'], limitations: ['Rank 1 PvP IV spreads vary per species. Use an external PvP ranker for exact ranks.', 'Does not check evolved forms.'],
   },
   {
-    keywords: ['pvp', 'pvp iv', 'pvp candidate', 'pvp adayı', 'pvp adayi', 'kapışma', 'kapisma', 'düello', 'duello'],
-    tokens: ['0-1attack', '3-4defense', '3-4hp'], explanationKey: 'search_intent_expl_pvp_generic',
-    explanation: 'Finds Pokémon with PvP-friendly IV spreads (low attack, high defense/HP). Suitable for Great League and Ultra League — exact PvP rank is not detectable via search strings; check CP manually in Pokémon GO.',
-    limitationKeys: ['search_intent_lim_no_rank_via_search', 'search_intent_lim_not_all_pvp', 'search_intent_lim_no_league_cap'],
-    limitations: ['Pokémon GO search cannot detect exact PvP rank or level — only IV floor/ceil values.', 'Not all matches are PvP-relevant — species and moveset also matter.', 'Does not apply a league CP cap; use specific league name for cap.'],
+    keywords: ['pvp', 'pvp iv', 'gbl', 'battle league', 'go battle league', 'pvp adayı', 'pvp adayi'],
+    tokens: ['0-1attack', '3-4defense', '3-4hp'], explanationKey: 'search_intent_expl_pvp_general', explanation: 'Finds Pokémon with low attack and high defense/HP IVs (stat product optimization for Great/Ultra League).',
+    limitationKeys: ['search_intent_lim_pvp_rank_varies', 'search_intent_lim_pvp_master_15'], limitations: ['Different species have different rank 1 IV spreads. This is a shortlist, not a guarantee.', 'Master League requires 15/15/15 (use Hundo search instead).'],
   },
-  { keywords: ['shiny', 'shinies', 'parlak', 'şayni', 'sayni'], tokens: ['shiny'], explanationKey: 'search_intent_expl_shiny', explanation: 'Filters to show only Shiny Pokémon.', limitationKeys: ['search_intent_lim_shiny_no_variants', 'search_intent_lim_shiny_invertible'], limitations: ['Shiny search does not distinguish costume, event, or regional variants.', 'You can also use !shiny to search for non-Shiny Pokémon.'] },
-  { keywords: ['legendary', 'legendaries', 'legend', 'efsane', 'efsanevi'], tokens: ['legendary'], explanationKey: 'search_intent_expl_legendary', explanation: 'Filters to show only Legendary Pokémon.', limitationKeys: ['search_intent_lim_mythical_excluded'], limitations: ['Mythical Pokémon are NOT included in this search.'] },
-  { keywords: ['mythical', 'mythic', 'mitolojik', 'gizemli'], tokens: ['mythical'], explanationKey: 'search_intent_expl_mythical', explanation: 'Filters to show only Mythical Pokémon.', limitationKeys: ['search_intent_lim_mythical_risky'], limitations: ['This is a risky filter — mythical Pokémon are often valuable and cannot be re-obtained easily.'] },
-  { keywords: ['shadow', 'shadows', 'gölge', 'golge', 'karanlık', 'karanlik'], tokens: ['shadow'], explanationKey: 'search_intent_expl_shadow', explanation: 'Filters to show only Shadow Pokémon.', limitationKeys: ['search_intent_lim_shadow_expensive', 'search_intent_lim_purified_excluded'], limitations: ['Shadow Pokémon are expensive to power up and cannot be traded.', 'Purified Pokémon are NOT included.'] },
-  { keywords: ['purified', 'arınmış', 'arinmis', 'temizlenmiş', 'temizlenmis'], tokens: ['purified'], explanationKey: 'search_intent_expl_purified', explanation: 'Filters to show only Purified Pokémon.', limitationKeys: ['search_intent_lim_purified_dust', 'search_intent_lim_purified_tradeable', 'search_intent_lim_purified_no_reshadow'], limitations: ['Purified Pokémon cost 20% less stardust to power up.', 'Purified Pokémon can be traded — they are not blocked from trading.', 'Purified Pokémon cannot be re-shadowed.'] },
-  { keywords: ['lucky', 'şanslı', 'sansli'], tokens: ['lucky'], explanationKey: 'search_intent_expl_lucky', explanation: 'Filters to show only Lucky Pokémon (received via trade with guaranteed higher IVs).', limitationKeys: ['search_intent_lim_lucky_dust', 'search_intent_lim_lucky_no_retrade', 'search_intent_lim_lucky_context_only'], limitations: ['Lucky Pokémon cost 50% less stardust to power up.', 'Lucky Pokémon cannot be traded again.', 'A Pokémon becoming Lucky is not guaranteed — it depends on trade context, not just age or distance.'] },
-  { keywords: ['costume', 'event', 'hat', 'bow', 'crown', 'kostüm', 'kostum', 'şapka', 'sapka', 'etkinlik'], tokens: ['costume'], explanationKey: 'search_intent_expl_costume', explanation: 'Filters to show only Costume Pokémon.', limitationKeys: ['search_intent_lim_costume_no_evolve'], limitations: ['Costume Pokémon cannot evolve (with rare event exceptions).'] },
-  { keywords: ['favorite', 'fav', 'starred', 'favourite', 'favourites', 'favorites', 'favori', 'yıldızlı', 'yildizli'], tokens: ['favorite'], explanationKey: 'search_intent_expl_favorite', explanation: 'Filters to show only your Favorite (starred) Pokémon.', limitationKeys: ['search_intent_lim_favorite_invertible'], limitations: ['You can also use !favorite to search for non-favorited Pokémon.'] },
   {
-    keywords: ['cleanup', 'transfer', 'delete', 'junk', 'trash', 'bulk transfer', 'temizlik', 'çöp', 'cop', 'gönder', 'gonder'], tokens: ['1*'],
-    explanationKey: 'search_intent_expl_cleanup', explanation: 'Finds low-appraisal Pokémon for cleanup or transfer. Safe Cleanup excludes protected categories by default.',
-    limitationKeys: ['search_intent_lim_1star_band', 'search_intent_lim_cleanup_exclude_protected'], limitations: ['1* is an IV band (0-50%), not exact 1-star. Always review before transferring.', 'Exclude shiny, legendary, mythical, costume, shadow, lucky, and trade-relevant Pokémon.'],
+    keywords: ['shiny', 'shinies', 'parlak', 'schillernd', 'chromatique', 'cromatico', 'brillante'],
+    tokens: ['shiny'], explanationKey: 'search_intent_expl_shiny', explanation: 'Filters to show only Shiny Pokémon.',
+    limitationKeys: ['search_intent_lim_shiny_variants', 'search_intent_lim_not_shiny'], limitations: ['Shiny search does not distinguish costume, event, or regional variants.', 'You can also use !shiny to search for non-Shiny Pokémon.'],
+  },
+  {
+    keywords: ['legendary', 'legendaries', 'legend', 'efsanevi', 'legendaer', 'leggendario'],
+    tokens: ['legendary'], explanationKey: 'search_intent_expl_legendary', explanation: 'Filters to show only Legendary Pokémon.',
+    limitationKeys: ['search_intent_lim_mythical_not_included'], limitations: ['Mythical Pokémon are NOT included in this search.'],
+  },
+  {
+    keywords: ['mythical', 'mythicals', 'mitik', 'mytisch', 'mítico', 'mitico'],
+    tokens: ['mythical'], explanationKey: 'search_intent_expl_mythical', explanation: 'Filters to show only Mythical Pokémon.',
+    limitationKeys: ['search_intent_lim_mythical_no_trade'], limitations: ['Mythical Pokémon cannot be traded (except Meltan/Melmetal).'],
+  },
+  {
+    keywords: ['shadow', 'shadows', 'gölge', 'golge', 'erloest', 'obscur', 'ombra'],
+    tokens: ['shadow'], explanationKey: 'search_intent_expl_shadow', explanation: 'Filters to show only Shadow Pokémon.',
+    limitationKeys: ['search_intent_lim_shadow_no_trade', 'search_intent_lim_shadow_damage'], limitations: ['Shadow Pokémon cannot be traded.', 'Shadow Pokémon deal +20% damage but take +20% defense penalty.'],
+  },
+  {
+    keywords: ['purified', 'arındırılmış', 'arindirilmis', 'purifie', 'purificato'],
+    tokens: ['purified'], explanationKey: 'search_intent_expl_purified', explanation: 'Filters to show only Purified Pokémon.',
+    limitationKeys: ['search_intent_lim_purified_discount'], limitations: ['Purified Pokémon cost less candy and stardust to power up.'],
+  },
+  {
+    keywords: ['costume', 'costumes', 'kostüm', 'kostum', 'costumato'],
+    tokens: ['costume'], explanationKey: 'search_intent_expl_costume', explanation: 'Filters to show only Costume/Event Pokémon.',
+    limitationKeys: ['search_intent_lim_costume_no_evolve'], limitations: ['Some costume Pokémon cannot be evolved.'],
+  },
+  {
+    keywords: ['favorite', 'favorites', 'favourite', 'favourites', 'fav', 'favori', 'favorit', 'favorito'],
+    tokens: ['favorite'], explanationKey: 'search_intent_expl_favorite', explanation: 'Filters to show only Favorited Pokémon.',
+    limitationKeys: ['search_intent_lim_favorites_no_transfer'], limitations: ['Favorites cannot be transferred.'],
+  },
+  {
+    keywords: ['lucky', 'şanslı', 'sansli', 'gluecklich', 'chanceux', 'fortunato'],
+    tokens: ['lucky'], explanationKey: 'search_intent_expl_lucky', explanation: 'Filters to show only Lucky Pokémon.',
+    limitationKeys: ['search_intent_lim_lucky_discount'], limitations: ['Lucky Pokémon cost 50% less stardust to power up.'],
+  },
+  {
+    keywords: ['cleanup', 'clean up', 'transfer', 'trash', 'junk', 'clear space', 'box cleanup', 'temizlik', 'temizle', 'silme', 'sil'],
+    tokens: ['0*', '1*'], exclusions: ['shiny', 'legendary', 'mythical', 'ultrabeast', 'costume', 'background', 'locationbackground', 'specialbackground', 'shadow', 'purified', 'favorite', 'lucky', '#', 'traded', '4*'],
+    explanationKey: 'search_intent_expl_cleanup', explanation: 'Builds a safe transfer candidate search (0* & 1* IV bands). Excludes all protected categories.',
+    limitationKeys: ['search_intent_lim_cleanup_bands', 'search_intent_lim_cleanup_spot_check'], limitations: ['0* and 1* are IV bands (0-65%), not exact appraisals.', 'Always spot-check results before mass-transferring.'],
+  },
+  {
+    keywords: ['0*', '0 star', 'zero star', '0 yıldız', '0 yildiz'], tokens: ['0*'],
+    explanationKey: 'search_intent_expl_0star', explanation: 'Finds Pokémon in the 0-star appraisal band (0-49% total IVs).',
+    limitationKeys: ['search_intent_lim_0star_nundo'], limitations: ['0* includes 0/0/0 (nundo) — lock/tag rare 0% Pokémon before transferring.'],
+  },
+  {
+    keywords: ['1*', '1 star', 'one star', '1 yıldız', '1 yildiz'], tokens: ['1*'],
+    explanationKey: 'search_intent_expl_1star', explanation: 'Finds Pokémon in the 1-star appraisal band (50-64% total IVs).',
+    limitationKeys: ['search_intent_lim_1star_band', 'search_intent_lim_1star_exclusions'], limitations: ['1* is an IV band (0-50%), not exact 1-star. Always review before transferring.', 'Exclude shiny, legendary, mythical, costume, shadow, lucky, and trade-relevant Pokémon.'],
   },
   {
     keywords: ['candy', 'candy prep', 'extra candy', 'transfer candy', 'şeker', 'seker', 'şeker için', 'seker icin'], tokens: ['count2-'],
     explanationKey: 'search_intent_expl_candy', explanation: 'Finds duplicate Pokémon (count >= 2) for candy generation via transfer.',
-    limitationKeys: ['search_intent_lim_count_mandatory_exclusions', 'search_intent_lim_count_species'], limitations: ['Mandatory exclusions: shiny, legendary, mythical, shadow, purified, and 4*.', 'Count refers to species count, not candy. High count = many transfers needed.'],
+    limitationKeys: ['search_intent_lim_candy_exclusions', 'search_intent_lim_candy_count_meaning'], limitations: ['Mandatory exclusions: shiny, legendary, mythical, shadow, purified, and 4*.', 'Count refers to species count, not candy. High count = many transfers needed.'],
   },
   {
     keywords: ['trade', 'trading', 'trade fodder', 'duplicate', 'extra', 'spare', 'takas', 'ticaret', 'takaslık', 'takaslik', 'fazla'], tokens: ['count2-'], exclusions: ['traded'],
@@ -200,26 +286,6 @@ export function parseSearchIntent(text: string): ParsedIntent {
     allLimitations.push(...pattern.limitations)
   }
 
-  const hasShiny = normalized.includes('shiny')
-  const hasLegendary = normalized.includes('legendary')
-  const hasMythical = normalized.includes('mythical')
-  const extraTokens: string[] = []
-  const tokenList = Array.from(allTokens).map(t => t.toLowerCase())
-
-  if (hasShiny && !tokenList.includes('shiny') && !Array.from(allExclusions).map(e => e.toLowerCase()).includes('shiny')) {
-    if (isPatternNegated(normalized, 'shiny')) allExclusions.add('shiny')
-    else { extraTokens.push('shiny'); limitKeys.push('search_intent_lim_shiny_added'); allLimitations.push('Shiny search added based on your input. Verify before transferring.') }
-  }
-  if (hasLegendary && !tokenList.includes('legendary') && !Array.from(allExclusions).map(e => e.toLowerCase()).includes('legendary')) {
-    if (isPatternNegated(normalized, 'legendary')) allExclusions.add('legendary')
-    else extraTokens.push('legendary')
-  }
-  if (hasMythical && !tokenList.includes('mythical') && !Array.from(allExclusions).map(e => e.toLowerCase()).includes('mythical')) {
-    if (isPatternNegated(normalized, 'mythical')) allExclusions.add('mythical')
-    else extraTokens.push('mythical')
-  }
-  extraTokens.forEach(t => allTokens.add(t))
-
   const noteKeys: string[] = []
   if (pipeForbidden) noteKeys.push('search_intent_pipe_forbidden')
   if (allExclusions.has('traded')) noteKeys.push('search_intent_traded_kept')
@@ -229,7 +295,7 @@ export function parseSearchIntent(text: string): ParsedIntent {
       tokens: [], exclusions: [], rawQuery: '', explanationKey: explanationKeys[0] ?? 'search_intent_empty',
       explanation: allExplanationText.filter((v, i, a) => a.indexOf(v) === i).join(' '), limitationKeys: limitKeys,
       limitations: allLimitations.filter((v, i, a) => a.indexOf(v) === i), canBuild: false,
-      hasAutoAdded: extraTokens.length > 0, pipeForbidden, noteKeys,
+      hasAutoAdded: false, pipeForbidden, noteKeys,
     }
   }
 
@@ -243,6 +309,6 @@ export function parseSearchIntent(text: string): ParsedIntent {
     explanation: allExplanationText.filter((v, i, a) => a.indexOf(v) === i).join(' '),
     limitationKeys: limitKeys, limitations: allLimitations.filter((v, i, a) => a.indexOf(v) === i),
     canBuild: distinctTokens.length > 0 || distinctExclusions.length > 0,
-    hasAutoAdded: extraTokens.length > 0, pipeForbidden, noteKeys,
+    hasAutoAdded: false, pipeForbidden, noteKeys,
   }
 }
