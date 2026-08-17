@@ -63,9 +63,9 @@ jobs:
 
       - name: Android bundled Event Guide fallback freshness
         run: |
-          cmp -s docs/event-feed/pokequery-events.json app/src/main/res/raw/event_context_fixture.json || {
-            echo "ERROR: Android bundled Event Guide fallback differs from canonical feed."
-            diff -u docs/event-feed/pokequery-events.json app/src/main/res/raw/event_context_fixture.json || true
+          cmp -s docs/event-feed/pokequery-events.json app/src/main/res/raw/event_context_fallback.json || {
+            echo "ERROR: Android runtime Event Guide fallback differs from canonical feed."
+            diff -u docs/event-feed/pokequery-events.json app/src/main/res/raw/event_context_fallback.json || true
             exit 1
           }
         shell: bash

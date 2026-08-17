@@ -37,7 +37,7 @@ class HttpEventDataProvider(private val url: String = EventFeedConfig.PRODUCTION
 class RawEventDataProvider(private val context: Context) : EventDataProvider {
     override suspend fun fetch(): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
-            context.resources.openRawResource(R.raw.event_context_fixture).bufferedReader().use { it.readText() }
+            context.resources.openRawResource(R.raw.event_context_fallback).bufferedReader().use { it.readText() }
         }
     }
 }
@@ -312,11 +312,6 @@ object EventFeedLoader {
         return decideAfterFetchFailure(manualMonthly, cached, bundled)
     }
 
-    /**
-     * Pure state-machine decision after a successful fetch that failed to parse. Exposed so the
-     * Invalid-vs-StaleCache branch is unit-testable without an Android `Context` (the disk cache
-     * is passed in as data, not read inside this function).
-     */
     fun decideAfterParseFailure(
         manualMonthly: MonthlyContext?,
         cached: EventFeed?,
@@ -330,10 +325,6 @@ object EventFeedLoader {
             ContextFeedState.OfflineOnly(manualMonthly)
         }
 
-    /**
-     * Pure state-machine decision after a network failure. Falls back to the cached feed when one
-     * exists (StaleCache), otherwise the honest OfflineOnly state. Testable without `Context`.
-     */
     fun decideAfterFetchFailure(
         manualMonthly: MonthlyContext?,
         cached: EventFeed?,
