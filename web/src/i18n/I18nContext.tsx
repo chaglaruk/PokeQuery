@@ -67,9 +67,6 @@ interface I18nContextValue {
 const I18nContext = createContext<I18nContextValue | null>(null)
 
 function localizedDynamicFallback(key: string, stringMap: Record<string, string>): string | undefined {
-  // Search-intent explanations/limitations are dynamic keys. Some locales intentionally do not
-  // carry dozens of detailed prose variants yet; never leak raw keys or silently fall back to
-  // English on a non-English UI. Use the already-translated generic safety copy instead.
   if (key.startsWith('search_intent_expl_')) return stringMap.search_assistant_generated_explanation
   if (key.startsWith('search_intent_lim_')) return stringMap.search_assistant_review_in_game
   if (key.startsWith('search_intent_note_')) return stringMap.search_assistant_review_warning
@@ -97,11 +94,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const stringMap = localeMaps[locale] ?? en
 
   const t = useCallback((key: string, ...args: (string | number)[]) => {
-    let value = stringMap[key]
-    if (value == null && locale !== 'en') {
-      value = localizedDynamicFallback(key, stringMap)
-    }
-    value = value ?? en[key] ?? key
+    const resolved = stringMap[key]
+      ?? (locale !== 'en' ? localizedDynamicFallback(key, stringMap) : undefined)
+      ?? en[key]
+      ?? key
+    let value: string = resolved
     for (let i = 0; i < args.length; i++) {
       value = value.replace(new RegExp(`\\{${i}\\}`, 'g'), String(args[i]))
     }

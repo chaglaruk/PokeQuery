@@ -1,12 +1,5 @@
 // SearchIntentParser — TypeScript port of Android SearchIntentParser.kt
 // Parses natural-language search intent into Pokemon GO search strings.
-// 1:1 parity with Android patterns, negation detection, multi-pattern combining.
-//
-// Explanations and limitations are NOT hardcoded English copy for production UI;
-// instead each pattern carries a stable `explanationKey` and `limitationKeys`
-// that are resolved through i18n by the screen. The parser still returns an
-// English `explanation`/`limitations` for tests and offline debug, but the
-// SearchAssistantScreen UI must prefer `explanationKey` + `limitationKeys`.
 
 export interface ParsedIntent {
   tokens: string[]
@@ -37,32 +30,45 @@ function normalize(text: string): string {
   return text.toLowerCase().trim().replace(/\s+/g, ' ')
 }
 
+const negativeControls = new Set([
+  'no', 'not', 'hide', 'exclude', 'without', 'except',
+  'gizle', 'hariç', 'haric', 'dışında', 'disinda',
+])
+const positiveControls = new Set([
+  'find', 'show', 'include', 'keep', 'want', 'get',
+  'bul', 'göster', 'goster', 'dahil', 'sakla',
+])
+const controlRegex = /(?:^|\s)(no|not|hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|find|show|include|keep|want|get|bul|göster|goster|dahil|sakla)(?=\s|$)/g
 const clauseBreak = /\b(?:and|or|ve|veya)\b|[,&;:]/
-const prefixNegations = [
-  'not', 'no', '!', 'non', 'hide', 'exclude', 'without', 'except',
-  'not show', 'do not show', "don't show", 'gizle', 'hariç', 'haric', 'dışında', 'disinda',
-]
 const suffixNegations = ['değil', 'degil', 'olmayan', 'yok', 'hariç', 'haric', 'dışında', 'disinda', 'excluded', 'hidden']
 
 function isPatternNegated(normalized: string, keyword: string): boolean {
   if (!keyword) return false
   const index = normalized.indexOf(keyword)
   if (index === -1) return false
+
   const prefix = normalized.substring(0, index)
   const suffix = normalized.substring(index + keyword.length)
-  const prefixParts = prefix.split(clauseBreak)
-  const suffixParts = suffix.split(clauseBreak)
-  const prefixClause = (prefixParts[prefixParts.length - 1] ?? '').trim()
-  const suffixClause = (suffixParts[0] ?? '').trim()
-  const prefixMatch = prefixNegations.some(neg =>
-    neg === '!'
-      ? prefixClause.endsWith('!')
-      : prefixClause === neg || prefixClause.endsWith(` ${neg}`) || prefixClause.endsWith(neg)
-  )
-  const suffixMatch = suffixNegations.some(neg =>
+  if (prefix.trimEnd().endsWith('!')) return true
+
+  let lastControl: string | null = null
+  controlRegex.lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = controlRegex.exec(prefix)) !== null) {
+    lastControl = match[1] ?? null
+  }
+
+  const prefixNegated = lastControl !== null && negativeControls.has(lastControl)
+    ? true
+    : lastControl !== null && positiveControls.has(lastControl)
+      ? false
+      : false
+
+  const suffixClause = (suffix.split(clauseBreak)[0] ?? '').trim()
+  const suffixNegated = suffixNegations.some(neg =>
     suffixClause === neg || suffixClause.startsWith(`${neg} `) || suffixClause.startsWith(neg)
   )
-  return prefixMatch || suffixMatch
+  return prefixNegated || suffixNegated
 }
 
 const patterns: IntentPattern[] = [

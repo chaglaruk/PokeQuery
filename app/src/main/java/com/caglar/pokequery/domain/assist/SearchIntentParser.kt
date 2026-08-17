@@ -23,18 +23,26 @@ object SearchIntentParser {
         text.lowercase().trim().replace(Regex("\\s+"), " ")
 
     private val clauseBreak = Regex("""\b(?:and|or|ve|veya)\b|[,&;:]""")
-    private val prefixNegations = listOf(
-        "not", "no", "!", "non", "hide", "exclude", "without", "except",
-        "not show", "do not show", "don't show", "gizle", "hariç", "haric", "dışında", "disinda"
+    private val negativeControls = setOf(
+        "no", "not", "hide", "exclude", "without", "except",
+        "gizle", "hariç", "haric", "dışında", "disinda"
+    )
+    private val positiveControls = setOf(
+        "find", "show", "include", "keep", "want", "get",
+        "bul", "göster", "goster", "dahil", "sakla"
+    )
+    private val controlRegex = Regex(
+        """(?:^|\s)(no|not|hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|find|show|include|keep|want|get|bul|göster|goster|dahil|sakla)(?=\s|$)"""
     )
     private val suffixNegations = listOf(
         "değil", "degil", "olmayan", "yok", "hariç", "haric", "dışında", "disinda", "excluded", "hidden"
     )
 
     /**
-     * Negation is scoped to the clause immediately surrounding the matched keyword.
-     * A negator elsewhere in the sentence must not invert unrelated intents, e.g.
-     * "find hundos and exclude shinies" -> 4*&!shiny (not !4*&!shiny).
+     * Uses the most recent intent-control word before the matched keyword. This lets a list such
+     * as "hide shiny and favourites" inherit `hide` across the conjunction while keeping
+     * independent clauses correct: "find hundos and exclude shinies" -> 4*&!shiny, and
+     * "exclude shinies and find hundos" still keeps the hundo positive.
      */
     private fun isPatternNegated(normalized: String, keyword: String): Boolean {
         if (keyword.isBlank()) return false
@@ -43,19 +51,25 @@ object SearchIntentParser {
 
         val prefix = normalized.substring(0, index)
         val suffix = normalized.substring(index + keyword.length)
-        val prefixClause = prefix.split(clauseBreak).lastOrNull().orEmpty().trim()
-        val suffixClause = suffix.split(clauseBreak).firstOrNull().orEmpty().trim()
+        val trimmedPrefix = prefix.trimEnd()
+        if (trimmedPrefix.endsWith("!")) return true
 
-        val prefixMatch = prefixNegations.any { neg ->
-            when (neg) {
-                "!" -> prefixClause.endsWith("!")
-                else -> prefixClause == neg || prefixClause.endsWith(" $neg") || prefixClause.endsWith(neg)
-            }
+        val lastControl = controlRegex.findAll(prefix)
+            .lastOrNull()
+            ?.groupValues
+            ?.getOrNull(1)
+
+        val prefixNegated = when {
+            lastControl in negativeControls -> true
+            lastControl in positiveControls -> false
+            else -> false
         }
-        val suffixMatch = suffixNegations.any { neg ->
+
+        val suffixClause = suffix.split(clauseBreak).firstOrNull().orEmpty().trim()
+        val suffixNegated = suffixNegations.any { neg ->
             suffixClause == neg || suffixClause.startsWith("$neg ") || suffixClause.startsWith(neg)
         }
-        return prefixMatch || suffixMatch
+        return prefixNegated || suffixNegated
     }
 
     private val patterns = listOf(
