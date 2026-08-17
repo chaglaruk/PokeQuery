@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,11 +47,15 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.data.repository.UserPreferencesRepository
+import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.assist.AiProviderRegistry
 import com.caglar.pokequery.domain.assist.SearchIntentParser
 import com.caglar.pokequery.domain.assist.SearchStringExplainer
+import com.caglar.pokequery.domain.engine.SearchTermMapper
 import com.caglar.pokequery.domain.lint.ExpertCopyPolicy
 import com.caglar.pokequery.domain.lint.Linter
+import com.caglar.pokequery.domain.locale.LocalizationModel
 import com.caglar.pokequery.theme.AmberWarning
 import com.caglar.pokequery.theme.BackgroundDark
 import com.caglar.pokequery.theme.BorderDark
@@ -76,12 +81,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+fun resolveAssistantOutputQuery(rawQuery: String, gameLanguage: String?, appLanguage: String?): String {
+    val resolvedLang = LocalizationModel.SearchStringLanguage.resolve(gameLanguage, appLanguage)
+    return SearchTermMapper.translateSyntax(rawQuery, resolvedLang)
+}
+
 @Composable
 fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, onExplain: (String) -> Unit = {}) {
     val context = LocalContext.current
     val isEnglishUi = LocalConfiguration.current.locales[0]?.language == "en"
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
+    val repository = remember { UserPreferencesRepository(context.dataStore) }
+    val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     var inputText by remember { mutableStateOf("") }
     var parseResult by remember { mutableStateOf<com.caglar.pokequery.domain.assist.ParsedIntent?>(null) }
     var explainedResult by remember { mutableStateOf<com.caglar.pokequery.domain.assist.ExplainedString?>(null) }
@@ -194,6 +206,11 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                 val warnings = Linter.lint(result.rawQuery)
                 val copyBlocked = !ExpertCopyPolicy.canCopy(result.rawQuery)
                 val hasAdvisoryOnly = !copyBlocked && warnings.isNotEmpty()
+                val translatedQuery = resolveAssistantOutputQuery(
+                    result.rawQuery,
+                    userPrefs?.gameLanguage,
+                    userPrefs?.appLanguage
+                )
 
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -216,7 +233,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                         }
                     }
                 }
-                item { PqStringBox(result.rawQuery) }
+                item { PqStringBox(translatedQuery) }
 
                 if (warnings.isNotEmpty()) {
                     item {
@@ -252,8 +269,8 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                         PqPrimaryButton(
                             text = if (copyBlocked) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_fix_errors) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_copy_btn),
                             onClick = {
-                                clipboard.setText(AnnotatedString(result.rawQuery))
-                                onCopyRaw(result.rawQuery)
+                                clipboard.setText(AnnotatedString(translatedQuery))
+                                onCopyRaw(translatedQuery)
                                 Toast.makeText(context, context.resources.getString(com.caglar.pokequery.R.string.assistant_copied), Toast.LENGTH_SHORT).show()
                             },
                             enabled = !copyBlocked,

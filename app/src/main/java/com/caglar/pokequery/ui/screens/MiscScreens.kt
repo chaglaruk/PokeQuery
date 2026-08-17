@@ -459,7 +459,15 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().clickable {
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.caglar.pokequery.privacy.PrivacyPolicyConfig.URL))
-                        context.startActivity(intent)
+                        runCatching {
+                            context.startActivity(intent)
+                        }.onFailure {
+                            Toast.makeText(
+                                context,
+                                com.caglar.pokequery.privacy.PrivacyPolicyConfig.URL,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }.padding(vertical = 8.dp)
                 )
                 Spacer(Modifier.height(12.dp))

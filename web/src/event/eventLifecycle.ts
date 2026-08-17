@@ -315,6 +315,23 @@ function localeToIntl(locale: string): string {
  * @param clock injectable clock for testing
  * @param lang locale code (en, tr, de, es, fr, it)
  */
+export function localDateOnlyMillis(value?: string | null): number {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN
+
+  const parts = value.split('-').map(Number)
+  const year = parts[0]
+  const month = parts[1]
+  const day = parts[2]
+
+  if (
+    year === undefined ||
+    month === undefined ||
+    day === undefined
+  ) return NaN
+
+  return new Date(year, month - 1, day).getTime()
+}
+
 export function remainingTimeLabel(
   entry: EventFeedEntry,
   clock: Clock,
@@ -328,14 +345,14 @@ export function remainingTimeLabel(
     const diff = daysBetween(today, entry.startDate)
     if (diff === 0) return startsToday(lang)
     if (diff === 1) return startsTomorrow(lang)
-    const startMs = entry.startDate ? Date.parse(entry.startDate) : NaN
+    const startMs = localDateOnlyMillis(entry.startDate)
     if (!Number.isNaN(startMs) && startMs > now) {
       return forwardLabel(startMs - now, lang)
     }
     return comingUp(lang)
   }
   // CURRENT
-  const endMs = entry.endDate ? Date.parse(entry.endDate) : NaN
+  const endMs = localDateOnlyMillis(entry.endDate)
   if (!Number.isNaN(endMs)) {
     // End date is inclusive — event ends at end of that day (23:59:59)
     const endOfDayMs = endMs + 24 * 60 * 60 * 1000 - 1

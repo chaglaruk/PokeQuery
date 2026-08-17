@@ -164,7 +164,7 @@
     <string name="event_summary_bag_action">Fais de la place avant l’événement.</string>
     <string name="event_summary_trade_action">Tague échanges et IV.</string>
     <string name="event_date_range">%1$s – %2$s</string>
-    <string name="event_group_featured_badge">Shiny + costume</string>
+    <string name="event_group_featured_badge">Chromatique + costume</string>
     <string name="event_group_featured_body">Protège les captures rares, shiny, costumées et avec arrière-plan.</string>
     <string name="event_group_featured_action">Marque les captures rares, shiny, costumées ou avec arrière-plan avant le tri.</string>
     <string name="event_group_raids_badge">Prépa raids</string>
@@ -292,7 +292,7 @@
 
     <string name="widget_event_title">Guide des Événements</string>
     <string name="widget_event_status">À venir</string>
-    <string name="widget_event_shiny">Shiny</string>
+    <string name="widget_event_shiny">Chromatique</string>
     <string name="widget_event_shiny_desc">Rencontres shiny</string>
     <string name="widget_event_raids">Raids</string>
     <string name="widget_event_raids_desc">Raids exclusifs</string>
@@ -626,7 +626,7 @@
     <string name="badge_risky">Risqué</string>
     <string name="badge_verified">Vérifié</string>
 
-    <string name="expert_age_distance">AGE / DISTANCE</string>
+    <string name="expert_age_distance">ÂGE / DISTANCE</string>
     <string name="expert_chips">Puces</string>
     <string name="expert_duplicate_count">COMPTE DE DOUBLONS</string>
     <string name="expert_exclude_protect">EXCLURE (PROTÉGER)</string>

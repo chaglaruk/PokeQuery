@@ -125,7 +125,7 @@
     <string name="event_card_notes">Note di preparazione</string>
     <string name="event_card_copy_search">Copia ricerca</string>
     <string name="event_date_range">%1$s – %2$s</string>
-    <string name="event_group_featured_badge">Shiny + costume</string>
+    <string name="event_group_featured_badge">Cromatico + costume</string>
     <string name="event_group_featured_body">Proteggi catture rare, shiny, in costume e con sfondo.</string>
     <string name="event_group_featured_action">Tagga catture rare, shiny, in costume o con sfondo prima della pulizia.</string>
     <string name="event_group_raids_badge">Preparazione raid</string>
@@ -292,7 +292,7 @@
 
     <string name="widget_event_title">Guida Eventi</string>
     <string name="widget_event_status">In arrivo</string>
-    <string name="widget_event_shiny">Shiny</string>
+    <string name="widget_event_shiny">Cromatico</string>
     <string name="widget_event_shiny_desc">Incontri shiny</string>
     <string name="widget_event_raids">Raid</string>
     <string name="widget_event_raids_desc">Raid esclusivi</string>

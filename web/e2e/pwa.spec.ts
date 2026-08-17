@@ -174,6 +174,38 @@ test.describe('PWA audit (scenarios 24-28)', () => {
     expect(overflow.scrollWidth, `scrollWidth ${overflow.scrollWidth} should not exceed clientWidth ${overflow.clientWidth}`).toBeLessThanOrEqual(overflow.clientWidth)
   })
 
+    test('29. real PWA offline operation with precached knowledge base and fallback event feed', async ({ page, context, browserName }) => {
+    test.skip(browserName !== 'chromium', 'Real SW offline test scoped to Chromium')
+
+    // 1. Start app online through normal preview server
+    await page.goto('')
+    await page.waitForSelector('#root:has(*)', { timeout: 15000 })
+
+    // 2. Allow PWA / service worker assets to be installed and ready
+    await page.evaluate(async () => {
+      if (!('serviceWorker' in navigator)) return
+      await navigator.serviceWorker.ready
+    })
+    await page.reload()
+    await page.waitForSelector('#root:has(*)', { timeout: 15000 })
+
+    // 3. Set browser context offline with Playwright
+    try {
+      await context.setOffline(true)
+
+      // 4. Verify the installed/cached PWA can still access Knowledge data
+      await gotoRoute(page, '/knowledge')
+      await expect(page.locator('.knowledge-term').first()).toBeVisible({ timeout: 15000 })
+
+      // 5. Verify Event Guide fallback path remains usable without a live network
+      await gotoRoute(page, '/events')
+      await expect(page.locator('[data-event-id], .event-card').first()).toBeVisible({ timeout: 15000 })
+    } finally {
+      // 6. Restore online state in cleanup/finally
+      await context.setOffline(false)
+    }
+  })
+
   test('28b. no horizontal overflow after navigation to goal detail', async ({ page }) => {
     await gotoRoute(page, '/goal/safe_cleanup')
     await expect(page.locator('.search-string')).toBeVisible()
