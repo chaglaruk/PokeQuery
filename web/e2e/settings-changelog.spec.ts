@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { skipOnboarding, gotoRoute } from './helpers'
 
-// Scenario 30: Settings and changelog navigation — full coverage.
+// Scenario 30: Settings and changelog navigation - full coverage.
 
 test.describe('Settings and Changelog (scenario 30)', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe('Settings and Changelog (scenario 30)', () => {
     const optionTexts = await select.locator('option').allTextContents()
     // English display name (always present)
     expect(optionTexts.some(t => t.includes('English'))).toBeTruthy()
-    // Other languages — use Unicode escapes to avoid encoding ambiguity
+    // Other languages - use Unicode escapes to avoid encoding ambiguity
     expect(optionTexts.some(t => t.includes('Deutsch'))).toBeTruthy()
     expect(optionTexts.some(t => t.includes('T\u00fcrk\u00e7e'))).toBeTruthy()
     expect(optionTexts.some(t => t.includes('Fran\u00e7ais'))).toBeTruthy()
@@ -41,7 +41,7 @@ test.describe('Settings and Changelog (scenario 30)', () => {
     expect(values).toContain('Italian')
     expect(values).toContain('Turkish')
 
-    // Verify that labels are localized: 'German' shows as 'Deutsch', 'Spanish' as 'Español', etc.
+    // Verify that labels are localized
     const optionTexts = await select.locator('option').allTextContents()
     expect(optionTexts.some(t => t.includes('Auto'))).toBeTruthy()
     expect(optionTexts.some(t => t.includes('Match App Language'))).toBeTruthy()
@@ -91,5 +91,39 @@ test.describe('Settings and Changelog (scenario 30)', () => {
     // Go back: settings -> home
     await page.goBack()
     await expect(page).toHaveURL(/#\/$/)
+  })
+
+  test('30f. Settings has Back button, links to Privacy Policy and serves static privacy.html', async ({ page }) => {
+    // 1. Settings screen has its Back button
+    await expect(page.locator('.page-header .back-btn')).toBeVisible()
+
+    // 2. Settings contains the localized Privacy Policy entry
+    const privacyLink = page.locator('.card.card-tap').filter({ hasText: 'Privacy Policy' })
+    await expect(privacyLink).toBeVisible()
+
+    // 3. Clicking Privacy Policy navigates to: #/privacy
+    await privacyLink.click()
+    await expect(page).toHaveURL(/#\/privacy/)
+
+    // 4. The Privacy screen renders its Privacy Policy heading/content
+    await expect(page.getByRole('heading', { name: 'Privacy Policy' }).first()).toBeVisible()
+
+    // 5. The full policy link resolves to privacy.html
+    const fullDocLink = page.locator('a[href*="privacy.html"]').first()
+    await expect(fullDocLink).toBeVisible()
+    await expect(fullDocLink).toHaveAttribute('href', /privacy\.html$/)
+
+    // 6. GitHub Issues enquiry link has exact HTTPS href
+    const issuesLink = page.locator('a[href="https://github.com/chaglaruk/PokeQuery/issues"]')
+    await expect(issuesLink).toBeVisible()
+    await expect(issuesLink).toHaveAttribute('href', 'https://github.com/chaglaruk/PokeQuery/issues')
+
+    // 7. The public static privacy.html is actually served by local Vite preview / GitHub Pages
+    const policyUrl = new URL('privacy.html', page.url())
+    policyUrl.hash = ''
+    const response = await page.request.get(policyUrl.toString())
+    expect(response.ok()).toBeTruthy()
+    const body = await response.text()
+    expect(body).toContain('PokeQuery Privacy Policy')
   })
 })

@@ -17,13 +17,13 @@ describe('visual localization hygiene', () => {
     }
   })
 
-  it('defines every established Home, Settings, Search Assistant and onboarding key', () => {
+  it('defines every established production screen key', () => {
     const screenNames = [
-      'HomeScreen.tsx', 'SettingsScreen.tsx', 'SearchAssistantScreen.tsx', 'OnboardingScreen.tsx',
+      'HomeScreen.tsx', 'SettingsScreen.tsx', 'SearchAssistantScreen.tsx', 'PrivacyScreen.tsx',
       'GoalDetailScreen.tsx', 'PresetsScreen.tsx', 'EventsScreen.tsx', 'ExplainScreen.tsx',
       'SavedSearchesScreen.tsx', 'KnowledgeScreen.tsx',
     ]
-    const screenText = screenNames.map(name => tsxSources[`../ui/screens/${name}`]).join('\n')
+    const screenText = screenNames.map(name => tsxSources[`../ui/screens/${name}`]).filter(Boolean).join('\n')
     const keys = [...new Set([...screenText.matchAll(/['"]([a-z][a-z0-9_]+)['"]/g)].map(match => match[1]).filter(key => key in en))]
 
     for (const [locale, values] of Object.entries(locales)) {

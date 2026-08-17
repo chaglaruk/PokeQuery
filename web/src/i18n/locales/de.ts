@@ -403,6 +403,7 @@ export const de: Record<string, string> = {
   "settings_safety_desc1": "PokeQuery erstellt nur Text. Du kopierst ihn und fügst ihn selbst ein.",
   "settings_safety_desc2": "Kein Login, kein Tracking, keine Werbung, keine Analysen, kein Zugriff auf das Pokémon GO-Konto.",
   "settings_about_privacy": "Über & Datenschutz",
+  "settings_privacy_policy": "Datenschutzerklärung",
   "settings_about_desc1": "PokeQuery ist eine unabhängige Hilfs-App.",
   "settings_about_desc2": "Sie generiert ausschließlich Suchstrings. Sie verbindet sich niemals mit Pokémon GO.",
   "settings_about_desc3": "Kein Login, kein Tracking, keine Werbung, keine Analysen.",
