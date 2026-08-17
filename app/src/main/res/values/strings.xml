@@ -521,6 +521,7 @@
     <string name="settings_safety_desc1">PokeQuery only creates text. You copy and paste it yourself.</string>
     <string name="settings_safety_desc2">No login, no tracking, no ads, no analytics, no Pokémon GO account access.</string>
     <string name="settings_about_privacy">About &amp; Privacy</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
     <string name="settings_about_desc1">PokeQuery is an independent helper app.</string>
     <string name="settings_about_desc2">It only generates search strings. It never connects to Pokémon GO.</string>
     <string name="settings_about_desc3">No login, no tracking, no ads, no analytics.</string>

@@ -453,6 +453,15 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
                 )
+                Text(
+                    androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_privacy_policy),
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.caglar.pokequery.privacy.PrivacyPolicyConfig.URL))
+                        context.startActivity(intent)
+                    }.padding(vertical = 8.dp)
+                )
                 Spacer(Modifier.height(12.dp))
                 Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_about_desc2), color = TextPrimary)
                 Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_about_desc3), color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))

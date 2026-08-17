@@ -529,6 +529,7 @@
     <string name="settings_safety_stance">Position de sécurité</string>
     <string name="settings_safety_disclaimer">Chaque chaîne générée est une aide à la révision. Inspectez toujours les correspondances dans Pokémon GO avant de transférer ou d\'échanger.</string>
     <string name="settings_about_privacy">À propos &amp; Confidentialité</string>
+    <string name="settings_privacy_policy">Politique de confidentialité</string>
     <string name="settings_about_desc1">PokeQuery est une application d\'assistance indépendante.</string>
     <string name="settings_about_desc2">Elle génère uniquement des chaînes de recherche. Elle ne se connecte jamais à Pokémon GO.</string>
     <string name="settings_about_desc3">Aucune connexion, aucun suivi, aucune publicité, aucune analyse.</string>

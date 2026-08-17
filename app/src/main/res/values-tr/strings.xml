@@ -401,6 +401,7 @@
     <string name="settings_safety_desc1">PokeQuery sadece metin oluşturur. Onu kendiniz kopyalayıp yapıştırırsınız.</string>
     <string name="settings_safety_desc2">Oturum açma, izleme, reklam, analiz, Pokémon GO hesabı erişimi yoktur.</string>
     <string name="settings_about_privacy">Hakkında ve Gizlilik</string>
+    <string name="settings_privacy_policy">Gizlilik Politikası</string>
     <string name="settings_about_desc1">PokeQuery bağımsız bir yardımcı uygulamadır.</string>
     <string name="settings_about_desc2">Sadece arama metinleri üretir. Pokémon GO\'ya asla bağlanmaz.</string>
     <string name="settings_about_desc3">Oturum açma, izleme, reklam, analiz yoktur.</string>
