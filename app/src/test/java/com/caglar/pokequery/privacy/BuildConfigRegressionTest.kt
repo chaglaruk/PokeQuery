@@ -38,7 +38,9 @@ class BuildConfigRegressionTest {
 
     @Test
     fun `tester feedback mailto handler remains query visible`() {
-        val manifest = File("app/src/main/AndroidManifest.xml").readText()
+        val manifest = listOf(File("app/src/main/AndroidManifest.xml"), File("src/main/AndroidManifest.xml"))
+            .first { it.exists() }
+            .readText()
         assertTrue(manifest.contains("<queries>"))
         assertTrue(manifest.contains("""<action android:name="android.intent.action.SENDTO" />"""))
         assertTrue(manifest.contains("""<data android:scheme="mailto" />"""))
