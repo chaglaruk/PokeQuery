@@ -82,7 +82,7 @@ export function lint(query: string): LintWarning[] {
   const tagRegex = /#([a-z0-9]+)/g
   let match: RegExpExecArray | null
   while ((match = tagRegex.exec(lower)) !== null) {
-    const tag = match[1]
+    const tag = match[1] ?? ''
     if (reservedTerms.has(tag)) {
       warnings.push({ message: `Tag '#${tag}' collides with the reserved search keyword '${tag}'.`, isError: false })
     }
