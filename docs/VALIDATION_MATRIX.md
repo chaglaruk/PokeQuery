@@ -10,7 +10,7 @@ Use this as a minimum-evidence matrix. Current GitHub workflows and exact-ref co
 | Search tokens/localization | Android tests + golden corpus + mapper/registry/official-syntax tests | current official FAQ evidence; live localized client before VERIFIED |
 | Web engine | `check:golden-corpus`, typecheck, lint, unit, build | Android parity review |
 | Web UI/routing/offline | typecheck, lint, unit, build | manual Playwright E2E only for targeted routing/offline regressions or explicit release gate; visual/WebKit review where relevant |
-| Event feed/generator | generator safety/tests + enrichment tests + `validate_event_feed.py` | source/date/status/content sanity, strict CURRENT/UPCOMING detail quality, fallback freshness |
+| Event feed/generator | generator safety/tests + enrichment tests + `validate_event_feed.py` | source/date/status/content sanity, approved HTTPS/redirect policy, event-title identity, strict CURRENT/UPCOMING detail quality, fallback freshness |
 | Runtime assets | `check_runtime_assets.py` | IP/original-art review + visual QA |
 | Android intents/widgets/locale/device bug | Android tests/lint/build | physical device/ADB validation |
 | Release metadata | full relevant Android gate + exact versionName/versionCode | exact source SHA, AAB/signing gate, tag immutability |
@@ -54,9 +54,9 @@ It builds the PWA, installs Chromium + WebKit, runs the full Playwright suite an
 Runs every 12 hours and via manual dispatch.
 
 Current post-bug-hunt pipeline:
-1. enrichment tests;
+1. enrichment tests, including approved-source/redirect and event-title identity regressions;
 2. online event discovery/generation;
-3. source-page enrichment with `--strict`;
+3. source-page enrichment with `--strict` under the approved HTTPS destination policy;
 4. feed validation;
 5. synchronize canonical + Android fallback + Web fallback;
 6. stage exactly those three feed files;
