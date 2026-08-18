@@ -32,7 +32,7 @@ jobs:
       - name: Validate Event Feed
         run: python scripts/validate_event_feed.py docs/event-feed/pokequery-events.json
 
-      - name: Sync Android and web fallbacks atomically
+      - name: Sync Android and web fallbacks
         run: |
           cp docs/event-feed/pokequery-events.json app/src/main/res/raw/event_context_fallback.json
           cp docs/event-feed/pokequery-events.json web/public/event-feed-fallback.json
