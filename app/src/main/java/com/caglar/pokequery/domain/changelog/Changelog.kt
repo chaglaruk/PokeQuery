@@ -14,6 +14,29 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.7.6",
+            versionCode = 26,
+            releaseLabel = "Closed Testing Candidate",
+            title = "Search Correctness & Event Guide Hardening",
+            highlights = listOf(
+                "Search Assistant intent matching is stricter, including traded/storage substring collisions, negation, caught-date May disambiguation, and pipe-input rejection",
+                "Expert Builder now exposes the audited finite official search-filter families while preserving PokeQuery's stricter no-pipe generated-output policy",
+                "System Default language follows the live device locale, and Event Guide source enrichment, date/status handling, repeated routing, and runtime validation are hardened"
+            ),
+            safetyNotes = listOf(
+                "PokeQuery-generated search strings never emit the | operator",
+                "Event Guide enrichment accepts only approved HTTPS source hosts and validates redirect/final destinations",
+                "INTERNET remains limited to the public Event Guide feed path; no login, tracking, ads, analytics, or Pokémon GO account access"
+            ),
+            testerNotes = listOf(
+                "Try Search Assistant phrases containing traded/storage/small and confirm unrelated intents are not added",
+                "Try caught-date requests using May as a month and may as normal English; only the real date request should add date filters",
+                "Switch the device language while App Language is System Default, then switch between explicit App Language and System Default without force-stopping",
+                "Open several Event Guide entries and repeat widget/app-shortcut Event Guide navigation; confirm dates, status, content, and routing remain stable"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.7.5",
             versionCode = 25,
             releaseLabel = "Closed Testing",
@@ -35,7 +58,7 @@ object Changelog {
                 "Open Settings > Send tester feedback and confirm an email chooser or graceful fallback appears without a crash",
                 "Home-screen widget discovery on Samsung One UI is a known deferred optional issue"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.7.4",

@@ -2,10 +2,34 @@
 
 Notable changes to PokeQuery. Dates are grouped by release.
 
-The current Android release candidate is **0.7.5** (`versionCode 25`).
+The current Android release candidate is **0.7.6** (`versionCode 26`).
 The Web/PWA version remains **0.7.3** and is versioned independently.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
+
+---
+
+## [0.7.6] — search correctness, locale lifecycle, Event Guide hardening
+
+### Added
+- **Audited official search-family coverage** for finite Pokémon GO inventory filters in Android Expert Builder, backed by canonical registry tests and Android/Web parity checks.
+- **Event Guide source-page enrichment** with strict detail-quality checks for CURRENT/UPCOMING gameplay events.
+- **Approved-source network policy** for build-time Event Guide enrichment: HTTPS-only allowlisted hosts, redirect-target validation, final-response URL validation, and rejection of credentials/non-standard ports.
+
+### Fixed
+- **Search Assistant substring collisions** such as `traded`/trade and `storage`/age, plus hundo/nundo plural handling and smart-apostrophe negation normalization.
+- **Search Assistant pipe safety** so pipe-delimited input is rejected instead of silently becoming a different AND query; PokeQuery-generated/copied output remains pipe-free.
+- **Caught-date `May` disambiguation** so normal modal-English “may” does not accidentally become a month filter while real May date requests still work.
+- **Localized intent and alias regressions**, including Turkish negation handling and canonical lucky/purified output.
+- **Tag intent regression** where affirmative tag/tagged requests could become `!#`.
+- **System Default App Language** now follows the live device locale while the process remains running, including explicit-language → System Default reset without recreation loops.
+- **Event Guide date/status/category parity**, Web runtime feed validation, DST end-of-day handling, title normalization, and protection against source-page H1 renaming an existing catalog event.
+- **Repeated widget/app-shortcut routing** when the running task is reused.
+
+### Validation
+- Android CI passed unit tests, lint, golden-corpus identity, Event Guide fallback freshness, generator/enrichment/fallback tests, event-feed validation and runtime-asset validation on the post-release hardening branch.
+- PWA fast gate passed golden corpus, fallback freshness, typecheck, lint, unit and production build; Playwright is now a separate manual workflow and is not a routine PR blocker.
+- Samsung Galaxy S25 / Android 16 / One UI 8.5 physical validation passed System Default locale lifecycle, Expert Builder localization, Search Assistant regressions, raw pipe safety, Event Guide checks, repeated widget routes and clean logcat on the final Android runtime-affecting code.
 
 ---
 
@@ -153,6 +177,7 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+[0.7.6]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.7.6
 [0.7.5]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.7.5
 [0.5.2]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.5.2
 [0.5.1]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.5.1
