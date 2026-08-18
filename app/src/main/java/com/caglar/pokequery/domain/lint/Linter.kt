@@ -25,9 +25,11 @@ object Linter {
         val lower = query.lowercase()
         val tokens = tokens(query)
 
-        // Current official Pokémon GO Help Center documentation lists both '&' and '|' as
-        // supported ways to combine searches matching multiple criteria. Do not reject or
-        // rewrite '|'; Event Guide suggested searches keep their separate no-pipe invariant.
+        // PokeQuery deliberately never generates or copies '|'. Keeping one canonical grammar
+        // across Android/Web prevents output ambiguity even if some game-client versions accept it.
+        if ('|' in query) {
+            warnings += LintWarning("The '|' operator is not supported by PokeQuery. Use '&' for AND or ',' for OR.", true)
+        }
 
         if (tokens.any { it == "!untraded" || it == "untraded" }) {
             warnings += LintWarning("Unsupported token 'untraded'. Use 'traded' to include traded Pokémon or '!traded' to exclude them.", true)
@@ -88,6 +90,7 @@ object Linter {
                 false
             )
         }
-        return warnings.distinct()
+
+        return warnings.distinctBy { it.message }
     }
 }
