@@ -103,3 +103,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+# Temporary final-validation trigger; removed in the next commit.
