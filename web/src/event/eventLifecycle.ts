@@ -32,6 +32,15 @@ function validIsoDate(value: string | null | undefined): string | null {
 /**
  * Compute the effective status of an event using its date window.
  * 1:1 port of Android `EventContext.effectiveStatus(todayIsoDate)`.
+ *
+ * - If startDate exists and today < start → UPCOMING
+ * - If endDate exists and today > end → ENDED
+ * - If both start and end exist (and start <= today <= end) → CURRENT
+ * - If only start exists and today >= start → CURRENT
+ * - Otherwise, fall back to the static `entry.status` from the feed
+ *
+ * @param entry event feed entry
+ * @param todayIso ISO date `yyyy-MM-dd` representing "today"
  */
 export function effectiveStatus(entry: EventFeedEntry, todayIso: string): EventStatus {
   const today = validIsoDate(todayIso)
@@ -45,7 +54,10 @@ export function effectiveStatus(entry: EventFeedEntry, todayIso: string): EventS
   return entry.status
 }
 
-/** Days between two ISO dates. Positive means `to` is after `from`. */
+/**
+ * Days between two ISO dates. Positive means `to` is after `from`.
+ * Returns 999 on parse failure (matches Android convention).
+ */
 export function daysBetween(from: string, to: string | null | undefined): number {
   if (!to) return 999
   const a = validIsoDate(from)
@@ -56,7 +68,17 @@ export function daysBetween(from: string, to: string | null | undefined): number
   return Math.trunc(ms / (1000 * 60 * 60 * 24))
 }
 
-/** Filter out events that have ended based on their date window. */
+/**
+ * Filter out events that have ended based on their date window.
+ * Events without valid dates keep their static `status` (paranoia: feed may
+ * not have date strings; honor the field's own status rather than hiding it).
+ * ACTIVE = CURRENT or UPCOMING. ENDED events are excluded.
+ *
+ * Pure — no Android or DOM dependencies.
+ *
+ * @param events full feed list
+ * @param clock injectable clock for testing; defaults to systemClock
+ */
 export function activeEvents(events: EventFeedEntry[], clock: Clock = systemClock): EventFeedEntry[] {
   const today = clock.todayIso()
   return events
@@ -71,6 +93,13 @@ export function activeEvents(events: EventFeedEntry[], clock: Clock = systemCloc
     })
 }
 
+/**
+ * Group active events into the 6 sections the Event Guide UI uses.
+ * Pure port of Android `groupEvents(events, todayIso)` from EventContext.kt:246.
+ *
+ * Sections: featured (single), happeningNow, importantUpcoming, rotations, news,
+ * allActive.
+ */
 export interface EventSections {
   featured: EventFeedEntry | null
   importantUpcoming: EventFeedEntry[]
@@ -90,7 +119,7 @@ function determineCategory(entry: EventFeedEntry): string {
   const title = (entry.title ?? '').toLowerCase()
   const kind = (entry.themeKey ?? '').toLowerCase()
 
-  // Keep fallback classification priority in lockstep with Android EventContext.determineCategory().
+  // Keep fallback priority and keyword coverage in lockstep with Android EventContext.determineCategory().
   if (title.includes('twitch drops') || title.includes('prime gaming') ||
       title.includes('reward') || title.includes('drop')) return 'REWARD_DROP'
   if (title.includes('save the date') || title.includes('save-the-date') ||
@@ -118,7 +147,10 @@ function determineCategory(entry: EventFeedEntry): string {
 
 export { determineCategory }
 
-/** Hero score — lower is higher priority for featured selection. */
+/**
+ * Hero score — lower is higher priority for featured selection.
+ * Pure port of Android `EventContext.heroScore(todayIso)`.
+ */
 export function heroScore(entry: EventFeedEntry, todayIso: string): number {
   const status = effectiveStatus(entry, todayIso)
   if (status === 'ENDED') return 9999
@@ -143,6 +175,10 @@ export function heroScore(entry: EventFeedEntry, todayIso: string): number {
   return 80
 }
 
+/**
+ * Selects the single main event to feature prominently on the Event Guide.
+ * Pure port of Android `selectMainEvent(events, todayIsoDate)`.
+ */
 export function selectMainEvent(events: EventFeedEntry[], todayIso: string): EventFeedEntry | null {
   if (events.length === 0) return null
   const candidates = events.filter(e => effectiveStatus(e, todayIso) !== 'ENDED')
@@ -161,6 +197,7 @@ export function groupEvents(events: EventFeedEntry[], clock: Clock = systemClock
   const today = clock.todayIso()
   const active = events
     .filter(e => effectiveStatus(e, today) !== 'ENDED')
+    // deduplicate by canonical event key (Android: canonicalEventKey)
     .filter((e, idx, arr) => arr.findIndex(x => canonicalEventKey(x.id) === canonicalEventKey(e.id)) === idx)
   const featured = selectMainEvent(active, today)
   const rest = active.filter(e => e.id !== featured?.id)
@@ -203,12 +240,20 @@ export function groupEvents(events: EventFeedEntry[], clock: Clock = systemClock
   return { featured, importantUpcoming, happeningNow, rotations, news, allActive }
 }
 
+/**
+ * Mirrors Android `canonicalEventKey` — collapses known duplicate IDs to a canonical key.
+ */
 export function canonicalEventKey(id: string): string {
   if (id === 'event-go-fest-2026-global-final-details') return 'event-pokemon-go-fest-2026-global'
   return id
 }
 
-/** Compute a localized date range label for an event using Intl.DateTimeFormat. */
+/**
+ * Compute a localized date range label for an event using Intl.DateTimeFormat.
+ * Ports Android `EventContext.dateLabel(lang)`.
+ *
+ * Supported locale codes: en, tr, de, es, fr, it.
+ */
 export function dateLabel(entry: EventFeedEntry, locale: string): string | null {
   const start = validIsoDate(entry.startDate)
   const end = validIsoDate(entry.endDate)
@@ -268,6 +313,15 @@ function localeToIntl(locale: string): string {
   }
 }
 
+/**
+ * Remaining-time label — pure port of Android `EventContext.remainingTimeLabel`.
+ * Returns a localized, compact "X days Y hours left" / "Live now" / "Ended"
+ * / "Starts tomorrow" style string.
+ *
+ * @param entry event feed entry
+ * @param clock injectable clock for testing
+ * @param lang locale code (en, tr, de, es, fr, it)
+ */
 export function localDateOnlyMillis(value?: string | null): number {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN
 
@@ -276,7 +330,12 @@ export function localDateOnlyMillis(value?: string | null): number {
   const month = parts[1]
   const day = parts[2]
 
-  if (year === undefined || month === undefined || day === undefined) return NaN
+  if (
+    year === undefined ||
+    month === undefined ||
+    day === undefined
+  ) return NaN
+
   return new Date(year, month - 1, day).getTime()
 }
 
@@ -309,7 +368,7 @@ export function remainingTimeLabel(
     }
     return comingUp(lang)
   }
-  // CURRENT: end date is inclusive, so use next local midnight rather than +24h.
+  // CURRENT
   const endOfDayMs = localEndOfDayMillis(entry.endDate)
   if (!Number.isNaN(endOfDayMs)) {
     if (endOfDayMs > now) {
