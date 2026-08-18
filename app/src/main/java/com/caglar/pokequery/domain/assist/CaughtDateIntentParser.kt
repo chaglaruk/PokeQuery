@@ -96,6 +96,12 @@ object CaughtDateIntentParser {
         MonthDef(12, "December", "Aralık", Regex("""\b(?:december|dec|(?:aralık|aralik)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\s+ay(?:ı|i)nda)?)\b""", RegexOption.IGNORE_CASE))
     )
 
+    private val englishMayMonthContextRegex = Regex(
+        """\b(?:caught|acquired|obtained)\s+(?:in\s+)?may\b|\b(?:in|on|during|from|since|around|last|this|previous)\s+may\b|\bmay\s+20\d{2}\b""",
+        RegexOption.IGNORE_CASE
+    )
+    private val turkishMayRegex = Regex("""\b(?:mayıs|mayis)\b""", RegexOption.IGNORE_CASE)
+
     private val turkishDetectionRegex = Regex("""[şŞğĞüÜöÖçÇ]|\b(?:yakala\w*|nisan\w*|ocak\w*|şubat\w*|subat\w*|mart\w*|mayıs\w*|mayis\w*|haziran\w*|temmuz\w*|ağustos\w*|agustos\w*|eylül\w*|eylul\w*|ekim\w*|kasım\w*|kasim\w*|aralık\w*|aralik\w*|bul)\b""", RegexOption.IGNORE_CASE)
 
     fun parse(text: String, today: LocalDate = LocalDate.now()): CaughtDateMatch? {
@@ -108,7 +114,14 @@ object CaughtDateIntentParser {
         val yearMatch = yearRegex.find(text)
         val year = yearMatch?.groups?.get(1)?.value?.toIntOrNull()
 
-        val matchedMonth = months.firstOrNull { it.regex.containsMatchIn(text) }
+        var matchedMonth = months.firstOrNull { it.regex.containsMatchIn(text) }
+        if (
+            matchedMonth?.month == 5 &&
+            !turkishMayRegex.containsMatchIn(text) &&
+            !englishMayMonthContextRegex.containsMatchIn(text)
+        ) {
+            matchedMonth = null
+        }
 
         // Bare caught request (no month and no year)
         if (year == null && matchedMonth == null) {
