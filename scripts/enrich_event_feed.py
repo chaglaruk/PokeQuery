@@ -125,6 +125,10 @@ class DetailPageParser(HTMLParser):
     """
 
     BLOCKS = {"h1", "h2", "h3", "h4", "p", "li"}
+    VOID_TAGS = {
+        "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
+        "param", "source", "track", "wbr",
+    }
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -147,13 +151,18 @@ class DetailPageParser(HTMLParser):
             self._root_tag = tag
             self._depth = 1
             self._parts = []
-        elif self._root_tag is not None:
+        elif self._root_tag is not None and tag not in self.VOID_TAGS:
+            # HTML void elements such as <br> and <img> never receive a closing tag. Counting
+            # them as nested depth would leave the current paragraph/list item permanently open
+            # and swallow every later section on the page.
             self._depth += 1
 
     def handle_endtag(self, tag: str) -> None:
         tag = tag.lower()
         if tag in {"script", "style", "svg", "noscript"} and self._skip_depth:
             self._skip_depth -= 1
+            return
+        if tag in self.VOID_TAGS:
             return
         if self._skip_depth or self._root_tag is None:
             return
