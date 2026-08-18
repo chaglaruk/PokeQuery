@@ -58,6 +58,10 @@ describe('v0.7.5 post-release Search Assistant regressions', () => {
     expect(parseSearchIntent('don’t hide shiny').rawQuery).toBe('shiny')
   })
 
+  it('normalizes Turkish non-ASCII prefix negation before JS word-boundary parsing', () => {
+    expect(parseSearchIntent('hariç shiny').rawQuery).toBe('!shiny')
+  })
+
   it('stops bare not at an explicit conjunction boundary', () => {
     const result = parseSearchIntent('not shiny and legendary')
     expect(result.tokens).toContain('legendary')
