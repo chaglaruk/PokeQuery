@@ -1,20 +1,15 @@
 package com.caglar.pokequery.domain.locale
 
 /**
- * Transliteration catalog for Pokémon GO search tokens.
+ * Display/catalog view of the canonical search-token registry.
  *
- * English tokens are the default safe output. Turkish tokens are BETA/UNTESTED/RISKY
- * and are NOT emitted in generated search strings unless the user explicitly opts into
- * Turkish output via Settings → Search & Language.
+ * This object used to duplicate Turkish translations independently from
+ * [SearchTokenRegistry], which allowed stale values such as `mistik`, `arıtılmış`, `takaslanan`
+ * and `can` to survive after the official Help Center-backed mapper had moved to `mitolojik`,
+ * `arınmış`, `takas edilen` and `sp`. The registry is now the single source of truth.
  *
- * v0.7 verification backlog: remaining Turkish localization work
- *   1. Verify `count` candidates (toplam/sayı/sayısı) against a live Turkish Pokémon GO client
- *   2. Verify compound protection tokens (background, locationbackground, specialbackground, ultrabeast)
- *   3. Live-verify all BETA tokens: parlak, efsanevi, gölge, favori, şanslı, takaslanan, kostümlü,
- *      yaş, mesafe, saldırı, savunma, can
- *   4. Resolve RISKY tokens: mistik (mythical), arıtılmış (purified)
- *   5. Add full translations for GamePress-style token examples in Knowledge Base
- * See: docs/localization/turkish_verification_matrix.md
+ * English remains the canonical safe syntax. Turkish candidates are emitted only through the
+ * existing Search String Language setting and retain the verification status from the registry.
  */
 data class LanguageToken(
     val language: String,
@@ -25,104 +20,52 @@ data class LanguageToken(
 object SearchTokenCatalog {
     val supportedLanguages = listOf("English", "Turkish")
 
-    val tokens: Map<String, List<LanguageToken>> = mapOf(
-        "shiny" to listOf(
-            LanguageToken("English", "shiny"),
-            LanguageToken("Turkish", "parlak", "BETA — community-sourced")
-        ),
-        "legendary" to listOf(
-            LanguageToken("English", "legendary"),
-            LanguageToken("Turkish", "efsanevi", "BETA — community-sourced")
-        ),
-        "mythical" to listOf(
-            LanguageToken("English", "mythical"),
-            LanguageToken("Turkish", "mistik", "BETA — RISKY")
-        ),
-        "shadow" to listOf(
-            LanguageToken("English", "shadow"),
-            LanguageToken("Turkish", "gölge", "BETA — community-sourced")
-        ),
-        "purified" to listOf(
-            LanguageToken("English", "purified"),
-            LanguageToken("Turkish", "arıtılmış", "BETA — RISKY")
-        ),
-        "favorite" to listOf(
-            LanguageToken("English", "favorite"),
-            LanguageToken("Turkish", "favori", "BETA — community-sourced")
-        ),
-        "lucky" to listOf(
-            LanguageToken("English", "lucky"),
-            LanguageToken("Turkish", "şanslı", "BETA — community-sourced")
-        ),
-        "traded" to listOf(
-            LanguageToken("English", "traded"),
-            LanguageToken("Turkish", "takaslanan", "BETA — contested: KB says 'Takas edilmiş'")
-        ),
-        "costume" to listOf(
-            LanguageToken("English", "costume"),
-            LanguageToken("Turkish", "kostümlü", "BETA — community-sourced")
-        ),
-        "age" to listOf(
-            LanguageToken("English", "age"),
-            LanguageToken("Turkish", "yaş", "BETA — community-sourced")
-        ),
-        "distance" to listOf(
-            LanguageToken("English", "distance"),
-            LanguageToken("Turkish", "mesafe", "BETA — community-sourced")
-        ),
-        "attack" to listOf(
-            LanguageToken("English", "attack"),
-            LanguageToken("Turkish", "saldırı", "BETA — community-sourced")
-        ),
-        "defense" to listOf(
-            LanguageToken("English", "defense"),
-            LanguageToken("Turkish", "savunma", "BETA — community-sourced")
-        ),
-        "hp" to listOf(
-            LanguageToken("English", "hp"),
-            LanguageToken("Turkish", "can", "BETA — per user request, variable in KB")
-        ),
-        "count" to listOf(
-            LanguageToken("English", "count"),
-            LanguageToken("Turkish", "(none)", "UNTESTED — candidates: toplam/sayı/sayısı, none verified")
-        ),
-        "background" to listOf(
-            LanguageToken("English", "background"),
-            LanguageToken("Turkish", "arka planlı", "UNTESTED — compound token")
-        ),
-        "locationbackground" to listOf(
-            LanguageToken("English", "locationbackground"),
-            LanguageToken("Turkish", "konum arka planlı", "UNTESTED — compound token")
-        ),
-        "specialbackground" to listOf(
-            LanguageToken("English", "specialbackground"),
-            LanguageToken("Turkish", "özel arka planlı", "UNTESTED — compound token")
-        ),
-        "ultrabeast" to listOf(
-            LanguageToken("English", "ultrabeast"),
-            LanguageToken("Turkish", "ultra canavar", "UNTESTED — compound token")
+    private fun statusNote(meta: SearchTokenMetadata): String = buildString {
+        append(meta.status.name)
+        meta.notes?.takeIf { it.isNotBlank() }?.let {
+            append(" — ")
+            append(it)
+        }
+    }
+
+    /**
+     * Catalog rows are generated from SearchTokenRegistry so UI/KB metadata cannot diverge from
+     * the mapper's audited terminology again.
+     */
+    val tokens: Map<String, List<LanguageToken>> = SearchTokenRegistry.tokens.associate { meta ->
+        val turkishToken = meta.turkish ?: meta.english
+        meta.english to listOf(
+            LanguageToken("English", meta.english, "CANONICAL — official syntax key"),
+            LanguageToken(
+                "Turkish",
+                turkishToken,
+                if (meta.turkish == null) {
+                    "${meta.status.name} — English fallback; no supported Turkish candidate. ${meta.notes.orEmpty()}".trim()
+                } else {
+                    statusNote(meta)
+                }
+            )
         )
-    )
+    }
 
     fun tokenFor(token: String, language: String): LanguageToken? =
         tokens[token]?.firstOrNull { it.language == language }
 
     fun isVerified(token: String, language: String): Boolean {
-        val entry = tokenFor(token, language) ?: return false
-        return !entry.notes.contains("BETA", ignoreCase = true) &&
-            !entry.notes.contains("UNTESTED", ignoreCase = true) &&
-            !entry.notes.contains("RISKY", ignoreCase = true)
+        if (language == "English") return tokens.containsKey(token)
+        val meta = SearchTokenRegistry.byEnglish(token) ?: return false
+        return meta.status == TokenVerification.VERIFIED
     }
 
-    fun unverifiedTokens(language: String): List<String> =
-        tokens.filter { (_, langTokens) ->
-            val entry = langTokens.firstOrNull { it.language == language }
-            entry != null && (entry.notes.contains("BETA") || entry.notes.contains("UNTESTED") || entry.notes.contains("RISKY"))
-        }.keys.toList()
+    fun unverifiedTokens(language: String): List<String> {
+        if (language == "English") return emptyList()
+        return SearchTokenRegistry.tokens
+            .filter { it.status != TokenVerification.VERIFIED }
+            .map { it.english }
+    }
 
-    val betaTokensTurkish: List<String> = listOf(
-        "parlak", "efsanevi", "mistik", "gölge", "arıtılmış",
-        "favori", "şanslı", "takaslanan", "kostümlü",
-        "yaş", "mesafe", "saldırı", "savunma", "can"
-    )
+    /** Turkish forms still awaiting live-client verification. */
+    val betaTokensTurkish: List<String> = SearchTokenRegistry.tokens
+        .filter { it.status == TokenVerification.BETA }
+        .mapNotNull { it.turkish }
 }
