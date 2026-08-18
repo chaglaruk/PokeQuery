@@ -4,9 +4,10 @@ package com.caglar.pokequery.domain.expert
  * Expert Builder query model (pure, deterministic and testable).
  *
  * [positiveTokens] preserves the original OR-group behavior for the primary include-status row.
- * [filterTokens] is an additive AND set used by the broader official syntax families (appraisal,
- * size, buddy/Mega level, region/type and other exact filters). This distinction prevents a
- * selection such as `shiny` + `kanto` from accidentally becoming `shiny,kanto`.
+ * [filterGroups] models the broader finite official syntax correctly: values inside one family
+ * are OR'ed (for example `kanto,johto`) while different families are AND'ed (for example
+ * `kanto,johto&shiny&xxl`). This avoids both accidental broadening and impossible ANDs such as
+ * `kanto&johto`.
  *
  * Numeric/range fields remain explicit. Open-ended official families such as Pokémon names,
  * nicknames, moves, tags and arbitrary ranges are available through Raw mode and are documented
@@ -14,7 +15,7 @@ package com.caglar.pokequery.domain.expert
  */
 data class ExpertQueryModel(
     val positiveTokens: Set<String> = emptySet(),
-    val filterTokens: Set<String> = emptySet(),
+    val filterGroups: Map<String, Set<String>> = emptyMap(),
     val ivAttackFloor: Int? = null,
     val ivDefenseFloor: Int? = null,
     val ivHpFloor: Int? = null,
@@ -28,7 +29,9 @@ data class ExpertQueryModel(
         if (positiveTokens.isNotEmpty()) {
             parts.add(positiveTokens.sorted().joinToString(","))
         }
-        parts.addAll(filterTokens.sorted())
+        filterGroups.toSortedMap().values.forEach { values ->
+            if (values.isNotEmpty()) parts.add(values.sorted().joinToString(","))
+        }
         ivAttackFloor?.let { parts.add("${it}attack") }
         ivDefenseFloor?.let { parts.add("${it}defense") }
         ivHpFloor?.let { parts.add("${it}hp") }
@@ -44,8 +47,15 @@ data class ExpertQueryModel(
     fun togglePositive(token: String): ExpertQueryModel =
         copy(positiveTokens = if (token in positiveTokens) positiveTokens - token else positiveTokens + token)
 
-    fun toggleFilter(token: String): ExpertQueryModel =
-        copy(filterTokens = if (token in filterTokens) filterTokens - token else filterTokens + token)
+    fun toggleFilter(group: String, token: String): ExpertQueryModel {
+        val current = filterGroups[group].orEmpty()
+        val updated = if (token in current) current - token else current + token
+        val groups = filterGroups.toMutableMap()
+        if (updated.isEmpty()) groups.remove(group) else groups[group] = updated
+        return copy(filterGroups = groups)
+    }
+
+    fun isFilterSelected(group: String, token: String): Boolean = token in filterGroups[group].orEmpty()
 
     fun toggleExclusion(token: String): ExpertQueryModel =
         copy(exclusions = if (token in exclusions) exclusions - token else exclusions + token)
