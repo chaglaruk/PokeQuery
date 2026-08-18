@@ -361,7 +361,7 @@
       }
     },
     {
-      "id": "buildstring-pipe-replaced",
+      "id": "buildstring-pipe-normalized",
       "category": "buildString",
       "input": {
         "baseQuery": "test|query",
@@ -373,14 +373,11 @@
         "language": "English"
       },
       "expected": {
+        "rawSyntaxContains": [
+          "test,query"
+        ],
         "rawSyntaxNotContains": [
           "|"
-        ],
-        "rawSyntaxContains": [
-          ","
-        ],
-        "warningsContains": [
-          "The '|' operator is unsupported and was replaced with ','."
         ]
       }
     },
@@ -437,7 +434,7 @@
       }
     },
     {
-      "id": "lint-pipe-error",
+      "id": "lint-pipe-blocked",
       "category": "lint",
       "input": {
         "query": "shiny|lucky"

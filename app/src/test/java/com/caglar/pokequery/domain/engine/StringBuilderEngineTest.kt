@@ -90,7 +90,7 @@ class StringBuilderEngineTest {
     @Test
     fun `linter catches pipe`() {
         val warnings = Linter.lint("shiny|lucky")
-        assertTrue(warnings.any { it.message.contains("|") })
+        assertTrue(warnings.any { it.isError && it.message.contains("|") })
     }
 
     @Test

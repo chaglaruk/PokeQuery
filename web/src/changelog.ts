@@ -15,6 +15,36 @@ export interface ChangelogEntry {
 
 export const changelogEntries: ChangelogEntry[] = [
   {
+    versionName: '0.7.5',
+    versionCode: 25,
+    releaseLabel: 'Closed Testing',
+    title: 'Pre-AAB Safety & Search Assistant',
+    highlights: [],
+    safetyNotes: [],
+    testerNotes: [],
+    isCurrent: true,
+  },
+  {
+    versionName: '0.7.4',
+    versionCode: 24,
+    releaseLabel: 'Closed Testing',
+    title: 'Bottom-Navigation Inset Fix',
+    highlights: [
+      'Fixed bottom-navigation inset for proper content spacing on devices with gesture navigation',
+      'Google Play closed-testing release',
+    ],
+    safetyNotes: [
+      'INTERNET is used only for public Event Guide notes with cache and safe fallback',
+      'No login, no tracking, no ads, no analytics',
+      'No Pokemon GO account access',
+    ],
+    testerNotes: [
+      'Verify bottom-navigation padding on a device with gesture navigation',
+      'Confirm content is not obscured behind navigation bar',
+    ],
+    isCurrent: false,
+  },
+  {
     versionName: '0.7.3',
     versionCode: 23,
     releaseLabel: 'Phase 5 Patch',
@@ -22,7 +52,7 @@ export const changelogEntries: ChangelogEntry[] = [
     highlights: [],
     safetyNotes: [],
     testerNotes: [],
-    isCurrent: true,
+    isCurrent: false,
   },
   {
     versionName: '0.7.0',

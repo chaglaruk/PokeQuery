@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="official_filter_more">More official filters</string>
+    <string name="official_filter_appraisal">Appraisal</string>
+    <string name="official_filter_size">Size</string>
+    <string name="official_filter_buddy_level">Buddy level</string>
+    <string name="official_filter_mega_level">Mega level</string>
+    <string name="official_filter_region">Region</string>
+    <string name="official_filter_default">Official filters</string>
+    <string name="official_filter_parameterized_hint">Open-ended official families are available in Raw mode: Pokémon name/nickname/Dex number and type, +evolution family, CP/HP/distance/age/year min/max/ranges, @move, @type, @1/@2/@3 move type, and #tag.</string>
+    <string name="official_filter_raw_hint">Official parameterized examples: cp-1500 · hp100- · age0-7 · year2026 · +Pikachu · @shadow ball · @3ghost · #tag. Use &amp; for multiple criteria, ! for NOT, and , : ; for multiple searches. PokeQuery intentionally blocks | to keep generated strings canonical.</string>
+</resources>

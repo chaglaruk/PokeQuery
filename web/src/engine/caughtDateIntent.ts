@@ -20,22 +20,25 @@ interface MonthDef {
 const caughtContextRegex = /\b(?:caught|acquired|obtained|yakala\w*)\b/i
 
 const yearRegex = /(?<!\d)(20\d{2})(?:['’]?(?:te|de|ten|den|deki|teki|ye|e|yılında|yilinda))?(?!\d)/i
+const monthEndBoundary = `[\\s,.!?;:]|$`
 
 const months: MonthDef[] = [
-  { month: 1, enName: 'January', trName: 'Ocak', regex: /(?:^|\s)(?:january|jan|ocak(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 2, enName: 'February', trName: 'Şubat', regex: /(?:^|\s)(?:february|feb|(?:şubat|subat)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 3, enName: 'March', trName: 'Mart', regex: /(?:^|\s)(?:march|mar|mart(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 4, enName: 'April', trName: 'Nisan', regex: /(?:^|\s)(?:april|apr|nisan(?:['’]?(?:da|dan|daki|ta|tan|taki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 5, enName: 'May', trName: 'Mayıs', regex: /(?:^|\s)(?:may|(?:mayıs|mayis)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 6, enName: 'June', trName: 'Haziran', regex: /(?:^|\s)(?:june|jun|haziran(?:['’]?(?:da|dan|daki|ta|tan|taki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 7, enName: 'July', trName: 'Temmuz', regex: /(?:^|\s)(?:july|jul|temmuz(?:['’]?(?:da|dan|daki|ta|tan|taki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 8, enName: 'August', trName: 'Ağustos', regex: /(?:^|\s)(?:august|aug|(?:ağustos|agustos)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 9, enName: 'September', trName: 'Eylül', regex: /(?:^|\s)(?:september|sept|sep|(?:eylül|eylul)(?:['’]?(?:de|den|deki|te|ten|teki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 10, enName: 'October', trName: 'Ekim', regex: /(?:^|\s)(?:october|oct|ekim(?:['’]?(?:de|den|deki|te|ten|teki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 11, enName: 'November', trName: 'Kasım', regex: /(?:^|\s)(?:november|nov|(?:kasım|kasim)(?:['’]?(?:da|dan|daki|ta|tan|taki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
-  { month: 12, enName: 'December', trName: 'Aralık', regex: /(?:^|\s)(?:december|dec|(?:aralık|aralik)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\s+ay(?:ı|i)nda)?)(?=\s|$)/i },
+  { month: 1, enName: 'January', trName: 'Ocak', regex: new RegExp(`(?:^|\\s)(?:january|jan|ocak(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 2, enName: 'February', trName: 'Şubat', regex: new RegExp(`(?:^|\\s)(?:february|feb|(?:şubat|subat)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 3, enName: 'March', trName: 'Mart', regex: new RegExp(`(?:^|\\s)(?:march|mar|mart(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 4, enName: 'April', trName: 'Nisan', regex: new RegExp(`(?:^|\\s)(?:april|apr|nisan(?:['’]?(?:da|dan|daki|ta|tan|taki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 5, enName: 'May', trName: 'Mayıs', regex: new RegExp(`(?:^|\\s)(?:may|(?:mayıs|mayis)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 6, enName: 'June', trName: 'Haziran', regex: new RegExp(`(?:^|\\s)(?:june|jun|haziran(?:['’]?(?:da|dan|daki|ta|tan|taki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 7, enName: 'July', trName: 'Temmuz', regex: new RegExp(`(?:^|\\s)(?:july|jul|temmuz(?:['’]?(?:da|dan|daki|ta|tan|taki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 8, enName: 'August', trName: 'Ağustos', regex: new RegExp(`(?:^|\\s)(?:august|aug|(?:ağustos|agustos)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 9, enName: 'September', trName: 'Eylül', regex: new RegExp(`(?:^|\\s)(?:september|sept|sep|(?:eylül|eylul)(?:['’]?(?:de|den|deki|te|ten|teki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 10, enName: 'October', trName: 'Ekim', regex: new RegExp(`(?:^|\\s)(?:october|oct|ekim(?:['’]?(?:de|den|deki|te|ten|teki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 11, enName: 'November', trName: 'Kasım', regex: new RegExp(`(?:^|\\s)(?:november|nov|(?:kasım|kasim)(?:['’]?(?:da|dan|daki|ta|tan|taki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
+  { month: 12, enName: 'December', trName: 'Aralık', regex: new RegExp(`(?:^|\\s)(?:december|dec|(?:aralık|aralik)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
 ]
 
+const englishMayMonthContextRegex = /\b(?:caught|acquired|obtained)\s+(?:in\s+)?may\b|\b(?:in|on|during|from|since|around|last|this|previous)\s+may\b|\bmay\s+20\d{2}\b/i
+const turkishMayRegex = /\b(?:mayıs|mayis)\b/i
 const turkishDetectionRegex = /[şŞğĞüÜöÖçÇ]|\b(?:yakala\w*|nisan\w*|ocak\w*|şubat\w*|subat\w*|mart\w*|mayıs\w*|mayis\w*|haziran\w*|temmuz\w*|ağustos\w*|agustos\w*|eylül\w*|eylul\w*|ekim\w*|kasım\w*|kasim\w*|aralık\w*|aralik\w*|bul)\b/i
 
 // DST-safe days between two UTC dates
@@ -64,7 +67,10 @@ export function parseCaughtDateIntent(text: string, today: Date = new Date()): C
   const yearMatch = text.match(yearRegex)
   const year = yearMatch && yearMatch[1] ? parseInt(yearMatch[1], 10) : null
 
-  const matchedMonth = months.find(m => m.regex.test(text)) ?? null
+  let matchedMonth = months.find(m => m.regex.test(text)) ?? null
+  if (matchedMonth?.month === 5 && !turkishMayRegex.test(text) && !englishMayMonthContextRegex.test(text)) {
+    matchedMonth = null
+  }
 
   // Bare caught request (no month and no year)
   if (year === null && matchedMonth === null) {

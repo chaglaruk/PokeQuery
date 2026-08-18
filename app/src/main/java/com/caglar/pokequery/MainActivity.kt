@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
     private var debugAppLanguage by mutableStateOf<String?>(null)
     private var debugSearchLanguage by mutableStateOf<String?>(null)
     private var debugEventFeedUrl by mutableStateOf<String?>(null)
+    private var navigationIntentVersion by mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,12 +72,20 @@ class MainActivity : ComponentActivity() {
             }
 
             val context = androidx.compose.ui.platform.LocalContext.current
-            val locale = AppLocaleController.localeFor(appLanguage)
-            val configuration = android.content.res.Configuration(androidx.compose.ui.platform.LocalConfiguration.current)
+            // Read the Activity configuration before installing PokeQuery's localized context.
+            // This value updates when Android changes the device language while the process stays
+            // alive, which keeps System Default truly live without LocaleManager recreation.
+            val baseConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
+            val deviceLocale = baseConfiguration.locales[0]
+            val deviceLocaleTag = deviceLocale.toLanguageTag()
+            val locale = AppLocaleController.localeFor(appLanguage, deviceLocale)
+            val configuration = android.content.res.Configuration(baseConfiguration)
             configuration.setLocale(locale)
             val localizedContext = context.createConfigurationContext(configuration)
 
-            LaunchedEffect(appLanguage) { AppLocaleController.apply(applicationContext, appLanguage) }
+            LaunchedEffect(appLanguage, deviceLocaleTag) {
+                AppLocaleController.apply(applicationContext, appLanguage, deviceLocale)
+            }
 
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.ui.platform.LocalContext provides localizedContext,
@@ -88,6 +97,7 @@ class MainActivity : ComponentActivity() {
                             startRoute = startRoute,
                             copySearch = copySearch,
                             debugEventFeedUrl = if (BuildConfig.DEBUG) debugEventFeedUrl else null,
+                            navigationIntentVersion = navigationIntentVersion,
                             onCopyHandled = { copySearch = null }
                         )
                     }
@@ -104,6 +114,7 @@ class MainActivity : ComponentActivity() {
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
         debugEventFeedUrl = intent.getStringExtra("event_feed_url")
+        navigationIntentVersion += 1
     }
 
     private fun readStartRoute(intent: Intent?): String? =

@@ -118,23 +118,30 @@ function determineCategory(entry: EventFeedEntry): string {
   if (cat) return cat
   const title = (entry.title ?? '').toLowerCase()
   const kind = (entry.themeKey ?? '').toLowerCase()
+
+  // Keep fallback priority and keyword coverage in lockstep with Android EventContext.determineCategory().
+  if (title.includes('twitch drops') || title.includes('prime gaming') ||
+      title.includes('reward') || title.includes('drop')) return 'REWARD_DROP'
+  if (title.includes('save the date') || title.includes('save-the-date') ||
+      title.includes('wallpapers') || title.includes('diary') || title.includes('promo') ||
+      title.includes('store') || title.includes('coupon') || title.includes('code')) return 'NEWS_PROMO'
+  if (title.includes('lego') || title.includes('art') || title.includes('birthday') ||
+      title.includes('announcement') || title.includes('partnership') ||
+      title.includes('showcase') || title.includes('professor willow') ||
+      title.includes('scopely')) return 'ANNOUNCEMENT'
   if (title.includes('gbl') || title.includes('go battle league') || title.includes('season:') ||
       title.includes('forever forward') || title.includes('season of') ||
       title.includes('league') || title.includes('cup')) return 'SEASON_GBL'
   if (title.includes('spotlight hour') || title.includes('raid hour') ||
-      title.includes('max monday') || kind === 'spotlight_hour') return 'ROUTINE_ROTATION'
-  if (!title.includes('raid day') && (title.includes('5-star') || title.includes('mega raid') ||
+      title.includes('max mondays') || title.includes('max monday') ||
+      kind === 'spotlight_hour') return 'ROUTINE_ROTATION'
+  if (!title.includes('raid day') && (title.includes('in 5-star') ||
+      title.includes('in mega raids') || title.includes('in shadow raids') ||
+      title.includes('5-star raid') || title.includes('mega raid') ||
       title.includes('shadow raid') || title.includes('raid rotation'))) return 'RAID_ROTATION'
   if (title.includes('go fest') || title.includes('go tour') || title.includes('safari zone') ||
       title.includes('community day') || title.includes('road of legends') ||
       title.includes('global') || kind === 'community_day') return 'MAJOR_GAMEPLAY'
-  if (title.includes('twitch drops') || title.includes('prime gaming') ||
-      title.includes('reward') || title.includes('drop')) return 'REWARD_DROP'
-  if (title.includes('save the date') || title.includes('wallpapers') || title.includes('diary') ||
-      title.includes('promo') || title.includes('store') || title.includes('coupon') ||
-      title.includes('code')) return 'NEWS_PROMO'
-  if (title.includes('announcement') || title.includes('partnership') ||
-      title.includes('showcase') || title.includes('professor willow') || title.includes('scopely')) return 'ANNOUNCEMENT'
   return 'LIMITED_GAMEPLAY'
 }
 
@@ -262,8 +269,8 @@ export function dateLabel(entry: EventFeedEntry, locale: string): string | null 
   if (!Number.isNaN(parsedStart) && !Number.isNaN(parsedEnd)) {
     const d1 = new Date(parsedStart)
     const d2 = new Date(parsedEnd)
-    const sameYear = d1.getFullYear() === d2.getFullYear()
-    const sameMonth = sameYear && d1.getMonth() === d2.getMonth()
+    const sameYear = d1.getUTCFullYear() === d2.getUTCFullYear()
+    const sameMonth = sameYear && d1.getUTCMonth() === d2.getUTCMonth()
     if (sameYear && sameMonth) {
       const month = new Intl.DateTimeFormat(intlLocale, { month: 'long', timeZone: 'UTC' }).format(d1)
       const days = `${d1.getUTCDate()}\u2013${d2.getUTCDate()}`
@@ -332,6 +339,16 @@ export function localDateOnlyMillis(value?: string | null): number {
   return new Date(year, month - 1, day).getTime()
 }
 
+function localEndOfDayMillis(value?: string | null): number {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN
+  const parts = value.split('-').map(Number)
+  const year = parts[0]
+  const month = parts[1]
+  const day = parts[2]
+  if (year === undefined || month === undefined || day === undefined) return NaN
+  return new Date(year, month - 1, day + 1).getTime() - 1
+}
+
 export function remainingTimeLabel(
   entry: EventFeedEntry,
   clock: Clock,
@@ -352,10 +369,8 @@ export function remainingTimeLabel(
     return comingUp(lang)
   }
   // CURRENT
-  const endMs = localDateOnlyMillis(entry.endDate)
-  if (!Number.isNaN(endMs)) {
-    // End date is inclusive — event ends at end of that day (23:59:59)
-    const endOfDayMs = endMs + 24 * 60 * 60 * 1000 - 1
+  const endOfDayMs = localEndOfDayMillis(entry.endDate)
+  if (!Number.isNaN(endOfDayMs)) {
     if (endOfDayMs > now) {
       return prefixLabel(endOfDayMs - now, lang)
     }

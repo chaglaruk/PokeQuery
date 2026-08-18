@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="official_filter_more">Diğer Resmi Filtreler</string>
+    <string name="official_filter_appraisal">Değerlendirme</string>
+    <string name="official_filter_size">Boyut</string>
+    <string name="official_filter_buddy_level">Dost Seviyesi</string>
+    <string name="official_filter_mega_level">Mega Seviyesi</string>
+    <string name="official_filter_region">Bölge</string>
+    <string name="official_filter_default">Resmi Filtreler</string>
+    <string name="official_filter_parameterized_hint">Açık uçlu resmi aramalar Raw modunda da desteklenir: Pokémon adı/takma ad/Dex no ve türü, +evrim ailesi, CP-SP-mesafe-yaş-yıl değerleri ve min/maks/aralıklar, @hareket, @tür, @1/@2/@3 hareket türü ve #etiket.</string>
+    <string name="official_filter_raw_hint">Resmi parametrik syntax örnekleri: cp-1500 · hp100- · age0-7 · year2026 · +Pikachu · @shadow ball · @3ghost · #etiket. Birden fazla kriter için &amp;, NOT için !; çoklu arama için , : ; kullan. PokeQuery, üretilen aramaları tek biçimde tutmak için | işaretini bilerek engeller.</string>
+</resources>

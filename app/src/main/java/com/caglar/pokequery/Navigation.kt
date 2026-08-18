@@ -33,6 +33,7 @@ fun MainNavigation(
     startRoute: String? = null,
     copySearch: String? = null,
     debugEventFeedUrl: String? = null,
+    navigationIntentVersion: Int = 0,
     onCopyHandled: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -46,6 +47,17 @@ fun MainNavigation(
 
     val backStack = rememberNavBackStack(initialEntry)
     var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
+
+    // rememberNavBackStack intentionally survives recomposition, so routed onNewIntent calls need
+    // an explicit reset. The version also changes when the same widget route is tapped twice.
+    LaunchedEffect(startRoute, navigationIntentVersion, userPrefs?.firstUseSeen) {
+        if (navigationIntentVersion > 0 && startRoute != null) {
+            val destination = startDestination(startRoute, userPrefs?.firstUseSeen) ?: return@LaunchedEffect
+            currentTab = tabForStartRoute(startRoute)
+            backStack.clear()
+            backStack.add(destination)
+        }
+    }
 
     val copiedToClipboard = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_copied)
     val assistantExplanation = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_generated_explanation)

@@ -47,11 +47,13 @@ export interface PresetOutput {
 export function buildPresetOutput(preset: Preset, language: string): PresetOutput {
   const canonical = buildString(preset.syntax, [], '', preset.risk === 'info' ? 'Info' : preset.risk === 'medium' ? 'Medium' : 'Low', 'preset', '', 'English')
   const localized = buildString(preset.syntax, [], '', canonical.riskLevel, 'preset', '', language)
-  const warnings = lint(preset.syntax.includes('|') ? preset.syntax : canonical.rawSyntax)
+  const warnings = lint(canonical.rawSyntax)
   return {
     rawSyntax: localized.rawSyntax,
     riskLevel: localized.riskLevel,
     warnings,
-    copyBlocked: preset.syntax.includes('|') || localized.rawSyntax.includes('|') || !canCopy(canonical.rawSyntax),
+    // Copy policy is centralized in the linter/ExpertCopyPolicy. buildString normalizes any
+    // incoming game-level pipe syntax to PokeQuery's canonical comma form before this point.
+    copyBlocked: !canCopy(canonical.rawSyntax),
   }
 }

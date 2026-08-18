@@ -29,7 +29,34 @@ interface IntentPattern {
 }
 
 function normalize(text: string): string {
-  return text.toLowerCase().trim().replace(/\s+/g, ' ')
+  return text.toLowerCase().replace(/[\u2018\u2019\u02BC]/g, "'").replace(/hariç/gu, 'haric').trim().replace(/\s+/g, ' ')
+}
+
+function isKeywordWordChar(char: string | undefined): boolean {
+  return char !== undefined && /[\p{L}\p{N}_]/u.test(char)
+}
+
+/**
+ * Whole-keyword/phrase matching without JS \b semantics. This preserves punctuation-bearing
+ * keywords such as 100% and 15/15/15 while blocking trade->traded, age->storage, all->small.
+ */
+function keywordIndex(text: string, keyword: string): number {
+  if (!keyword) return -1
+  let fromIndex = 0
+  while (fromIndex <= text.length - keyword.length) {
+    const index = text.indexOf(keyword, fromIndex)
+    if (index === -1) return -1
+    const end = index + keyword.length
+    const beforeOk = index === 0 || !isKeywordWordChar(text[index - 1])
+    const afterOk = end === text.length || !isKeywordWordChar(text[end])
+    if (beforeOk && afterOk) return index
+    fromIndex = index + 1
+  }
+  return -1
+}
+
+function containsKeyword(text: string, keyword: string): boolean {
+  return keywordIndex(text, keyword) >= 0
 }
 
 type ControlPolarity = 'POSITIVE' | 'NEGATIVE'
@@ -56,14 +83,18 @@ function isNegativeWord(word: string): boolean {
   return negativeWordSet.has(word.toLowerCase())
 }
 
-function extractLastControl(text: string): ControlPolarity | null {
+function lastControlMatch(text: string): RegExpExecArray | null {
   combinedControlRegex.lastIndex = 0
-  const matches: RegExpExecArray[] = []
+  let last: RegExpExecArray | null = null
   let m: RegExpExecArray | null
   while ((m = combinedControlRegex.exec(text)) !== null) {
-    matches.push(m)
+    last = m
   }
-  const last = matches[matches.length - 1]
+  return last
+}
+
+function extractLastControl(text: string): ControlPolarity | null {
+  const last = lastControlMatch(text)
   if (!last) return null
 
   const negator = last[1]
@@ -104,13 +135,20 @@ function polarityForPrefix(prefix: string): boolean {
     return preControl === 'POSITIVE'
   }
 
+  const lastControl = lastControlMatch(prefix)
+  const standaloneNeg = lastControl?.[3]?.toLowerCase()
+  if (lastControl && (standaloneNeg === 'not' || standaloneNeg === 'no')) {
+    const afterControl = prefix.substring(lastControl.index + lastControl[0].length)
+    if (clauseBreak.test(afterControl)) return false
+  }
+
   const control = extractLastControl(prefix)
   return control === 'NEGATIVE'
 }
 
 function isPatternNegated(normalized: string, keyword: string): boolean {
   if (!keyword) return false
-  const index = normalized.indexOf(keyword)
+  const index = keywordIndex(normalized, keyword)
   if (index === -1) return false
 
   const prefix = normalized.substring(0, index)
@@ -127,14 +165,14 @@ function isPatternNegated(normalized: string, keyword: string): boolean {
 
 const patterns: IntentPattern[] = [
   {
-    keywords: ['hundo', 'perfect', '100%', '15/15/15', '15 15 15', 'max iv', 'all 15', 'yüzde yüz', 'yuzde yuz', '100 iv', 'kusursuz', 'mükemmel', 'mukemmel', 'güçlü', 'guclu'],
+    keywords: ['hundo', 'hundos', 'perfect', '100%', '15/15/15', '15 15 15', 'max iv', 'all 15', 'yüzde yüz', 'yuzde yuz', '100 iv', 'kusursuz', 'mükemmel', 'mukemmel', 'güçlü', 'guclu'],
     tokens: ['4*'], explanationKey: 'search_intent_expl_hundo',
     explanation: 'Finds Pokémon with perfect 15/15/15 IVs (exact 100% appraisal using 4*). Inspection only — does not filter or exclude anything.',
     limitationKeys: ['search_intent_lim_hundo_purified', 'search_intent_lim_iv_approx'],
     limitations: ['4* also matches purified Pokémon. Check manually if you want non-purified only.', 'IV appraisal is an approximation, not exact stats.'],
   },
   {
-    keywords: ['nundo', '0%', '0/0/0', '0 0 0', 'zero iv', 'lowest', 'minimum iv', 'sıfır iv', 'sifir iv', '0 iv', 'en düşük', 'en dusuk'],
+    keywords: ['nundo', 'nundos', '0%', '0/0/0', '0 0 0', 'zero iv', 'lowest', 'minimum iv', 'sıfır iv', 'sifir iv', '0 iv', 'en düşük', 'en dusuk'],
     tokens: ['0attack', '0defense', '0hp'], explanationKey: 'search_intent_expl_nundo',
     explanation: 'Finds Pokémon with 0/0/0 IVs. This is an exact match — only true 0% appraisal shows.',
     limitationKeys: ['search_intent_lim_nundo_floor'], limitations: ['IV floor events (trades, weather boost, raids) make 0% IV impossible.'],
@@ -194,7 +232,7 @@ const patterns: IntentPattern[] = [
     limitationKeys: ['search_intent_lim_distance_no_retrade', 'search_intent_lim_distance_resets'], limitations: ['Not all distance Pokémon are tradeable again (already traded).', 'Distance resets on each trade — the last trade distance applies.'],
   },
   {
-    keywords: ['untagged', 'no tag', 'not tagged', 'tagged', 'tag', 'etiketsiz', 'etiketlenmemiş', 'etiketlenmemis', 'etiketlenmeyen', 'etiket yok', 'etiket'], tokens: [], exclusions: ['#'],
+    keywords: ['untagged', 'no tag', 'not tagged', 'etiketsiz', 'etiketlenmemiş', 'etiketlenmemis', 'etiketlenmeyen', 'etiket yok'], tokens: [], exclusions: ['#'],
     explanationKey: 'search_intent_expl_untagged', explanation: 'Finds untagged Pokémon for tagging and organization. The search uses !# (NOT tag filter).',
     limitationKeys: ['search_intent_lim_untagged_none', 'search_intent_lim_untagged_first_use'], limitations: ['!# shows Pokémon WITHOUT any tags.', 'If you have never tagged, this matches everything.'],
   },
@@ -223,6 +261,15 @@ function emptyIntent(explanationKey: string, text?: string): ParsedIntent {
 }
 
 export function parseSearchIntent(text: string, today: Date = new Date()): ParsedIntent {
+  if (text.includes('|')) {
+    const blocked = emptyIntent('search_intent_could_not_understand', text)
+    return {
+      ...blocked,
+      pipeForbidden: true,
+      noteKeys: ['search_intent_pipe_forbidden'],
+    }
+  }
+
   const caughtMatch = parseCaughtDateIntent(text, today)
   if (caughtMatch !== null && !caughtMatch.canBuild) {
     return {
@@ -235,24 +282,23 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
       limitations: [],
       canBuild: false,
       hasAutoAdded: false,
-      pipeForbidden: text.includes('|'),
+      pipeForbidden: false,
       noteKeys: [],
     }
   }
 
-  const pipeForbidden = text.includes('|')
-  const cleaned = pipeForbidden ? text.replace(/\|/g, ' ') : text
-  const normalized = normalize(cleaned)
+  const pipeForbidden = false
+  const normalized = normalize(text)
   if (!normalized && caughtMatch === null) return emptyIntent('search_intent_empty')
 
   const matched = patterns.filter(pattern => {
-    const matchingKeywords = pattern.keywords.filter(keyword => normalized.includes(keyword))
+    const matchingKeywords = pattern.keywords.filter(keyword => containsKeyword(normalized, keyword))
     if (matchingKeywords.length === 0) return false
 
     // Suppress legacy "old" pattern if it only matched 2016/2017/2018 from caught year
     if (caughtMatch !== null && caughtMatch.canBuild && pattern.tokens.length === 1 && pattern.tokens[0] === 'age365-' && (!pattern.exclusions || pattern.exclusions.length === 0)) {
       const nonYearKeywords = pattern.keywords.filter(k => !['2016', '2017', '2018'].includes(k))
-      const hasExplicitOldKeyword = nonYearKeywords.some(k => normalized.includes(k))
+      const hasExplicitOldKeyword = nonYearKeywords.some(k => containsKeyword(normalized, k))
       if (!hasExplicitOldKeyword) {
         return false
       }
@@ -278,7 +324,7 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
   }
 
   for (const pattern of matched) {
-    const matchedKeyword = pattern.keywords.find(k => normalized.includes(k)) ?? ''
+    const matchedKeyword = pattern.keywords.find(k => containsKeyword(normalized, k)) ?? ''
     const negated = isPatternNegated(normalized, matchedKeyword)
     if (negated) {
       pattern.tokens.forEach(t => allExclusions.add(t))
@@ -293,9 +339,9 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
     allLimitations.push(...pattern.limitations)
   }
 
-  const hasShiny = normalized.includes('shiny')
-  const hasLegendary = normalized.includes('legendary')
-  const hasMythical = normalized.includes('mythical')
+  const hasShiny = containsKeyword(normalized, 'shiny')
+  const hasLegendary = containsKeyword(normalized, 'legendary')
+  const hasMythical = containsKeyword(normalized, 'mythical')
   const extraTokens: string[] = []
   const tokenList = allTokens.map(t => t.toLowerCase())
 
@@ -314,7 +360,6 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
   extraTokens.forEach(t => allTokens.push(t))
 
   const noteKeys: string[] = []
-  if (pipeForbidden) noteKeys.push('search_intent_pipe_forbidden')
   if (allExclusions.has('traded')) noteKeys.push('search_intent_traded_kept')
 
   if (allTokens.length === 0 && allExclusions.size === 0) {

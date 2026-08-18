@@ -25,11 +25,12 @@ describe('Popular Presets parity and safety', () => {
     expect(output.copyBlocked).toBe(false)
   })
 
-  it('blocks a forbidden operator through the shared policy', () => {
-    const unsafe: Preset = { titleKey: 'unsafe', descKey: 'unsafe', syntax: 'shiny|legendary', risk: 'info', category: 'collection' }
-    const output = buildPresetOutput(unsafe, 'English')
+  it('normalizes a pipe-bearing preset before lint and copy policy', () => {
+    const official: Preset = { titleKey: 'official', descKey: 'official', syntax: 'shiny|legendary', risk: 'info', category: 'collection' }
+    const output = buildPresetOutput(official, 'English')
+    expect(output.rawSyntax).toBe('shiny,legendary')
     expect(output.rawSyntax).not.toContain('|')
-    expect(output.warnings.some(warning => warning.isError)).toBe(true)
-    expect(output.copyBlocked).toBe(true)
+    expect(output.warnings.some(warning => warning.isError)).toBe(false)
+    expect(output.copyBlocked).toBe(false)
   })
 })

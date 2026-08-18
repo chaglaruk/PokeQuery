@@ -18,6 +18,8 @@ on:
       - 'scripts/check_web_fallback_fresh.py'
       - 'scripts/test_check_web_fallback_fresh.py'
       - 'scripts/generate_event_feed.py'
+      - 'scripts/enrich_event_feed.py'
+      - 'scripts/test_enrich_event_feed.py'
       - 'docs/event-feed/**'
   pull_request:
     paths:
@@ -35,6 +37,8 @@ on:
       - 'scripts/check_web_fallback_fresh.py'
       - 'scripts/test_check_web_fallback_fresh.py'
       - 'scripts/generate_event_feed.py'
+      - 'scripts/enrich_event_feed.py'
+      - 'scripts/test_enrich_event_feed.py'
       - 'docs/event-feed/**'
   workflow_dispatch:
 
@@ -99,8 +103,8 @@ jobs:
         run: python scripts/test_generator_safety.py
         shell: bash
 
-      - name: Test generator and fallback validators
-        run: python -m unittest scripts.test_generator scripts.test_check_web_fallback_fresh
+      - name: Test generator, enrichment and fallback validators
+        run: python -m unittest scripts.test_generator scripts.test_enrich_event_feed scripts.test_check_web_fallback_fresh
         shell: bash
 
       - name: Validate event feed

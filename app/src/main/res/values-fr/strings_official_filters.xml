@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="official_filter_more">Autres filtres officiels</string>
+    <string name="official_filter_appraisal">Évaluation</string>
+    <string name="official_filter_size">Taille</string>
+    <string name="official_filter_buddy_level">Niveau Copain</string>
+    <string name="official_filter_mega_level">Niveau Méga</string>
+    <string name="official_filter_region">Région</string>
+    <string name="official_filter_default">Filtres officiels</string>
+    <string name="official_filter_parameterized_hint">Les familles officielles ouvertes restent disponibles en mode Raw : nom/surnom/n° Pokédex et type, +famille d’évolution, PC/PV/distance/âge/année avec min/max/plages, @attaque, @type, @1/@2/@3 et #étiquette.</string>
+    <string name="official_filter_raw_hint">Exemples paramétriques officiels : pc-1500 · pv100- · âge0-7 · année2026 · +Pikachu · @ball’ombre · @3spectre · #étiquette. Utilise &amp; pour plusieurs critères, ! pour NOT et , : ; pour plusieurs recherches. PokeQuery bloque volontairement | afin de garder un format canonique.</string>
+</resources>

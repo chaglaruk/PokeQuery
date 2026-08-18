@@ -50,7 +50,7 @@ describe('StringBuilderEngine parity', () => {
 
   it('linter catches pipe', () => {
     const warnings = lint('shiny|lucky')
-    expect(warnings.some(w => w.message.includes('|'))).toBe(true)
+    expect(warnings.some(w => w.isError && w.message.includes('|'))).toBe(true)
   })
 
   it('linter catches unsafe count', () => {

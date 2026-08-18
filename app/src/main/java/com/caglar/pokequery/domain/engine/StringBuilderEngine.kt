@@ -30,13 +30,13 @@ object StringBuilderEngine {
         language: String = "English"
     ): GeneratedString {
 
+        // PokeQuery deliberately keeps one canonical generated grammar across Android and web.
+        // Even if a game-client version accepts '|', generated/copy output never emits it.
         var query = baseQuery
         val generatedWarnings = mutableListOf<String>()
-
-        // Safety check: Never generate |
         if (query.contains("|")) {
             query = query.replace("|", ",")
-            generatedWarnings.add("The '|' operator is unsupported and was replaced with ','.")
+            generatedWarnings.add("The '|' operator is unsupported by PokeQuery and was replaced with ','.")
         }
 
         val protectionsToAdd = protections.filter { !baseQuery.contains("!$it") }
@@ -181,7 +181,11 @@ object StringBuilderEngine {
                     emptyList() // We do not exclude shiny/legendary by default
                 )
             }
-            "expert" -> GoalSpec(customQuery, "Custom search string. Review all matches in the game before acting.", RiskLevel.Medium, "Custom Search", DEFAULT_PROTECTIONS)
+            // Expert Builder is an explicit query-authoring surface. Do not silently append the
+            // default cleanup exclusions here: doing so could turn `shiny` into the contradictory
+            // `shiny&!shiny`. Count-based expert queries still receive the mandatory count safety
+            // protections inside buildString.
+            "expert" -> GoalSpec(customQuery, "Custom search string. Review all matches in the game before acting.", RiskLevel.Medium, "Custom Search", emptyList())
             else -> GoalSpec(customQuery, "Custom search string.", RiskLevel.Medium, "Custom Search", DEFAULT_PROTECTIONS)
         }
         return buildString(

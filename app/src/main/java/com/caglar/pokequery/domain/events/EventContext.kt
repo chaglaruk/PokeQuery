@@ -547,8 +547,11 @@ fun EventContext.remainingTimeLabel(
         EventStatus.CURRENT -> {
             val endMs = endDate?.let { runCatching { sdf.parse(it)?.time }.getOrNull() }
             if (endMs != null) {
-                // End date is inclusive — event ends at end of that day (23:59:59)
-                val endOfDayMs = endMs + 24 * 60 * 60 * 1000 - 1
+                // End date is inclusive — use the next local midnight so DST days stay correct.
+                val endOfDayMs = java.util.Calendar.getInstance().apply {
+                    timeInMillis = endMs
+                    add(java.util.Calendar.DAY_OF_MONTH, 1)
+                }.timeInMillis - 1
                 if (endOfDayMs > nowMillis) {
                     formatRemainingTime(endOfDayMs - nowMillis, prefix = true, lang = lang)
                 } else {

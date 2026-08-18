@@ -11,14 +11,15 @@ const reservedTerms = new Set([
   'shiny', 'legendary', 'mythical', 'ultrabeast', 'shadow', 'purified',
   'favorite', 'favourite', 'costume', 'background', 'locationbackground',
   'specialbackground', 'lucky', 'traded', 'defender', 'raid', 'remoteraid',
-  'hatched', 'research', 'gbl', 'rocket', 'snapshot', 'evolve', 'evolvenew',
-  'megaevolve', 'tradeevolve', 'dynamax', 'gigantamax', 'adventureeffect',
+  'hatched', 'eggsonly', 'research', 'gbl', 'rocket', 'snapshot', 'evolve', 'evolvenew',
+  'evolvequest', 'megaevolve', 'tradeevolve', 'hypertraining', 'item', 'fusion',
+  'dynamax', 'gigantamax', 'adventureeffect',
 ])
 
 const riskyCategories = new Set(['shiny', 'legendary', 'mythical', 'lucky'])
 
 function tokenize(query: string): string[] {
-  return query.toLowerCase().split(/[&,;:]/).map(t => t.trim()).filter(Boolean)
+  return query.toLowerCase().split(/[&|,;:]/).map(t => t.trim()).filter(Boolean)
 }
 
 export function lint(query: string): LintWarning[] {
@@ -26,8 +27,14 @@ export function lint(query: string): LintWarning[] {
   const lower = query.toLowerCase()
   const tokens = tokenize(query)
 
+  // PokeQuery deliberately never generates or copies the pipe operator. Even if a game-client
+  // version accepts it, the app's canonical grammar remains &, comma, semicolon and colon so
+  // Android/Web output stays deterministic and the long-standing safety invariant is preserved.
   if (query.includes('|')) {
-    warnings.push({ message: "T3 uncertain operator '|'. Do not use it; use '&' or ',' instead.", isError: true })
+    warnings.push({
+      message: "The '|' operator is not supported by PokeQuery. Use '&' for AND or ',' for OR.",
+      isError: true,
+    })
   }
 
   if (tokens.includes('!untraded') || tokens.includes('untraded')) {
@@ -91,8 +98,6 @@ export function lint(query: string): LintWarning[] {
   const shortcutMap: Record<string, string> = {
     mega: 'Mega0-',
     count: 'count2-',
-    dynamax: 'dynamax1-',
-    gigantamax: 'gigantamax1-',
   }
   for (const [shortcut, expansion] of Object.entries(shortcutMap)) {
     if (tokens.includes(shortcut)) {

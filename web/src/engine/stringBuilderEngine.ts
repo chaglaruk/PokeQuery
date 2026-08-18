@@ -36,9 +36,11 @@ export function buildString(
   let query = baseQuery
   const generatedWarnings: string[] = []
 
+  // PokeQuery's canonical generated grammar never emits '|'. Keep parity with Android even though
+  // the current game Help Center documents pipe as an accepted combiner.
   if (query.includes('|')) {
     query = query.replace(/\|/g, ',')
-    generatedWarnings.push("The '|' operator is unsupported and was replaced with ','.")
+    generatedWarnings.push("The '|' operator is unsupported by PokeQuery and was replaced with ','.")
   }
 
   const protectionsToAdd = protections.filter(p => !baseQuery.includes(`!${p}`))
@@ -187,7 +189,7 @@ export function buildGoal(
         explanation: 'Custom search string. Review all matches in the game before acting.',
         risk: 'Medium',
         title: 'Custom Search',
-        protections: DEFAULT_PROTECTIONS,
+        protections: [],
       }
       break
     default:

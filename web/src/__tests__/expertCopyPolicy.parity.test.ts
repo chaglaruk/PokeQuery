@@ -34,7 +34,7 @@ describe('ExpertCopyPolicy parity', () => {
     expect(canCopy('legendary')).toBe(true)
   })
 
-  it('true error still blocks copy after fix 7', () => {
+  it('true safety errors block copy', () => {
     expect(canCopy('shiny|lucky')).toBe(false)
     expect(canCopy('count2-')).toBe(false)
     expect(canCopy('count2-&shiny')).toBe(false)
