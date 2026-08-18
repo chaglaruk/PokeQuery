@@ -20,9 +20,14 @@ except ModuleNotFoundError:  # direct: python scripts/test_enrich_event_feed.py
 
 class EventFeedEnrichmentTest(unittest.TestCase):
     def test_normalizes_gbl_season_suffix_and_spacing(self):
+        expected = "Master League and Evolution Cup: Great League Edition"
         self.assertEqual(
-            "Master League and Evolution Cup: Great League Edition",
+            expected,
             normalize_event_title("Master League and Evolution Cup: Great League Edition  -  Forever Forward"),
+        )
+        self.assertEqual(
+            expected,
+            normalize_event_title("Master League and Evolution Cup: Great League Edition | Forever Forward"),
         )
 
     def test_normalizes_rotation_titles_without_changing_pokemon_form(self):
