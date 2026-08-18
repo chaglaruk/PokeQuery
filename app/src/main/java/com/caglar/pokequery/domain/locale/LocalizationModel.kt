@@ -4,42 +4,26 @@ import com.caglar.pokequery.domain.engine.SearchTermMapper
 import java.util.Locale
 
 /**
- * v0.5.2 (Fix 7): the two-layer localization model — pure, testable, no Android deps.
+ * v0.5.2 (Fix 7): the two-layer localization model — pure, testable, no Android deps until a
+ * caller actually asks Auto/System Default to consult the device locale.
  *
- * Layer A — [AppLanguage]: the app's UI language (System Default / English / Turkish).
- *   Stored as [UserPreferences.appLanguage]. Controls interface text ONLY.
+ * Layer A — [AppLanguage]: the app's UI language.
+ * Layer B — [SearchStringLanguage]: the language of generated Pokémon GO search strings.
  *
- * Layer B — [SearchStringLanguage]: the language of generated Pokémon GO search strings
- *   (Auto Safe / English / Turkish Beta). Stored as [UserPreferences.gameLanguage].
- *   Controls generated strings ONLY.
- *
- * The two layers are independent: setting a Turkish UI must NOT change search strings,
- * and setting English search strings must NOT force an English UI. This object encodes the
- * safety guarantees the product requires:
- *
- *   1. Auto follows a verified supported device language, otherwise falls back to English.
- *   2. Turkish is emitted only when explicitly selected or when the supported device/app
- *      language is Turkish under Auto/Match App Language.
- *   3. App Language has zero influence on the resolved search-string language.
- *
- * The actual token translation is delegated to [SearchTermMapper] (unchanged, safety-tested).
+ * The two layers are independent. Explicit search-language choices never consult Android. Auto
+ * and Match App + System Default resolve from an injected device locale when available, otherwise
+ * they ask AppLocaleController for the current system locale at the point of use.
  */
 object LocalizationModel {
 
-    /** Layer A — App UI language preference labels. */
     object AppLanguage {
         const val SYSTEM_DEFAULT = AppLocaleController.SYSTEM_DEFAULT
         const val ENGLISH = AppLocaleController.ENGLISH
         const val TURKISH = AppLocaleController.TURKISH
-
-        /** Selectable options in display order. */
         val OPTIONS = AppLocaleController.OPTIONS
-
-        /** Whether the given stored label is one of the valid App Language options. */
         fun isValid(label: String): Boolean = label.trim() in OPTIONS
     }
 
-    /** Layer B — Search String Language preference labels. */
     object SearchStringLanguage {
         const val AUTO_SAFE = "Auto"
         const val MATCH_APP = "Match App Language"
@@ -50,29 +34,35 @@ object LocalizationModel {
         const val ITALIAN = "Italian"
         const val TURKISH = "Turkish"
 
-        /** Selectable options in display order. */
         val OPTIONS = listOf(AUTO_SAFE, MATCH_APP, ENGLISH, GERMAN, SPANISH, FRENCH, ITALIAN, TURKISH)
-
-        /** Default — conservative: verified device language or English fallback. */
         const val DEFAULT = AUTO_SAFE
 
-        /**
-         * Resolves the *effective* search-string language from the stored preference.
-         *
-         * Safety invariant: Auto/blank uses only verified supported language tags and falls
-         * back to English for unsupported locales.
-         */
-        fun resolve(storedValue: String?, appLanguage: String? = null, deviceLocale: Locale = AppLocaleController.deviceLocale()): String {
+        fun resolve(
+            storedValue: String?,
+            appLanguage: String? = null,
+            deviceLocale: Locale? = null
+        ): String {
             val pref = storedValue ?: DEFAULT
+
+            // Explicit search-string language is fully independent from device/UI language and
+            // must remain JVM-testable without touching Android Resources.
+            if (pref.isNotBlank() &&
+                !pref.equals(AUTO_SAFE, ignoreCase = true) &&
+                !pref.equals(MATCH_APP, ignoreCase = true) &&
+                !pref.equals("Match App", ignoreCase = true)
+            ) {
+                return pref
+            }
+
             if (pref.equals(MATCH_APP, ignoreCase = true) || pref.equals("Match App", ignoreCase = true)) {
-                val appLang = appLanguage ?: "System Default"
-                return searchLanguageForTag(AppLocaleController.resolvedLocaleTagFor(appLang, deviceLocale))
+                val appLang = appLanguage ?: AppLanguage.SYSTEM_DEFAULT
+                val explicitAppTag = AppLocaleController.localeTagFor(appLang)
+                val tag = explicitAppTag ?: AppLocaleController.supportedTagFor(deviceLocale ?: AppLocaleController.deviceLocale())
+                return searchLanguageForTag(tag)
             }
-            return if (pref.isBlank() || pref.equals("Auto", ignoreCase = true)) {
-                searchLanguageForTag(AppLocaleController.supportedTagFor(deviceLocale))
-            } else {
-                pref
-            }
+
+            val currentDevice = deviceLocale ?: AppLocaleController.deviceLocale()
+            return searchLanguageForTag(AppLocaleController.supportedTagFor(currentDevice))
         }
 
         fun searchLanguageForTag(tag: String): String = when (tag.lowercase().substringBefore('-')) {
@@ -84,25 +74,19 @@ object LocalizationModel {
             else -> ENGLISH
         }
 
-        /** True only when the user EXPLICITLY chose Turkish for search strings. */
         fun isTurkishExplicitlyChosen(storedValue: String?): Boolean =
-            (storedValue?.trim() == TURKISH)
+            storedValue?.trim() == TURKISH
 
-        /** True when the effective output would be Turkish. */
-        fun resolvesToTurkish(storedValue: String?, appLanguage: String? = null, deviceLocale: Locale = AppLocaleController.deviceLocale()): Boolean =
-            resolve(storedValue, appLanguage, deviceLocale) == TURKISH
+        fun resolvesToTurkish(
+            storedValue: String?,
+            appLanguage: String? = null,
+            deviceLocale: Locale? = null
+        ): Boolean = resolve(storedValue, appLanguage, deviceLocale) == TURKISH
 
-        /** Auto Safe does not become Turkish on an English/unsupported device locale. */
-        fun autoSafeNeverBecomesTurkish(): Boolean {
-            return resolve(AUTO_SAFE, deviceLocale = Locale.ENGLISH) == ENGLISH
-        }
+        fun autoSafeNeverBecomesTurkish(): Boolean =
+            resolve(AUTO_SAFE, deviceLocale = Locale.ENGLISH) == ENGLISH
     }
 
-    /**
-     * Documents and enforces the core two-layer independence guarantee. The app UI language
-     * has NO effect on the resolved search-string language. Returns the resolved
-     * search-string language so callers don't accidentally derive it from the UI language.
-     */
     fun resolveSearchStringLanguageIndependentOf(
         searchStringLengthPref: String?,
         appLanguagePref: String?
