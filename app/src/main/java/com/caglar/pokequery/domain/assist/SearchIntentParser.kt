@@ -153,13 +153,13 @@ object SearchIntentParser {
 
     private val patterns = listOf(
         IntentPattern(
-            keywords = listOf("hundo", "perfect", "100%", "15/15/15", "15 15 15", "max iv", "all 15", "yüzde yüz", "yuzde yuz", "100 iv", "kusursuz", "mükemmel", "mukemmel", "güçlü", "guclu"),
+            keywords = listOf("hundo", "hundos", "perfect", "100%", "15/15/15", "15 15 15", "max iv", "all 15", "yüzde yüz", "yuzde yuz", "100 iv", "kusursuz", "mükemmel", "mukemmel", "güçlü", "guclu"),
             tokens = listOf("4*"),
             explanation = "Finds Pokémon with perfect 15/15/15 IVs (exact 100% appraisal using 4*). Inspection only — does not filter or exclude anything.",
             limitations = listOf("4* also matches purified Pokémon. Check manually if you want non-purified only.", "IV appraisal is an approximation, not exact stats.")
         ),
         IntentPattern(
-            keywords = listOf("nundo", "0%", "0/0/0", "0 0 0", "zero iv", "lowest", "minimum iv", "sıfır iv", "sifir iv", "0 iv", "en düşük", "en dusuk"),
+            keywords = listOf("nundo", "nundos", "0%", "0/0/0", "0 0 0", "zero iv", "lowest", "minimum iv", "sıfır iv", "sifir iv", "0 iv", "en düşük", "en dusuk"),
             tokens = listOf("0attack", "0defense", "0hp"),
             explanation = "Finds Pokémon with 0/0/0 IVs. This is an exact match — only true 0% appraisal shows.",
             limitations = listOf("IV floor events (trades, weather boost, raids) make 0% IV impossible.")
