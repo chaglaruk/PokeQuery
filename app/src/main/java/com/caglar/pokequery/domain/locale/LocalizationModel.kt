@@ -12,7 +12,8 @@ import java.util.Locale
  *
  * The two layers are independent. Explicit search-language choices never consult Android. Auto
  * and Match App + System Default resolve from an injected device locale when available, otherwise
- * they ask AppLocaleController for the current system locale at the point of use.
+ * they consult the live system locale on Android and safely fall back to English in plain JVM
+ * environments.
  */
 object LocalizationModel {
 
@@ -37,6 +38,11 @@ object LocalizationModel {
         val OPTIONS = listOf(AUTO_SAFE, MATCH_APP, ENGLISH, GERMAN, SPANISH, FRENCH, ITALIAN, TURKISH)
         const val DEFAULT = AUTO_SAFE
 
+        private fun currentDeviceLocaleOrEnglish(deviceLocale: Locale?): Locale {
+            if (deviceLocale != null) return deviceLocale
+            return runCatching { AppLocaleController.deviceLocale() }.getOrDefault(Locale.ENGLISH)
+        }
+
         fun resolve(
             storedValue: String?,
             appLanguage: String? = null,
@@ -57,11 +63,11 @@ object LocalizationModel {
             if (pref.equals(MATCH_APP, ignoreCase = true) || pref.equals("Match App", ignoreCase = true)) {
                 val appLang = appLanguage ?: AppLanguage.SYSTEM_DEFAULT
                 val explicitAppTag = AppLocaleController.localeTagFor(appLang)
-                val tag = explicitAppTag ?: AppLocaleController.supportedTagFor(deviceLocale ?: AppLocaleController.deviceLocale())
+                val tag = explicitAppTag ?: AppLocaleController.supportedTagFor(currentDeviceLocaleOrEnglish(deviceLocale))
                 return searchLanguageForTag(tag)
             }
 
-            val currentDevice = deviceLocale ?: AppLocaleController.deviceLocale()
+            val currentDevice = currentDeviceLocaleOrEnglish(deviceLocale)
             return searchLanguageForTag(AppLocaleController.supportedTagFor(currentDevice))
         }
 
