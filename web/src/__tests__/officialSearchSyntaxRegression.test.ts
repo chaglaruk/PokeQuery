@@ -4,13 +4,16 @@ import { lint } from '../engine/linter'
 import { translateSyntax } from '../engine/searchTermMapper'
 
 describe('current official inventory search syntax', () => {
-  it('preserves the officially documented pipe multi-criteria operator', () => {
+  it('keeps generated PokeQuery syntax pipe-free even though the game documents pipe', () => {
     const generated = buildGoal('expert', '', 'shiny|legendary', 'English')
-    expect(generated.rawSyntax).toBe('shiny|legendary')
-    expect(lint(generated.rawSyntax).some(w => w.isError && w.message.includes('|'))).toBe(false)
+    expect(generated.rawSyntax).toBe('shiny,legendary')
+    expect(generated.rawSyntax).not.toContain('|')
+    expect(lint('shiny|legendary').some(w => w.isError && w.message.includes('|'))).toBe(true)
   })
 
-  it('translates localized tokens on both sides of pipe without changing the operator', () => {
+  it('localized canonical generated output remains pipe-free', () => {
+    expect(buildGoal('expert', '', 'shiny|legendary', 'Turkish').rawSyntax).toBe('parlak,efsanevi')
+    // Mapper itself remains syntax-preserving; generator/copy policy owns the PokeQuery no-pipe rule.
     expect(translateSyntax('shiny|legendary', 'Turkish')).toBe('parlak|efsanevi')
   })
 
