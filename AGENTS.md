@@ -135,7 +135,7 @@ python scripts/check_runtime_assets.py
 ```
 For an intentional live feed regeneration, follow the actual workflow order: generate -> `enrich_event_feed.py ... --strict` -> validate -> synchronize both fallbacks.
 
-### Web/PWA
+### Web/PWA fast gate
 ```bash
 cd web
 npm ci
@@ -144,8 +144,9 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
-npm run test:e2e    # UI/routing/offline/parity-affecting work
 ```
+
+Playwright E2E is intentionally separated from routine PR validation because it is slow. Do not block ordinary development on it. Run the manual `PWA Playwright E2E` workflow only for targeted routing/offline regressions or when an explicit release gate calls for it. Optimising/re-expanding automatic Playwright coverage is deferred work.
 
 ### Visual/device gates
 - UI/copy/localization changes: screenshots/contact sheet + compact/long-locale review.
