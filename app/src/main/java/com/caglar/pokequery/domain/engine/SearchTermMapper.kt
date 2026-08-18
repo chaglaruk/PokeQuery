@@ -222,7 +222,7 @@ object SearchTermMapper {
         .sortedByDescending { it.length }
 
     private val turkishTokenRegexes = turkishDistinctTokens.map { token ->
-        Regex("(?<=^|[&!,;:\\s])${Regex.escape(token)}(?=[0-9\\-&,;:\\s]|\$)", RegexOption.IGNORE_CASE)
+        Regex("(?<=^|[&|!,;:\\s])${Regex.escape(token)}(?=[0-9\\-&|,;:\\s]|\$)", RegexOption.IGNORE_CASE)
     }
 
     fun getMapFor(language: String): Map<String, String> = when (language) {
@@ -234,15 +234,11 @@ object SearchTermMapper {
         else -> emptyMap()
     }
 
-    /**
-     * Resolves the effective output language from the stored setting.
-     */
+    /** Resolves the effective output language from the stored setting. */
     fun resolveLanguage(language: String): String =
         if (language.isBlank() || language.equals("Auto", ignoreCase = true)) "English" else language
 
-    /**
-     * Token-boundary-aware heuristic: does this generated search string look like Turkish output?
-     */
+    /** Token-boundary-aware heuristic: does this generated search string look like Turkish output? */
     fun looksTurkish(rawSyntax: String): Boolean {
         if (rawSyntax.isBlank()) return false
         if (rawSyntax.any { turkishChars.contains(it) }) return true
@@ -255,7 +251,6 @@ object SearchTermMapper {
         if (resolvedLanguage == "English" || query.isBlank()) return emptyList()
         val map = getMapFor(resolvedLanguage)
 
-        // Find all tokens in the query split on standard PokeQuery separators
         val segments = query.split(Regex("[&!,;:|\\s]+"))
             .map { it.replace(Regex("^[!]+"), "").replace(Regex("[0-9\\-*]+$"), "").trim() }
             .filter { it.isNotEmpty() }
@@ -275,12 +270,12 @@ object SearchTermMapper {
         val keys = map.keys.sortedByDescending { it.length }
 
         for (key in keys) {
-            val tr = map[key]!!
+            val localized = map[key]!!
 
-            // Segment boundary matching: preceded by start of string or & ! , ; :
-            // and followed by digit, hyphen, separator, or end of string.
-            val regex = Regex("(?<=^|[&!,;:])(${Regex.escape(key)})(?=[0-9\\-&,;:]|\$)")
-            translated = regex.replace(translated, tr)
+            // Segment boundary matching includes both officially documented multi-criteria
+            // separators '&' and '|', plus the documented multi-search separators ',', ';', ':'.
+            val regex = Regex("(?<=^|[&|!,;:])(${Regex.escape(key)})(?=[0-9\\-&|,;:]|\$)")
+            translated = regex.replace(translated, localized)
         }
 
         return translated
