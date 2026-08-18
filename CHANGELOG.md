@@ -1,9 +1,63 @@
 # Changelog
 
-Notable changes to PokeQuery. Dates are grouped by release; the current shipped
-version is **0.5.2** (versionCode 13).
+Notable changes to PokeQuery. Dates are grouped by release.
+
+The current Android release candidate is **0.7.5** (`versionCode 25`).
+The Web/PWA version remains **0.7.3** and is versioned independently.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
+
+---
+
+## [0.7.5] — pre-AAB safety, Search Assistant date intent, feedback stability
+
+### Added
+- **Caught-date Search Assistant intents** for English and Turkish natural language.
+  Queries such as `caught in April 2025`, `caught in 2025`,
+  `nisan 2025'te yakalanan` and month-only requests now compile to official
+  `yearYYYY` + rolling `ageN-M` syntax.
+- **Caught-date composition** with existing Search Assistant intents, so date
+  filters can be combined with shiny, hundo, legendary, shadow and exclusions
+  without dropping either side of the request.
+- Deterministic month/year tests, including leap-year, future-date, DST-safe Web
+  date math, all 12 English/Turkish month names, and localized numeric
+  `year`/`age` token translation.
+- Real Chromium offline PWA coverage for precached Event Guide and Knowledge data.
+
+### Fixed
+- **Tester feedback crash** when Android resolved the `mailto:` intent to the app
+  itself. Feedback launch is now failure-safe; physical-device validation opens
+  the system chooser without a fatal exception.
+- **Search Assistant polarity** for mixed positive/negative intent, contractions,
+  contrast clauses and list inheritance (`don't hide`, `without ... but with ...`,
+  `show all but ...`).
+- **Caught-date combined-intent regression** that initially caused date matching to
+  short-circuit generic filters such as shiny/hundo/exclusions.
+- **2016/2017/2018 collision** where an explicit caught year could incorrectly add
+  the legacy `age365-` intent.
+- **App Language / Search String Language independence** in Android Search
+  Assistant, including localized output under a different UI language.
+- **Exact-token safety checks** for localized protection deduplication and count
+  protections; unsupported `untraded` is blocked.
+- **No-pipe invariant hardening** across generators, linter paths and regression
+  tests. PokeQuery-generated output never intentionally emits `|`.
+- **Event Guide freshness**: Android runtime fallback is aligned with the canonical
+  feed and widget/event paths no longer rely on stale July event entries.
+- **PWA offline/update behavior**, unknown-route fallback and dynamic i18n fallback.
+- **Privacy/intent hardening** for browser failure handling, widget PendingIntent
+  identity and the non-exported widget copy path.
+- Historical runtime Pokémon character sprite bytes replaced with an original
+  neutral PokeQuery event glyph.
+
+### Validation
+- Android unit, lint, generator/fallback, asset and event-feed CI passed on the
+  audited pre-release source.
+- Web typecheck, lint, unit, build and multi-browser Playwright CI passed.
+- Samsung Galaxy S25 / Android 16 physical validation covered Search Assistant
+  polarity, caught-date composition, localized copied output, Event Guide, Privacy
+  and tester-feedback launch.
+- Launcher widget discovery on Samsung One UI remains a known deferred optional
+  issue; it does not block the core Closed Testing release.
 
 ---
 
@@ -99,6 +153,7 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+[0.7.5]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.7.5
 [0.5.2]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.5.2
 [0.5.1]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.5.1
 [0.5.0]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.5.0
