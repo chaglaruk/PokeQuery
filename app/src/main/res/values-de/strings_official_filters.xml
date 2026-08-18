@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="official_filter_more">Weitere offizielle Filter</string>
+    <string name="official_filter_appraisal">Bewertung</string>
+    <string name="official_filter_size">Größe</string>
+    <string name="official_filter_buddy_level">Kumpel-Level</string>
+    <string name="official_filter_mega_level">Mega-Level</string>
+    <string name="official_filter_region">Region</string>
+    <string name="official_filter_default">Offizielle Filter</string>
+    <string name="official_filter_parameterized_hint">Offene offizielle Suchfamilien sind im Raw-Modus verfügbar: Name/Spitzname/Pokédex-Nr. und Typ, +Entwicklungsfamilie, WP/KP/Entfernung/Alter/Jahr mit Min/Max/Bereichen, @Attacke, @Typ, @1/@2/@3 und #Tag.</string>
+    <string name="official_filter_raw_hint">Offizielle parametrische Beispiele: wp-1500 · kp100- · alter0-7 · jahr2026 · +Pikachu · @Spukball · @3geist · #tag. Für mehrere Kriterien &amp; verwenden, für NOT ! und für mehrere Suchen , : ;. PokeQuery sperrt | bewusst, damit erzeugte Suchstrings einheitlich bleiben.</string>
+</resources>
