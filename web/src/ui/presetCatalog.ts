@@ -52,8 +52,8 @@ export function buildPresetOutput(preset: Preset, language: string): PresetOutpu
     rawSyntax: localized.rawSyntax,
     riskLevel: localized.riskLevel,
     warnings,
-    // Copy policy is centralized in the linter/ExpertCopyPolicy. Do not add operator-specific
-    // blocks here: current official inventory-search documentation supports '|'.
+    // Copy policy is centralized in the linter/ExpertCopyPolicy. buildString normalizes any
+    // incoming game-level pipe syntax to PokeQuery's canonical comma form before this point.
     copyBlocked: !canCopy(canonical.rawSyntax),
   }
 }
