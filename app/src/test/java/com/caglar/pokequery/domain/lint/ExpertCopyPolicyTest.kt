@@ -4,16 +4,12 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * Regression tests for Expert Builder safety policy.
- * Error-level warnings block copy; advisory warnings may proceed. The current official Pokémon GO
- * Help Center documents `|` as a valid multi-criteria combiner, so it is no longer an error.
- */
+/** Regression tests for Expert Builder safety policy. */
 class ExpertCopyPolicyTest {
 
     @Test
-    fun `official pipe criteria operator allows copy`() {
-        assertTrue(ExpertCopyPolicy.canCopy("shiny|lucky"))
+    fun `pipe operator blocks copy`() {
+        assertFalse(ExpertCopyPolicy.canCopy("shiny|lucky"))
     }
 
     @Test
@@ -49,8 +45,8 @@ class ExpertCopyPolicyTest {
     }
 
     @Test
-    fun `true safety errors still block copy`() {
-        assertTrue(ExpertCopyPolicy.canCopy("shiny|lucky"))
+    fun `true safety errors block copy`() {
+        assertFalse(ExpertCopyPolicy.canCopy("shiny|lucky"))
         assertFalse(ExpertCopyPolicy.canCopy("count2-"))
         assertFalse(ExpertCopyPolicy.canCopy("count2-&shiny"))
     }
