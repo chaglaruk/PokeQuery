@@ -69,7 +69,7 @@ python scripts/validate_event_feed.py docs/event-feed/pokequery-events.json
 python scripts/check_runtime_assets.py
 ```
 
-### Web/PWA
+### Web/PWA fast gate
 ```bash
 cd web
 npm ci
@@ -78,8 +78,9 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
-npm run test:e2e
 ```
+
+Playwright E2E is a separate manual workflow and is not a routine PR blocker. Run `PWA Playwright E2E` when a targeted routing/offline regression or explicit release gate requires it. Playwright optimisation/automatic scheduling is deferred.
 
 UI/copy/localization work also requires visual review; device-specific Android behavior requires appropriate physical-device/ADB validation.
 
