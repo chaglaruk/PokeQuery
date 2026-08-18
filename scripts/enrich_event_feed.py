@@ -14,6 +14,8 @@ import html
 import json
 import re
 import sys
+import time
+import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
@@ -46,7 +48,10 @@ GAMEPLAY_CATEGORIES = {
 def clean_text(value: str) -> str:
     value = html.unescape(value or "")
     value = value.replace("\xa0", " ").replace("\u200b", "")
-    return re.sub(r"\s+", " ", value).strip()
+    value = re.sub(r"\s+", " ", value).strip()
+    value = re.sub(r"\s+([,.;:!?])", r"\1", value)
+    value = re.sub(r"(?<=[)\]])-(?=[^\W\d_])", " - ", value, flags=re.UNICODE)
+    return value
 
 
 def normalized_fact(value: str) -> str:
@@ -55,10 +60,22 @@ def normalized_fact(value: str) -> str:
     return clean_text(value).casefold().replace("\u0307", "")
 
 
+def is_lead_in_only(value: object) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+    normalized = normalized_fact(value)
+    patterns = (
+        r"^the following pok[eé]mon will appear(?: more frequently)? in the wild[.:]?$",
+        r"^the following pok[eé]mon will appear in raids?[.:]?$",
+        r"^appearing in (?:one|three|five|1|3|5)[ -]star raids?[.:]?$",
+    )
+    return any(re.fullmatch(pattern, normalized, flags=re.IGNORECASE) for pattern in patterns)
+
+
 def is_generic(value: object) -> bool:
     if not isinstance(value, str) or not value.strip():
         return True
-    return normalized_fact(value) in {normalized_fact(item) for item in GENERIC_FACTS}
+    return normalized_fact(value) in {normalized_fact(item) for item in GENERIC_FACTS} or is_lead_in_only(value)
 
 
 def meaningful(value: object) -> bool:
@@ -104,7 +121,10 @@ def derive_turkish_title(title: str) -> Optional[str]:
     )
     for source, target in suffixes:
         if title.endswith(source):
-            return title[: -len(source)] + target
+            base = title[: -len(source)]
+            if re.search(r"\b(?:and|or)\b", base, flags=re.IGNORECASE):
+                return None
+            return base + target
     return None
 
 
@@ -235,7 +255,7 @@ def _useful_lines(lines: Iterable[str]) -> List[str]:
     for raw in lines:
         line = clean_text(raw)
         lower = line.lower()
-        if len(line) < 12 or any(lower.startswith(prefix) for prefix in boilerplate):
+        if len(line) < 12 or any(lower.startswith(prefix) for prefix in boilerplate) or is_lead_in_only(line):
             continue
         if lower in seen:
             continue
@@ -254,28 +274,38 @@ def _compact(lines: Iterable[str], max_items: int = 7, max_chars: int = 900) -> 
     return output
 
 
-def _section_lines(page: ParsedPage, keywords: Iterable[str]) -> List[str]:
-    matches: List[str] = []
-    keys = tuple(k.lower() for k in keywords)
+def _classified_section_lines(page: ParsedPage) -> Dict[str, List[str]]:
+    buckets: Dict[str, List[str]] = {
+        "featured": [],
+        "bonuses": [],
+        "raids": [],
+        "research": [],
+        "notes": [],
+    }
     for heading, lines in page.sections.items():
         lower = heading.lower()
-        if any(key in lower for key in keys):
-            matches.extend(lines)
-    return matches
+        if any(key in lower for key in ("research", "collection challenge", "challenge", "ticket", "timed")):
+            buckets["research"].extend(lines)
+        elif any(key in lower for key in ("raid", "max battle", "max battles")):
+            buckets["raids"].extend(lines)
+        elif any(key in lower for key in ("featured", "wild", "encounter", "egg", "spawn", "incense", "lure", "showcase", "shiny")):
+            buckets["featured"].extend(lines)
+        elif any(key in lower for key in ("bonus", "bonuses", "reward", "rewards")):
+            buckets["bonuses"].extend(lines)
+        elif any(key in lower for key in ("additional", "note", "notes", "important", "remember")):
+            buckets["notes"].extend(lines)
+    return buckets
 
 
 def extract_enrichment(page: ParsedPage, event_title: str) -> Dict[str, str]:
     _ = event_title
     intro = _compact(page.intro, max_items=2, max_chars=650)
-    # Deliberately avoid generic heading words such as "Pokémon" or "Features": season/event pages
-    # often contain unrelated sub-events under those headings. Use encounter-specific sections.
-    featured = _compact(
-        _section_lines(page, ("featured", "wild", "encounter", "egg", "spawn", "incense", "lure", "showcase", "shiny"))
-    )
-    bonuses = _compact(_section_lines(page, ("bonus", "bonuses", "reward", "rewards")))
-    raids = _compact(_section_lines(page, ("raid", "max battle", "max battles")))
-    research = _compact(_section_lines(page, ("research", "collection challenge", "challenge", "ticket", "timed")))
-    notes = _compact(_section_lines(page, ("additional", "note", "notes", "important", "remember")), max_items=4, max_chars=600)
+    sections = _classified_section_lines(page)
+    featured = _compact(sections["featured"])
+    bonuses = _compact(sections["bonuses"])
+    raids = _compact(sections["raids"])
+    research = _compact(sections["research"])
+    notes = _compact(sections["notes"], max_items=4, max_chars=600)
 
     result: Dict[str, str] = {}
     if intro:
@@ -295,16 +325,27 @@ def extract_enrichment(page: ParsedPage, event_title: str) -> Dict[str, str]:
     return result
 
 
-def fetch_html(url: str, timeout: int = 15) -> str:
+def fetch_html(url: str, timeout: int = 15, attempts: int = 3, backoff_seconds: float = 0.75) -> str:
     request = urllib.request.Request(
         url,
         headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"},
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        content_type = response.headers.get("Content-Type", "")
-        charset_match = re.search(r"charset=([^;]+)", content_type, flags=re.IGNORECASE)
-        charset = charset_match.group(1).strip() if charset_match else "utf-8"
-        return response.read().decode(charset, errors="replace")
+    last_error: Optional[BaseException] = None
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                content_type = response.headers.get("Content-Type", "")
+                charset_match = re.search(r"charset=([^;]+)", content_type, flags=re.IGNORECASE)
+                charset = charset_match.group(1).strip() if charset_match else "utf-8"
+                return response.read().decode(charset, errors="replace")
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            last_error = exc
+            if attempt + 1 >= attempts:
+                raise
+            time.sleep(backoff_seconds * (2 ** attempt))
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("source fetch failed without an exception")
 
 
 def _clear_generic_localizations(event: dict, base_field: str) -> None:
@@ -388,7 +429,7 @@ def enrich_feed(feed: dict, fetcher=fetch_html, strict: bool = False) -> dict:
         raise RuntimeError("Event feed enrichment quality gate failed:\n" + message)
 
     feed["enrichment"] = {
-        "pipeline": "source-page-sections-v2",
+        "pipeline": "source-page-sections-v3",
         "qualityFailures": len(quality_failures),
         "fetchErrors": len(fetch_errors),
     }
