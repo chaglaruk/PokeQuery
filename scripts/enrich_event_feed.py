@@ -21,9 +21,23 @@ from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
+from urllib.parse import urljoin, urlparse
 
 DEFAULT_FEED = Path("docs/event-feed/pokequery-events.json")
 USER_AGENT = "PokeQuery-EventFeed/0.7.6 (+https://github.com/chaglaruk/PokeQuery)"
+
+# Event discovery currently records only these two configured sources. Pokémon GO Live now
+# redirects pokemongolive.com article URLs to pokemongo.com, so both official hostnames are
+# explicitly allowed. Exact hosts (plus their conventional www aliases) keep build-time source
+# enrichment from becoming a generic URL fetcher.
+ALLOWED_SOURCE_HOSTS = frozenset({
+    "pokemongolive.com",
+    "www.pokemongolive.com",
+    "pokemongo.com",
+    "www.pokemongo.com",
+    "leekduck.com",
+    "www.leekduck.com",
+})
 
 GENERIC_FACTS = {
     "verify details in-game before acting.",
@@ -325,15 +339,43 @@ def extract_enrichment(page: ParsedPage, event_title: str) -> Dict[str, str]:
     return result
 
 
+def validate_source_url(url: str) -> str:
+    """Accept only configured public Event Guide sources over standard HTTPS."""
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower().rstrip(".")
+    if parsed.scheme.lower() != "https":
+        raise ValueError(f"Event source URL must use HTTPS: {url}")
+    if parsed.username or parsed.password:
+        raise ValueError(f"Event source URL must not contain credentials: {url}")
+    if parsed.port not in (None, 443):
+        raise ValueError(f"Event source URL must use the standard HTTPS port: {url}")
+    if host not in ALLOWED_SOURCE_HOSTS:
+        raise ValueError(f"Event source host is not approved: {host or '<missing>'}")
+    return url
+
+
+class ApprovedSourceRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Refuse redirects that leave the approved HTTPS Event Guide source set."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validated = validate_source_url(urljoin(req.full_url, newurl))
+        return super().redirect_request(req, fp, code, msg, headers, validated)
+
+
 def fetch_html(url: str, timeout: int = 15, attempts: int = 3, backoff_seconds: float = 0.75) -> str:
+    validated_url = validate_source_url(url)
     request = urllib.request.Request(
-        url,
+        validated_url,
         headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"},
     )
+    opener = urllib.request.build_opener(ApprovedSourceRedirectHandler())
     last_error: Optional[BaseException] = None
     for attempt in range(attempts):
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
+            with opener.open(request, timeout=timeout) as response:
+                # Defense in depth: the redirect handler validates each hop, and the final URL is
+                # checked again in case a custom response handler ever changes redirect behavior.
+                validate_source_url(response.geturl())
                 content_type = response.headers.get("Content-Type", "")
                 charset_match = re.search(r"charset=([^;]+)", content_type, flags=re.IGNORECASE)
                 charset = charset_match.group(1).strip() if charset_match else "utf-8"
@@ -406,12 +448,15 @@ def enrich_feed(feed: dict, fetcher=fetch_html, strict: bool = False) -> dict:
                 event["titleTr"] = derived_tr
 
         source_url = str(event.get("sourceUrl") or "").strip()
-        if not source_url.startswith(("https://", "http://")):
+        if not source_url:
             continue
         try:
             page = parse_detail_html(fetcher(source_url))
             page_title = normalize_event_title(page.title or "")
-            if page_title and len(page_title) <= 140:
+            # The discovery/catalog title is the event identity. Source-page H1 text is useful
+            # only as a fallback for a genuinely title-less entry; never let an unrelated/error
+            # page silently rename an existing event across all generated feed copies.
+            if not normalized_title and page_title and len(page_title) <= 140:
                 event["title"] = page_title
                 if not event.get("titleTr"):
                     derived_tr = derive_turkish_title(page_title)
