@@ -31,6 +31,9 @@ object AppLocaleController {
     const val ESPANOL = "Español"
     const val ITALIANO = "Italiano"
 
+    /** Previous process default used only as a compatibility fallback for low-level null restores. */
+    private var processLocaleBeforeExplicitOverride: Locale? = null
+
     /** The valid, selectable App Language labels in display order. */
     val OPTIONS: List<String> = listOf(
         SYSTEM_DEFAULT,
@@ -66,10 +69,6 @@ object AppLocaleController {
      * Reads the device locale dynamically rather than keeping a process-start snapshot.
      * Resources.getSystem() is intentionally used so an explicit PokeQuery app language cannot
      * overwrite the value we later need when the user switches back to System Default.
-     *
-     * Keep this Android lookup out of default-argument evaluation for otherwise-pure helpers:
-     * local JVM tests use android.jar stubs, and explicit app/search languages do not need to
-     * consult the device at all.
      */
     fun deviceLocale(): Locale {
         val locales = Resources.getSystem().configuration.locales
@@ -99,13 +98,20 @@ object AppLocaleController {
     }
 
     /**
-     * For an explicit tag, no Android lookup is needed. Restoring System Default requires the
-     * current device locale; production callers provide it. Tests can inject it deterministically.
+     * For an explicit tag, no Android lookup is needed. Production System Default callers pass
+     * the current device locale explicitly. The remembered pre-override process locale exists
+     * only so legacy low-level callers of applyProcessLocale(null) remain deterministic without
+     * reintroducing a process-start device-locale snapshot.
      */
     fun applyProcessLocale(tag: String?, currentDeviceLocale: Locale? = null) {
         if (tag.isNullOrEmpty()) {
-            Locale.setDefault(currentDeviceLocale ?: deviceLocale())
+            val target = currentDeviceLocale ?: processLocaleBeforeExplicitOverride ?: Locale.getDefault()
+            Locale.setDefault(target)
+            processLocaleBeforeExplicitOverride = null
             return
+        }
+        if (processLocaleBeforeExplicitOverride == null) {
+            processLocaleBeforeExplicitOverride = currentDeviceLocale ?: Locale.getDefault()
         }
         Locale.setDefault(Locale.forLanguageTag(tag))
     }
@@ -115,10 +121,7 @@ object AppLocaleController {
         currentDeviceLocale: Locale? = null
     ): Locale = Locale.forLanguageTag(resolvedLocaleTagFor(appLanguage, currentDeviceLocale))
 
-    /**
-     * Reads back the currently applied App Language label (System Default if unsupported).
-     * This is process state only and does not call LocaleManager.
-     */
+    /** Reads back the currently applied in-process App Language label. */
     fun currentLabel(@Suppress("UNUSED_PARAMETER") context: Context): String =
         when (Locale.getDefault().language) {
             "en" -> ENGLISH
@@ -131,10 +134,7 @@ object AppLocaleController {
         }
 }
 
-/**
- * Pure label/tag helpers (no Android context) used by Settings display and unit tests.
- * Kept here so the locale domain has one source of truth for the preference vocabulary.
- */
+/** Pure label/tag helpers used by Settings display and unit tests. */
 object AppLocaleLabels {
     fun labelForLanguageTag(tag: String?): String = when (tag?.lowercase()?.substringBefore('-')) {
         "en" -> AppLocaleController.ENGLISH
