@@ -19,7 +19,7 @@ class OfficialSearchSyntaxCoverageTest {
             "attack-appraisal", "defense-appraisal", "hp-appraisal", "egg-exclusive", "hatched",
             "lucky", "legendary", "mythical", "background", "location-background", "purified",
             "shadow", "shiny", "costume", "tag", "traded", "ultra-beast",
-            "and", "or", "not", "range"
+            "and", "or", "not", "maximum", "minimum", "range", "punctuation"
         )
         assertEquals(expected, OfficialSearchSyntax.familyIds)
     }
@@ -32,6 +32,19 @@ class OfficialSearchSyntaxCoverageTest {
         assertEquals((1..3).map { "mega$it" }, OfficialSearchSyntax.megaLevelValues)
         assertEquals(10, OfficialSearchSyntax.regions.size)
         assertEquals(18, OfficialSearchSyntax.pokemonTypes.size)
+        assertEquals(
+            listOf("ultrabeast", "ultra beasts"),
+            OfficialSearchSyntax.byId("ultra-beast")!!.finiteValues
+        )
+    }
+
+    @Test
+    fun `current official operator and bounds syntax are represented exactly`() {
+        assertEquals("& or |", OfficialSearchSyntax.byId("and")!!.pattern)
+        assertEquals("cp-300", OfficialSearchSyntax.byId("maximum")!!.example)
+        assertEquals("cp300-", OfficialSearchSyntax.byId("minimum")!!.example)
+        assertEquals("cp200-300", OfficialSearchSyntax.byId("range")!!.example)
+        assertEquals("Mr. Mime", OfficialSearchSyntax.byId("punctuation")!!.example)
     }
 
     @Test
