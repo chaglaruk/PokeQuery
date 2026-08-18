@@ -9,6 +9,7 @@ const FALLBACK_PATH = `${import.meta.env.BASE_URL}event-feed-fallback.json`
 const CACHE_KEY = 'pq_event_feed_cache'
 const CACHE_TIMESTAMP_KEY = 'pq_event_feed_cache_ts'
 const FETCH_TIMEOUT_MS = 5000
+const EVENT_STATUSES = new Set(['CURRENT', 'UPCOMING', 'ENDED'])
 
 export type FeedSource = 'online' | 'cached' | 'fallback'
 
@@ -20,14 +21,15 @@ export interface FeedResult {
 
 function isEventFeed(value: unknown): value is EventFeed {
   if (value === null || typeof value !== 'object') return false
-  const candidate = value as { schemaVersion?: unknown; events?: unknown }
+  const candidate = value as { schemaVersion?: unknown; lastUpdated?: unknown; events?: unknown }
   if (candidate.schemaVersion !== 1 || !Array.isArray(candidate.events)) return false
+  if (typeof candidate.lastUpdated !== 'string' || candidate.lastUpdated.length === 0) return false
   return candidate.events.every(event => {
     if (event === null || typeof event !== 'object') return false
     const entry = event as { id?: unknown; title?: unknown; status?: unknown }
     return typeof entry.id === 'string' && entry.id.length > 0 &&
       typeof entry.title === 'string' && entry.title.length > 0 &&
-      typeof entry.status === 'string'
+      typeof entry.status === 'string' && EVENT_STATUSES.has(entry.status)
   })
 }
 
@@ -78,6 +80,10 @@ function getCachedFeed(): EventFeed | null {
     if (!raw) return null
     return parseEventFeed(JSON.parse(raw))
   } catch {
+    try {
+      localStorage.removeItem(CACHE_KEY)
+      localStorage.removeItem(CACHE_TIMESTAMP_KEY)
+    } catch { /* private mode */ }
     return null
   }
 }
