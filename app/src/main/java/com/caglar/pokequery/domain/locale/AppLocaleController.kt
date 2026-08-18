@@ -86,7 +86,8 @@ object AppLocaleController {
     /**
      * Applies the App Language preference as an in-process, recreation-free locale hint.
      * [currentDeviceLocale] is injectable for deterministic tests and is supplied from the
-     * current Activity configuration by MainActivity.
+     * current Activity configuration by MainActivity. System Default deliberately passes a null
+     * explicit tag so [applyProcessLocale] also clears any remembered manual override.
      */
     fun apply(
         @Suppress("UNUSED_PARAMETER") context: Context,
@@ -94,7 +95,7 @@ object AppLocaleController {
         currentDeviceLocale: Locale? = null
     ) {
         val device = currentDeviceLocale ?: deviceLocale()
-        applyProcessLocale(resolvedLocaleTagFor(appLanguage, device), device)
+        applyProcessLocale(localeTagFor(appLanguage), device)
     }
 
     /**
