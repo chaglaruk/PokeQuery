@@ -19,6 +19,7 @@
 - ✅ Official Google bundletool 1.18.3 validation passed.
 - ✅ Built AAB manifest verified directly as package `com.caglar.pokequery`, versionCode `25`, versionName `0.7.5`.
 - ✅ Delivery AAB copy hash matches the Gradle output hash.
+- ✅ Annotated `v0.7.5` created and pushed without moving `v0.7.4`; GitHub comparison confirms `v0.7.5` is identical to release source `b19c3b150468318a71da6c4763266cf4aba10cdd`.
 
 ## Verified release artifact
 
@@ -26,10 +27,10 @@
 - **Size:** 4,933,973 bytes
 - **SHA-256:** `4BEBCCA6911B8F231C11758190BD72EF9708495149BBAEC79791640385116EE1`
 - **Signer certificate SHA-256:** `EB:D1:AF:BF:B1:02:8B:06:11:C5:E1:DE:2F:92:2B:60:A8:A1:22:EE:1D:86:5A:A3:BE:BB:7F:6B:A9:08:AA:8C`
+- **Release tag:** `v0.7.5` → `b19c3b150468318a71da6c4763266cf4aba10cdd`
 
-## Remaining before / during Closed Testing upload
+## Remaining during Closed Testing upload
 
-- [ ] Create annotated `v0.7.5` at the exact release source commit `b19c3b150468318a71da6c4763266cf4aba10cdd`; never move `v0.7.4`.
 - [ ] Upload the exact verified AAB above to Google Play Closed Testing.
 - [ ] Confirm Google Play accepts `versionCode 25` and the upload certificate.
 - [ ] Record the Closed Testing release/upload result after Play Console acceptance.
@@ -48,4 +49,4 @@ Samsung One UI did not list the optional PokeQuery home-screen widgets in the la
 
 ## Current blocker
 
-No application-code or signed-AAB blocker remains. The only remaining release operations are creating the immutable `v0.7.5` tag at the exact release source commit and uploading the verified AAB to Google Play Closed Testing.
+No application-code, CI, tag, signing, or signed-AAB blocker remains. The only remaining release operation is uploading the exact verified AAB to Google Play Closed Testing and confirming Play Console accepts versionCode 25 and the configured upload certificate.
