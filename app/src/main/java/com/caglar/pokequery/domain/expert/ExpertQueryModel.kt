@@ -1,28 +1,20 @@
 package com.caglar.pokequery.domain.expert
 
 /**
- * v0.5.0 / v0.5.1 Expert Builder — modular query model (pure, testable).
+ * Expert Builder query model (pure, deterministic and testable).
  *
- * The chip-based builder composes a raw query from:
- *   - positive tokens (joined with ',' = OR within a group)
- *   - IV floors (e.g. 0attack, 15defense)
- *   - a count floor (countN-)
- *   - age / distance filters (age365-, distance100-)
- *   - exclusions (joined with '&' = AND, each prefixed '!')
+ * [positiveTokens] preserves the original OR-group behavior for the primary include-status row.
+ * [filterTokens] is an additive AND set used by the broader official syntax families (appraisal,
+ * size, buddy/Mega level, region/type and other exact filters). This distinction prevents a
+ * selection such as `shiny` + `kanto` from accidentally becoming `shiny,kanto`.
  *
- * The produced string is fed to the EXISTING Linter / ExpertCopyPolicy /
- * StringBuilderEngine — safety behavior is unchanged. This model never weakens the
- * linter; it only produces text.
- *
- * Order in the output is deterministic: positives (sorted) -> iv floors -> count ->
- * age -> distance -> exclusions.
- *
- * v0.5.1 (Fix 6/7): expanded with age, distance, and IV defense/hp floors so the
- * Expert Builder can offer the richer grouped option set without horizontal scrolling.
- * Defense/hp setters and the new fields are strictly additive.
+ * Numeric/range fields remain explicit. Open-ended official families such as Pokémon names,
+ * nicknames, moves, tags and arbitrary ranges are available through Raw mode and are documented
+ * centrally by OfficialSearchSyntax.
  */
 data class ExpertQueryModel(
     val positiveTokens: Set<String> = emptySet(),
+    val filterTokens: Set<String> = emptySet(),
     val ivAttackFloor: Int? = null,
     val ivDefenseFloor: Int? = null,
     val ivHpFloor: Int? = null,
@@ -36,6 +28,7 @@ data class ExpertQueryModel(
         if (positiveTokens.isNotEmpty()) {
             parts.add(positiveTokens.sorted().joinToString(","))
         }
+        parts.addAll(filterTokens.sorted())
         ivAttackFloor?.let { parts.add("${it}attack") }
         ivDefenseFloor?.let { parts.add("${it}defense") }
         ivHpFloor?.let { parts.add("${it}hp") }
@@ -45,11 +38,14 @@ data class ExpertQueryModel(
         if (exclusions.isNotEmpty()) {
             parts.add(exclusions.sorted().joinToString("&") { "!$it" })
         }
-        return parts.joinToString("&")
+        return parts.filter(String::isNotBlank).joinToString("&")
     }
 
     fun togglePositive(token: String): ExpertQueryModel =
         copy(positiveTokens = if (token in positiveTokens) positiveTokens - token else positiveTokens + token)
+
+    fun toggleFilter(token: String): ExpertQueryModel =
+        copy(filterTokens = if (token in filterTokens) filterTokens - token else filterTokens + token)
 
     fun toggleExclusion(token: String): ExpertQueryModel =
         copy(exclusions = if (token in exclusions) exclusions - token else exclusions + token)
