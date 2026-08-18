@@ -4,8 +4,8 @@ import { describe, it, expect } from 'vitest'
 import { canCopy } from '../engine/expertCopyPolicy'
 
 describe('ExpertCopyPolicy parity', () => {
-  it('official pipe criteria operator allows copy', () => {
-    expect(canCopy('shiny|lucky')).toBe(true)
+  it('pipe operator blocks copy', () => {
+    expect(canCopy('shiny|lucky')).toBe(false)
   })
 
   it('unsafe bare count blocks copy', () => {
@@ -34,8 +34,8 @@ describe('ExpertCopyPolicy parity', () => {
     expect(canCopy('legendary')).toBe(true)
   })
 
-  it('true safety errors still block copy', () => {
-    expect(canCopy('shiny|lucky')).toBe(true)
+  it('true safety errors block copy', () => {
+    expect(canCopy('shiny|lucky')).toBe(false)
     expect(canCopy('count2-')).toBe(false)
     expect(canCopy('count2-&shiny')).toBe(false)
   })
