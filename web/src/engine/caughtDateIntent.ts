@@ -37,6 +37,8 @@ const months: MonthDef[] = [
   { month: 12, enName: 'December', trName: 'Aralık', regex: new RegExp(`(?:^|\\s)(?:december|dec|(?:aralık|aralik)(?:['’]?(?:ta|tan|taki|da|dan|daki))?(?:\\s+ay(?:ı|i)nda)?)(?=${monthEndBoundary})`, 'i') },
 ]
 
+const englishMayMonthContextRegex = /\b(?:caught|acquired|obtained)\s+(?:in\s+)?may\b|\b(?:in|on|during|from|since|around|last|this|previous)\s+may\b|\bmay\s+20\d{2}\b/i
+const turkishMayRegex = /\b(?:mayıs|mayis)\b/i
 const turkishDetectionRegex = /[şŞğĞüÜöÖçÇ]|\b(?:yakala\w*|nisan\w*|ocak\w*|şubat\w*|subat\w*|mart\w*|mayıs\w*|mayis\w*|haziran\w*|temmuz\w*|ağustos\w*|agustos\w*|eylül\w*|eylul\w*|ekim\w*|kasım\w*|kasim\w*|aralık\w*|aralik\w*|bul)\b/i
 
 // DST-safe days between two UTC dates
@@ -65,7 +67,10 @@ export function parseCaughtDateIntent(text: string, today: Date = new Date()): C
   const yearMatch = text.match(yearRegex)
   const year = yearMatch && yearMatch[1] ? parseInt(yearMatch[1], 10) : null
 
-  const matchedMonth = months.find(m => m.regex.test(text)) ?? null
+  let matchedMonth = months.find(m => m.regex.test(text)) ?? null
+  if (matchedMonth?.month === 5 && !turkishMayRegex.test(text) && !englishMayMonthContextRegex.test(text)) {
+    matchedMonth = null
+  }
 
   // Bare caught request (no month and no year)
   if (year === null && matchedMonth === null) {
