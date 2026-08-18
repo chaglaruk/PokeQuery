@@ -8,14 +8,15 @@ object Linter {
     private val reservedTerms = setOf(
         "shiny", "legendary", "mythical", "ultrabeast", "shadow", "purified", "favorite", "favourite",
         "costume", "background", "locationbackground", "specialbackground", "lucky", "traded", "defender",
-        "raid", "remoteraid", "hatched", "research", "gbl", "rocket", "snapshot", "evolve", "evolvenew",
-        "megaevolve", "tradeevolve", "dynamax", "gigantamax", "adventureeffect"
+        "raid", "remoteraid", "hatched", "eggsonly", "research", "gbl", "rocket", "snapshot", "evolve", "evolvenew",
+        "evolvequest", "megaevolve", "tradeevolve", "hypertraining", "item", "fusion", "dynamax", "gigantamax",
+        "adventureeffect"
     )
     private val riskyCategories = setOf("shiny", "legendary", "mythical", "lucky")
 
     private fun tokens(query: String): List<String> =
         query.lowercase()
-            .split('&', ',', ';', ':')
+            .split('&', '|', ',', ';', ':')
             .map(String::trim)
             .filter(String::isNotBlank)
 
@@ -24,9 +25,9 @@ object Linter {
         val lower = query.lowercase()
         val tokens = tokens(query)
 
-        if ('|' in query) {
-            warnings += LintWarning("T3 uncertain operator '|'. Do not use it; use '&' or ',' instead.", true)
-        }
+        // Current official Pokémon GO Help Center documentation lists both '&' and '|' as
+        // supported ways to combine searches matching multiple criteria. Do not reject or
+        // rewrite '|'; Event Guide suggested searches keep their separate no-pipe invariant.
 
         if (tokens.any { it == "!untraded" || it == "untraded" }) {
             warnings += LintWarning("Unsupported token 'untraded'. Use 'traded' to include traded Pokémon or '!traded' to exclude them.", true)
@@ -76,9 +77,7 @@ object Linter {
 
         mapOf(
             "mega" to "Mega0-",
-            "count" to "count2-",
-            "dynamax" to "dynamax1-",
-            "gigantamax" to "gigantamax1-"
+            "count" to "count2-"
         ).filterKeys { shortcut -> shortcut in tokens }.forEach { (shortcut, expansion) ->
             warnings += LintWarning("Shortcut '$shortcut' expands to '$expansion'. Use an explicit term.", false)
         }
