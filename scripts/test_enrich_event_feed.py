@@ -138,6 +138,17 @@ class EventFeedEnrichmentTest(unittest.TestCase):
         self.assertIn("Timed Research", page.sections["Research"])
         self.assertIn("Timed Research rewards encounters.", page.sections["Research"])
 
+    def test_parser_ignores_html_void_elements_inside_article_blocks(self):
+        page = parse_detail_html(
+            "<h1>Event</h1>"
+            "<p>Intro<br>detail<img src='x'> remains intact.</p>"
+            "<h2>Bonuses</h2>"
+            "<p>Bonus<br>line remains intact.</p>"
+        )
+        self.assertEqual("Event", page.title)
+        self.assertEqual(["Intro detail remains intact."], page.intro)
+        self.assertEqual(["Bonus line remains intact."], page.sections["Bonuses"])
+
 
 if __name__ == "__main__":
     unittest.main()
