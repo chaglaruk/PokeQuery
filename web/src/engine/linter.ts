@@ -27,9 +27,15 @@ export function lint(query: string): LintWarning[] {
   const lower = query.toLowerCase()
   const tokens = tokenize(query)
 
-  // The current official Pokémon GO Help Center documents both '&' and '|' as valid
-  // multi-criteria combiners. Event Guide suggested searches retain their separate no-pipe
-  // invariant; Expert/Explain syntax must not reject an official operator.
+  // PokeQuery deliberately never generates or copies the pipe operator. Even if a game-client
+  // version accepts it, the app's canonical grammar remains &, comma, semicolon and colon so
+  // Android/Web output stays deterministic and the long-standing safety invariant is preserved.
+  if (query.includes('|')) {
+    warnings.push({
+      message: "The '|' operator is not supported by PokeQuery. Use '&' for AND or ',' for OR.",
+      isError: true,
+    })
+  }
 
   if (tokens.includes('!untraded') || tokens.includes('untraded')) {
     warnings.push({
