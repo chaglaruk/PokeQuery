@@ -288,6 +288,17 @@ object SearchIntentParser {
         parse(text, LocalDate.now())
 
     internal fun parse(text: String, today: LocalDate): ParsedIntent {
+        if ('|' in text) {
+            return ParsedIntent(
+                tokens = emptyList(),
+                exclusions = emptyList(),
+                rawQuery = "",
+                explanation = "Could not understand this input safely. PokeQuery does not use the | operator.",
+                limitations = listOf("Use the Expert Builder if you need to enter a complex search manually."),
+                canBuild = false
+            )
+        }
+
         val caughtMatch = CaughtDateIntentParser.parse(text, today)
         if (caughtMatch != null && !caughtMatch.canBuild) {
             return ParsedIntent(
