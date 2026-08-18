@@ -11,14 +11,15 @@ const reservedTerms = new Set([
   'shiny', 'legendary', 'mythical', 'ultrabeast', 'shadow', 'purified',
   'favorite', 'favourite', 'costume', 'background', 'locationbackground',
   'specialbackground', 'lucky', 'traded', 'defender', 'raid', 'remoteraid',
-  'hatched', 'research', 'gbl', 'rocket', 'snapshot', 'evolve', 'evolvenew',
-  'megaevolve', 'tradeevolve', 'dynamax', 'gigantamax', 'adventureeffect',
+  'hatched', 'eggsonly', 'research', 'gbl', 'rocket', 'snapshot', 'evolve', 'evolvenew',
+  'evolvequest', 'megaevolve', 'tradeevolve', 'hypertraining', 'item', 'fusion',
+  'dynamax', 'gigantamax', 'adventureeffect',
 ])
 
 const riskyCategories = new Set(['shiny', 'legendary', 'mythical', 'lucky'])
 
 function tokenize(query: string): string[] {
-  return query.toLowerCase().split(/[&,;:]/).map(t => t.trim()).filter(Boolean)
+  return query.toLowerCase().split(/[&|,;:]/).map(t => t.trim()).filter(Boolean)
 }
 
 export function lint(query: string): LintWarning[] {
@@ -26,9 +27,9 @@ export function lint(query: string): LintWarning[] {
   const lower = query.toLowerCase()
   const tokens = tokenize(query)
 
-  if (query.includes('|')) {
-    warnings.push({ message: "T3 uncertain operator '|'. Do not use it; use '&' or ',' instead.", isError: true })
-  }
+  // The current official Pokémon GO Help Center documents both '&' and '|' as valid
+  // multi-criteria combiners. Event Guide suggested searches retain their separate no-pipe
+  // invariant; Expert/Explain syntax must not reject an official operator.
 
   if (tokens.includes('!untraded') || tokens.includes('untraded')) {
     warnings.push({
@@ -91,8 +92,6 @@ export function lint(query: string): LintWarning[] {
   const shortcutMap: Record<string, string> = {
     mega: 'Mega0-',
     count: 'count2-',
-    dynamax: 'dynamax1-',
-    gigantamax: 'gigantamax1-',
   }
   for (const [shortcut, expansion] of Object.entries(shortcutMap)) {
     if (tokens.includes(shortcut)) {
