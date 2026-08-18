@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import copy
 import unittest
+import urllib.request
 
 try:
     from scripts.enrich_event_feed import (
+        ApprovedSourceRedirectHandler,
         clean_text,
         derive_turkish_title,
         enrich_feed,
@@ -12,9 +14,11 @@ try:
         normalize_event_title,
         parse_detail_html,
         validate_active_detail_quality,
+        validate_source_url,
     )
 except ModuleNotFoundError:  # direct: python scripts/test_enrich_event_feed.py
     from enrich_event_feed import (
+        ApprovedSourceRedirectHandler,
         clean_text,
         derive_turkish_title,
         enrich_feed,
@@ -23,6 +27,7 @@ except ModuleNotFoundError:  # direct: python scripts/test_enrich_event_feed.py
         normalize_event_title,
         parse_detail_html,
         validate_active_detail_quality,
+        validate_source_url,
     )
 
 
@@ -64,6 +69,36 @@ class EventFeedEnrichmentTest(unittest.TestCase):
             "Shiny Shadow Giratina (Altered Forme) - if you’re lucky!",
             clean_text("Shiny Shadow Giratina (Altered Forme)-if you’re lucky!"),
         )
+
+    def test_source_url_policy_allows_only_configured_https_hosts(self):
+        for url in (
+            "https://pokemongolive.com/news/example",
+            "https://pokemongo.com/news/example",
+            "https://leekduck.com/events/example",
+            "https://www.leekduck.com/events/example",
+        ):
+            self.assertEqual(url, validate_source_url(url))
+
+        for url in (
+            "http://pokemongolive.com/news/example",
+            "https://example.test/event",
+            "https://127.0.0.1/event",
+            "https://leekduck.com:8443/events/example",
+            "https://user:pass@leekduck.com/events/example",
+        ):
+            with self.assertRaises(ValueError, msg=url):
+                validate_source_url(url)
+
+    def test_redirect_policy_rejects_destination_outside_approved_https_hosts(self):
+        handler = ApprovedSourceRedirectHandler()
+        request = urllib.request.Request("https://pokemongolive.com/news/example")
+        for target in (
+            "http://pokemongo.com/news/example",
+            "https://example.test/news/example",
+            "https://127.0.0.1/internal",
+        ):
+            with self.assertRaises(ValueError, msg=target):
+                handler.redirect_request(request, None, 302, "Found", {}, target)
 
     def test_extracts_source_sections_and_replaces_generic_placeholders(self):
         source = """
@@ -108,6 +143,47 @@ class EventFeedEnrichmentTest(unittest.TestCase):
         self.assertIn("event weekends", enriched["bonuses"])
         self.assertIsNone(enriched["summaryTr"])
         self.assertEqual([], validate_active_detail_quality(result["events"]))
+
+    def test_existing_catalog_title_is_not_replaced_by_page_h1(self):
+        source = (
+            "<h1>Unrelated Error Page</h1>"
+            "<p>This source page still contains enough text to parse as HTML.</p>"
+        )
+        feed = {
+            "events": [{
+                "id": "event-groudon",
+                "title": "Groudon in 5-star Raid Battles",
+                "titleTr": None,
+                "status": "ENDED",
+                "eventCategory": "RAID_ROTATION",
+                "sourceUrl": "https://leekduck.com/events/example",
+                "summary": "Verify details in-game before acting.",
+                "pokemon": [],
+            }]
+        }
+        result = enrich_feed(feed, fetcher=lambda _url: source, strict=False)
+        event = result["events"][0]
+        self.assertEqual("Groudon — 5-Star Raids", event["title"])
+        self.assertEqual("Groudon — 5 Yıldızlı Akınlar", event["titleTr"])
+
+    def test_page_h1_can_fill_a_genuinely_titleless_entry(self):
+        source = "<h1>Groudon in 5-star Raid Battles</h1><p>Official event article.</p>"
+        feed = {
+            "events": [{
+                "id": "event-titleless",
+                "title": "",
+                "titleTr": None,
+                "status": "ENDED",
+                "eventCategory": "RAID_ROTATION",
+                "sourceUrl": "https://leekduck.com/events/example",
+                "summary": "Verify details in-game before acting.",
+                "pokemon": [],
+            }]
+        }
+        result = enrich_feed(feed, fetcher=lambda _url: source, strict=False)
+        event = result["events"][0]
+        self.assertEqual("Groudon — 5-Star Raids", event["title"])
+        self.assertEqual("Groudon — 5 Yıldızlı Akınlar", event["titleTr"])
 
     def test_lead_in_only_detail_does_not_count_as_useful_content(self):
         self.assertFalse(meaningful("The following Pokémon will appear more frequently in the wild."))
