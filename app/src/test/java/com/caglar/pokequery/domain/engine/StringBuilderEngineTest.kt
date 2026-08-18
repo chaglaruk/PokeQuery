@@ -10,23 +10,21 @@ import org.junit.Test
 class StringBuilderEngineTest {
 
     @Test
-    fun `no generated default string contains pipe`() {
+    fun `generated strings preserve official pipe criteria operator`() {
         val result = StringBuilderEngine.buildString(
-            baseQuery = "test|query", 
+            baseQuery = "test|query",
             explanation = "test"
         )
-        assertFalse(result.rawSyntax.contains("|"))
-        assertTrue(result.rawSyntax.contains(","))
+        assertTrue(result.rawSyntax.contains("test|query"))
     }
 
     @Test
     fun `count templates include required exclusions`() {
         val result = StringBuilderEngine.buildString(
             baseQuery = "count2-",
-            protections = emptyList(), // no optional protections
+            protections = emptyList(),
             explanation = "test"
         )
-        // mandatory protections for count should still apply
         assertTrue(result.rawSyntax.contains("!shiny"))
         assertTrue(result.rawSyntax.contains("!legendary"))
         assertTrue(result.rawSyntax.contains("!costume"))
@@ -34,13 +32,9 @@ class StringBuilderEngineTest {
 
     @Test
     fun `count cleanup protects ultra beast and background variants`() {
-        // v0.5.5 (Fix 6): count/duplicate queries must protect the valuable variant categories
-        // too. A bare count2- finds duplicates by Pokédex species number and does not distinguish
-        // forms, so without these exclusions a valuable Ultra Beast or special-background Pokémon
-        // could land in a transfer/cleanup list. These now join shiny/legendary/etc.
         val result = StringBuilderEngine.buildString(
             baseQuery = "count2-",
-            protections = emptyList(), // no optional protections — relies on COUNT_MANDATORY_PROTECTIONS
+            protections = emptyList(),
             explanation = "test"
         )
         assertTrue("Ultra Beasts must be protected from count cleanup", result.rawSyntax.contains("!ultrabeast"))
@@ -51,36 +45,32 @@ class StringBuilderEngineTest {
 
     @Test
     fun `count cleanup always keeps the traded invariant and existing protections`() {
-        // v0.5.5 (Fix 6): strengthening the count protections must NOT weaken any existing
-        // protection — the full strengthened set must be present, including the !traded invariant.
         val result = StringBuilderEngine.buildString(
             baseQuery = "count2-",
             protections = emptyList(),
             explanation = "test"
         )
-        // The complete strengthened mandatory set.
         StringBuilderEngine.COUNT_MANDATORY_PROTECTIONS.forEach { token ->
             assertTrue("count cleanup must exclude '!$token'", result.rawSyntax.contains("!$token"))
         }
-        // !traded invariant survives (Safe Cleanup / Trade Fodder safety).
         assertTrue("!traded invariant must remain", result.rawSyntax.contains("!traded"))
     }
 
     @Test
     fun `safe cleanup includes default exclusions`() {
         val result = StringBuilderEngine.buildString(
-            baseQuery = "1*", 
+            baseQuery = "1*",
             explanation = "test"
         )
         assertTrue(result.rawSyntax.contains("!shiny"))
         assertTrue(result.rawSyntax.contains("!4*"))
-        assertFalse(result.rawSyntax.contains("!0*")) // 0* is not in DEFAULT_PROTECTIONS anymore based on new spec
+        assertFalse(result.rawSyntax.contains("!0*"))
     }
 
     @Test
     fun `2x candy prep includes count2- and warning`() {
         val result = StringBuilderEngine.buildString(
-            baseQuery = "count2-", 
+            baseQuery = "count2-",
             explanation = "test"
         )
         assertTrue(result.rawSyntax.contains("count2-"))
@@ -88,9 +78,9 @@ class StringBuilderEngineTest {
     }
 
     @Test
-    fun `linter catches pipe`() {
+    fun `linter accepts official pipe criteria operator`() {
         val warnings = Linter.lint("shiny|lucky")
-        assertTrue(warnings.any { it.message.contains("|") })
+        assertFalse(warnings.any { it.isError && it.message.contains("|") })
     }
 
     @Test
@@ -121,8 +111,6 @@ class StringBuilderEngineTest {
         assertTrue(result.warnings.any { it.contains("Count is based on Pokédex species number") })
         assertFalse(result.rawSyntax == "traded")
         assertTrue(result.rawSyntax.contains("!traded"))
-        
-        // Ensure rawString is indeed the full string with all protections
         assertTrue(result.rawSyntax.contains("!shiny"))
         assertTrue(result.rawSyntax.contains("!lucky"))
         assertTrue(result.rawSyntax.contains("!legendary"))
@@ -141,10 +129,7 @@ class StringBuilderEngineTest {
 
     @Test
     fun `hundo check does not hide special categories and has correct explanation`() {
-        // Simulating Navigation.kt behavior where protections are cleared
-        val explanation = "Finds all perfect IV / hundo Pokémon. 4★ means 15/15/15."
         val result = StringBuilderEngine.buildGoal("hundo_check")
-        
         assertEquals("4*", result.rawSyntax)
         assertFalse(result.rawSyntax.contains("!shiny"))
         assertFalse(result.rawSyntax.contains("!legendary"))
@@ -153,7 +138,6 @@ class StringBuilderEngineTest {
         assertFalse(result.rawSyntax.contains("!costume"))
         assertFalse(result.rawSyntax.contains("!#"))
         assertFalse(result.rawSyntax.contains("!traded"))
-        
         assertTrue(result.plainLanguageExplanation.contains("perfect IV / hundo"))
         assertTrue(result.plainLanguageExplanation.contains("15/15/15"))
         assertEquals(RiskLevel.Info, result.riskLevel)
@@ -180,7 +164,6 @@ class StringBuilderEngineTest {
     fun `pvp candidates generate correctly without cleanup protections`() {
         val greatLeague = StringBuilderEngine.buildGoal("pvp_candidates", config = "great")
         val ultraLeague = StringBuilderEngine.buildGoal("pvp_candidates", config = "ultra")
-        
         assertEquals("0-1attack&3-4defense&3-4hp&cp-1500", greatLeague.rawSyntax)
         assertEquals("0-1attack&3-4defense&3-4hp&cp-2500", ultraLeague.rawSyntax)
         assertFalse(greatLeague.rawSyntax.contains("!shiny"))
@@ -191,10 +174,9 @@ class StringBuilderEngineTest {
     fun `lucky trade prep generates age or distance modes with warnings`() {
         val ageMode = StringBuilderEngine.buildGoal("lucky_trade", config = "age")
         val distMode = StringBuilderEngine.buildGoal("lucky_trade", config = "distance")
-        
         assertEquals("age365-&!traded", ageMode.rawSyntax)
         assertEquals("distance100-&!traded", distMode.rawSyntax)
-        assertFalse(ageMode.rawSyntax.contains("!shiny")) // valuable pokemon can be traded
+        assertFalse(ageMode.rawSyntax.contains("!shiny"))
         assertEquals("Moderate", ageMode.scopeBreadth)
     }
 
@@ -202,30 +184,22 @@ class StringBuilderEngineTest {
     fun `linter ignores exact nundo pattern for 0 star warning`() {
         val warnings = Linter.lint("0attack&0defense&0hp")
         assertFalse(warnings.any { it.message.contains("0* is an IV band") })
-        
         val warningsWith0Star = Linter.lint("0*")
         assertTrue(warningsWith0Star.any { it.message.contains("0* is an IV band") })
     }
 
     @Test
     fun `linter bypasses transfer warnings for pvp and trade prep`() {
-        val pvpWarnings = Linter.lint("0-1attack&3-4defense&3-4hp&cp-1500&shiny") // User typed shiny in pvp search
+        val pvpWarnings = Linter.lint("0-1attack&3-4defense&3-4hp&cp-1500&shiny")
         assertFalse(pvpWarnings.any { it.message.contains("Risky inclusion") })
-
         val tradePrepWarnings = Linter.lint("age365-&!traded")
         assertTrue(tradePrepWarnings.any { it.message.contains("Trade prep search") })
     }
 
     @Test
     fun `risk model splits inspection-only goals from action-adjacent goals`() {
-        // v0.5.5 (Fix 5): documents the intentional risk-model intent. Inspection-only goals
-        // (find to admire/track/research) are Info and skip the RiskWarning gate + carry no
-        // mandatory protections. Action-adjacent goals (whose natural next step is a transfer/
-        // candy/trade) are Medium, route through RiskWarning, and carry protections.
-        // This is about what the string invites the user to DO, not what it matches.
         val inspection = listOf("hundo_check", "nundo_finder", "pvp_candidates")
         val actionAdjacent = listOf("safe_cleanup", "candy_prep", "trade_fodder", "lucky_trade")
-
         inspection.forEach { goal ->
             assertEquals(
                 "inspection-only goal '$goal' should be Info (no warning gate)",
