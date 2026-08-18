@@ -43,21 +43,26 @@ class ExpertOfficialCoverageTest {
     }
 
     @Test
-    fun `official pipe operator survives expert build and lint`() {
+    fun `expert build normalizes official game pipe to PokeQuery canonical comma`() {
         val generated = StringBuilderEngine.buildGoal(
             "expert",
             customQuery = "shiny|legendary",
             language = "English"
         )
-        assertEquals("shiny|legendary", generated.rawSyntax)
-        assertFalse(Linter.lint(generated.rawSyntax).any { it.isError && it.message.contains("|") })
+        assertEquals("shiny,legendary", generated.rawSyntax)
+        assertFalse(generated.rawSyntax.contains("|"))
+        assertTrue(Linter.lint("shiny|legendary").any { it.isError && it.message.contains("|") })
     }
 
     @Test
-    fun `localized mapper translates tokens on both sides of pipe`() {
+    fun `localized mapper can understand both sides while generator owns no-pipe policy`() {
         assertEquals(
             "parlak|efsanevi",
             SearchTermMapper.translateSyntax("shiny|legendary", "Turkish")
+        )
+        assertEquals(
+            "parlak,efsanevi",
+            StringBuilderEngine.buildGoal("expert", customQuery = "shiny|legendary", language = "Turkish").rawSyntax
         )
     }
 }
