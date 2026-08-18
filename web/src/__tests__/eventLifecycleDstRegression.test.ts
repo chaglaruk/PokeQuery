@@ -1,16 +1,14 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { remainingTimeLabel, type Clock } from '../event/eventLifecycle'
 import type { EventFeedEntry } from '../types'
 
-const previousTz = process.env.TZ
-
 afterEach(() => {
-  process.env.TZ = previousTz
+  vi.unstubAllEnvs()
 })
 
 describe('Event Guide DST end-of-day regression', () => {
   it('keeps a current event on Ends today after the fall-back transition', () => {
-    process.env.TZ = 'America/New_York'
+    vi.stubEnv('TZ', 'America/New_York')
     const now = new Date(2026, 10, 1, 23, 30, 0).getTime()
     const clock: Clock = {
       todayIso: () => '2026-11-01',
