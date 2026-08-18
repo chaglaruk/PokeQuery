@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 """Post-process the generated Event Guide feed with source-page details.
 
-The base generator intentionally discovers events from stable listing pages. Listing cards only
-contain title/date/type/link, so publishing that output directly leaves most rich detail fields
-empty. This pass follows each event's already-recorded source URL at build time (never at Android
-runtime), extracts concise factual sections, normalizes source/SEO title artifacts, and refuses to
-publish a detail-empty active gameplay feed in strict mode.
-
-Curated docs/event-feed/event_metadata.json values always win: this script only replaces blank or
-known generic generator placeholders.
+The base generator discovers events from stable listing pages. This pass follows each event's
+already-recorded source URL at build time (never at Android runtime), extracts concise factual
+sections, normalizes source/SEO title artifacts, and refuses to publish a detail-empty active
+gameplay feed in strict mode. Curated event_metadata.json values always win.
 """
 
 from __future__ import annotations
@@ -53,10 +49,16 @@ def clean_text(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
+def normalized_fact(value: str) -> str:
+    # Python lower/casefold turns capital Turkish İ into i + COMBINING DOT ABOVE. Remove only that
+    # artifact so localized generator placeholders compare reliably without transliterating text.
+    return clean_text(value).casefold().replace("\u0307", "")
+
+
 def is_generic(value: object) -> bool:
     if not isinstance(value, str) or not value.strip():
         return True
-    return clean_text(value).lower() in GENERIC_FACTS
+    return normalized_fact(value) in {normalized_fact(item) for item in GENERIC_FACTS}
 
 
 def meaningful(value: object) -> bool:
@@ -73,8 +75,6 @@ def normalize_event_title(title: str) -> str:
         value,
         flags=re.IGNORECASE,
     )
-    # Leek Duck GBL listing/article titles append the season name after a dash or pipe. The season
-    # is category/context, not part of the weekly rotation's human-facing event title.
     if re.search(r"\b(?:league|cup)\b", value, flags=re.IGNORECASE):
         value = re.sub(r"\s*[-–—|]\s*Forever Forward\s*$", "", value, flags=re.IGNORECASE)
 
@@ -116,11 +116,12 @@ class ParsedPage:
 
 
 class DetailPageParser(HTMLParser):
-    """Small dependency-free block/section extractor for source article pages.
+    """Dependency-free event-article extractor.
 
-    H1 is the article title, H2 starts a semantic section, and H3/H4 stay inside their parent H2
-    where possible. This matters on event pages that use a structure such as H2 "Raids" -> H3
-    "Giratina" -> paragraphs; treating H3 as a new top-level section would lose the Raid context.
+    Source sites can have navigation cards, raid widgets and footer resources before/after the
+    actual event article. Event content begins at the first H1. Text blocks before that H1 are
+    discarded so site chrome cannot become an event summary. H2 starts a semantic section and
+    H3/H4 remain inside the current H2 when possible.
     """
 
     BLOCKS = {"h1", "h2", "h3", "h4", "p", "li"}
@@ -133,6 +134,7 @@ class DetailPageParser(HTMLParser):
         self._parts: List[str] = []
         self._section = "intro"
         self._skip_depth = 0
+        self._seen_h1 = False
 
     def handle_starttag(self, tag: str, attrs) -> None:
         tag = tag.lower()
@@ -170,6 +172,11 @@ class DetailPageParser(HTMLParser):
         if root == "h1":
             if self.page.title is None:
                 self.page.title = text
+                self._seen_h1 = True
+                self._section = "intro"
+            return
+
+        if not self._seen_h1:
             return
 
         if root == "h2":
@@ -251,8 +258,10 @@ def _section_lines(page: ParsedPage, keywords: Iterable[str]) -> List[str]:
 def extract_enrichment(page: ParsedPage, event_title: str) -> Dict[str, str]:
     _ = event_title
     intro = _compact(page.intro, max_items=2, max_chars=650)
+    # Deliberately avoid generic heading words such as "Pokémon" or "Features": season/event pages
+    # often contain unrelated sub-events under those headings. Use encounter-specific sections.
     featured = _compact(
-        _section_lines(page, ("featured", "wild", "encounter", "pokémon", "pokemon", "egg", "debut", "spawn", "incense", "lure", "showcase"))
+        _section_lines(page, ("featured", "wild", "encounter", "egg", "spawn", "incense", "lure", "showcase", "shiny"))
     )
     bonuses = _compact(_section_lines(page, ("bonus", "bonuses", "reward", "rewards")))
     raids = _compact(_section_lines(page, ("raid", "max battle", "max battles")))
@@ -370,7 +379,7 @@ def enrich_feed(feed: dict, fetcher=fetch_html, strict: bool = False) -> dict:
         raise RuntimeError("Event feed enrichment quality gate failed:\n" + message)
 
     feed["enrichment"] = {
-        "pipeline": "source-page-sections-v1",
+        "pipeline": "source-page-sections-v2",
         "qualityFailures": len(quality_failures),
         "fetchErrors": len(fetch_errors),
     }
