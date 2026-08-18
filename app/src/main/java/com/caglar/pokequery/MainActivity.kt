@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
     private var debugAppLanguage by mutableStateOf<String?>(null)
     private var debugSearchLanguage by mutableStateOf<String?>(null)
     private var debugEventFeedUrl by mutableStateOf<String?>(null)
+    private var navigationIntentVersion by mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,6 +89,7 @@ class MainActivity : ComponentActivity() {
                             startRoute = startRoute,
                             copySearch = copySearch,
                             debugEventFeedUrl = if (BuildConfig.DEBUG) debugEventFeedUrl else null,
+                            navigationIntentVersion = navigationIntentVersion,
                             onCopyHandled = { copySearch = null }
                         )
                     }
@@ -104,6 +106,7 @@ class MainActivity : ComponentActivity() {
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
         debugEventFeedUrl = intent.getStringExtra("event_feed_url")
+        navigationIntentVersion += 1
     }
 
     private fun readStartRoute(intent: Intent?): String? =

@@ -20,7 +20,34 @@ data class IntentPattern(
 
 object SearchIntentParser {
     private fun normalize(text: String): String =
-        text.lowercase().trim().replace(Regex("\\s+"), " ")
+        text.lowercase()
+            .replace(Regex("[\u2018\u2019\u02BC]"), "'")
+            .trim()
+            .replace(Regex("\\s+"), " ")
+
+    private fun Char.isKeywordWordChar(): Boolean = isLetterOrDigit() || this == '_'
+
+    /**
+     * Whole-keyword/phrase matching without relying on regex \b semantics.
+     * This keeps punctuation-bearing keywords such as 100% and 15/15/15 working while
+     * preventing accidental substring hits such as trade->traded, age->storage, all->small.
+     */
+    private fun keywordIndex(text: String, keyword: String): Int {
+        if (keyword.isBlank()) return -1
+        var fromIndex = 0
+        while (fromIndex <= text.length - keyword.length) {
+            val index = text.indexOf(keyword, startIndex = fromIndex)
+            if (index == -1) return -1
+            val end = index + keyword.length
+            val beforeOk = index == 0 || !text[index - 1].isKeywordWordChar()
+            val afterOk = end == text.length || !text[end].isKeywordWordChar()
+            if (beforeOk && afterOk) return index
+            fromIndex = index + 1
+        }
+        return -1
+    }
+
+    private fun containsKeyword(text: String, keyword: String): Boolean = keywordIndex(text, keyword) >= 0
 
     private enum class ControlPolarity { POSITIVE, NEGATIVE }
 
@@ -45,9 +72,10 @@ object SearchIntentParser {
 
     private fun isNegativeWord(word: String): Boolean = word.lowercase() in negativeWordSet
 
+    private fun lastControlMatch(text: String): MatchResult? = combinedControlRegex.findAll(text).lastOrNull()
+
     private fun extractLastControl(text: String): ControlPolarity? {
-        val matches = combinedControlRegex.findAll(text).toList()
-        val last = matches.lastOrNull() ?: return null
+        val last = lastControlMatch(text) ?: return null
 
         val negator = last.groups[1]?.value
         val negatedWord = last.groups[2]?.value
@@ -84,6 +112,16 @@ object SearchIntentParser {
             return preControl == ControlPolarity.POSITIVE
         }
 
+        val lastControl = lastControlMatch(prefix)
+        if (lastControl != null) {
+            val standaloneNeg = lastControl.groups[3]?.value?.lowercase()
+            if (standaloneNeg == "not" || standaloneNeg == "no") {
+                val conjunctionAfterControl = clauseBreak.findAll(prefix)
+                    .any { it.range.first > lastControl.range.last }
+                if (conjunctionAfterControl) return false
+            }
+        }
+
         val control = extractLastControl(prefix)
         return control == ControlPolarity.NEGATIVE
     }
@@ -98,7 +136,7 @@ object SearchIntentParser {
      */
     private fun isPatternNegated(normalized: String, keyword: String): Boolean {
         if (keyword.isBlank()) return false
-        val index = normalized.indexOf(keyword)
+        val index = keywordIndex(normalized, keyword)
         if (index == -1) return false
 
         val prefix = normalized.substring(0, index)
@@ -170,13 +208,13 @@ object SearchIntentParser {
         ),
         IntentPattern(
             keywords = listOf("purified", "arınmış", "arinmis", "temizlenmiş", "temizlenmis"),
-            tokens = listOf("purified", "arınmış", "arinmis", "temizlenmiş", "temizlenmis"),
+            tokens = listOf("purified"),
             explanation = "Filters to show only Purified Pokémon.",
             limitations = listOf("Purified Pokémon cost 20% less stardust to power up.", "Purified Pokémon can be traded — they are not blocked from trading.", "Purified Pokémon cannot be re-shadowed.")
         ),
         IntentPattern(
             keywords = listOf("lucky", "şanslı", "sansli"),
-            tokens = listOf("lucky", "şanslı", "sansli"),
+            tokens = listOf("lucky"),
             explanation = "Filters to show only Lucky Pokémon (received via trade with guaranteed higher IVs).",
             limitations = listOf("Lucky Pokémon cost 50% less stardust to power up.", "Lucky Pokémon cannot be traded again.", "A Pokémon becoming Lucky is not guaranteed — it depends on trade context, not just age or distance.")
         ),
@@ -224,7 +262,7 @@ object SearchIntentParser {
             limitations = listOf("Not all distance Pokémon are tradeable again (already traded).", "Distance resets on each trade — the last trade distance applies.")
         ),
         IntentPattern(
-            keywords = listOf("untagged", "no tag", "not tagged", "tagged", "tag", "etiketsiz", "etiketlenmemiş", "etiketlenmemis", "etiketlenmeyen", "etiket yok", "etiket"),
+            keywords = listOf("untagged", "no tag", "not tagged", "etiketsiz", "etiketlenmemiş", "etiketlenmemis", "etiketlenmeyen", "etiket yok"),
             tokens = emptyList(),
             exclusions = listOf("#"),
             explanation = "Finds untagged Pokémon for tagging and organization. The search uses !# (NOT tag filter).",
@@ -268,13 +306,13 @@ object SearchIntentParser {
         }
 
         val matched = patterns.filter { pattern ->
-            val matchingKeywords = pattern.keywords.filter { keyword -> normalized.contains(keyword) }
+            val matchingKeywords = pattern.keywords.filter { keyword -> containsKeyword(normalized, keyword) }
             if (matchingKeywords.isEmpty()) return@filter false
 
             // Suppress legacy "old" pattern if it only matched 2016/2017/2018 from caught year
             if (caughtMatch != null && caughtMatch.canBuild && pattern.tokens == listOf("age365-") && pattern.exclusions.isEmpty()) {
                 val nonYearKeywords = pattern.keywords.filter { it !in listOf("2016", "2017", "2018") }
-                val hasExplicitOldKeyword = nonYearKeywords.any { normalized.contains(it) }
+                val hasExplicitOldKeyword = nonYearKeywords.any { containsKeyword(normalized, it) }
                 if (!hasExplicitOldKeyword) {
                     return@filter false
                 }
@@ -303,7 +341,7 @@ object SearchIntentParser {
         }
 
         for (pattern in matched) {
-            val matchedKeyword = pattern.keywords.firstOrNull { normalized.contains(it) } ?: ""
+            val matchedKeyword = pattern.keywords.firstOrNull { containsKeyword(normalized, it) } ?: ""
             val negated = isPatternNegated(normalized, matchedKeyword)
 
             if (negated) {
@@ -317,9 +355,9 @@ object SearchIntentParser {
             allLimitations.addAll(pattern.limitations)
         }
 
-        val hasShiny = normalized.contains("shiny")
-        val hasLegendary = normalized.contains("legendary")
-        val hasMythical = normalized.contains("mythical")
+        val hasShiny = containsKeyword(normalized, "shiny")
+        val hasLegendary = containsKeyword(normalized, "legendary")
+        val hasMythical = containsKeyword(normalized, "mythical")
 
         val extraTokens = buildList {
             if (hasShiny && "shiny" !in allTokens.map { it.lowercase() } && "shiny" !in allExclusions.map { it.lowercase() }) {

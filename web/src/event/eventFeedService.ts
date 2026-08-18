@@ -18,6 +18,24 @@ export interface FeedResult {
   lastChecked: string | null
 }
 
+function isEventFeed(value: unknown): value is EventFeed {
+  if (value === null || typeof value !== 'object') return false
+  const candidate = value as { schemaVersion?: unknown; events?: unknown }
+  if (candidate.schemaVersion !== 1 || !Array.isArray(candidate.events)) return false
+  return candidate.events.every(event => {
+    if (event === null || typeof event !== 'object') return false
+    const entry = event as { id?: unknown; title?: unknown; status?: unknown }
+    return typeof entry.id === 'string' && entry.id.length > 0 &&
+      typeof entry.title === 'string' && entry.title.length > 0 &&
+      typeof entry.status === 'string'
+  })
+}
+
+function parseEventFeed(value: unknown): EventFeed {
+  if (!isEventFeed(value)) throw new Error('Invalid event feed')
+  return value
+}
+
 export async function fetchEventFeed(): Promise<FeedResult> {
   try {
     const controller = new AbortController()
@@ -28,7 +46,7 @@ export async function fetchEventFeed(): Promise<FeedResult> {
 
     if (!res.ok) throw new Error(`Feed HTTP ${res.status}`)
 
-    const feed = await res.json() as EventFeed
+    const feed = parseEventFeed(await res.json())
     cacheFeed(feed)
     return { feed, source: 'online', lastChecked: new Date().toISOString() }
   } catch {
@@ -42,7 +60,8 @@ export async function fetchEventFeed(): Promise<FeedResult> {
 
 async function loadFallback(): Promise<FeedResult> {
   const res = await fetch(FALLBACK_PATH)
-  const feed = await res.json() as EventFeed
+  if (!res.ok) throw new Error(`Fallback HTTP ${res.status}`)
+  const feed = parseEventFeed(await res.json())
   return { feed, source: 'fallback', lastChecked: null }
 }
 
@@ -57,7 +76,7 @@ function getCachedFeed(): EventFeed | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as EventFeed
+    return parseEventFeed(JSON.parse(raw))
   } catch {
     return null
   }

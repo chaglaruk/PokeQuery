@@ -33,6 +33,7 @@ fun MainNavigation(
     startRoute: String? = null,
     copySearch: String? = null,
     debugEventFeedUrl: String? = null,
+    navigationIntentVersion: Int = 0,
     onCopyHandled: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -46,6 +47,18 @@ fun MainNavigation(
 
     val backStack = rememberNavBackStack(initialEntry)
     var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
+
+    // rememberNavBackStack keeps the existing stack across recomposition. A widget/app-shortcut
+    // delivered through Activity.onNewIntent therefore needs an explicit reset after cold start.
+    // navigationIntentVersion changes even when the same start_route is tapped twice.
+    LaunchedEffect(startRoute, navigationIntentVersion, userPrefs?.firstUseSeen) {
+        if (navigationIntentVersion > 0 && startRoute != null) {
+            val destination = startDestination(startRoute, userPrefs?.firstUseSeen) ?: return@LaunchedEffect
+            currentTab = tabForStartRoute(startRoute)
+            backStack.clear()
+            backStack.add(destination)
+        }
+    }
 
     val copiedToClipboard = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_copied)
     val assistantExplanation = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_generated_explanation)
@@ -109,10 +122,6 @@ fun MainNavigation(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            // v0.5.3 motion polish: smooth PURE crossfade between destinations (no vertical slide).
-            // Subtlety over visible motion — a slide was deliberately NOT added (the reference app
-            // has more motion, but PokeQuery stays premium/utility-like). Durations centralized in
-            // PqMotionTokens so the "reduce until premium" dial lives in one place.
             NavDisplay(
                 backStack = backStack,
                 onBack = { safePop() },
@@ -161,7 +170,6 @@ fun MainNavigation(
                             }
                         )
                     }
-                    // v0.6.1: Personal Presets (local only). Risk gating preserved.
                     entry<MyPresets> {
                         MyPresetsScreen(
                             onBack = { safePop() },
@@ -171,22 +179,18 @@ fun MainNavigation(
                             }
                         )
                     }
-                    // v0.6.1: Practice Mode (fake inventory sandbox, conceptual only).
                     entry<PracticeMode> {
                         PracticeModeScreen(onBack = { safePop() })
                     }
-                    // v0.6.1: Cleaning Journal (user-entered memory only, local).
                     entry<CleaningJournal> {
                         CleaningJournalScreen(onBack = { safePop() })
                     }
-                    // v0.6.8: Event Guide.
                     entry<EventContext> {
                         EventContextScreen(
                             onBack = { safePop() },
                             debugEventFeedUrl = debugEventFeedUrl
                         )
                     }
-                    // v0.6.2: Safe NL search-string assistant.
                     entry<SearchAssistant> {
                         SearchAssistantScreen(
                             onBack = { safePop() },
@@ -199,7 +203,6 @@ fun MainNavigation(
                             }
                         )
                     }
-                    // v0.6.2: Search String Explain mode.
                     entry<ExplainRoute> { route ->
                         ExplainScreen(
                             onBack = { safePop() },
