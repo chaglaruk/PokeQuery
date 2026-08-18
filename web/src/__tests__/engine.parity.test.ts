@@ -6,10 +6,9 @@ import { buildString, buildGoal, COUNT_MANDATORY_PROTECTIONS } from '../engine/s
 import { lint } from '../engine/linter'
 
 describe('StringBuilderEngine parity', () => {
-  it('no generated default string contains pipe', () => {
+  it('generated strings preserve official pipe criteria operator', () => {
     const result = buildString('test|query', undefined, 'test')
-    expect(result.rawSyntax).not.toContain('|')
-    expect(result.rawSyntax).toContain(',')
+    expect(result.rawSyntax).toContain('test|query')
   })
 
   it('count templates include required exclusions', () => {
@@ -48,9 +47,9 @@ describe('StringBuilderEngine parity', () => {
     expect(result.riskLevel).toBe('Medium')
   })
 
-  it('linter catches pipe', () => {
+  it('linter accepts official pipe criteria operator', () => {
     const warnings = lint('shiny|lucky')
-    expect(warnings.some(w => w.message.includes('|'))).toBe(true)
+    expect(warnings.some(w => w.isError && w.message.includes('|'))).toBe(false)
   })
 
   it('linter catches unsafe count', () => {
