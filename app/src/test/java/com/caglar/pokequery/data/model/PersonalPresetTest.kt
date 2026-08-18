@@ -80,8 +80,8 @@ class PersonalPresetTest {
  */
 class AppVersionReferenceTest {
     @Test
-    fun `app version is the v0_7_4 release`() {
-        assertEquals("0.7.4", AppVersion.versionName)
-        assertEquals(24, AppVersion.versionCode)
+    fun `app version is the v0_7_5 release`() {
+        assertEquals("0.7.5", AppVersion.versionName)
+        assertEquals(25, AppVersion.versionCode)
     }
 }

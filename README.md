@@ -13,7 +13,7 @@
   <img alt="UI" src="https://img.shields.io/badge/UI-Jetpack%20Compose%20%7C%20React-4285F4?logo=jetpackcompose&logoColor=white" />
   <img alt="Offline-first" src="https://img.shields.io/badge/offline-first-0099E5" />
   <img alt="No tracking" src="https://img.shields.io/badge/tracking-none-success" />
-  <img alt="Version" src="https://img.shields.io/badge/Android%20v0.7.4-Web%20v0.7.3-00E0FF" />
+  <img alt="Version" src="https://img.shields.io/badge/Android%20v0.7.5-Web%20v0.7.3-00E0FF" />
   <img alt="Status" src="https://img.shields.io/badge/status-closed%20testing-FFB400" />
 </p>
 
