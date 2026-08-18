@@ -103,5 +103,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
-# Temporary retry trigger; removed immediately in the next commit.
