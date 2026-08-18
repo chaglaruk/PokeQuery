@@ -44,7 +44,7 @@ Core search generation stays local. Forbidden without explicit product re-scope:
 - analytics, telemetry, ads or tracking;
 - unrelated remote calls or cloud user accounts.
 
-Documented network exception: Event Guide may fetch the public PokeQuery static feed. Feed generation may research configured public event sources. This exception does not authorize account access, telemetry or arbitrary networking.
+Documented network exception: Event Guide may fetch the public PokeQuery static feed. Feed generation may research configured public event sources, but build-time enrichment must stay on the pipeline's approved HTTPS host/redirect policy. This exception does not authorize account access, telemetry or arbitrary networking.
 
 Keep `allowBackup="false"`. Never commit keystores, passwords, tokens or signing secrets.
 
@@ -83,6 +83,8 @@ Keep `allowBackup="false"`. Never commit keystores, passwords, tokens or signing
 - Manual enrichment/override metadata: `docs/event-feed/event_metadata.json`.
 - Discovery runs through `scripts/generate_event_feed.py`; source-page enrichment runs through `scripts/enrich_event_feed.py`.
 - Prefer official Pokémon GO Live data when available; configured third-party sources are enrichment/fallback only.
+- Build-time source-page fetches must use the approved HTTPS host policy and validate redirect/final destinations; do not broaden network destinations casually.
+- The discovered/catalog event title is authoritative. Source-page H1 text may fill a genuinely missing title but must not silently rename an existing event entry.
 - Date/status truth is mandatory. Never fabricate Pokémon, bonuses, raids, research, rewards or dates.
 - CURRENT/UPCOMING gameplay entries must pass strict detail-quality validation before publication.
 - The scheduled workflow generates online data, enriches with `--strict`, validates, then keeps canonical, Android bundled fallback and Web fallback synchronized.
