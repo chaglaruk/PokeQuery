@@ -361,7 +361,7 @@
       }
     },
     {
-      "id": "buildstring-pipe-preserved",
+      "id": "buildstring-pipe-normalized",
       "category": "buildString",
       "input": {
         "baseQuery": "test|query",
@@ -374,7 +374,10 @@
       },
       "expected": {
         "rawSyntaxContains": [
-          "test|query"
+          "test,query"
+        ],
+        "rawSyntaxNotContains": [
+          "|"
         ]
       }
     },
@@ -431,13 +434,16 @@
       }
     },
     {
-      "id": "lint-pipe-supported",
+      "id": "lint-pipe-blocked",
       "category": "lint",
       "input": {
         "query": "shiny|lucky"
       },
       "expected": {
-        "hasError": false
+        "hasError": true,
+        "warningsContain": [
+          "|"
+        ]
       }
     },
     {
@@ -540,13 +546,13 @@
       }
     },
     {
-      "id": "expert-pipe-allows-copy",
+      "id": "expert-pipe-blocks-copy",
       "category": "expertCopyPolicy",
       "input": {
         "rawQuery": "shiny|lucky"
       },
       "expected": {
-        "canCopy": true
+        "canCopy": false
       }
     },
     {
