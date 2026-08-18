@@ -1,6 +1,8 @@
 package com.caglar.pokequery.domain.expert
 
+import com.caglar.pokequery.domain.engine.SearchTermMapper
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
+import com.caglar.pokequery.domain.lint.Linter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -38,5 +40,24 @@ class ExpertOfficialCoverageTest {
         assertTrue(generated.rawSyntax.contains("!shiny"))
         assertTrue(generated.rawSyntax.contains("!traded"))
         assertTrue(generated.rawSyntax.contains("!background"))
+    }
+
+    @Test
+    fun `official pipe operator survives expert build and lint`() {
+        val generated = StringBuilderEngine.buildGoal(
+            "expert",
+            customQuery = "shiny|legendary",
+            language = "English"
+        )
+        assertEquals("shiny|legendary", generated.rawSyntax)
+        assertFalse(Linter.lint(generated.rawSyntax).any { it.isError && it.message.contains("|") })
+    }
+
+    @Test
+    fun `localized mapper translates tokens on both sides of pipe`() {
+        assertEquals(
+            "parlak|efsanevi",
+            SearchTermMapper.translateSyntax("shiny|legendary", "Turkish")
+        )
     }
 }
