@@ -30,14 +30,11 @@ object StringBuilderEngine {
         language: String = "English"
     ): GeneratedString {
 
+        // '&' and '|' are both documented by the current official Pokémon GO Help Center as
+        // multi-criteria combiners. Preserve the user's explicit operator instead of silently
+        // converting '|' into the OR-style comma separator.
         var query = baseQuery
         val generatedWarnings = mutableListOf<String>()
-
-        // Safety check: Never generate |
-        if (query.contains("|")) {
-            query = query.replace("|", ",")
-            generatedWarnings.add("The '|' operator is unsupported and was replaced with ','.")
-        }
 
         val protectionsToAdd = protections.filter { !baseQuery.contains("!$it") }
         if (protectionsToAdd.isNotEmpty()) {
@@ -92,7 +89,7 @@ object StringBuilderEngine {
         if (lower.contains("count2-")) return "Broad"
         if (lower.contains("age365-") || lower.contains("distance100-")) return "Moderate"
         if (lower.contains("!shiny") && lower.contains("!legendary")) return "Moderate"
-        if (lower.isEmpty() || (lower.split("&").size == 1 && !lower.contains("!"))) return "Very Broad"
+        if (lower.isEmpty() || (lower.split("&", "|").size == 1 && !lower.contains("!"))) return "Very Broad"
         return "Moderate"
     }
 
