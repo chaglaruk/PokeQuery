@@ -4,14 +4,22 @@ import unittest
 
 try:
     from scripts.enrich_event_feed import (
+        clean_text,
+        derive_turkish_title,
         enrich_feed,
+        extract_enrichment,
+        meaningful,
         normalize_event_title,
         parse_detail_html,
         validate_active_detail_quality,
     )
 except ModuleNotFoundError:  # direct: python scripts/test_enrich_event_feed.py
     from enrich_event_feed import (
+        clean_text,
+        derive_turkish_title,
         enrich_feed,
+        extract_enrichment,
+        meaningful,
         normalize_event_title,
         parse_detail_html,
         validate_active_detail_quality,
@@ -38,6 +46,23 @@ class EventFeedEnrichmentTest(unittest.TestCase):
         self.assertEqual(
             "Groudon — 5-Star Raids",
             normalize_event_title("Groudon in 5-star Raid Battles"),
+        )
+
+    def test_turkish_structural_title_falls_back_when_base_contains_english_connector(self):
+        self.assertIsNone(derive_turkish_title("Regirock, Regice, and Registeel — 5-Star Raids"))
+        self.assertEqual(
+            "Groudon — 5 Yıldızlı Akınlar",
+            derive_turkish_title("Groudon — 5-Star Raids"),
+        )
+
+    def test_clean_text_repairs_inline_punctuation_artifacts(self):
+        self.assertEqual(
+            "August 20: The featured Pokémon is Magikarp and the bonus is 2× Catch XP.",
+            clean_text("August 20 : The featured Pokémon is Magikarp and the bonus is 2× Catch XP ."),
+        )
+        self.assertEqual(
+            "Shiny Shadow Giratina (Altered Forme) - if you’re lucky!",
+            clean_text("Shiny Shadow Giratina (Altered Forme)-if you’re lucky!"),
         )
 
     def test_extracts_source_sections_and_replaces_generic_placeholders(self):
@@ -83,6 +108,29 @@ class EventFeedEnrichmentTest(unittest.TestCase):
         self.assertIn("event weekends", enriched["bonuses"])
         self.assertIsNone(enriched["summaryTr"])
         self.assertEqual([], validate_active_detail_quality(result["events"]))
+
+    def test_lead_in_only_detail_does_not_count_as_useful_content(self):
+        self.assertFalse(meaningful("The following Pokémon will appear more frequently in the wild."))
+        self.assertFalse(meaningful("Appearing in 1-Star Raids"))
+
+        page = parse_detail_html(
+            "<h1>Event</h1>"
+            "<h2>Wild Encounters</h2><p>The following Pokémon will appear more frequently in the wild.</p>"
+            "<h2>Raids</h2><p>Appearing in 1-Star Raids</p>"
+        )
+        extracted = extract_enrichment(page, "Event")
+        self.assertNotIn("featuredPokemon", extracted)
+        self.assertNotIn("raids", extracted)
+
+    def test_section_is_classified_once_instead_of_duplicating_research_rewards(self):
+        page = parse_detail_html(
+            "<h1>Event</h1>"
+            "<h2>Research and Rewards</h2>"
+            "<p>Complete Timed Research to earn a Pikachu encounter.</p>"
+        )
+        extracted = extract_enrichment(page, "Event")
+        self.assertIn("research", extracted)
+        self.assertNotIn("bonuses", extracted)
 
     def test_article_intro_becomes_general_notes_when_no_gameplay_section_exists(self):
         source = """
