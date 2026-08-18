@@ -261,6 +261,15 @@ function emptyIntent(explanationKey: string, text?: string): ParsedIntent {
 }
 
 export function parseSearchIntent(text: string, today: Date = new Date()): ParsedIntent {
+  if (text.includes('|')) {
+    const blocked = emptyIntent('search_intent_could_not_understand', text)
+    return {
+      ...blocked,
+      pipeForbidden: true,
+      noteKeys: ['search_intent_pipe_forbidden'],
+    }
+  }
+
   const caughtMatch = parseCaughtDateIntent(text, today)
   if (caughtMatch !== null && !caughtMatch.canBuild) {
     return {
@@ -273,14 +282,13 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
       limitations: [],
       canBuild: false,
       hasAutoAdded: false,
-      pipeForbidden: text.includes('|'),
+      pipeForbidden: false,
       noteKeys: [],
     }
   }
 
-  const pipeForbidden = text.includes('|')
-  const cleaned = pipeForbidden ? text.replace(/\|/g, ' ') : text
-  const normalized = normalize(cleaned)
+  const pipeForbidden = false
+  const normalized = normalize(text)
   if (!normalized && caughtMatch === null) return emptyIntent('search_intent_empty')
 
   const matched = patterns.filter(pattern => {
@@ -352,7 +360,6 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
   extraTokens.forEach(t => allTokens.push(t))
 
   const noteKeys: string[] = []
-  if (pipeForbidden) noteKeys.push('search_intent_pipe_forbidden')
   if (allExclusions.has('traded')) noteKeys.push('search_intent_traded_kept')
 
   if (allTokens.length === 0 && allExclusions.size === 0) {
