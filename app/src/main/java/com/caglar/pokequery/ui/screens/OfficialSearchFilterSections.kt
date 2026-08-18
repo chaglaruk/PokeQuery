@@ -1,5 +1,6 @@
 package com.caglar.pokequery.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
@@ -8,9 +9,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.R
 import com.caglar.pokequery.domain.expert.ExpertQueryModel
 import com.caglar.pokequery.domain.locale.OfficialSearchSyntax
 import com.caglar.pokequery.theme.TextSecondary
@@ -47,10 +49,9 @@ internal fun OfficialSearchFilterSections(
     model: ExpertQueryModel,
     onModelChange: (ExpertQueryModel) -> Unit
 ) {
-    val lang = LocalConfiguration.current.locales[0].language
     extraOfficialSections.forEach { section ->
         Spacer(Modifier.height(16.dp))
-        PqSectionHeader(officialSectionTitle(section.key, lang))
+        PqSectionHeader(stringResource(officialSectionTitleRes(section.key)))
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -68,7 +69,7 @@ internal fun OfficialSearchFilterSections(
 
     Spacer(Modifier.height(14.dp))
     Text(
-        text = parameterizedFamilyHint(lang),
+        text = stringResource(R.string.official_filter_parameterized_hint),
         color = TextSecondary,
         fontSize = 11.sp,
         lineHeight = 16.sp
@@ -77,87 +78,22 @@ internal fun OfficialSearchFilterSections(
 
 @Composable
 internal fun OfficialRawSyntaxHint() {
-    val lang = LocalConfiguration.current.locales[0].language
     Spacer(Modifier.height(10.dp))
     Text(
-        text = rawModeHint(lang),
+        text = stringResource(R.string.official_filter_raw_hint),
         color = TextSecondary,
         fontSize = 11.sp,
         lineHeight = 16.sp
     )
 }
 
-private fun officialSectionTitle(key: String, lang: String): String = when (lang) {
-    "tr" -> when (key) {
-        "official" -> "Diğer Resmi Filtreler"
-        "appraisal" -> "Değerlendirme"
-        "size" -> "Boyut"
-        "buddy" -> "Dost Seviyesi"
-        "mega" -> "Mega Seviyesi"
-        "region" -> "Bölge"
-        else -> "Resmi Filtreler"
-    }
-    "de" -> when (key) {
-        "official" -> "Weitere offizielle Filter"
-        "appraisal" -> "Bewertung"
-        "size" -> "Größe"
-        "buddy" -> "Kumpel-Level"
-        "mega" -> "Mega-Level"
-        "region" -> "Region"
-        else -> "Offizielle Filter"
-    }
-    "es" -> when (key) {
-        "official" -> "Más filtros oficiales"
-        "appraisal" -> "Valoración"
-        "size" -> "Tamaño"
-        "buddy" -> "Nivel de compañero"
-        "mega" -> "Nivel Mega"
-        "region" -> "Región"
-        else -> "Filtros oficiales"
-    }
-    "fr" -> when (key) {
-        "official" -> "Autres filtres officiels"
-        "appraisal" -> "Évaluation"
-        "size" -> "Taille"
-        "buddy" -> "Niveau Copain"
-        "mega" -> "Niveau Méga"
-        "region" -> "Région"
-        else -> "Filtres officiels"
-    }
-    "it" -> when (key) {
-        "official" -> "Altri filtri ufficiali"
-        "appraisal" -> "Valutazione"
-        "size" -> "Taglia"
-        "buddy" -> "Livello compagno"
-        "mega" -> "Livello Mega"
-        "region" -> "Regione"
-        else -> "Filtri ufficiali"
-    }
-    else -> when (key) {
-        "official" -> "More official filters"
-        "appraisal" -> "Appraisal"
-        "size" -> "Size"
-        "buddy" -> "Buddy level"
-        "mega" -> "Mega level"
-        "region" -> "Region"
-        else -> "Official filters"
-    }
-}
-
-private fun parameterizedFamilyHint(lang: String): String = when (lang) {
-    "tr" -> "Açık uçlu resmi aramalar Raw modunda da desteklenir: Pokémon adı/takma ad/Dex no ve türü, +evrim ailesi, CP-SP-mesafe-yaş-yıl değerleri ve min/maks/aralıklar, @hareket, @tür, @1/@2/@3 hareket türü ve #etiket."
-    "de" -> "Offene offizielle Suchfamilien sind im Raw-Modus verfügbar: Name/Spitzname/Pokédex-Nr. und Typ, +Entwicklungsfamilie, WP/KP/Entfernung/Alter/Jahr mit Min/Max/Bereichen, @Attacke, @Typ, @1/@2/@3 und #Tag."
-    "es" -> "Las familias oficiales abiertas están disponibles en modo Raw: nombre/apodo/n.º Pokédex y tipo, +familia evolutiva, PC/PS/distancia/edad/año con mín./máx./rangos, @movimiento, @tipo, @1/@2/@3 y #etiqueta."
-    "fr" -> "Les familles officielles ouvertes restent disponibles en mode Raw : nom/surnom/n° Pokédex et type, +famille d’évolution, PC/PV/distance/âge/année avec min/max/plages, @attaque, @type, @1/@2/@3 et #étiquette."
-    "it" -> "Le famiglie ufficiali aperte sono disponibili in modalità Raw: nome/soprannome/n. Pokédex e tipo, +famiglia evolutiva, PL/PS/distanza/età/anno con min/max/intervalli, @mossa, @tipo, @1/@2/@3 e #tag."
-    else -> "Open-ended official families are available in Raw mode: Pokémon name/nickname/Dex number and type, +evolution family, CP/HP/distance/age/year min/max/ranges, @move, @type, @1/@2/@3 move type, and #tag."
-}
-
-private fun rawModeHint(lang: String): String = when (lang) {
-    "tr" -> "Resmi parametrik syntax örnekleri: cp-1500 · hp100- · age0-7 · year2026 · +Pikachu · @shadow ball · @3ghost · #etiket. Birden fazla kriter için &, NOT için !; çoklu arama için , : ; kullan. PokeQuery, üretilen aramaları tek biçimde tutmak için | işaretini bilerek engeller."
-    "de" -> "Offizielle parametrische Beispiele: wp-1500 · kp100- · alter0-7 · jahr2026 · +Pikachu · @Spukball · @3geist · #tag. Für mehrere Kriterien & verwenden, für NOT ! und für mehrere Suchen , : ;. PokeQuery sperrt | bewusst, damit erzeugte Suchstrings einheitlich bleiben."
-    "es" -> "Ejemplos paramétricos oficiales: pc-1500 · ps100- · edad0-7 · año2026 · +Pikachu · @bola sombra · @3fantasma · #etiqueta. Usa & para varios criterios, ! para NOT y , : ; para varias búsquedas. PokeQuery bloquea | deliberadamente para mantener un formato canónico."
-    "fr" -> "Exemples paramétriques officiels : pc-1500 · pv100- · âge0-7 · année2026 · +Pikachu · @ball’ombre · @3spectre · #étiquette. Utilise & pour plusieurs critères, ! pour NOT et , : ; pour plusieurs recherches. PokeQuery bloque volontairement | afin de garder un format canonique."
-    "it" -> "Esempi parametrici ufficiali: pl-1500 · ps100- · età0-7 · anno2026 · +Pikachu · @palla ombra · @3spettro · #tag. Usa & per più criteri, ! per NOT e , : ; per più ricerche. PokeQuery blocca volutamente | per mantenere un formato canonico."
-    else -> "Official parameterized examples: cp-1500 · hp100- · age0-7 · year2026 · +Pikachu · @shadow ball · @3ghost · #tag. Use & for multiple criteria, ! for NOT, and , : ; for multiple searches. PokeQuery intentionally blocks | to keep generated strings canonical."
+@StringRes
+private fun officialSectionTitleRes(key: String): Int = when (key) {
+    "official" -> R.string.official_filter_more
+    "appraisal" -> R.string.official_filter_appraisal
+    "size" -> R.string.official_filter_size
+    "buddy" -> R.string.official_filter_buddy_level
+    "mega" -> R.string.official_filter_mega_level
+    "region" -> R.string.official_filter_region
+    else -> R.string.official_filter_default
 }
