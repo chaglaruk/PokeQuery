@@ -1,5 +1,6 @@
 name: PWA Playwright E2E
 
+# Manual by design: routine PWA PRs use the faster deploy-pwa validation gate.
 on:
   workflow_dispatch:
 
