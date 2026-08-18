@@ -54,6 +54,25 @@ describe('v0.7.5 post-release Search Assistant regressions', () => {
     expect(parseSearchIntent('15/15/15').rawQuery).toBe('4*')
   })
 
+  it('blocks pipe input instead of changing OR into AND', () => {
+    const result = parseSearchIntent('shiny|lucky')
+    expect(result.canBuild).toBe(false)
+    expect(result.rawQuery).toBe('')
+    expect(result.pipeForbidden).toBe(true)
+    expect(result.noteKeys).toContain('search_intent_pipe_forbidden')
+  })
+
+  it('does not interpret modal may as the month May', () => {
+    const today = new Date(2026, 7, 18)
+    const modal = parseCaughtDateIntent('caught anything I may, or may not, want', today)
+    expect(modal?.canBuild).toBe(false)
+    expect(modal?.tokens).toEqual([])
+
+    const month = parseCaughtDateIntent('caught in May 2026', today)
+    expect(month?.canBuild).toBe(true)
+    expect(month?.tokens).toEqual(['year2026', 'age79-109'])
+  })
+
   it('normalizes a smart apostrophe before inverted negation parsing', () => {
     expect(parseSearchIntent('don’t hide shiny').rawQuery).toBe('shiny')
   })
@@ -106,8 +125,9 @@ describe('v0.7.5 post-release web parity regressions', () => {
     }
   })
 
-  it('rejects malformed cached feed data and falls back safely', async () => {
+  it('rejects malformed cached feed data, clears it, and falls back safely', async () => {
     localStorage.setItem('pq_event_feed_cache', JSON.stringify({ schemaVersion: 1, events: 'not-an-array' }))
+    localStorage.setItem('pq_event_feed_cache_ts', 'stale')
 
     const fallbackFeed = {
       schemaVersion: 1,
@@ -126,11 +146,57 @@ describe('v0.7.5 post-release web parity regressions', () => {
     const result = await fetchEventFeed()
     expect(result.source).toBe('fallback')
     expect(result.feed.events).toHaveLength(1)
+    expect(localStorage.getItem('pq_event_feed_cache')).toBeNull()
+    expect(localStorage.getItem('pq_event_feed_cache_ts')).toBeNull()
+  })
+
+  it('rejects online feed entries with an invalid status and falls back safely', async () => {
+    const invalidOnline = {
+      schemaVersion: 1,
+      lastUpdated: '2026-08-18',
+      events: [event({ status: 'BROKEN' as EventFeedEntry['status'] })],
+    }
+    const fallbackFeed = {
+      schemaVersion: 1,
+      lastUpdated: '2026-08-18',
+      events: [event()],
+    }
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => invalidOnline })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => fallbackFeed }))
+
+    const result = await fetchEventFeed()
+    expect(result.source).toBe('fallback')
+    expect(result.feed.events[0]?.status).toBe('UPCOMING')
+  })
+
+  it('rejects an online feed missing lastUpdated and falls back safely', async () => {
+    const invalidOnline = {
+      schemaVersion: 1,
+      events: [event()],
+    }
+    const fallbackFeed = {
+      schemaVersion: 1,
+      lastUpdated: '2026-08-18',
+      events: [event()],
+    }
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => invalidOnline })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => fallbackFeed }))
+
+    const result = await fetchEventFeed()
+    expect(result.source).toBe('fallback')
+    expect(result.feed.lastUpdated).toBe('2026-08-18')
   })
 
   it('marks the shipping web changelog entry as v0.7.5 code 25', () => {
     const current = changelogEntries.find(entry => entry.isCurrent)
     expect(current?.versionName).toBe('0.7.5')
     expect(current?.versionCode).toBe(25)
+  })
+
+  it('records v0.7.4 as closed testing rather than a production release', () => {
+    const previous = changelogEntries.find(entry => entry.versionName === '0.7.4')
+    expect(previous?.releaseLabel).toBe('Closed Testing')
   })
 })
