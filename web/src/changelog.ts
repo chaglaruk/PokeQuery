@@ -1,5 +1,6 @@
 // Changelog data — ported from Changelog.kt
-// The current version reads its highlights/safety notes/tester notes from i18n keys.
+// The current version reads its highlights/safety notes/tester notes from
+// i18n keys (what_changed_v066_*); past versions store English strings directly.
 
 export interface ChangelogEntry {
   versionName: string
@@ -48,24 +49,9 @@ export const changelogEntries: ChangelogEntry[] = [
     versionCode: 23,
     releaseLabel: 'Phase 5 Patch',
     title: 'Widget Value & Event Guide Polish',
-    highlights: [
-      'Quick Access widget: search preview + copy/fallback',
-      'Goal Actions widget: Safe Cleanup & Candy Prep show query preview + copy; Assistant & Event Guide labeled clearly',
-      'Event Guide widget: current event title/date, featured Pokemon, raid info, copy search, open as secondary',
-      'Widget design: dark card system, spacing, contrast, typography aligned to app visual language',
-    ],
-    safetyNotes: [
-      'INTERNET is used only for public Event Guide notes with cache and safe fallback',
-      'No login, no tracking, no ads, no analytics',
-      'No Pokemon GO account access',
-      'Widgets use standard start_route or clipboard fallback - no silent background writes',
-    ],
-    testerNotes: [
-      'Add Quick Access widget - verify search preview visible and copy/fallback works',
-      'Add Goal Actions widget - verify Safe Cleanup & Candy Prep show query preview + copy',
-      'Add Event Guide widget - verify event title/date, featured Pokemon, raid info, copy search',
-      'Verify all widgets work after reboot and locale change',
-    ],
+    highlights: [],
+    safetyNotes: [],
+    testerNotes: [],
     isCurrent: false,
   },
   {
@@ -150,26 +136,94 @@ export const changelogEntries: ChangelogEntry[] = [
     versionCode: 17,
     releaseLabel: 'Phase 1',
     title: 'Trust & Education',
-    highlights: ['Risk explanations', 'Common misconceptions', 'Changelog screen', 'Inventory size context'],
-    safetyNotes: ['No login', 'No tracking', 'No ads', 'No analytics', 'No Pokemon GO account access'],
-    testerNotes: ['Check Why this risk?', 'Try Common Misconceptions', 'Change inventory size context'],
+    highlights: [
+      'Risk explanations',
+      'Common misconceptions',
+      'Changelog screen',
+      'Inventory size context',
+    ],
+    safetyNotes: [
+      'No login',
+      'No tracking',
+      'No ads',
+      'No analytics',
+      'No Pokemon GO account access',
+    ],
+    testerNotes: [
+      'Check Why this risk?',
+      'Try Common Misconceptions',
+      'Change inventory size context',
+    ],
     isCurrent: false,
   },
   {
-    versionName: '0.5.5', versionCode: 16, releaseLabel: 'Hardening', title: 'Audit hardening',
-    highlights: ['Density consumption', 'Turkish safety fallback', 'Locale regression guard'],
-    safetyNotes: ['Count/background/Ultra Beast protections hardened'], testerNotes: ['Regression-test Turkish fallback'], isCurrent: false,
+    versionName: '0.5.5',
+    versionCode: 16,
+    releaseLabel: 'Hardening',
+    title: 'Audit hardening',
+    highlights: [
+      'Density consumption',
+      'Turkish safety fallback',
+      'Locale regression guard',
+    ],
+    safetyNotes: [
+      'Count/background/Ultra Beast protections hardened',
+    ],
+    testerNotes: [
+      'Regression-test Turkish fallback',
+    ],
+    isCurrent: false,
   },
   {
-    versionName: '0.5.4', versionCode: 15, releaseLabel: 'Polish', title: 'Onboarding and layout polish',
-    highlights: ['Onboarding fixes', 'Layout fixes', 'Radio polish'], safetyNotes: ['No safety model changes'], testerNotes: ['Verify settings selections'], isCurrent: false,
+    versionName: '0.5.4',
+    versionCode: 15,
+    releaseLabel: 'Polish',
+    title: 'Onboarding and layout polish',
+    highlights: [
+      'Onboarding fixes',
+      'Layout fixes',
+      'Radio polish',
+    ],
+    safetyNotes: [
+      'No safety model changes',
+    ],
+    testerNotes: [
+      'Verify settings selections',
+    ],
+    isCurrent: false,
   },
   {
-    versionName: '0.5.3', versionCode: 14, releaseLabel: 'Motion', title: 'Motion polish',
-    highlights: ['Subtle screen motion', 'Reduced primitive transitions'], safetyNotes: ['No tracking or analytics added'], testerNotes: ['Check back navigation'], isCurrent: false,
+    versionName: '0.5.3',
+    versionCode: 14,
+    releaseLabel: 'Motion',
+    title: 'Motion polish',
+    highlights: [
+      'Subtle screen motion',
+      'Reduced primitive transitions',
+    ],
+    safetyNotes: [
+      'No tracking or analytics added',
+    ],
+    testerNotes: [
+      'Check back navigation',
+    ],
+    isCurrent: false,
   },
   {
-    versionName: '0.5.2', versionCode: 13, releaseLabel: 'Localization foundation', title: 'App Language black-screen fix',
-    highlights: ['Locale black-screen fix', 'Language foundation labels'], safetyNotes: ['No OS LocaleManager recreation path'], testerNotes: ['Switch App Language safely'], isCurrent: false,
+    versionName: '0.5.2',
+    versionCode: 13,
+    releaseLabel: 'Localization foundation',
+    title: 'App Language black-screen fix',
+    highlights: [
+      'Locale black-screen fix',
+      'Language foundation labels',
+    ],
+    safetyNotes: [
+      'No OS LocaleManager recreation path',
+    ],
+    testerNotes: [
+      'Switch App Language safely',
+    ],
+    isCurrent: false,
   },
 ]
