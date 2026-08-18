@@ -73,10 +73,10 @@ def normalize_event_title(title: str) -> str:
         value,
         flags=re.IGNORECASE,
     )
-    # Leek Duck GBL listing titles append the season name after a spaced dash. The season is a
-    # category/context, not part of the weekly rotation's human-facing event title.
+    # Leek Duck GBL listing/article titles append the season name after a dash or pipe. The season
+    # is category/context, not part of the weekly rotation's human-facing event title.
     if re.search(r"\b(?:league|cup)\b", value, flags=re.IGNORECASE):
-        value = re.sub(r"\s*[-–—]\s*Forever Forward\s*$", "", value, flags=re.IGNORECASE)
+        value = re.sub(r"\s*[-–—|]\s*Forever Forward\s*$", "", value, flags=re.IGNORECASE)
 
     raid_patterns = (
         (r"^(.+?)\s+in\s+5[- ]star\s+Raid Battles$", r"\1 — 5-Star Raids"),
@@ -90,7 +90,7 @@ def normalize_event_title(title: str) -> str:
             break
 
     value = re.sub(r"\s+[-–—]\s+", " — ", value)
-    value = re.sub(r"\s{2,}", " ", value).strip(" -–—")
+    value = re.sub(r"\s{2,}", " ", value).strip(" -–—|")
     return value
 
 
@@ -179,11 +179,9 @@ class DetailPageParser(HTMLParser):
 
         if root in {"h3", "h4"}:
             if self._section == "intro":
-                # Some source pages skip H2 entirely and use H3 as their first semantic section.
                 self._section = text
                 self.page.sections.setdefault(self._section, [])
             else:
-                # Preserve the parent section classification while retaining the useful subhead.
                 self.page.sections.setdefault(self._section, []).append(text)
             return
 
@@ -251,8 +249,6 @@ def _section_lines(page: ParsedPage, keywords: Iterable[str]) -> List[str]:
 
 
 def extract_enrichment(page: ParsedPage, event_title: str) -> Dict[str, str]:
-    # event_title is currently kept in the signature intentionally: it is useful context for
-    # future source-specific extractors while generic extraction remains source-heading driven.
     _ = event_title
     intro = _compact(page.intro, max_items=2, max_chars=650)
     featured = _compact(
@@ -276,13 +272,8 @@ def extract_enrichment(page: ParsedPage, event_title: str) -> Dict[str, str]:
         result["research"] = research
     if notes:
         result["eventNotes"] = notes
-
-    # For a source page with a meaningful article intro but no recognized gameplay heading (for
-    # example partnership/news pages), preserve that source text as general notes so the UI shows
-    # useful detail instead of a misleading universal "details limited" card.
     if not any(key in result for key in DETAIL_FIELDS) and intro:
         result["eventNotes"] = intro
-
     return result
 
 
@@ -360,8 +351,6 @@ def enrich_feed(feed: dict, fetcher=fetch_html, strict: bool = False) -> dict:
             continue
         try:
             page = parse_detail_html(fetcher(source_url))
-            # Prefer an article h1 when it is a real human title; still pass it through the same
-            # conservative normalizer so SEO suffixes cannot leak back into the feed.
             page_title = normalize_event_title(page.title or "")
             if page_title and len(page_title) <= 140:
                 event["title"] = page_title
@@ -370,7 +359,7 @@ def enrich_feed(feed: dict, fetcher=fetch_html, strict: bool = False) -> dict:
                     if derived_tr:
                         event["titleTr"] = derived_tr
             apply_enrichment(event, extract_enrichment(page, event.get("title", normalized_title)))
-        except Exception as exc:  # keep prior curated data; strict quality gate decides publishability
+        except Exception as exc:
             fetch_errors.append(f"{event.get('id')}: {exc}")
 
     quality_failures = validate_active_detail_quality(events)
