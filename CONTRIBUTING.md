@@ -18,7 +18,7 @@ PokeQuery is privacy-first and text-only. Contributions must not add:
 
 ### Documented Event Guide network exception
 
-Android declares `android.permission.INTERNET` only for the documented public Event Guide feed path. The Event Guide generator may fetch configured public event sources to build the static feed.
+Android declares `android.permission.INTERNET` only for the documented public Event Guide feed path. The Event Guide generator may fetch configured public event sources to build the static feed. Build-time source-page enrichment must remain restricted to the pipeline's approved HTTPS hosts; redirects and final response destinations must satisfy the same policy.
 
 This exception does **not** authorize arbitrary HTTP clients, telemetry, account access, remote config or unrelated cloud dependencies. Runtime app networking must remain limited to explicitly documented public-data features.
 
@@ -34,7 +34,7 @@ Every relevant PR should confirm:
 - [ ] Generated search strings never emit `|`.
 - [ ] Risk Warning and linter gates remain intact for action-adjacent/risky searches.
 - [ ] Android/Web engine changes preserve parity and the golden-corpus copies remain byte-identical.
-- [ ] Event Guide networking remains within the documented public-feed/source pipeline.
+- [ ] Event Guide networking remains within the documented public-feed/source pipeline and approved HTTPS/redirect policy.
 - [ ] New runtime art/assets pass `scripts/check_runtime_assets.py` and IP review.
 
 ## Development setup
@@ -117,9 +117,11 @@ Rules:
 
 Canonical feed: `docs/event-feed/pokequery-events.json`.
 
-The scheduled pipeline performs online discovery, source-page enrichment with a strict quality gate, validation and synchronization of Android/Web fallbacks. Do not hand-invent missing dates, Pokémon, bonuses, raids or research to make an event look complete.
+The scheduled pipeline performs online discovery, source-page enrichment with a strict quality gate, validation and synchronization of Android/Web fallbacks. Build-time enrichment may fetch only approved HTTPS Pokémon GO/Leek Duck destinations, including redirects/final URLs.
 
-Prefer official Pokémon GO Live information when available; configured third-party sources are enrichment/fallback only.
+The discovered/catalog event title is authoritative. Source-page H1 text may fill a missing title but must not silently rename an existing feed entry.
+
+Do not hand-invent missing dates, Pokémon, bonuses, raids or research to make an event look complete. Prefer official Pokémon GO Live information when available; configured third-party sources are enrichment/fallback only.
 
 ## Git and branching
 
