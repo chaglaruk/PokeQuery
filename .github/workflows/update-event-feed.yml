@@ -20,9 +20,17 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Test Event Guide enrichment
+        run: |
+          python scripts/test_enrich_event_feed.py
+
       - name: Generate Event Feed
         run: |
           python scripts/generate_event_feed.py
+
+      - name: Enrich Event Feed from source pages
+        run: |
+          python scripts/enrich_event_feed.py docs/event-feed/pokequery-events.json --strict
 
       - name: Validate Event Feed
         run: |
