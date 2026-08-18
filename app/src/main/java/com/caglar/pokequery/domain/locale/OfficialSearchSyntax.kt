@@ -93,11 +93,14 @@ object OfficialSearchSyntax {
         OfficialSearchFamily("costume", "costume", "costume", finiteValues = listOf("costume")),
         OfficialSearchFamily("tag", "#<tag>", "#battle", parameterized = true),
         OfficialSearchFamily("traded", "traded", "traded", finiteValues = listOf("traded")),
-        OfficialSearchFamily("ultra-beast", "ultrabeast", "ultrabeast", finiteValues = listOf("ultrabeast")),
-        OfficialSearchFamily("and", "&", "shiny&legendary"),
+        OfficialSearchFamily("ultra-beast", "ultrabeast / ultra beasts", "ultrabeast", finiteValues = listOf("ultrabeast", "ultra beasts")),
+        OfficialSearchFamily("and", "& or |", "shiny&legendary"),
         OfficialSearchFamily("or", ", / : / ;", "shiny,legendary"),
         OfficialSearchFamily("not", "!", "!shiny"),
-        OfficialSearchFamily("range", "<min>-<max>", "cp200-300", parameterized = true)
+        OfficialSearchFamily("maximum", "<prefix>-<max>", "cp-300", parameterized = true),
+        OfficialSearchFamily("minimum", "<prefix><min>-", "cp300-", parameterized = true),
+        OfficialSearchFamily("range", "<min>-<max>", "cp200-300", parameterized = true),
+        OfficialSearchFamily("punctuation", "include punctuation exactly as shown in a name", "Mr. Mime", parameterized = true)
     )
 
     val familyIds: Set<String> = families.mapTo(linkedSetOf()) { it.id }
