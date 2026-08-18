@@ -1,5 +1,6 @@
 name: Deploy PWA to GitHub Pages
 
+# Routine PR validation intentionally excludes Playwright; full E2E lives in pwa-e2e.yml.
 on:
   push:
     branches: [master]
