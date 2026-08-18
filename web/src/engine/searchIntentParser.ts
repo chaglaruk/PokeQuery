@@ -224,17 +224,16 @@ function emptyIntent(explanationKey: string, text?: string): ParsedIntent {
 
 export function parseSearchIntent(text: string, today: Date = new Date()): ParsedIntent {
   const caughtMatch = parseCaughtDateIntent(text, today)
-  if (caughtMatch !== null) {
-    const rawQuery = caughtMatch.canBuild ? caughtMatch.tokens.join('&') : ''
+  if (caughtMatch !== null && !caughtMatch.canBuild) {
     return {
-      tokens: caughtMatch.tokens,
+      tokens: [],
       exclusions: [],
-      rawQuery,
+      rawQuery: '',
       explanationKey: caughtMatch.explanationKey,
       explanation: caughtMatch.explanation,
-      limitationKeys: caughtMatch.limitationKeys,
-      limitations: caughtMatch.limitations,
-      canBuild: caughtMatch.canBuild,
+      limitationKeys: [],
+      limitations: [],
+      canBuild: false,
       hasAutoAdded: false,
       pipeForbidden: text.includes('|'),
       noteKeys: [],
@@ -244,17 +243,39 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
   const pipeForbidden = text.includes('|')
   const cleaned = pipeForbidden ? text.replace(/\|/g, ' ') : text
   const normalized = normalize(cleaned)
-  if (!normalized) return emptyIntent('search_intent_empty')
+  if (!normalized && caughtMatch === null) return emptyIntent('search_intent_empty')
 
-  const matched = patterns.filter(pattern => pattern.keywords.some(keyword => normalized.includes(keyword)))
-  if (matched.length === 0) return emptyIntent('search_intent_could_not_understand', text)
+  const matched = patterns.filter(pattern => {
+    const matchingKeywords = pattern.keywords.filter(keyword => normalized.includes(keyword))
+    if (matchingKeywords.length === 0) return false
 
-  const allTokens = new Set<string>()
+    // Suppress legacy "old" pattern if it only matched 2016/2017/2018 from caught year
+    if (caughtMatch !== null && caughtMatch.canBuild && pattern.tokens.length === 1 && pattern.tokens[0] === 'age365-' && (!pattern.exclusions || pattern.exclusions.length === 0)) {
+      const nonYearKeywords = pattern.keywords.filter(k => !['2016', '2017', '2018'].includes(k))
+      const hasExplicitOldKeyword = nonYearKeywords.some(k => normalized.includes(k))
+      if (!hasExplicitOldKeyword) {
+        return false
+      }
+    }
+    return true
+  })
+
+  if (matched.length === 0 && caughtMatch === null) return emptyIntent('search_intent_could_not_understand', text)
+
+  const allTokens: string[] = []
   const allExclusions = new Set<string>()
   const explanationKeys: string[] = []
   const allExplanationText: string[] = []
   const limitKeys: string[] = []
   const allLimitations: string[] = []
+
+  if (caughtMatch !== null && caughtMatch.canBuild) {
+    caughtMatch.tokens.forEach(t => allTokens.push(t))
+    explanationKeys.push(caughtMatch.explanationKey)
+    allExplanationText.push(caughtMatch.explanation)
+    limitKeys.push(...caughtMatch.limitationKeys)
+    allLimitations.push(...caughtMatch.limitations)
+  }
 
   for (const pattern of matched) {
     const matchedKeyword = pattern.keywords.find(k => normalized.includes(k)) ?? ''
@@ -263,7 +284,7 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
       pattern.tokens.forEach(t => allExclusions.add(t))
       pattern.exclusions?.forEach(e => allExclusions.add(e))
     } else {
-      pattern.tokens.forEach(t => allTokens.add(t))
+      pattern.tokens.forEach(t => allTokens.push(t))
       pattern.exclusions?.forEach(e => allExclusions.add(e))
     }
     explanationKeys.push(pattern.explanationKey)
@@ -276,7 +297,7 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
   const hasLegendary = normalized.includes('legendary')
   const hasMythical = normalized.includes('mythical')
   const extraTokens: string[] = []
-  const tokenList = Array.from(allTokens).map(t => t.toLowerCase())
+  const tokenList = allTokens.map(t => t.toLowerCase())
 
   if (hasShiny && !tokenList.includes('shiny') && !Array.from(allExclusions).map(e => e.toLowerCase()).includes('shiny')) {
     if (isPatternNegated(normalized, 'shiny')) allExclusions.add('shiny')
@@ -290,13 +311,13 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
     if (isPatternNegated(normalized, 'mythical')) allExclusions.add('mythical')
     else extraTokens.push('mythical')
   }
-  extraTokens.forEach(t => allTokens.add(t))
+  extraTokens.forEach(t => allTokens.push(t))
 
   const noteKeys: string[] = []
   if (pipeForbidden) noteKeys.push('search_intent_pipe_forbidden')
   if (allExclusions.has('traded')) noteKeys.push('search_intent_traded_kept')
 
-  if (allTokens.size === 0 && allExclusions.size === 0) {
+  if (allTokens.length === 0 && allExclusions.size === 0) {
     return {
       tokens: [], exclusions: [], rawQuery: '', explanationKey: explanationKeys[0] ?? 'search_intent_empty',
       explanation: allExplanationText.filter((v, i, a) => a.indexOf(v) === i).join(' '), limitationKeys: limitKeys,
@@ -305,7 +326,10 @@ export function parseSearchIntent(text: string, today: Date = new Date()): Parse
     }
   }
 
-  const distinctTokens = Array.from(allTokens)
+  const dateTokens = allTokens.filter(t => t.startsWith('year') || t.startsWith('age')).filter((v, i, a) => a.indexOf(v) === i)
+  const otherTokens = allTokens.filter(t => !t.startsWith('year') && !t.startsWith('age')).filter((v, i, a) => a.indexOf(v) === i)
+  const distinctTokens = [...dateTokens, ...otherTokens]
+
   const distinctExclusions = Array.from(allExclusions)
   const rawQuery = [...distinctTokens, ...distinctExclusions.map(e => `!${e}`)].join('&')
 

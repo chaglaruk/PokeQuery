@@ -251,26 +251,38 @@ object SearchIntentParser {
 
     internal fun parse(text: String, today: LocalDate): ParsedIntent {
         val caughtMatch = CaughtDateIntentParser.parse(text, today)
-        if (caughtMatch != null) {
-            val rawQuery = if (caughtMatch.canBuild) caughtMatch.tokens.joinToString("&") else ""
+        if (caughtMatch != null && !caughtMatch.canBuild) {
             return ParsedIntent(
-                tokens = caughtMatch.tokens,
+                tokens = emptyList(),
                 exclusions = emptyList(),
-                rawQuery = rawQuery,
+                rawQuery = "",
                 explanation = caughtMatch.explanation,
-                limitations = caughtMatch.limitations,
-                canBuild = caughtMatch.canBuild
+                limitations = emptyList(),
+                canBuild = false
             )
         }
 
         val normalized = normalize(text)
-        if (normalized.isBlank()) return ParsedIntent(emptyList(), explanation = "Enter a description of what you want to find.", canBuild = false)
-
-        val matched = patterns.filter { pattern ->
-            pattern.keywords.any { keyword -> normalized.contains(keyword) }
+        if (normalized.isBlank() && caughtMatch == null) {
+            return ParsedIntent(emptyList(), explanation = "Enter a description of what you want to find.", canBuild = false)
         }
 
-        if (matched.isEmpty()) {
+        val matched = patterns.filter { pattern ->
+            val matchingKeywords = pattern.keywords.filter { keyword -> normalized.contains(keyword) }
+            if (matchingKeywords.isEmpty()) return@filter false
+
+            // Suppress legacy "old" pattern if it only matched 2016/2017/2018 from caught year
+            if (caughtMatch != null && caughtMatch.canBuild && pattern.tokens == listOf("age365-") && pattern.exclusions.isEmpty()) {
+                val nonYearKeywords = pattern.keywords.filter { it !in listOf("2016", "2017", "2018") }
+                val hasExplicitOldKeyword = nonYearKeywords.any { normalized.contains(it) }
+                if (!hasExplicitOldKeyword) {
+                    return@filter false
+                }
+            }
+            true
+        }
+
+        if (matched.isEmpty() && caughtMatch == null) {
             return ParsedIntent(
                 emptyList(),
                 explanation = "Could not understand \"$text\". Try words like: shiny, hundo, cleanup, trade, pvp, lucky, shadow, old, costume. (Türkçe: parlak, efsanevi, temizlik, takas, gölge, eski...)",
@@ -279,10 +291,16 @@ object SearchIntentParser {
             )
         }
 
-        val allTokens = mutableSetOf<String>()
+        val allTokens = mutableListOf<String>()
         val allExclusions = mutableSetOf<String>()
         val explanations = mutableListOf<String>()
         val allLimitations = mutableListOf<String>()
+
+        if (caughtMatch != null && caughtMatch.canBuild) {
+            allTokens.addAll(caughtMatch.tokens)
+            explanations.add(caughtMatch.explanation)
+            allLimitations.addAll(caughtMatch.limitations)
+        }
 
         for (pattern in matched) {
             val matchedKeyword = pattern.keywords.firstOrNull { normalized.contains(it) } ?: ""
@@ -329,7 +347,12 @@ object SearchIntentParser {
 
         val canBuildResult = allTokens.isNotEmpty() || allExclusions.isNotEmpty()
         val combinedExplanation = explanations.distinct().joinToString(" ") + extraLabel
-        val distinctTokens = allTokens.toList().distinct()
+
+        // Ensure date tokens (year..., age...) come first, preserving order
+        val dateTokens = allTokens.filter { it.startsWith("year") || it.startsWith("age") }.distinct()
+        val otherTokens = allTokens.filter { !it.startsWith("year") && !it.startsWith("age") }.distinct()
+        val distinctTokens = dateTokens + otherTokens
+
         val distinctExclusions = allExclusions.toList().distinct()
         val parts = distinctTokens + distinctExclusions.map { "!$it" }
         val rawQuery = parts.joinToString("&")

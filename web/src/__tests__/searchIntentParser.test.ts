@@ -382,6 +382,62 @@ describe('parseSearchIntent', () => {
     expect(rTr.explanation).toContain("Nisan 2025'te yakalanan")
   })
 
+  it('correctly composes caught date with other search intents', () => {
+    // 1. find shiny pokemon caught in April 2025
+    const rShinyDate = parseSearchIntent('find shiny pokemon caught in April 2025', fixedToday)
+    expect(rShinyDate.canBuild).toBe(true)
+    expect(rShinyDate.rawQuery).toBe('year2025&age475-504&shiny')
+    expect(rShinyDate.rawQuery).not.toContain('|')
+
+    // 2. find hundos caught in 2025
+    const rHundoDate = parseSearchIntent('find hundos caught in 2025', fixedToday)
+    expect(rHundoDate.canBuild).toBe(true)
+    expect(rHundoDate.rawQuery).toBe('year2025&4*')
+    expect(rHundoDate.rawQuery).not.toContain('|')
+
+    // 3. find legendary pokemon caught in April
+    const rLegDate = parseSearchIntent('find legendary pokemon caught in April', fixedToday)
+    expect(rLegDate.canBuild).toBe(true)
+    expect(rLegDate.rawQuery).toBe('year2026&age110-139&legendary')
+    expect(rLegDate.rawQuery).not.toContain('|')
+
+    // 4. Turkish: nisan 2025te yakalanan parlak pokemonları bul
+    const rTrShiny = parseSearchIntent('nisan 2025te yakalanan parlak pokemonları bul', fixedToday)
+    expect(rTrShiny.canBuild).toBe(true)
+    expect(rTrShiny.rawQuery).toBe('year2025&age475-504&shiny')
+    expect(rTrShiny.rawQuery).not.toContain('|')
+
+    // 5. exclude shiny pokemon caught in 2025
+    const rExclShiny = parseSearchIntent('exclude shiny pokemon caught in 2025', fixedToday)
+    expect(rExclShiny.canBuild).toBe(true)
+    expect(rExclShiny.rawQuery).toBe('year2025&!shiny')
+    expect(rExclShiny.rawQuery).not.toContain('|')
+
+    // 6. find hundos caught in April 2025 and exclude shiny
+    const rHundoExclShiny = parseSearchIntent('find hundos caught in April 2025 and exclude shiny', fixedToday)
+    expect(rHundoExclShiny.canBuild).toBe(true)
+    expect(rHundoExclShiny.rawQuery).toBe('year2025&age475-504&4*&!shiny')
+    expect(rHundoExclShiny.rawQuery).not.toContain('|')
+
+    // 7. find shadow pokemon caught in 2025
+    const rShadowDate = parseSearchIntent('find shadow pokemon caught in 2025', fixedToday)
+    expect(rShadowDate.canBuild).toBe(true)
+    expect(rShadowDate.rawQuery).toBe('year2025&shadow')
+    expect(rShadowDate.rawQuery).not.toContain('|')
+
+    // 8. 2018 collision: find shiny pokemon caught in 2018 must NOT contain age365-
+    const r2018 = parseSearchIntent('find shiny pokemon caught in 2018', fixedToday)
+    expect(r2018.canBuild).toBe(true)
+    expect(r2018.rawQuery).toBe('year2018&shiny')
+    expect(r2018.rawQuery).not.toContain('age365-')
+    expect(r2018.rawQuery).not.toContain('|')
+
+    // 9. find old shiny pokemon MUST contain age365-
+    const rOldShiny = parseSearchIntent('find old shiny pokemon', fixedToday)
+    expect(rOldShiny.canBuild).toBe(true)
+    expect(rOldShiny.rawQuery).toBe('age365-&shiny')
+  })
+
   it('handles caught date edge cases: current month, Dec past-year inference, future date, leap year', () => {
     // Current month: August 2026 (clamped to today: Aug 18)
     const rCurrent = parseSearchIntent('caught in August 2026', fixedToday)

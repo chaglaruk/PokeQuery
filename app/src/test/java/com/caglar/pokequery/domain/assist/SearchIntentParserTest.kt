@@ -430,6 +430,63 @@ class SearchIntentParserTest {
     }
 
     @Test
+    fun testCaughtDateComposition() {
+        // 1. find shiny pokemon caught in April 2025
+        val rShinyDate = SearchIntentParser.parse("find shiny pokemon caught in April 2025", fixedToday)
+        assertTrue(rShinyDate.canBuild)
+        assertEquals("year2025&age475-504&shiny", rShinyDate.rawQuery)
+        assertFalse(rShinyDate.rawQuery.contains("|"))
+
+        // 2. find hundos caught in 2025
+        val rHundoDate = SearchIntentParser.parse("find hundos caught in 2025", fixedToday)
+        assertTrue(rHundoDate.canBuild)
+        assertEquals("year2025&4*", rHundoDate.rawQuery)
+        assertFalse(rHundoDate.rawQuery.contains("|"))
+
+        // 3. find legendary pokemon caught in April
+        val rLegDate = SearchIntentParser.parse("find legendary pokemon caught in April", fixedToday)
+        assertTrue(rLegDate.canBuild)
+        assertEquals("year2026&age110-139&legendary", rLegDate.rawQuery)
+        assertFalse(rLegDate.rawQuery.contains("|"))
+
+        // 4. Turkish: nisan 2025te yakalanan parlak pokemonları bul
+        val rTrShiny = SearchIntentParser.parse("nisan 2025te yakalanan parlak pokemonları bul", fixedToday)
+        assertTrue(rTrShiny.canBuild)
+        assertEquals("year2025&age475-504&shiny", rTrShiny.rawQuery)
+        assertFalse(rTrShiny.rawQuery.contains("|"))
+
+        // 5. exclude shiny pokemon caught in 2025
+        val rExclShiny = SearchIntentParser.parse("exclude shiny pokemon caught in 2025", fixedToday)
+        assertTrue(rExclShiny.canBuild)
+        assertEquals("year2025&!shiny", rExclShiny.rawQuery)
+        assertFalse(rExclShiny.rawQuery.contains("|"))
+
+        // 6. find hundos caught in April 2025 and exclude shiny
+        val rHundoExclShiny = SearchIntentParser.parse("find hundos caught in April 2025 and exclude shiny", fixedToday)
+        assertTrue(rHundoExclShiny.canBuild)
+        assertEquals("year2025&age475-504&4*&!shiny", rHundoExclShiny.rawQuery)
+        assertFalse(rHundoExclShiny.rawQuery.contains("|"))
+
+        // 7. find shadow pokemon caught in 2025
+        val rShadowDate = SearchIntentParser.parse("find shadow pokemon caught in 2025", fixedToday)
+        assertTrue(rShadowDate.canBuild)
+        assertEquals("year2025&shadow", rShadowDate.rawQuery)
+        assertFalse(rShadowDate.rawQuery.contains("|"))
+
+        // 8. 2018 collision: find shiny pokemon caught in 2018 must NOT contain age365-
+        val r2018 = SearchIntentParser.parse("find shiny pokemon caught in 2018", fixedToday)
+        assertTrue(r2018.canBuild)
+        assertEquals("year2018&shiny", r2018.rawQuery)
+        assertFalse(r2018.rawQuery.contains("age365-"))
+        assertFalse(r2018.rawQuery.contains("|"))
+
+        // 9. find old shiny pokemon MUST contain age365-
+        val rOldShiny = SearchIntentParser.parse("find old shiny pokemon", fixedToday)
+        assertTrue(rOldShiny.canBuild)
+        assertEquals("age365-&shiny", rOldShiny.rawQuery)
+    }
+
+    @Test
     fun testCaughtDateEdgeCases() {
         // Current month: August 2026 (clamped to today: Aug 18)
         val rCurrent = SearchIntentParser.parse("caught in August 2026", fixedToday)
@@ -473,11 +530,11 @@ class SearchIntentParserTest {
 
     @Test
     fun testSearchTermMapperLanguageTranslationsForCaughtDate() {
-        val query = "year2025&age475-504"
-        assertEquals("yıl2025&yaş475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Turkish"))
-        assertEquals("jahr2025&alter475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "German"))
-        assertEquals("año2025&edad475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Spanish"))
-        assertEquals("année2025&âge475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "French"))
-        assertEquals("anno2025&età475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Italian"))
+        val query = "year2025&age475-504&shiny"
+        assertEquals("yıl2025&yaş475-504&parlak", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Turkish"))
+        assertEquals("jahr2025&alter475-504&schillernd", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "German"))
+        assertEquals("año2025&edad475-504&variocolor", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Spanish"))
+        assertEquals("année2025&âge475-504&chromatique", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "French"))
+        assertEquals("anno2025&età475-504&cromatico", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Italian"))
     }
 }
