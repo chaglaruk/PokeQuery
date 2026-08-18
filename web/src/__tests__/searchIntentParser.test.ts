@@ -310,4 +310,124 @@ describe('parseSearchIntent', () => {
     expect(r.rawQuery).toBe('4*&!shiny')
     expect(r.rawQuery).not.toContain('|')
   })
+
+  // ==========================================
+  // CAUGHT DATE INTENT TESTS (Fixed today: 2026-08-18)
+  // ==========================================
+  const fixedToday = new Date(2026, 7, 18) // Month 7 = August
+
+  it('parses "find pokemon caught in April 2025" and "caught in April 2025"', () => {
+    const r1 = parseSearchIntent('find pokemon caught in April 2025', fixedToday)
+    expect(r1.canBuild).toBe(true)
+    expect(r1.rawQuery).toBe('year2025&age475-504')
+    expect(r1.rawQuery).not.toContain('|')
+    expect(r1.tokens).toEqual(['year2025', 'age475-504'])
+    expect(r1.limitations.some(l => l.includes('rolling 24-hour windows'))).toBe(true)
+
+    const r2 = parseSearchIntent('caught in April 2025', fixedToday)
+    expect(r2.canBuild).toBe(true)
+    expect(r2.rawQuery).toBe('year2025&age475-504')
+  })
+
+  it('parses Turkish "nisan 2025te yakalanan pokemonları bul" and "nisan 2025\'te yakalanan pokemonları bul"', () => {
+    const r1 = parseSearchIntent('nisan 2025te yakalanan pokemonları bul', fixedToday)
+    expect(r1.canBuild).toBe(true)
+    expect(r1.rawQuery).toBe('year2025&age475-504')
+    expect(r1.rawQuery).not.toContain('|')
+
+    const r2 = parseSearchIntent("nisan 2025'te yakalanan pokemonları bul", fixedToday)
+    expect(r2.canBuild).toBe(true)
+    expect(r2.rawQuery).toBe('year2025&age475-504')
+  })
+
+  it('parses Month only: "caught in April", "nisanda yakalanan pokemonları bul", "nisan ayında yakalanan pokemonları bul"', () => {
+    const rEn = parseSearchIntent('caught in April', fixedToday)
+    expect(rEn.canBuild).toBe(true)
+    expect(rEn.rawQuery).toBe('year2026&age110-139')
+    expect(rEn.rawQuery).not.toContain('|')
+
+    const rTr1 = parseSearchIntent('nisanda yakalanan pokemonları bul', fixedToday)
+    expect(rTr1.canBuild).toBe(true)
+    expect(rTr1.rawQuery).toBe('year2026&age110-139')
+
+    const rTr2 = parseSearchIntent('nisan ayında yakalanan pokemonları bul', fixedToday)
+    expect(rTr2.canBuild).toBe(true)
+    expect(rTr2.rawQuery).toBe('year2026&age110-139')
+  })
+
+  it('parses Year only: "caught in 2025", "2025te yakalanan pokemonları bul", "2025\'te yakalanan pokemonları bul"', () => {
+    const rEn = parseSearchIntent('caught in 2025', fixedToday)
+    expect(rEn.canBuild).toBe(true)
+    expect(rEn.rawQuery).toBe('year2025')
+    expect(rEn.rawQuery).not.toContain('|')
+
+    const rTr1 = parseSearchIntent('2025te yakalanan pokemonları bul', fixedToday)
+    expect(rTr1.canBuild).toBe(true)
+    expect(rTr1.rawQuery).toBe('year2025')
+
+    const rTr2 = parseSearchIntent("2025'te yakalanan pokemonları bul", fixedToday)
+    expect(rTr2.canBuild).toBe(true)
+    expect(rTr2.rawQuery).toBe('year2025')
+  })
+
+  it('parses bare caught requests with helpful guidance: "find caught pokemon", "yakalanan pokemonları bul"', () => {
+    const rEn = parseSearchIntent('find caught pokemon', fixedToday)
+    expect(rEn.canBuild).toBe(false)
+    expect(rEn.rawQuery).toBe('')
+    expect(rEn.explanation).toContain('caught in April 2025')
+
+    const rTr = parseSearchIntent('yakalanan pokemonları bul', fixedToday)
+    expect(rTr.canBuild).toBe(false)
+    expect(rTr.rawQuery).toBe('')
+    expect(rTr.explanation).toContain("Nisan 2025'te yakalanan")
+  })
+
+  it('handles caught date edge cases: current month, Dec past-year inference, future date, leap year', () => {
+    // Current month: August 2026 (clamped to today: Aug 18)
+    const rCurrent = parseSearchIntent('caught in August 2026', fixedToday)
+    expect(rCurrent.canBuild).toBe(true)
+    expect(rCurrent.rawQuery).toBe('year2026&age0-17')
+
+    // Month-only December (inferred past year: Dec 2025)
+    const rDec = parseSearchIntent('caught in December', fixedToday)
+    expect(rDec.canBuild).toBe(true)
+    expect(rDec.rawQuery).toBe('year2025&age230-260')
+
+    // Future year
+    const rFuture = parseSearchIntent('caught in 2030', fixedToday)
+    expect(rFuture.canBuild).toBe(false)
+    expect(rFuture.rawQuery).toBe('')
+
+    // Leap year: Feb 2024 (29 days)
+    const rLeap = parseSearchIntent('caught in February 2024', fixedToday)
+    expect(rLeap.canBuild).toBe(true)
+    expect(rLeap.rawQuery).toBe('year2024&age901-929')
+  })
+
+  it('recognizes all 12 EN and TR months in caught context', () => {
+    const enMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    for (const m of enMonths) {
+      const res = parseSearchIntent(`caught in ${m} 2024`, fixedToday)
+      expect(res.canBuild).toBe(true)
+      expect(res.rawQuery.startsWith('year2024&age')).toBe(true)
+      expect(res.rawQuery).not.toContain('|')
+    }
+
+    const trMonths = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
+    for (const m of trMonths) {
+      const res = parseSearchIntent(`${m} 2024'te yakalanan`, fixedToday)
+      expect(res.canBuild).toBe(true)
+      expect(res.rawQuery.startsWith('year2024&age')).toBe(true)
+      expect(res.rawQuery).not.toContain('|')
+    }
+  })
+
+  it('verifies DST safety in days calculation', () => {
+    // Cross US Daylight Saving Time start (March 8, 2026)
+    const dstDay = new Date(2026, 2, 15) // March 15, 2026
+    const r = parseSearchIntent('caught in March 2026', dstDay)
+    expect(r.canBuild).toBe(true)
+    // start 2026-03-01 to 2026-03-15 = 14 days; end clamped to 2026-03-15 = 0 days
+    expect(r.rawQuery).toBe('year2026&age0-14')
+  })
 })

@@ -1,6 +1,8 @@
 // SearchIntentParser — TypeScript port of Android SearchIntentParser.kt
 // Parses natural-language search intent into Pokemon GO search strings.
 
+import { parseCaughtDateIntent } from './caughtDateIntent'
+
 export interface ParsedIntent {
   tokens: string[]
   exclusions: string[]
@@ -220,7 +222,25 @@ function emptyIntent(explanationKey: string, text?: string): ParsedIntent {
   return { tokens: [], exclusions: [], rawQuery: '', explanationKey: 'search_intent_empty', explanation: 'Enter a description of what you want to find.', limitationKeys: [], limitations: [], canBuild: false, hasAutoAdded: false, pipeForbidden: false, noteKeys: [] }
 }
 
-export function parseSearchIntent(text: string): ParsedIntent {
+export function parseSearchIntent(text: string, today: Date = new Date()): ParsedIntent {
+  const caughtMatch = parseCaughtDateIntent(text, today)
+  if (caughtMatch !== null) {
+    const rawQuery = caughtMatch.canBuild ? caughtMatch.tokens.join('&') : ''
+    return {
+      tokens: caughtMatch.tokens,
+      exclusions: [],
+      rawQuery,
+      explanationKey: caughtMatch.explanationKey,
+      explanation: caughtMatch.explanation,
+      limitationKeys: caughtMatch.limitationKeys,
+      limitations: caughtMatch.limitations,
+      canBuild: caughtMatch.canBuild,
+      hasAutoAdded: false,
+      pipeForbidden: text.includes('|'),
+      noteKeys: [],
+    }
+  }
+
   const pipeForbidden = text.includes('|')
   const cleaned = pipeForbidden ? text.replace(/\|/g, ' ') : text
   const normalized = normalize(cleaned)

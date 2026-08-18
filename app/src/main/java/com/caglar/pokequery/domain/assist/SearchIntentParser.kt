@@ -246,7 +246,23 @@ object SearchIntentParser {
         )
     )
 
-    fun parse(text: String): ParsedIntent {
+    fun parse(text: String): ParsedIntent =
+        parse(text, LocalDate.now())
+
+    internal fun parse(text: String, today: LocalDate): ParsedIntent {
+        val caughtMatch = CaughtDateIntentParser.parse(text, today)
+        if (caughtMatch != null) {
+            val rawQuery = if (caughtMatch.canBuild) caughtMatch.tokens.joinToString("&") else ""
+            return ParsedIntent(
+                tokens = caughtMatch.tokens,
+                exclusions = emptyList(),
+                rawQuery = rawQuery,
+                explanation = caughtMatch.explanation,
+                limitations = caughtMatch.limitations,
+                canBuild = caughtMatch.canBuild
+            )
+        }
+
         val normalized = normalize(text)
         if (normalized.isBlank()) return ParsedIntent(emptyList(), explanation = "Enter a description of what you want to find.", canBuild = false)
 

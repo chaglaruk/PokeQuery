@@ -352,4 +352,132 @@ class SearchIntentParserTest {
         assertEquals("4*&!shiny", result.rawQuery)
         assertFalse(result.rawQuery.contains("|"))
     }
+
+    // ==========================================
+    // CAUGHT DATE INTENT TESTS (Fixed today: 2026-08-18)
+    // ==========================================
+    private val fixedToday = LocalDate.of(2026, 8, 18)
+
+    @Test
+    fun testCaughtInApril2025_English() {
+        val r1 = SearchIntentParser.parse("find pokemon caught in April 2025", fixedToday)
+        assertTrue(r1.canBuild)
+        assertEquals("year2025&age475-504", r1.rawQuery)
+        assertFalse(r1.rawQuery.contains("|"))
+        assertEquals(listOf("year2025", "age475-504"), r1.tokens)
+        assertTrue(r1.limitations.any { it.contains("rolling 24-hour windows", ignoreCase = true) })
+
+        val r2 = SearchIntentParser.parse("caught in April 2025", fixedToday)
+        assertTrue(r2.canBuild)
+        assertEquals("year2025&age475-504", r2.rawQuery)
+    }
+
+    @Test
+    fun testCaughtInApril2025_Turkish() {
+        val r1 = SearchIntentParser.parse("nisan 2025te yakalanan pokemonları bul", fixedToday)
+        assertTrue(r1.canBuild)
+        assertEquals("year2025&age475-504", r1.rawQuery)
+        assertFalse(r1.rawQuery.contains("|"))
+
+        val r2 = SearchIntentParser.parse("nisan 2025'te yakalanan pokemonları bul", fixedToday)
+        assertTrue(r2.canBuild)
+        assertEquals("year2025&age475-504", r2.rawQuery)
+    }
+
+    @Test
+    fun testCaughtInApril_MonthOnly() {
+        val rEn = SearchIntentParser.parse("caught in April", fixedToday)
+        assertTrue(rEn.canBuild)
+        assertEquals("year2026&age110-139", rEn.rawQuery)
+        assertFalse(rEn.rawQuery.contains("|"))
+
+        val rTr1 = SearchIntentParser.parse("nisanda yakalanan pokemonları bul", fixedToday)
+        assertTrue(rTr1.canBuild)
+        assertEquals("year2026&age110-139", rTr1.rawQuery)
+
+        val rTr2 = SearchIntentParser.parse("nisan ayında yakalanan pokemonları bul", fixedToday)
+        assertTrue(rTr2.canBuild)
+        assertEquals("year2026&age110-139", rTr2.rawQuery)
+    }
+
+    @Test
+    fun testCaughtIn2025_YearOnly() {
+        val rEn = SearchIntentParser.parse("caught in 2025", fixedToday)
+        assertTrue(rEn.canBuild)
+        assertEquals("year2025", rEn.rawQuery)
+        assertFalse(rEn.rawQuery.contains("|"))
+
+        val rTr1 = SearchIntentParser.parse("2025te yakalanan pokemonları bul", fixedToday)
+        assertTrue(rTr1.canBuild)
+        assertEquals("year2025", rTr1.rawQuery)
+
+        val rTr2 = SearchIntentParser.parse("2025'te yakalanan pokemonları bul", fixedToday)
+        assertTrue(rTr2.canBuild)
+        assertEquals("year2025", rTr2.rawQuery)
+    }
+
+    @Test
+    fun testBareCaughtRequest() {
+        val rEn = SearchIntentParser.parse("find caught pokemon", fixedToday)
+        assertFalse(rEn.canBuild)
+        assertEquals("", rEn.rawQuery)
+        assertTrue(rEn.explanation.contains("caught in April 2025", ignoreCase = true) || rEn.explanation.contains("Specify a month", ignoreCase = true))
+
+        val rTr = SearchIntentParser.parse("yakalanan pokemonları bul", fixedToday)
+        assertFalse(rTr.canBuild)
+        assertEquals("", rTr.rawQuery)
+        assertTrue(rTr.explanation.contains("Nisan 2025'te yakalanan", ignoreCase = true) || rTr.explanation.contains("Bir ay veya yıl belirtin", ignoreCase = true))
+    }
+
+    @Test
+    fun testCaughtDateEdgeCases() {
+        // Current month: August 2026 (clamped to today: Aug 18)
+        val rCurrent = SearchIntentParser.parse("caught in August 2026", fixedToday)
+        assertTrue(rCurrent.canBuild)
+        assertEquals("year2026&age0-17", rCurrent.rawQuery)
+
+        // Month-only December (inferred past year: Dec 2025)
+        val rDec = SearchIntentParser.parse("caught in December", fixedToday)
+        assertTrue(rDec.canBuild)
+        assertEquals("year2025&age230-260", rDec.rawQuery)
+
+        // Future year
+        val rFuture = SearchIntentParser.parse("caught in 2030", fixedToday)
+        assertFalse(rFuture.canBuild)
+        assertEquals("", rFuture.rawQuery)
+
+        // Leap year: Feb 2024 (29 days)
+        val rLeap = SearchIntentParser.parse("caught in February 2024", fixedToday)
+        assertTrue(rLeap.canBuild)
+        assertEquals("year2024&age901-929", rLeap.rawQuery)
+    }
+
+    @Test
+    fun testAll12MonthsRecognition() {
+        val enMonths = listOf("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
+        for (m in enMonths) {
+            val res = SearchIntentParser.parse("caught in $m 2024", fixedToday)
+            assertTrue("Expected buildable for $m 2024", res.canBuild)
+            assertTrue("Expected year2024 for $m 2024", res.rawQuery.startsWith("year2024&age"))
+            assertFalse(res.rawQuery.contains("|"))
+        }
+
+        val trMonths = listOf("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
+        for (m in trMonths) {
+            val res = SearchIntentParser.parse("$m 2024'te yakalanan", fixedToday)
+            assertTrue("Expected buildable for Turkish $m 2024", res.canBuild)
+            assertTrue("Expected year2024 for Turkish $m 2024", res.rawQuery.startsWith("year2024&age"))
+            assertFalse(res.rawQuery.contains("|"))
+        }
+    }
+
+    @Test
+    fun testSearchTermMapperLanguageTranslationsForCaughtDate() {
+        val query = "year2025&age475-504"
+        assertEquals("yıl2025&yaş475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Turkish"))
+        assertEquals("jahr2025&alter475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "German"))
+        assertEquals("año2025&edad475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Spanish"))
+        assertEquals("année2025&âge475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "French"))
+        assertEquals("anno2025&età475-504", com.caglar.pokequery.domain.engine.SearchTermMapper.translateSyntax(query, "Italian"))
+    }
 }
