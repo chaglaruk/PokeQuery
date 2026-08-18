@@ -1,90 +1,71 @@
 # Security Policy
 
-PokeQuery is a privacy-first Android utility. Core search-string generation is local-only; the
-Event Guide may use the network to fetch the project's public event-feed JSON. This document
-explains the project's security posture, what is in scope for reports, and how to disclose
-responsibly.
+PokeQuery is a privacy-first companion utility. Core search-string generation is local-only; the Event Guide may use the network to fetch the project's public static event-feed JSON. This document describes the current security/privacy boundary and responsible disclosure process.
 
 ## Privacy-first model
 
-PokeQuery is built to collect **no personal data** and to avoid account or game-service access.
+PokeQuery is designed to collect no personal data and to avoid Pokémon GO account/service access.
 
 | | |
 |---|---|
-| Network permission | The Android manifest declares `android.permission.INTERNET` for Event Guide public-feed retrieval. |
-| Event Guide network use | May fetch public PokeQuery event-feed JSON. No Pokémon GO account or Niantic API access is used. |
-| Accounts | None. No login, no sessions, no account access of any kind. |
-| Pokémon GO access | **None.** The app never signs in to Pokémon GO, reads a player's collection, or connects to a Pokémon GO account. |
-| Analytics / telemetry | None. No crash SDKs, analytics, ads, or tracking identifiers. |
-| Local storage | Favorites, history, and settings are stored on-device in DataStore. `allowBackup="false"`. |
-| Automation | None. The app generates text only; the user copies and pastes manually. |
+| Network permission | Android declares `android.permission.INTERNET` for the documented public Event Guide feed path. |
+| Event Guide network use | May fetch PokeQuery's public static feed. Feed generation may research configured public event sources. No Pokémon GO account/private API access is used. |
+| Accounts | None. No login, sessions or cloud user account. |
+| Pokémon GO access | None. The app never signs in to Pokémon GO, reads a player's collection or controls the game. |
+| Analytics / telemetry | None. No crash SDKs, analytics, ads, tracking identifiers or remote profiling. |
+| Local storage | Preferences/history/content used by the app are stored locally. `allowBackup="false"`. |
+| Automation | None. PokeQuery generates text; the user decides whether to copy/paste/use it. |
 
-These properties are protected by regression tests and review rules. Network access must remain
-limited to explicitly documented public-data features; adding account access, telemetry, ads,
-tracking, or undisclosed remote calls is a security/privacy-sensitive change.
+Network access must remain limited to explicitly documented public-data features. Adding account access, telemetry, ads, tracking or unrelated remote calls is a security/privacy-sensitive product change.
 
 ## What is in scope
 
-Please report security issues that affect this repository or the shipped app, for example:
+Please report security issues affecting this repository or shipped PokeQuery surfaces, for example:
 
-- An unexpected or undisclosed network call outside the documented Event Guide public-feed path.
-- Inclusion of an account-access, tracking, analytics, advertising, or other privacy-sensitive SDK.
-- A logic bug that could cause an **unsafe** search string to bypass the Risk Warning
-  gate or the Expert Builder linter, potentially exposing protected Pokémon.
-- Exposure of secrets, keystores, or signing material in the repo.
-- Crashes or state corruption triggered by normal user input.
+- an unexpected or undisclosed network call outside documented public-data paths;
+- inclusion of account-access, tracking, analytics, advertising or other privacy-sensitive SDKs;
+- a search/linter/risk bug that allows an unsafe generated string or risky copy path to bypass established safety gates;
+- exposure of secrets, keystores or signing material;
+- malicious or malformed Event Guide data causing unsafe behavior, code execution or persistent corruption;
+- crashes/state corruption triggered by normal user input.
 
 ## What is out of scope
 
-- Pokémon GO itself, Niantic's services, or third-party game infrastructure — PokeQuery does not
-  authenticate to or control those services.
-- The public Event Guide feed being temporarily unavailable, provided the app fails safely and
-  does not expose private data.
-- "Attacks" that require physical access to an unlocked device.
-- Requests to add account automation, scanning, OCR, scraping, or Pokémon GO credential access;
-  those capabilities are intentionally excluded from the product.
+- Pokémon GO, Niantic services or third-party infrastructure that PokeQuery does not control;
+- temporary unavailability of the public Event Guide feed when the app fails safely to cache/bundled fallback;
+- attacks requiring physical access to an unlocked device unless they expose a PokeQuery-specific vulnerability;
+- requests to add Pokémon GO account automation, OCR/screen reading or credential access; those capabilities are intentionally outside the product boundary.
 
 ## Reporting a vulnerability
 
-Please report responsibly:
+Do not open a public GitHub issue for a security vulnerability.
 
-1. **Do not** open a public GitHub issue for a security vulnerability.
-2. Email the maintainer via the address listed on the
-   [GitHub profile](https://github.com/chaglaruk), or open a **private** security
-   advisory on GitHub (`Security → Advisories → Report a vulnerability`).
-3. Include:
-   - PokeQuery version (from **Settings → About**)
-   - Android version and device
-   - Steps to reproduce
-   - The impact you observed
-4. Please **do not** include Pokémon GO account credentials, session tokens, or
-   screenshots of private Pokémon collections.
+Use either:
+1. the maintainer contact listed on the GitHub profile; or
+2. a private GitHub Security Advisory (`Security → Advisories → Report a vulnerability`).
 
-We will acknowledge receipt as soon as possible and coordinate a fix and disclosure
-timeline with you.
+Include the affected PokeQuery version/ref, platform/device, reproduction steps and observed impact. Do not include Pokémon GO credentials, session tokens or private collection data.
 
 ## Secrets and signing
 
-- **Keystores, passwords, and private keys are never committed.** Release signing
-  relies on a local `keystore.properties` + `release-keystore.jks` that are not in
-  this repository and are covered by `.gitignore`.
-- If you find **any** private key, keystore, or password committed to this repo,
-  treat it as a critical security issue and report it privately immediately.
-- Contributors must never paste real credentials, API keys, or signing material into
-  issues, PRs, commits, or screenshots.
+- Keystores, passwords and private keys must never be committed.
+- Release signing relies on local signing material excluded from the repository.
+- Never paste real credentials, API keys or signing material into issues, PRs, commits or screenshots.
+- If signing/private material is found in Git history, treat it as a critical issue and rotate/revoke it as appropriate.
 
-## Supported versions
+## Supported versions and release identity
 
-Security fixes are targeted at the latest released Android version, currently **0.7.4**
-(versionCode **24**). Older builds are not maintained; testers should use the newest available
-closed-testing build.
+Security fixes target the latest released Android build, currently **v0.7.5 / versionCode 25**.
+
+Immutable Android v0.7.5 release source SHA:
+`b19c3b150468318a71da6c4763266cf4aba10cdd`
+
+Web/PWA is independently versioned (currently v0.7.3).
+
+Do not infer released Android source from moving `master`: the scheduled Event Guide workflow can create feed-only commits after a binary release. Release claims must use the immutable tag/release SHA.
 
 ## Responsible use
 
-By using PokeQuery you acknowledge that:
-
-- Generated search strings are **suggestions**, not commands. You are responsible
-  for what you do with them in Pokémon GO.
-- PokeQuery is not affiliated with Niantic, The Pokémon Company, or Nintendo.
-- You will not attempt to add automation, scraping, or account-access features to
-  your own builds and represent them as PokeQuery.
+- Generated search strings are suggestions, not commands.
+- PokeQuery is not affiliated with Niantic, The Pokémon Company or Nintendo.
+- PokeQuery's generated-output policy intentionally forbids `|` even if external Pokémon GO documentation accepts it.
