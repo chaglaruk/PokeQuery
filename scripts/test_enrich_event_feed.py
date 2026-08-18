@@ -42,7 +42,7 @@ class EventFeedEnrichmentTest(unittest.TestCase):
 
     def test_extracts_source_sections_and_replaces_generic_placeholders(self):
         source = """
-        <html><body><main>
+        <html><body><p>Raids Current Raid Bosses Raid NOW</p><main>
           <h1>Shadow Giratina (Altered Forme) in Shadow Raids - August 2026</h1>
           <p>Shadow Giratina (Altered Forme) makes its Shadow Raid debut during this rotation.</p>
           <h2>Raids</h2>
@@ -77,6 +77,7 @@ class EventFeedEnrichmentTest(unittest.TestCase):
         self.assertEqual("Shadow Giratina (Altered Forme) — Shadow Raids", enriched["title"])
         self.assertEqual("Shadow Giratina (Altered Forme) — Gölge Akınları", enriched["titleTr"])
         self.assertIn("Shadow Raid debut", enriched["summary"])
+        self.assertNotIn("Raid Bosses", enriched["summary"])
         self.assertIn("Shadow Giratina (Altered Forme)", enriched["raids"])
         self.assertIn("five-star Shadow Raids", enriched["raids"])
         self.assertIn("event weekends", enriched["bonuses"])
@@ -86,6 +87,7 @@ class EventFeedEnrichmentTest(unittest.TestCase):
     def test_article_intro_becomes_general_notes_when_no_gameplay_section_exists(self):
         source = """
         <html><body>
+          <p>Site navigation content that must not become the event summary.</p>
           <h1>LEGO Stores and Pokémon GO</h1>
           <p>Pokémon GO activities are coming to participating LEGO Stores during the campaign.</p>
         </body></html>
@@ -105,6 +107,7 @@ class EventFeedEnrichmentTest(unittest.TestCase):
         result = enrich_feed(feed, fetcher=lambda _url: source, strict=True)
         event = result["events"][0]
         self.assertIn("participating LEGO Stores", event["summary"])
+        self.assertNotIn("Site navigation", event["summary"])
         self.assertEqual(event["summary"], event["eventNotes"])
 
     def test_strict_quality_gate_rejects_active_gameplay_without_detail(self):
@@ -126,11 +129,12 @@ class EventFeedEnrichmentTest(unittest.TestCase):
 
     def test_parser_groups_intro_and_nested_subhead_under_parent_section(self):
         page = parse_detail_html(
+            "<p>Header junk that must be ignored.</p>"
             "<h1>Event</h1><p>Intro detail paragraph here.</p>"
             "<h2>Research</h2><h3>Timed Research</h3><p>Timed Research rewards encounters.</p>"
         )
         self.assertEqual("Event", page.title)
-        self.assertIn("Intro detail paragraph here.", page.intro)
+        self.assertEqual(["Intro detail paragraph here."], page.intro)
         self.assertIn("Timed Research", page.sections["Research"])
         self.assertIn("Timed Research rewards encounters.", page.sections["Research"])
 
