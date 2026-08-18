@@ -41,6 +41,7 @@ class EventFeedEnrichmentTest(unittest.TestCase):
           <h1>Shadow Giratina (Altered Forme) in Shadow Raids - August 2026</h1>
           <p>Shadow Giratina (Altered Forme) makes its Shadow Raid debut during this rotation.</p>
           <h2>Raids</h2>
+          <h3>Shadow Giratina (Altered Forme)</h3>
           <p>Shadow Giratina (Altered Forme) appears in five-star Shadow Raids on weekends.</p>
           <p>If you are lucky, you may encounter a Shiny one.</p>
           <h2>Bonuses</h2><ul><li>Five-star Shadow Raids are available on event weekends.</li></ul>
@@ -71,6 +72,7 @@ class EventFeedEnrichmentTest(unittest.TestCase):
         self.assertEqual("Shadow Giratina (Altered Forme) — Shadow Raids", enriched["title"])
         self.assertEqual("Shadow Giratina (Altered Forme) — Gölge Akınları", enriched["titleTr"])
         self.assertIn("Shadow Raid debut", enriched["summary"])
+        self.assertIn("Shadow Giratina (Altered Forme)", enriched["raids"])
         self.assertIn("five-star Shadow Raids", enriched["raids"])
         self.assertIn("event weekends", enriched["bonuses"])
         self.assertIsNone(enriched["summaryTr"])
@@ -117,10 +119,14 @@ class EventFeedEnrichmentTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             enrich_feed(feed, fetcher=lambda _url: "", strict=True)
 
-    def test_parser_groups_text_under_headings(self):
-        page = parse_detail_html("<h1>Event</h1><p>Intro detail paragraph here.</p><h2>Research</h2><p>Timed Research rewards encounters.</p>")
+    def test_parser_groups_intro_and_nested_subhead_under_parent_section(self):
+        page = parse_detail_html(
+            "<h1>Event</h1><p>Intro detail paragraph here.</p>"
+            "<h2>Research</h2><h3>Timed Research</h3><p>Timed Research rewards encounters.</p>"
+        )
         self.assertEqual("Event", page.title)
         self.assertIn("Intro detail paragraph here.", page.intro)
+        self.assertIn("Timed Research", page.sections["Research"])
         self.assertIn("Timed Research rewards encounters.", page.sections["Research"])
 
 
