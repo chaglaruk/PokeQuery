@@ -27,9 +27,11 @@ Rules:
 
 1. Prefer official Pokémon GO Live information when available.
 2. Third-party sources are discovery/enrichment/fallback evidence, not permission to fabricate data.
-3. Date/status truth is mandatory.
-4. Unknown Pokémon, bonuses, raids, research, rewards or dates remain unknown.
-5. Runtime Android/Web code does not scrape Pokémon GO or authenticate to a game account.
+3. Build-time source-page fetching is restricted to the approved HTTPS Pokémon GO/Leek Duck host set. Embedded credentials and non-standard ports are rejected; every redirect target and final response URL must remain inside the same policy.
+4. The discovered/catalog event title is authoritative. A source-page H1 may fill a genuinely missing title but must not silently rename an existing feed entry.
+5. Date/status truth is mandatory.
+6. Unknown Pokémon, bonuses, raids, research, rewards or dates remain unknown.
+7. Runtime Android/Web code does not scrape Pokémon GO or authenticate to a game account.
 
 ## Pipeline
 
@@ -51,7 +53,9 @@ The generator discovers event candidates from configured public sources, normali
 python scripts/enrich_event_feed.py docs/event-feed/pokequery-events.json --strict
 ```
 
-The enrichment pass fetches event source pages and fills missing/generic detail fields from source content. It also normalizes recurring title artifacts and excludes source-site navigation/chrome from event detail extraction.
+The enrichment pass fetches approved event source pages and fills missing/generic detail fields from source content. It normalizes recurring title artifacts, excludes source-site navigation/chrome from event detail extraction, retries transient fetch failures with bounded backoff, and validates redirects/final destinations against the approved HTTPS source policy.
+
+The existing catalog/discovery title remains authoritative during enrichment. Page H1 text is descriptive evidence, not permission to rename an existing event.
 
 `--strict` enforces content-quality requirements for CURRENT/UPCOMING gameplay events. A feed where active events collapse to generic “details are limited” placeholders must not silently publish.
 
@@ -84,6 +88,8 @@ python -m unittest scripts.test_generator scripts.test_enrich_event_feed scripts
 python scripts/validate_event_feed.py docs/event-feed/pokequery-events.json
 ```
 
+The enrichment tests include source-policy/redirect rejection and event-title identity regressions in addition to parser/content-quality coverage.
+
 The generator also supports fixture-mode for local/offline generator work:
 
 ```bash
@@ -103,7 +109,7 @@ Current workflow order:
 
 1. test Event Guide enrichment;
 2. run the online generator;
-3. enrich source pages with `--strict`;
+3. enrich approved source pages with `--strict`;
 4. validate the canonical feed;
 5. synchronize Android and Web fallbacks;
 6. stage exactly the three feed files;
@@ -117,6 +123,8 @@ Before accepting Event Guide data/pipeline changes, verify:
 
 - dates and CURRENT/UPCOMING/ENDED state;
 - source attribution and preference for official sources;
+- approved HTTPS source/redirect/final-destination enforcement;
+- event identity is not replaced by an unrelated source-page title;
 - event-specific content rather than generic placeholders;
 - no source-navigation/footer leakage;
 - normalized human-facing titles;
