@@ -154,10 +154,10 @@ private fun parameterizedFamilyHint(lang: String): String = when (lang) {
 }
 
 private fun rawModeHint(lang: String): String = when (lang) {
-    "tr" -> "Resmi parametrik syntax örnekleri: cp-1500 · hp100- · age0-7 · year2026 · +Pikachu · @shadow ball · @3ghost · #etiket. Çoklu kriter için & veya |, NOT için !; çoklu arama için , : ; kullanılabilir."
-    "de" -> "Offizielle parametrische Beispiele: wp-1500 · kp100- · alter0-7 · jahr2026 · +Pikachu · @Spukball · @3geist · #tag. Für mehrere Kriterien & oder |, NOT=!; mehrere Suchen mit , : ;."
-    "es" -> "Ejemplos paramétricos oficiales: pc-1500 · ps100- · edad0-7 · año2026 · +Pikachu · @bola sombra · @3fantasma · #etiqueta. Para varios criterios & o |, NOT=!; búsquedas múltiples con , : ;."
-    "fr" -> "Exemples paramétriques officiels : pc-1500 · pv100- · âge0-7 · année2026 · +Pikachu · @ball’ombre · @3spectre · #étiquette. Plusieurs critères avec & ou |, NOT=! ; recherches multiples avec , : ;."
-    "it" -> "Esempi parametrici ufficiali: pl-1500 · ps100- · età0-7 · anno2026 · +Pikachu · @palla ombra · @3spettro · #tag. Più criteri con & o |, NOT=!; più ricerche con , : ;."
-    else -> "Official parameterized examples: cp-1500 · hp100- · age0-7 · year2026 · +Pikachu · @shadow ball · @3ghost · #tag. Use & or | for multiple criteria, ! for NOT, and , : ; for multiple searches."
+    "tr" -> "Resmi parametrik syntax örnekleri: cp-1500 · hp100- · age0-7 · year2026 · +Pikachu · @shadow ball · @3ghost · #etiket. Birden fazla kriter için &, NOT için !; çoklu arama için , : ; kullan. PokeQuery, üretilen aramaları tek biçimde tutmak için | işaretini bilerek engeller."
+    "de" -> "Offizielle parametrische Beispiele: wp-1500 · kp100- · alter0-7 · jahr2026 · +Pikachu · @Spukball · @3geist · #tag. Für mehrere Kriterien & verwenden, für NOT ! und für mehrere Suchen , : ;. PokeQuery sperrt | bewusst, damit erzeugte Suchstrings einheitlich bleiben."
+    "es" -> "Ejemplos paramétricos oficiales: pc-1500 · ps100- · edad0-7 · año2026 · +Pikachu · @bola sombra · @3fantasma · #etiqueta. Usa & para varios criterios, ! para NOT y , : ; para varias búsquedas. PokeQuery bloquea | deliberadamente para mantener un formato canónico."
+    "fr" -> "Exemples paramétriques officiels : pc-1500 · pv100- · âge0-7 · année2026 · +Pikachu · @ball’ombre · @3spectre · #étiquette. Utilise & pour plusieurs critères, ! pour NOT et , : ; pour plusieurs recherches. PokeQuery bloque volontairement | afin de garder un format canonique."
+    "it" -> "Esempi parametrici ufficiali: pl-1500 · ps100- · età0-7 · anno2026 · +Pikachu · @palla ombra · @3spettro · #tag. Usa & per più criteri, ! per NOT e , : ; per più ricerche. PokeQuery blocca volutamente | per mantenere un formato canonico."
+    else -> "Official parameterized examples: cp-1500 · hp100- · age0-7 · year2026 · +Pikachu · @shadow ball · @3ghost · #tag. Use & for multiple criteria, ! for NOT, and , : ; for multiple searches. PokeQuery intentionally blocks | to keep generated strings canonical."
 }
