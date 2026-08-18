@@ -2,12 +2,20 @@
 import copy
 import unittest
 
-from enrich_event_feed import (
-    enrich_feed,
-    normalize_event_title,
-    parse_detail_html,
-    validate_active_detail_quality,
-)
+try:
+    from scripts.enrich_event_feed import (
+        enrich_feed,
+        normalize_event_title,
+        parse_detail_html,
+        validate_active_detail_quality,
+    )
+except ModuleNotFoundError:  # direct: python scripts/test_enrich_event_feed.py
+    from enrich_event_feed import (
+        enrich_feed,
+        normalize_event_title,
+        parse_detail_html,
+        validate_active_detail_quality,
+    )
 
 
 class EventFeedEnrichmentTest(unittest.TestCase):
