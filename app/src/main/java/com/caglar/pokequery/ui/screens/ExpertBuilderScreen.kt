@@ -92,8 +92,10 @@ fun ExpertBuilderScreen(
                 textStyle = TextStyle(fontFamily = FontFamily.Monospace, color = TealPrimary, fontSize = 14.sp),
                 placeholder = { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_placeholder), color = TextSecondary) }
             )
+            OfficialRawSyntaxHint()
         } else {
             ExpertChipBuilder(model = model, onModelChange = { model = it })
+            OfficialSearchFilterSections(model = model, onModelChange = { model = it })
         }
 
         Spacer(Modifier.height(18.dp))
