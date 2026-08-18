@@ -29,7 +29,7 @@ interface IntentPattern {
 }
 
 function normalize(text: string): string {
-  return text.toLowerCase().replace(/[\u2018\u2019\u02BC]/g, "'").trim().replace(/\s+/g, ' ')
+  return text.toLowerCase().replace(/[\u2018\u2019\u02BC]/g, "'").replace(/hariç/gu, 'haric').trim().replace(/\s+/g, ' ')
 }
 
 function isKeywordWordChar(char: string | undefined): boolean {
