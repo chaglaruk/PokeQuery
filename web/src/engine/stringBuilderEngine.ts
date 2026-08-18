@@ -33,13 +33,10 @@ export function buildString(
   title: string = 'Custom Search',
   language: string = 'English',
 ): GeneratedString {
+  // Current official Help Center documentation supports both '&' and '|' as multi-criteria
+  // combiners. Preserve the explicit operator; replacing '|' with ',' changes semantics.
   let query = baseQuery
   const generatedWarnings: string[] = []
-
-  if (query.includes('|')) {
-    query = query.replace(/\|/g, ',')
-    generatedWarnings.push("The '|' operator is unsupported and was replaced with ','.")
-  }
 
   const protectionsToAdd = protections.filter(p => !baseQuery.includes(`!${p}`))
   if (protectionsToAdd.length > 0) {
@@ -92,7 +89,7 @@ function calculateScopeBreadth(query: string): string {
   if (lower.includes('count2-')) return 'Broad'
   if (lower.includes('age365-') || lower.includes('distance100-')) return 'Moderate'
   if (lower.includes('!shiny') && lower.includes('!legendary')) return 'Moderate'
-  if (lower.length === 0 || (lower.split('&').length === 1 && !lower.includes('!'))) return 'Very Broad'
+  if (lower.length === 0 || (lower.split(/[&|]/).length === 1 && !lower.includes('!'))) return 'Very Broad'
   return 'Moderate'
 }
 
@@ -187,7 +184,9 @@ export function buildGoal(
         explanation: 'Custom search string. Review all matches in the game before acting.',
         risk: 'Medium',
         title: 'Custom Search',
-        protections: DEFAULT_PROTECTIONS,
+        // Expert is explicit authoring: never append contradictory cleanup protections. Count
+        // queries still receive mandatory count safety inside buildString.
+        protections: [],
       }
       break
     default:
