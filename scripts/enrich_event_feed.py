@@ -116,10 +116,14 @@ class ParsedPage:
 
 
 class DetailPageParser(HTMLParser):
-    """Small dependency-free block/section extractor for source article pages."""
+    """Small dependency-free block/section extractor for source article pages.
+
+    H1 is the article title, H2 starts a semantic section, and H3/H4 stay inside their parent H2
+    where possible. This matters on event pages that use a structure such as H2 "Raids" -> H3
+    "Giratina" -> paragraphs; treating H3 as a new top-level section would lose the Raid context.
+    """
 
     BLOCKS = {"h1", "h2", "h3", "h4", "p", "li"}
-    HEADINGS = {"h1", "h2", "h3", "h4"}
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -163,11 +167,24 @@ class DetailPageParser(HTMLParser):
         if not text:
             return
 
-        if root == "h1" and self.page.title is None:
-            self.page.title = text
-        if root in self.HEADINGS:
+        if root == "h1":
+            if self.page.title is None:
+                self.page.title = text
+            return
+
+        if root == "h2":
             self._section = text
             self.page.sections.setdefault(self._section, [])
+            return
+
+        if root in {"h3", "h4"}:
+            if self._section == "intro":
+                # Some source pages skip H2 entirely and use H3 as their first semantic section.
+                self._section = text
+                self.page.sections.setdefault(self._section, [])
+            else:
+                # Preserve the parent section classification while retaining the useful subhead.
+                self.page.sections.setdefault(self._section, []).append(text)
             return
 
         if self._section == "intro":
@@ -234,6 +251,9 @@ def _section_lines(page: ParsedPage, keywords: Iterable[str]) -> List[str]:
 
 
 def extract_enrichment(page: ParsedPage, event_title: str) -> Dict[str, str]:
+    # event_title is currently kept in the signature intentionally: it is useful context for
+    # future source-specific extractors while generic extraction remains source-heading driven.
+    _ = event_title
     intro = _compact(page.intro, max_items=2, max_chars=650)
     featured = _compact(
         _section_lines(page, ("featured", "wild", "encounter", "pokémon", "pokemon", "egg", "debut", "spawn", "incense", "lure", "showcase"))
@@ -243,8 +263,6 @@ def extract_enrichment(page: ParsedPage, event_title: str) -> Dict[str, str]:
     research = _compact(_section_lines(page, ("research", "collection challenge", "challenge", "ticket", "timed")))
     notes = _compact(_section_lines(page, ("additional", "note", "notes", "important", "remember")), max_items=4, max_chars=600)
 
-    # Some rotation pages put the Pokémon itself only in a raid section. A raid tile is enough to
-    # make Event Guide useful, so do not duplicate that text into featuredPokemon.
     result: Dict[str, str] = {}
     if intro:
         result["summary"] = intro
