@@ -14,6 +14,30 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.7.5",
+            versionCode = 25,
+            releaseLabel = "Closed Testing",
+            title = "Pre-AAB Safety & Search Assistant",
+            highlights = listOf(
+                "Search Assistant understands caught month/year requests in English and Turkish and composes them with shiny, hundo, legendary, shadow, and exclusions",
+                "Tester feedback launch no longer crashes when Android cannot directly open the mailto handler",
+                "Search Assistant polarity, localized output, Event Guide fallback, PWA offline behavior, and widget intent safety were hardened"
+            ),
+            safetyNotes = listOf(
+                "Generated search strings never intentionally emit the unsupported | operator",
+                "INTERNET is used only for public Event Guide notes with cache and safe fallback",
+                "No login, no tracking, no ads, no analytics",
+                "No Pokémon GO account access"
+            ),
+            testerNotes = listOf(
+                "Try 'find shiny pokemon caught in April 2025' and confirm the date and shiny filters are both present",
+                "Try Turkish caught-date input with a different Search String Language and confirm copied output follows the selected search language",
+                "Open Settings > Send tester feedback and confirm an email chooser or graceful fallback appears without a crash",
+                "Home-screen widget discovery on Samsung One UI is a known deferred optional issue"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.7.4",
             versionCode = 24,
             releaseLabel = "Release",
@@ -31,7 +55,7 @@ object Changelog {
                 "Verify bottom-navigation padding on a device with gesture navigation",
                 "Confirm content is not obscured behind navigation bar"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.7.3",
