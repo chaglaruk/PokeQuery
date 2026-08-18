@@ -34,6 +34,26 @@ class PostRelease075RegressionTest {
     }
 
     @Test
+    fun `pipe input is rejected instead of changing OR into AND`() {
+        val result = SearchIntentParser.parse("shiny|lucky", LocalDate(2026, 8, 18))
+        assertFalse(result.canBuild)
+        assertTrue(result.tokens.isEmpty())
+        assertTrue(result.exclusions.isEmpty())
+        assertEquals("", result.rawQuery)
+    }
+
+    @Test
+    fun `modal may is not treated as the month May`() {
+        val result = SearchIntentParser.parse("caught anything I may, or may not, want", LocalDate(2026, 8, 18))
+        assertFalse(result.canBuild)
+        assertEquals("", result.rawQuery)
+
+        val realMonth = SearchIntentParser.parse("caught in May 2026", LocalDate(2026, 8, 18))
+        assertTrue(realMonth.canBuild)
+        assertEquals("year2026&age79-109", realMonth.rawQuery)
+    }
+
+    @Test
     fun `smart apostrophe preserves inverted negation`() {
         val result = SearchIntentParser.parse("don’t hide shiny", LocalDate(2026, 8, 18))
         assertTrue(result.canBuild)
