@@ -181,7 +181,11 @@ object StringBuilderEngine {
                     emptyList() // We do not exclude shiny/legendary by default
                 )
             }
-            "expert" -> GoalSpec(customQuery, "Custom search string. Review all matches in the game before acting.", RiskLevel.Medium, "Custom Search", DEFAULT_PROTECTIONS)
+            // Expert Builder is an explicit query-authoring surface. Do not silently append the
+            // default cleanup exclusions here: doing so could turn `shiny` into the contradictory
+            // `shiny&!shiny`. Count-based expert queries still receive the mandatory count safety
+            // protections inside buildString.
+            "expert" -> GoalSpec(customQuery, "Custom search string. Review all matches in the game before acting.", RiskLevel.Medium, "Custom Search", emptyList())
             else -> GoalSpec(customQuery, "Custom search string.", RiskLevel.Medium, "Custom Search", DEFAULT_PROTECTIONS)
         }
         return buildString(
