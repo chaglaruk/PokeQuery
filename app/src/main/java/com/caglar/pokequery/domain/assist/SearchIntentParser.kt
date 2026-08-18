@@ -293,8 +293,8 @@ object SearchIntentParser {
                 tokens = emptyList(),
                 exclusions = emptyList(),
                 rawQuery = "",
-                explanation = "Could not understand this input safely. PokeQuery does not use the | operator.",
-                limitations = listOf("Use the Expert Builder if you need to enter a complex search manually."),
+                explanation = "Could not understand \"$text\". Try words like: shiny, hundo, cleanup, trade, pvp, lucky, shadow, old, costume. (Türkçe: parlak, efsanevi, temizlik, takas, gölge, eski...)",
+                limitations = listOf("PokeQuery understands common search intents. For complex queries, use the Expert Builder."),
                 canBuild = false
             )
         }
