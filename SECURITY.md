@@ -9,7 +9,7 @@ PokeQuery is designed to collect no personal data and to avoid Pokémon GO accou
 | | |
 |---|---|
 | Network permission | Android declares `android.permission.INTERNET` for the documented public Event Guide feed path. |
-| Event Guide network use | May fetch PokeQuery's public static feed. Feed generation may research configured public event sources. No Pokémon GO account/private API access is used. |
+| Event Guide network use | May fetch PokeQuery's public static feed. Feed generation may research configured public event sources. Build-time enrichment is restricted to approved HTTPS Pokémon GO/Leek Duck hosts and validates redirects/final destinations. No Pokémon GO account/private API access is used. |
 | Accounts | None. No login, sessions or cloud user account. |
 | Pokémon GO access | None. The app never signs in to Pokémon GO, reads a player's collection or controls the game. |
 | Analytics / telemetry | None. No crash SDKs, analytics, ads, tracking identifiers or remote profiling. |
@@ -23,6 +23,7 @@ Network access must remain limited to explicitly documented public-data features
 Please report security issues affecting this repository or shipped PokeQuery surfaces, for example:
 
 - an unexpected or undisclosed network call outside documented public-data paths;
+- Event Guide source/redirect validation that permits an unapproved host, insecure scheme, embedded credentials or non-standard port;
 - inclusion of account-access, tracking, analytics, advertising or other privacy-sensitive SDKs;
 - a search/linter/risk bug that allows an unsafe generated string or risky copy path to bypass established safety gates;
 - exposure of secrets, keystores or signing material;
