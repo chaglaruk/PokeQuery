@@ -1,147 +1,141 @@
 # Contributing to PokeQuery
 
-Thanks for your interest in PokeQuery! This project is a small, safety-first Android
-utility, and contributions are welcome — especially in these areas:
+Thanks for contributing to PokeQuery. This repository contains the Android app, Web/PWA, Event Guide feed pipeline, localization data and their shared safety/parity tests.
 
-- 🌐 verified language mappings (Turkish tokens confirmed against a live client)
-- 📚 Knowledge Base entries
-- ♿ accessibility and Compose test tags
-- 🧪 tests and bug fixes
+Before changing code, read `AGENTS.md` and the hard constraints below.
 
-Before contributing, please read the **hard constraints** below — they are
-non-negotiable because they define what makes PokeQuery trustworthy.
+## Hard constraints
 
----
+PokeQuery is privacy-first and text-only. Contributions must not add:
 
-## Hard constraints (read first)
+- Pokémon GO account login, credentials, private/hidden endpoints or account access;
+- gameplay automation, scripting, transfer/delete/batch actions;
+- OCR, camera or screen reading of Pokémon GO;
+- analytics, telemetry, ads, tracking or crash-reporting SDKs;
+- cloud user accounts or unrelated remote calls;
+- official Pokémon/Niantic/Nintendo/The Pokémon Company runtime artwork, sprites, logos, Poké Ball imagery or trademarked fonts;
+- `|` in PokeQuery-generated search strings.
 
-PokeQuery is **offline-first and privacy-first by design**. The following are
-forbidden in any contribution:
+### Documented Event Guide network exception
 
-- ❌ Any `<uses-permission>` that grants network, phone, SMS, contacts, location,
-  camera, or microphone access. The manifest must stay permission-free.
-- ❌ Any network call, HTTP client, remote config, or cloud dependency.
-- ❌ Ads, analytics, telemetry, or crash-reporting SDKs of any kind.
-- ❌ Login, accounts, authentication, or Pokémon GO account access.
-- ❌ Gameplay automation, scripting, or any "transfer/delete/batch" action against
-  the game. PokeQuery generates **text only**; the user copies it manually.
-- ❌ Scanning, OCR, or screen-reading of the Pokémon GO app.
-- ❌ Scraping of any data source. The knowledge base is a **local** file.
-- ❌ Official Pokémon, Niantic, Nintendo, or The Pokémon Company assets — including
-  creatures, Poké Ball imagery, the official logo, or trademarked fonts.
-- ❌ The `|` operator in generated search strings (Pokémon GO uses `,` for OR).
+Android declares `android.permission.INTERNET` only for the documented public Event Guide feed path. The Event Guide generator may fetch configured public event sources to build the static feed.
 
-If your change would require breaking any of these, please **open an issue first**
-to discuss it before writing code.
+This exception does **not** authorize arbitrary HTTP clients, telemetry, account access, remote config or unrelated cloud dependencies. Runtime app networking must remain limited to explicitly documented public-data features.
 
----
+If a proposal requires changing these product boundaries, discuss the product re-scope before implementation.
 
-## Safety & privacy review checklist
+## Safety and privacy checklist
 
-Every PR that touches app code is expected to keep these green:
+Every relevant PR should confirm:
 
-- [ ] `app/src/main/AndroidManifest.xml` still declares **zero** `<uses-permission>`.
-- [ ] `allowBackup="false"` is unchanged.
-- [ ] No new network/ads/analytics dependencies in `app/build.gradle.kts`.
-- [ ] The Risk Warning gate still routes every Medium/High-risk copy.
-- [ ] `Auto (Safe)` still resolves to English (never Turkish).
-- [ ] No new binary asset is added without updating `scripts/check_runtime_assets.py`.
-- [ ] All artwork is original — no third-party or copyrighted images.
+- [ ] Android permissions remain limited to the documented requirements; no new sensitive permission was added.
+- [ ] `allowBackup="false"` remains unchanged.
+- [ ] No new ads/analytics/tracking/account-access dependency was added.
+- [ ] Generated search strings never emit `|`.
+- [ ] Risk Warning and linter gates remain intact for action-adjacent/risky searches.
+- [ ] Android/Web engine changes preserve parity and the golden-corpus copies remain byte-identical.
+- [ ] Event Guide networking remains within the documented public-feed/source pipeline.
+- [ ] New runtime art/assets pass `scripts/check_runtime_assets.py` and IP review.
 
----
+## Development setup
 
-## Getting set up
-
-Requires **JDK 17** and **Android Studio** with AGP 9.x support.
+Requires JDK 17 and the Android toolchain used by the current project.
 
 ```bash
 git clone https://github.com/chaglaruk/PokeQuery.git
 cd PokeQuery
-./gradlew test --console=plain        # unit tests must pass
-./gradlew assembleDebug --console=plain
+./gradlew :app:testDebugUnitTest --console=plain
+./gradlew :app:assembleDebug --console=plain
 ```
 
-Release signing uses a local `keystore.properties` + `release-keystore.jks` that are
-**not** in the repo. You do not need them to build or test.
+Release signing uses local signing material that is not committed. It is not required for normal debug/test work.
 
----
+## Validation
 
-## Running the checks
+Choose checks based on the changed area; `AGENTS.md`, `docs/VALIDATION_MATRIX.md` and current GitHub workflows are authoritative.
 
-Before opening a PR, run:
-
+### Android
 ```bash
-git status --short                         # nothing unexpected staged
-./gradlew test --console=plain             # all unit tests pass
-python scripts/check_runtime_assets.py     # asset guard passes
-./gradlew assembleDebug --console=plain    # debug build succeeds
+./gradlew :app:testDebugUnitTest --console=plain
+./gradlew :app:lintDebug --console=plain
+./gradlew :app:assembleDebug --console=plain
 ```
 
-If you touched runtime assets, also run `./gradlew bundleRelease --console=plain`
-and confirm the AAB still builds.
+### Search / Event Guide / runtime assets
+```bash
+python scripts/test_generator_safety.py
+python -m unittest scripts.test_generator scripts.test_enrich_event_feed scripts.test_check_web_fallback_fresh
+python scripts/validate_event_feed.py docs/event-feed/pokequery-events.json
+python scripts/check_runtime_assets.py
+```
 
----
+### Web/PWA
+```bash
+cd web
+npm ci
+npm run check:golden-corpus
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+```
+
+UI/copy/localization work also requires visual review; device-specific Android behavior requires appropriate physical-device/ADB validation.
 
 ## Coding style
 
-- **Kotlin**, idiomatic, following the surrounding code.
-- **Jetpack Compose** for all UI — no XML views.
-- Domain logic (engine, mapper, linter, risk messages) stays **pure Kotlin** with no
-  Android imports, so it stays unit-testable.
-- Match the existing comment density and naming. Prefer descriptive names over
-  comments where possible.
-- New behavior needs a test. The domain engine in particular is regression-tested;
-  don't weaken an existing invariant without an explicit discussion.
+- Kotlin/Compose for Android; React/TypeScript for Web/PWA.
+- Keep domain/search logic deterministic and testable.
+- New behavior needs focused regression coverage.
+- Avoid comment-driven architecture drift: update stale docs/comments when behavior deliberately changes.
+- Preserve exact-token behavior; do not replace token parsing with unsafe substring shortcuts.
 
----
+## Search tokens and localization
 
-## Adding or changing search tokens
+Current search-language architecture is documented in:
 
-The truth for Pokémon GO search syntax lives in:
-
-- `app/src/main/assets/knowledgebase.json` (researched entries, sourced from
-  official Niantic help docs)
+- `app/src/main/java/com/caglar/pokequery/domain/locale/OfficialSearchSyntax.kt`
 - `app/src/main/java/com/caglar/pokequery/domain/locale/SearchTokenRegistry.kt`
-  (verification status metadata)
-- `docs/localization/turkish_verification_matrix.md` (Turkish token verification)
+- `app/src/main/java/com/caglar/pokequery/domain/engine/SearchTermMapper.kt`
+- `docs/localization/official_search_token_matrix.md`
+- `docs/localization/localization_architecture.md`
 
-**Never** machine-translate a token and mark it `VERIFIED`. A token is `VERIFIED`
-only after live confirmation against a real localized Pokémon GO client, recorded
-in the matrix.
+Rules:
 
----
+- App Language and Search String Language are separate controls.
+- UI languages: EN/TR/DE/ES/FR/IT.
+- Search String Language includes Auto, Match App Language and EN/DE/ES/FR/IT/TR.
+- Official localized Help Center evidence is BETA in the current confidence model.
+- VERIFIED requires independent confirmation in a live localized Pokémon GO client.
+- Never machine-translate a syntax token and call it verified.
+- Parser-sensitive or unsupported localized terms may intentionally fall back to English.
+- PokeQuery's no-pipe policy remains stricter than external game documentation.
 
-## Commit messages
+## Event Guide contributions
 
-Use concise, lowercase imperative messages, e.g.:
+Canonical feed: `docs/event-feed/pokequery-events.json`.
 
-- `add great league preset`
-- `fix expert builder chip wrapping`
-- `improve repo presentation and README`
+The scheduled pipeline performs online discovery, source-page enrichment with a strict quality gate, validation and synchronization of Android/Web fallbacks. Do not hand-invent missing dates, Pokémon, bonuses, raids or research to make an event look complete.
 
----
+Prefer official Pokémon GO Live information when available; configured third-party sources are enrichment/fallback only.
 
-## Branching
+## Git and branching
 
-- Work on a feature branch, e.g. `feature/<short-description>`.
-- Do **not** push to or merge into `master` without explicit sign-off.
-- Keep PRs focused; one logical change per PR is ideal.
-
----
+- Work on focused branches.
+- Never use `git add .`, `git add -A` or `git add --all`; stage explicit paths.
+- Preserve unrelated dirty work.
+- Do not force-push or retarget an existing release tag.
+- Do not merge, version-bump, sign or publish a release without the relevant gate.
+- A moving `master` may include Event Guide feed-only bot commits and must not be treated as an immutable Android release source.
 
 ## Reporting bugs
 
-Open an issue with:
+Include:
+- PokeQuery version from Settings → About;
+- Android/browser version and device where relevant;
+- steps to reproduce;
+- expected vs actual behavior;
+- screenshot/log evidence if useful.
 
-- PokeQuery version (shown in **Settings → About**)
-- Android version and device
-- Steps to reproduce
-- Expected vs. actual behavior
-- A screenshot if it helps
-
-Please **do not** include any Pokémon GO account information, screenshots of your
-Pokémon collection, or other private data.
-
----
-
-Thank you for helping make PokeQuery safer and more useful. 💙
+Do not include Pokémon GO credentials, session data or private collection information.
