@@ -165,14 +165,14 @@ function isPatternNegated(normalized: string, keyword: string): boolean {
 
 const patterns: IntentPattern[] = [
   {
-    keywords: ['hundo', 'perfect', '100%', '15/15/15', '15 15 15', 'max iv', 'all 15', 'yüzde yüz', 'yuzde yuz', '100 iv', 'kusursuz', 'mükemmel', 'mukemmel', 'güçlü', 'guclu'],
+    keywords: ['hundo', 'hundos', 'perfect', '100%', '15/15/15', '15 15 15', 'max iv', 'all 15', 'yüzde yüz', 'yuzde yuz', '100 iv', 'kusursuz', 'mükemmel', 'mukemmel', 'güçlü', 'guclu'],
     tokens: ['4*'], explanationKey: 'search_intent_expl_hundo',
     explanation: 'Finds Pokémon with perfect 15/15/15 IVs (exact 100% appraisal using 4*). Inspection only — does not filter or exclude anything.',
     limitationKeys: ['search_intent_lim_hundo_purified', 'search_intent_lim_iv_approx'],
     limitations: ['4* also matches purified Pokémon. Check manually if you want non-purified only.', 'IV appraisal is an approximation, not exact stats.'],
   },
   {
-    keywords: ['nundo', '0%', '0/0/0', '0 0 0', 'zero iv', 'lowest', 'minimum iv', 'sıfır iv', 'sifir iv', '0 iv', 'en düşük', 'en dusuk'],
+    keywords: ['nundo', 'nundos', '0%', '0/0/0', '0 0 0', 'zero iv', 'lowest', 'minimum iv', 'sıfır iv', 'sifir iv', '0 iv', 'en düşük', 'en dusuk'],
     tokens: ['0attack', '0defense', '0hp'], explanationKey: 'search_intent_expl_nundo',
     explanation: 'Finds Pokémon with 0/0/0 IVs. This is an exact match — only true 0% appraisal shows.',
     limitationKeys: ['search_intent_lim_nundo_floor'], limitations: ['IV floor events (trades, weather boost, raids) make 0% IV impossible.'],
