@@ -1,6 +1,6 @@
 # Official Pokémon GO Search Token Matrix
 
-- **Verification Date**: 2026-08-17
+- **Verification Date**: 2026-08-18
 - **Source**: Official Pokémon GO Help Center FAQ 1486 ("Searching and Filtering your Pokémon Inventory")
 - **Official Reference URLs**:
   - EN: `https://niantic.helpshift.com/hc/en/6-pokemon-go/faq/1486-searching-filtering-your-pokemon-inventory/`
