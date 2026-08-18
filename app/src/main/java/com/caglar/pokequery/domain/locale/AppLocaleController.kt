@@ -66,6 +66,10 @@ object AppLocaleController {
      * Reads the device locale dynamically rather than keeping a process-start snapshot.
      * Resources.getSystem() is intentionally used so an explicit PokeQuery app language cannot
      * overwrite the value we later need when the user switches back to System Default.
+     *
+     * Keep this Android lookup out of default-argument evaluation for otherwise-pure helpers:
+     * local JVM tests use android.jar stubs, and explicit app/search languages do not need to
+     * consult the device at all.
      */
     fun deviceLocale(): Locale {
         val locales = Resources.getSystem().configuration.locales
@@ -74,36 +78,42 @@ object AppLocaleController {
 
     fun resolvedLocaleTagFor(
         appLanguage: String,
-        deviceLocale: Locale = deviceLocale()
-    ): String = localeTagFor(appLanguage) ?: supportedTagFor(deviceLocale)
+        currentDeviceLocale: Locale? = null
+    ): String {
+        localeTagFor(appLanguage)?.let { return it }
+        return supportedTagFor(currentDeviceLocale ?: deviceLocale())
+    }
 
     /**
      * Applies the App Language preference as an in-process, recreation-free locale hint.
-     * [deviceLocale] is injectable for deterministic tests and is supplied from the current
-     * Activity configuration by MainActivity.
+     * [currentDeviceLocale] is injectable for deterministic tests and is supplied from the
+     * current Activity configuration by MainActivity.
      */
     fun apply(
         @Suppress("UNUSED_PARAMETER") context: Context,
         appLanguage: String,
-        deviceLocale: Locale = deviceLocale()
+        currentDeviceLocale: Locale? = null
     ) {
-        applyProcessLocale(resolvedLocaleTagFor(appLanguage, deviceLocale), deviceLocale)
+        val device = currentDeviceLocale ?: deviceLocale()
+        applyProcessLocale(resolvedLocaleTagFor(appLanguage, device), device)
     }
 
-    fun applyProcessLocale(tag: String?, deviceLocale: Locale = deviceLocale()) {
+    /**
+     * For an explicit tag, no Android lookup is needed. Restoring System Default requires the
+     * current device locale; production callers provide it. Tests can inject it deterministically.
+     */
+    fun applyProcessLocale(tag: String?, currentDeviceLocale: Locale? = null) {
         if (tag.isNullOrEmpty()) {
-            Locale.setDefault(deviceLocale)
+            Locale.setDefault(currentDeviceLocale ?: deviceLocale())
             return
         }
-        val parts = tag.split("-")
-        val locale = if (parts.size > 1) Locale(parts[0], parts[1]) else Locale(parts[0])
-        Locale.setDefault(locale)
+        Locale.setDefault(Locale.forLanguageTag(tag))
     }
 
     fun localeFor(
         appLanguage: String,
-        deviceLocale: Locale = deviceLocale()
-    ): Locale = Locale.forLanguageTag(resolvedLocaleTagFor(appLanguage, deviceLocale))
+        currentDeviceLocale: Locale? = null
+    ): Locale = Locale.forLanguageTag(resolvedLocaleTagFor(appLanguage, currentDeviceLocale))
 
     /**
      * Reads back the currently applied App Language label (System Default if unsupported).
