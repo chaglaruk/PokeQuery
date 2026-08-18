@@ -52,16 +52,6 @@ import com.caglar.pokequery.ui.pq.PqPrimaryButton
 import com.caglar.pokequery.ui.pq.PqSectionHeader
 import com.caglar.pokequery.ui.pq.PqStringBox
 
-// v0.5.0 / v0.5.1 Stitch Expert Builder — modular grouped chip editor.
-// Live preview + linter assistant. Raw query is an optional advanced mode.
-// ExpertCopyPolicy still blocks copy on linter errors (safety unchanged from v0.4.2).
-//
-// v0.5.1 (Fix 6): chip groups use FlowRow so every option is visible without horizontal
-// scrolling on a 1080px-wide phone.
-// v0.5.1 (Fix 7): richer grouped option set (status/tags, IV, count, age, distance,
-// exclusions). Copy is disabled ONLY on true linter errors; advisory/risky warnings
-// keep copy enabled with a visible banner (see Linter / ExpertCopyPolicy).
-
 @Composable
 fun ExpertBuilderScreen(
     onGenerate: (String) -> Unit,
@@ -73,12 +63,9 @@ fun ExpertBuilderScreen(
 
     val rawQuery = if (advancedMode) rawOverride else model.buildRawQuery()
     val warnings = Linter.lint(rawQuery)
-    // v0.5.1 (Fix 7): only TRUE linter errors disable copy. Advisory/risky warnings do not.
     val copyBlocked = !ExpertCopyPolicy.canCopy(rawQuery)
     val hasAdvisoryOnly = !copyBlocked && warnings.isNotEmpty()
 
-    // v0.5.3 motion polish: staggered entrance — top bar → live preview. Chip groups and the
-    // copy button sit below the entrance fold and appear at rest (no cascade while scrolling).
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Column(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).clearFocusOnTap().verticalScroll(rememberScrollState()).padding(16.dp)
@@ -106,14 +93,10 @@ fun ExpertBuilderScreen(
                 placeholder = { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_placeholder), color = TextSecondary) }
             )
         } else {
-            ExpertChipBuilder(
-                model = model,
-                onModelChange = { model = it }
-            )
+            ExpertChipBuilder(model = model, onModelChange = { model = it })
         }
 
         Spacer(Modifier.height(18.dp))
-
         PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_live_preview), Modifier.pqStaggeredItem(visible, 1))
         PqStringBox(rawQuery.ifEmpty { "—" })
 
@@ -131,13 +114,7 @@ fun ExpertBuilderScreen(
                         if (w.isError) com.caglar.pokequery.R.string.expert_linter_error
                         else com.caglar.pokequery.R.string.expert_linter_warning
                     )
-                    Text(
-                        "• $message",
-                        color = if (w.isError) CoralDanger else GoldCaution,
-                        fontSize = 12.sp,
-                        lineHeight = 17.sp,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    )
+                    Text("• $message", color = if (w.isError) CoralDanger else GoldCaution, fontSize = 12.sp, lineHeight = 17.sp, modifier = Modifier.padding(vertical = 2.dp))
                 }
                 if (copyBlocked) {
                     Spacer(Modifier.height(6.dp))
@@ -150,7 +127,6 @@ fun ExpertBuilderScreen(
         }
 
         Spacer(Modifier.height(24.dp))
-
         PqPrimaryButton(
             text = if (copyBlocked) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_fix_errors) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_copy_custom),
             onClick = { if (!copyBlocked) onGenerate(rawQuery) },
@@ -166,108 +142,53 @@ private fun ExpertChipBuilder(
     model: ExpertQueryModel,
     onModelChange: (ExpertQueryModel) -> Unit
 ) {
-    // ----- INCLUDE: status / tags -----
     PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_include_status))
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf("shiny", "legendary", "mythical", "ultrabeast", "shadow", "purified", "costume", "lucky", "traded", "defender").forEach { token ->
-            PqChip(
-                text = token,
-                selected = token in model.positiveTokens,
-                onClick = { onModelChange(model.togglePositive(token)) }
-            )
+            PqChip(text = token, selected = token in model.positiveTokens, onClick = { onModelChange(model.togglePositive(token)) })
         }
     }
 
     Spacer(Modifier.height(16.dp))
-
-    // ----- IV FILTERS -----
     PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_iv_attack))
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(0, 1, 2, 3, 4).forEach { floor ->
-            PqChip(
-                text = "${floor}attack",
-                selected = model.ivAttackFloor == floor,
-                onClick = { onModelChange(model.setIvAttack(if (model.ivAttackFloor == floor) null else floor)) }
-            )
+            PqChip(text = "${floor}attack", selected = model.ivAttackFloor == floor, onClick = { onModelChange(model.setIvAttack(if (model.ivAttackFloor == floor) null else floor)) })
         }
     }
     Spacer(Modifier.height(10.dp))
     PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_iv_defense))
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(0, 1, 2, 3, 4).forEach { floor ->
-            PqChip(
-                text = "${floor}defense",
-                selected = model.ivDefenseFloor == floor,
-                onClick = { onModelChange(model.setIvDefense(if (model.ivDefenseFloor == floor) null else floor)) }
-            )
+            PqChip(text = "${floor}defense", selected = model.ivDefenseFloor == floor, onClick = { onModelChange(model.setIvDefense(if (model.ivDefenseFloor == floor) null else floor)) })
         }
     }
     Spacer(Modifier.height(10.dp))
     PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_iv_hp))
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(0, 1, 2, 3, 4).forEach { floor ->
-            PqChip(
-                text = "${floor}hp",
-                selected = model.ivHpFloor == floor,
-                onClick = { onModelChange(model.setIvHp(if (model.ivHpFloor == floor) null else floor)) }
-            )
+            PqChip(text = "${floor}hp", selected = model.ivHpFloor == floor, onClick = { onModelChange(model.setIvHp(if (model.ivHpFloor == floor) null else floor)) })
         }
     }
 
     Spacer(Modifier.height(16.dp))
-
-    // ----- COUNT / AGE / DISTANCE -----
     PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_duplicate_count))
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(2, 3, 4).forEach { floor ->
-            PqChip(
-                text = "count$floor-",
-                selected = model.countFloor == floor,
-                onClick = { onModelChange(model.setCount(if (model.countFloor == floor) null else floor)) }
-            )
+            PqChip(text = "count$floor-", selected = model.countFloor == floor, onClick = { onModelChange(model.setCount(if (model.countFloor == floor) null else floor)) })
         }
     }
     Spacer(Modifier.height(10.dp))
     PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_age_distance))
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         PqChip(text = "age365-", selected = model.age365, onClick = { onModelChange(model.setAge(!model.age365)) })
         PqChip(text = "distance100-", selected = model.distance100, onClick = { onModelChange(model.setDistance(!model.distance100)) })
     }
 
     Spacer(Modifier.height(16.dp))
-
-    // ----- EXCLUDE (PROTECT) -----
     PqSectionHeader(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.expert_exclude_protect))
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        listOf("shiny", "legendary", "mythical", "ultrabeast", "traded", "untraded", "favorite", "lucky", "shadow", "purified", "costume", "4*").forEach { token ->
+    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf("shiny", "legendary", "mythical", "ultrabeast", "traded", "favorite", "lucky", "shadow", "purified", "costume", "4*").forEach { token ->
             val isSelected = token in model.exclusions
             PqChip(
                 text = if (isSelected) "!$token" else token,

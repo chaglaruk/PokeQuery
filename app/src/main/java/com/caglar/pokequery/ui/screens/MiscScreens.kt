@@ -459,7 +459,15 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().clickable {
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.caglar.pokequery.privacy.PrivacyPolicyConfig.URL))
-                        context.startActivity(intent)
+                        runCatching {
+                            context.startActivity(intent)
+                        }.onFailure {
+                            Toast.makeText(
+                                context,
+                                com.caglar.pokequery.privacy.PrivacyPolicyConfig.URL,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }.padding(vertical = 8.dp)
                 )
                 Spacer(Modifier.height(12.dp))
@@ -524,10 +532,14 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().clickable {
                         val mailto = com.caglar.pokequery.feedback.FeedbackBuilder.buildMailtoUri(feedbackContext)
-                        val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse(mailto))
-                        if (intent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(intent)
-                        } else {
+                        val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse(mailto)).apply {
+                            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        val launched = intent.resolveActivity(context.packageManager) != null &&
+                            runCatching {
+                                context.startActivity(intent)
+                            }.isSuccess
+                        if (!launched) {
                             Toast.makeText(context, emailFallback, Toast.LENGTH_LONG).show()
                         }
                     }.padding(vertical = 8.dp)

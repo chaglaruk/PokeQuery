@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,11 +47,15 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.data.repository.UserPreferencesRepository
+import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.assist.AiProviderRegistry
 import com.caglar.pokequery.domain.assist.SearchIntentParser
 import com.caglar.pokequery.domain.assist.SearchStringExplainer
+import com.caglar.pokequery.domain.engine.SearchTermMapper
 import com.caglar.pokequery.domain.lint.ExpertCopyPolicy
 import com.caglar.pokequery.domain.lint.Linter
+import com.caglar.pokequery.domain.locale.LocalizationModel
 import com.caglar.pokequery.theme.AmberWarning
 import com.caglar.pokequery.theme.BackgroundDark
 import com.caglar.pokequery.theme.BorderDark
@@ -76,12 +81,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+fun resolveAssistantOutputQuery(rawQuery: String, gameLanguage: String?, appLanguage: String?): String {
+    val resolvedLang = LocalizationModel.SearchStringLanguage.resolve(gameLanguage, appLanguage)
+    return SearchTermMapper.translateSyntax(rawQuery, resolvedLang)
+}
+
 @Composable
 fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, onExplain: (String) -> Unit = {}) {
     val context = LocalContext.current
-    val isTurkishUi = LocalConfiguration.current.locales[0]?.language == "tr"
+    val isEnglishUi = LocalConfiguration.current.locales[0]?.language == "en"
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
+    val repository = remember { UserPreferencesRepository(context.dataStore) }
+    val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     var inputText by remember { mutableStateOf("") }
     var parseResult by remember { mutableStateOf<com.caglar.pokequery.domain.assist.ParsedIntent?>(null) }
     var explainedResult by remember { mutableStateOf<com.caglar.pokequery.domain.assist.ExplainedString?>(null) }
@@ -145,9 +157,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                         onClick = {
                             aiLoading = true
                             scope.launch {
-                                val result = withContext(Dispatchers.IO) {
-                                    aiProvider.suggest(inputText)
-                                }
+                                val result = withContext(Dispatchers.IO) { aiProvider.suggest(inputText) }
                                 aiLoading = false
                                 result.fold(
                                     onSuccess = { suggestion ->
@@ -159,17 +169,13 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                                         )
                                         explainedResult = SearchStringExplainer.explain(suggestion.rawSyntax)
                                     },
-                                    onFailure = {
-                                        Toast.makeText(context, "AI: ${it.message}", Toast.LENGTH_SHORT).show()
-                                    }
+                                    onFailure = { Toast.makeText(context, "AI: ${it.message}", Toast.LENGTH_SHORT).show() }
                                 )
                             }
                         },
                         enabled = inputText.isNotBlank() && !aiLoading,
                         shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_ai_suggest), color = TealPrimary)
-                    }
+                    ) { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_ai_suggest), color = TealPrimary) }
                 }
             }
         }
@@ -188,7 +194,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                 item {
                     PqCard(borderColor = AmberWarning) {
                         Text(
-                            if (isTurkishUi) couldNotUnderstandText else result.explanation,
+                            if (isEnglishUi) result.explanation else couldNotUnderstandText,
                             color = TextPrimary,
                             fontSize = 14.sp
                         )
@@ -197,10 +203,14 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
             }
 
             if (result.canBuild) {
-                // Linter + ExpertCopyPolicy gate — same safety pattern as ExpertBuilderScreen.
                 val warnings = Linter.lint(result.rawQuery)
                 val copyBlocked = !ExpertCopyPolicy.canCopy(result.rawQuery)
                 val hasAdvisoryOnly = !copyBlocked && warnings.isNotEmpty()
+                val translatedQuery = resolveAssistantOutputQuery(
+                    result.rawQuery,
+                    userPrefs?.gameLanguage,
+                    userPrefs?.appLanguage
+                )
 
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -212,7 +222,6 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                                 com.caglar.pokequery.domain.assist.SearchPrecision.APPROXIMATE -> AmberWarning
                                 else -> TextSecondary
                             }
-
                             val precisionLabelStr = when (exp.precision) {
                                 com.caglar.pokequery.domain.assist.SearchPrecision.EXACT -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.explainer_prec_exact)
                                 com.caglar.pokequery.domain.assist.SearchPrecision.SHORTLIST -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.explainer_prec_shortlist)
@@ -224,11 +233,8 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                         }
                     }
                 }
-                item {
-                    PqStringBox(result.rawQuery)
-                }
+                item { PqStringBox(translatedQuery) }
 
-                // Linter banner — shows errors (blocking) and advisory warnings.
                 if (warnings.isNotEmpty()) {
                     item {
                         val shape = RoundedCornerShape(14.dp)
@@ -238,11 +244,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                                 .padding(14.dp)
                         ) {
                             warnings.forEach { w ->
-                                val warningText = if (isTurkishUi) {
-                                    if (w.isError) lintIssueText else reviewWarningText
-                                } else {
-                                    w.message
-                                }
+                                val warningText = if (isEnglishUi) w.message else if (w.isError) lintIssueText else reviewWarningText
                                 Text(
                                     "\u2022 $warningText",
                                     color = if (w.isError) CoralDanger else GoldCaution,
@@ -267,8 +269,8 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                         PqPrimaryButton(
                             text = if (copyBlocked) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_fix_errors) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_copy_btn),
                             onClick = {
-                                clipboard.setText(AnnotatedString(result.rawQuery))
-                                onCopyRaw(result.rawQuery)
+                                clipboard.setText(AnnotatedString(translatedQuery))
+                                onCopyRaw(translatedQuery)
                                 Toast.makeText(context, context.resources.getString(com.caglar.pokequery.R.string.assistant_copied), Toast.LENGTH_SHORT).show()
                             },
                             enabled = !copyBlocked,
@@ -288,7 +290,6 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                         Spacer(Modifier.height(4.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             com.caglar.pokequery.ui.pq.PqRiskBadge(exp.totalRisk)
-
                             val scopeBreadthStr = when (exp.scopeBreadth) {
                                 "All (no filter)" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.explainer_scope_all)
                                 "Very Narrow" -> androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.explainer_scope_very_narrow)
@@ -309,9 +310,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                     }
                     item {
                         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(CardDark).border(1.dp, BorderSubtle, RoundedCornerShape(14.dp)).padding(12.dp)) {
-                            result.tokens.forEach { token ->
-                                Text("+ $token", color = TextPrimary, fontSize = 13.sp, fontFamily = FontFamily.Monospace)
-                            }
+                            result.tokens.forEach { token -> Text("+ $token", color = TextPrimary, fontSize = 13.sp, fontFamily = FontFamily.Monospace) }
                             result.exclusions.forEach { exclusion ->
                                 Text("! $exclusion (" + androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_excluded) + ")", color = AmberWarning, fontSize = 13.sp, fontFamily = FontFamily.Monospace)
                             }
@@ -319,11 +318,9 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                     }
                 }
 
-                val displayExplanation = if (isTurkishUi) generatedExplanationText else result.explanation
+                val displayExplanation = if (isEnglishUi) result.explanation else generatedExplanationText
                 if (displayExplanation.isNotBlank()) {
-                    item {
-                        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_explanation), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    }
+                    item { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_explanation), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp) }
                     item {
                         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(CardDark).border(1.dp, BorderSubtle, RoundedCornerShape(14.dp)).padding(12.dp)) {
                             Row(verticalAlignment = Alignment.Top) {
@@ -335,15 +332,9 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                     }
                 }
 
-                val displayLimitations = if (isTurkishUi && result.limitations.isNotEmpty()) {
-                    listOf(reviewInGameText)
-                } else {
-                    result.limitations
-                }
+                val displayLimitations = if (!isEnglishUi && result.limitations.isNotEmpty()) listOf(reviewInGameText) else result.limitations
                 if (displayLimitations.isNotEmpty()) {
-                    item {
-                        Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_limitations), color = AmberWarning, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    }
+                    item { Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_limitations), color = AmberWarning, fontWeight = FontWeight.Bold, fontSize = 13.sp) }
                     item {
                         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(CardDark).border(1.dp, BorderSubtle, RoundedCornerShape(14.dp)).padding(12.dp)) {
                             displayLimitations.forEach { limitation ->
@@ -360,4 +351,3 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
     }
     }
 }
-

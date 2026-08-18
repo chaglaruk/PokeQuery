@@ -37,9 +37,13 @@ export function PwaUpdateBanner() {
     setOfflineReady(false)
   }
 
+  // Keep lifecycle messages above the persistent bottom navigation instead of covering
+  // page headers/back buttons on non-Home screens.
+  const safeBottomStyle = { top: 'auto', bottom: 'calc(82px + var(--safe-bottom))' } as const
+
   if (needRefresh) {
     return (
-      <div className="pwa-banner pwa-banner-update" role="alert" aria-live="assertive" data-testid="pwa-update-banner">
+      <div className="pwa-banner pwa-banner-update" role="alert" aria-live="assertive" data-testid="pwa-update-banner" style={safeBottomStyle}>
         <div className="pwa-banner-body">
           <div className="pwa-banner-icon"><AppIcon name="refresh" size={20} /></div>
           <div className="pwa-banner-text">
@@ -59,9 +63,8 @@ export function PwaUpdateBanner() {
     )
   }
 
-  // offlineReady
   return (
-    <div className="pwa-banner pwa-banner-offline" role="status" aria-live="polite" data-testid="pwa-offline-banner">
+    <div className="pwa-banner pwa-banner-offline" role="status" aria-live="polite" data-testid="pwa-offline-banner" style={safeBottomStyle}>
       <div className="pwa-banner-body">
         <div className="pwa-banner-icon"><AppIcon name="check" size={20} /></div>
         <div className="pwa-banner-text">

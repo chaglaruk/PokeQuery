@@ -36,11 +36,12 @@ describe('SearchStringExplainer parity', () => {
     expect(result.scopeBreadth).toBe('Moderate')
   })
 
-  it('count2- is categorized as unknown (regex count\\d* does not match trailing -)', () => {
+  it('count2- is recognized as a count filter', () => {
     const result = explain('count2-')
     expect(result.tokens).toHaveLength(1)
-    expect(result.tokens[0].category).toBe('unknown')
-    expect(result.hasUnknownTokens).toBe(true)
+    expect(result.tokens[0].category).toBe('count_filter')
+    expect(result.hasUnknownTokens).toBe(false)
+    expect(result.precision).toBe('APPROXIMATE')
   })
 
   it('!shiny is an exclusion token', () => {

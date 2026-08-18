@@ -9,6 +9,7 @@ import {
   dateLabel,
   dateTimeLabel,
   remainingTimeLabel,
+  localDateOnlyMillis,
   canonicalEventKey,
   systemClock,
   type Clock,
@@ -311,7 +312,7 @@ describe('remainingTimeLabel', () => {
     ['fr', 'Plus que 18 jours'],
     ['it', 'Mancano 18 giorni'],
   ])('uses natural countdown copy for %s', (locale, expected) => {
-    const now = Date.parse('2026-07-14') - 1
+    const now = localDateOnlyMillis('2026-07-14') - 1
     expect(remainingTimeLabel(makeEntry({ startDate: '2026-07-01', endDate: '2026-07-31' }), pinnedClock('2026-07-13', now), locale)).toBe(expected)
   })
 
@@ -331,20 +332,20 @@ describe('remainingTimeLabel', () => {
   })
 
   it('returns forward-looking label for upcoming event >1 day away', () => {
-    const label = remainingTimeLabel(makeEntry({ startDate: '2026-08-01', endDate: '2026-08-10', status: 'UPCOMING' }), pinnedClock('2026-07-12', Date.parse('2026-07-12') + 12 * 3600 * 1000), 'en')
+    const label = remainingTimeLabel(makeEntry({ startDate: '2026-08-01', endDate: '2026-08-10', status: 'UPCOMING' }), pinnedClock('2026-07-12', localDateOnlyMillis('2026-07-12') + 12 * 3600 * 1000), 'en')
     expect(label).toMatch(/^in \d+ days/)
   })
 
   it('returns countdown prefix when CURRENT', () => {
     // today=2026-07-12, ends 2026-07-15 23:59:59, now=2026-07-12 noon
-    const nowMs = Date.parse('2026-07-12') + 12 * 3600 * 1000
+    const nowMs = localDateOnlyMillis('2026-07-12') + 12 * 3600 * 1000
     const label = remainingTimeLabel(makeEntry({ startDate: '2026-07-01', endDate: '2026-07-15', status: 'CURRENT' }), pinnedClock('2026-07-12', nowMs), 'en')
     expect(label).toMatch(/^\d+ days \d+ hours left$|^\d+ days left$|^Ends today$/)
   })
 
   it('returns "Live now" when end-of-day already past', () => {
     // 2026-07-31 23:59:59, now=2026-08-01 10:00
-    const nowMs = Date.parse('2026-08-01') + 10 * 3600 * 1000
+    const nowMs = localDateOnlyMillis('2026-08-01') + 10 * 3600 * 1000
     const label = remainingTimeLabel(makeEntry({ startDate: '2026-07-01', endDate: '2026-07-31', status: 'CURRENT' }), pinnedClock('2026-07-31', nowMs), 'en')
     // effectiveStatus with 2026-07-31 today is CURRENT (<=end), endOfDay is just past now
     // But range may also compute "Live now"
@@ -364,5 +365,31 @@ describe('systemClock', () => {
     const after = Date.now()
     expect(ms).toBeGreaterThanOrEqual(before)
     expect(ms).toBeLessThanOrEqual(after)
+  })
+})
+
+describe('localDateOnlyMillis', () => {
+  it('parses YYYY-MM-DD in local timezone', () => {
+    const ms = localDateOnlyMillis('2026-08-17')
+    expect(Number.isNaN(ms)).toBe(false)
+    const d = new Date(ms)
+    expect(d.getFullYear()).toBe(2026)
+    expect(d.getMonth()).toBe(7) // August is 7 (0-indexed)
+    expect(d.getDate()).toBe(17)
+  })
+
+  it('returns NaN for invalid or empty inputs', () => {
+    expect(Number.isNaN(localDateOnlyMillis(null))).toBe(true)
+    expect(Number.isNaN(localDateOnlyMillis(undefined))).toBe(true)
+    expect(Number.isNaN(localDateOnlyMillis(''))).toBe(true)
+    expect(Number.isNaN(localDateOnlyMillis('not-a-date'))).toBe(true)
+    expect(Number.isNaN(localDateOnlyMillis('2026/08/17'))).toBe(true)
+  })
+
+  it('computes end-of-day inclusive countdown correctly', () => {
+    const entry = makeEntry({ startDate: '2026-08-01', endDate: '2026-08-17', status: 'CURRENT' })
+    const nowMs = localDateOnlyMillis('2026-08-17') + 12 * 3600 * 1000 // noon on last day
+    const clock: Clock = { todayIso: () => '2026-08-17', nowMillis: () => nowMs }
+    expect(remainingTimeLabel(entry, clock, 'en')).toBe('Ends today')
   })
 })

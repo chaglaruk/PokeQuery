@@ -66,6 +66,17 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null)
 
+function localizedDynamicFallback(key: string, stringMap: Record<string, string>): string | undefined {
+  if (key.startsWith('search_intent_expl_')) return stringMap.search_assistant_generated_explanation
+  if (key.startsWith('search_intent_lim_')) return stringMap.search_assistant_review_in_game
+  if (key.startsWith('search_intent_note_')) return stringMap.search_assistant_review_warning
+  if (key === 'search_intent_could_not_understand') return stringMap.search_assistant_could_not_understand
+  if (key === 'search_intent_fix_errors') return stringMap.search_assistant_fix_errors
+  if (key === 'search_intent_lint_advisory') return stringMap.search_assistant_advisory_only
+  if (key === 'search_intent_copy_advisory') return stringMap.search_assistant_copy_btn
+  return undefined
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [appLanguage, setAppLanguageState] = useState<AppLanguage>(() => {
     const saved = localStorage.getItem('pq_app_language') as AppLanguage | null
@@ -83,12 +94,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const stringMap = localeMaps[locale] ?? en
 
   const t = useCallback((key: string, ...args: (string | number)[]) => {
-    let value = stringMap[key] ?? en[key] ?? key
+    const resolved = stringMap[key]
+      ?? (locale !== 'en' ? localizedDynamicFallback(key, stringMap) : undefined)
+      ?? en[key]
+      ?? key
+    let value: string = resolved
     for (let i = 0; i < args.length; i++) {
       value = value.replace(new RegExp(`\\{${i}\\}`, 'g'), String(args[i]))
     }
     return value
-  }, [stringMap])
+  }, [stringMap, locale])
 
   const setAppLanguage = useCallback((lang: AppLanguage) => {
     setAppLanguageState(lang)

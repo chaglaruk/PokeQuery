@@ -27,9 +27,6 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    // v0.6.1: the start_route from the launcher intent (app shortcut / Quick Access widget).
-    // Held as observable state so re-entry via onNewIntent (the activity already running) also
-    // re-routes instead of being ignored. `null` means "no specific route / go Home".
     private var startRoute by mutableStateOf<String?>(null)
     private var copySearch by mutableStateOf<String?>(null)
     private var debugAppLanguage by mutableStateOf<String?>(null)
@@ -42,32 +39,19 @@ class MainActivity : ComponentActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
         startRoute = readStartRoute(intent)
-        copySearch = intent?.getStringExtra("copy_search")
+        copySearch = readDebugCopySearch(intent)
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
         debugEventFeedUrl = intent?.getStringExtra("event_feed_url")
 
-        // v0.7.2: Silent background prefetch of event feed data on app startup.
-        // This pre-caches the remote feed so Event Guide data is ready before the user opens it.
-        // Failures are silently swallowed — the Event Guide screen handles its own refresh/fallback.
         lifecycleScope.launch {
             runCatching { EventFeedLoader.load(applicationContext) }
         }
 
-        // v0.5.2 (Fix 7): one repository instance shared with MainNavigation for the App
-        // Language preference. The v0.5.2 original applied the OS per-app locale from a
-        // `SideEffect` (per-frame), which on Android 16 / Samsung One UI drove an Activity
-        // recreation loop and a permanent black screen. v0.5.2.1 hotfix: AppLocaleController now
-        // sets only the in-process default locale (no LocaleManager, no recreation), and we
-        // invoke it per-change via LaunchedEffect(appLanguage) so neither the call cadence nor
-        // the call itself can loop. Search String Language (Layer B) is unaffected.
         val repository = UserPreferencesRepository(applicationContext.dataStore)
         setContent {
             val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
-            if (userPrefs == null) {
-                // Wait for preferences to load from DataStore to avoid resetting locale to System Default
-                return@setContent
-            }
+            if (userPrefs == null) return@setContent
 
             val appLanguage = userPrefs!!.appLanguage
             val requestedDebugLanguage by rememberUpdatedState(debugAppLanguage)
@@ -86,7 +70,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // Deterministic in-app localization layer
             val context = androidx.compose.ui.platform.LocalContext.current
             val locale = AppLocaleController.localeFor(appLanguage)
             val configuration = android.content.res.Configuration(androidx.compose.ui.platform.LocalConfiguration.current)
@@ -101,7 +84,6 @@ class MainActivity : ComponentActivity() {
             ) {
                 PokeQueryTheme {
                     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                        // Keyed on startRoute so a new shortcut/widget intent recomposes navigation.
                         MainNavigation(
                             startRoute = startRoute,
                             copySearch = copySearch,
@@ -116,12 +98,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // v0.6.1: pick up a fresh start_route when the activity is already running (e.g. the user
-        // taps a different shortcut, or the Quick Access widget while PokeQuery is in the back
-        // stack). setIntent so getIntent() also reflects the latest.
         setIntent(intent)
         startRoute = readStartRoute(intent)
-        copySearch = intent.getStringExtra("copy_search")
+        copySearch = readDebugCopySearch(intent)
         debugAppLanguage = readDebugAppLanguage(intent)
         debugSearchLanguage = readDebugSearchLanguage(intent)
         debugEventFeedUrl = intent.getStringExtra("event_feed_url")
@@ -129,6 +108,14 @@ class MainActivity : ComponentActivity() {
 
     private fun readStartRoute(intent: Intent?): String? =
         intent?.getStringExtra(START_ROUTE_EXTRA)
+
+    /**
+     * Production widget copy no longer travels through exported MainActivity. Keep this legacy
+     * hook debug-only for local/E2E tooling so a foreign release app cannot overwrite clipboard
+     * or pollute History by forging an explicit launcher intent.
+     */
+    private fun readDebugCopySearch(intent: Intent?): String? =
+        if (BuildConfig.DEBUG) intent?.getStringExtra("copy_search") else null
 
     private fun readDebugAppLanguage(intent: Intent?): String? =
         intent?.getStringExtra(DEBUG_APP_LANGUAGE_EXTRA)

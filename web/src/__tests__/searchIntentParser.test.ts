@@ -141,4 +141,349 @@ describe('parseSearchIntent', () => {
     const r = parseSearchIntent('favorite')
     expect(r.tokens).toContain('favorite')
   })
+
+  // Production mixed-intent baseline
+  it('handles "hide shiny and favourites" correctly', () => {
+    const r = parseSearchIntent('hide shiny and favourites')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).toContain('favorite')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.tokens).not.toContain('favorite')
+    expect(r.rawQuery).toBe('!shiny&!favorite')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('handles "Find hundos and exclude shinies" correctly', () => {
+    const r = parseSearchIntent('Find hundos and exclude shinies')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('handles "exclude shinies and find hundos" correctly', () => {
+    const r = parseSearchIntent('exclude shinies and find hundos')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  // PQ-ZAI-FINAL-01: Negated controls
+  it('PQ-ZAI-FINAL-01: parses "don\'t hide shiny" -> positive shiny', () => {
+    const r = parseSearchIntent("don't hide shiny")
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('shiny')
+    expect(r.exclusions).not.toContain('shiny')
+    expect(r.rawQuery).toBe('shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-01: parses "dont hide shiny", "do not hide shiny", "don\'t exclude shiny"', () => {
+    const r1 = parseSearchIntent('dont hide shiny')
+    expect(r1.tokens).toContain('shiny')
+    expect(r1.exclusions).not.toContain('shiny')
+    expect(r1.rawQuery).toBe('shiny')
+
+    const r2 = parseSearchIntent('do not hide shiny')
+    expect(r2.tokens).toContain('shiny')
+    expect(r2.exclusions).not.toContain('shiny')
+    expect(r2.rawQuery).toBe('shiny')
+
+    const r3 = parseSearchIntent("don't exclude shiny")
+    expect(r3.tokens).toContain('shiny')
+    expect(r3.exclusions).not.toContain('shiny')
+    expect(r3.rawQuery).toBe('shiny')
+  })
+
+  it('PQ-ZAI-FINAL-01: parses "don\'t include shiny" -> negative !shiny', () => {
+    const r = parseSearchIntent("don't include shiny")
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.rawQuery).toBe('!shiny')
+    expect(r.rawQuery).not.toContain('|')
+
+    const r2 = parseSearchIntent("don't show shiny")
+    expect(r2.canBuild).toBe(true)
+    expect(r2.exclusions).toContain('shiny')
+    expect(r2.tokens).not.toContain('shiny')
+    expect(r2.rawQuery).toBe('!shiny')
+  })
+
+  // PQ-ZAI-FINAL-02: Contrast with explicit positive control
+  it('PQ-ZAI-FINAL-02: parses "without shiny but with hundo" -> 4*&!shiny', () => {
+    const r = parseSearchIntent('without shiny but with hundo')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  // PQ-ZAI-FINAL-03: Contrast polarity inheritance
+  it('PQ-ZAI-FINAL-03: parses "show all but hundos" -> !4*', () => {
+    const r = parseSearchIntent('show all but hundos')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('4*')
+    expect(r.tokens).not.toContain('4*')
+    expect(r.rawQuery).toBe('!4*')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "find all but shiny" -> !shiny', () => {
+    const r = parseSearchIntent('find all but shiny')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.rawQuery).toBe('!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "show all but shiny" -> !shiny', () => {
+    const r = parseSearchIntent('show all but shiny')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.rawQuery).toBe('!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "everything but shiny and legendary" -> !shiny&!legendary', () => {
+    const r = parseSearchIntent('everything but shiny and legendary')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).toContain('legendary')
+    expect(r.tokens).toEqual([])
+    expect(r.rawQuery).toBe('!shiny&!legendary')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "show all but shiny and hundos" -> !4*&!shiny', () => {
+    const r = parseSearchIntent('show all but shiny and hundos')
+    expect(r.canBuild).toBe(true)
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).toContain('4*')
+    expect(r.tokens).toEqual([])
+    expect(r.rawQuery === '!4*&!shiny' || r.rawQuery === '!shiny&!4*').toBe(true)
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "hide shiny but hundo" -> 4*&!shiny', () => {
+    const r = parseSearchIntent('hide shiny but hundo')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "find hundo but exclude shiny" -> 4*&!shiny', () => {
+    const r = parseSearchIntent('find hundo but exclude shiny')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  it('PQ-ZAI-FINAL-03: parses "exclude shiny but find hundo" -> 4*&!shiny', () => {
+    const r = parseSearchIntent('exclude shiny but find hundo')
+    expect(r.canBuild).toBe(true)
+    expect(r.tokens).toContain('4*')
+    expect(r.tokens).not.toContain('shiny')
+    expect(r.exclusions).toContain('shiny')
+    expect(r.exclusions).not.toContain('4*')
+    expect(r.rawQuery).toBe('4*&!shiny')
+    expect(r.rawQuery).not.toContain('|')
+  })
+
+  // ==========================================
+  // CAUGHT DATE INTENT TESTS (Fixed today: 2026-08-18)
+  // ==========================================
+  const fixedToday = new Date(2026, 7, 18) // Month 7 = August
+
+  it('parses "find pokemon caught in April 2025" and "caught in April 2025"', () => {
+    const r1 = parseSearchIntent('find pokemon caught in April 2025', fixedToday)
+    expect(r1.canBuild).toBe(true)
+    expect(r1.rawQuery).toBe('year2025&age475-504')
+    expect(r1.rawQuery).not.toContain('|')
+    expect(r1.tokens).toEqual(['year2025', 'age475-504'])
+    expect(r1.limitations.some(l => l.includes('rolling 24-hour windows'))).toBe(true)
+
+    const r2 = parseSearchIntent('caught in April 2025', fixedToday)
+    expect(r2.canBuild).toBe(true)
+    expect(r2.rawQuery).toBe('year2025&age475-504')
+  })
+
+  it('parses Turkish "nisan 2025te yakalanan pokemonları bul" and "nisan 2025\'te yakalanan pokemonları bul"', () => {
+    const r1 = parseSearchIntent('nisan 2025te yakalanan pokemonları bul', fixedToday)
+    expect(r1.canBuild).toBe(true)
+    expect(r1.rawQuery).toBe('year2025&age475-504')
+    expect(r1.rawQuery).not.toContain('|')
+
+    const r2 = parseSearchIntent("nisan 2025'te yakalanan pokemonları bul", fixedToday)
+    expect(r2.canBuild).toBe(true)
+    expect(r2.rawQuery).toBe('year2025&age475-504')
+  })
+
+  it('parses Month only: "caught in April", "nisanda yakalanan pokemonları bul", "nisan ayında yakalanan pokemonları bul"', () => {
+    const rEn = parseSearchIntent('caught in April', fixedToday)
+    expect(rEn.canBuild).toBe(true)
+    expect(rEn.rawQuery).toBe('year2026&age110-139')
+    expect(rEn.rawQuery).not.toContain('|')
+
+    const rTr1 = parseSearchIntent('nisanda yakalanan pokemonları bul', fixedToday)
+    expect(rTr1.canBuild).toBe(true)
+    expect(rTr1.rawQuery).toBe('year2026&age110-139')
+
+    const rTr2 = parseSearchIntent('nisan ayında yakalanan pokemonları bul', fixedToday)
+    expect(rTr2.canBuild).toBe(true)
+    expect(rTr2.rawQuery).toBe('year2026&age110-139')
+  })
+
+  it('parses Year only: "caught in 2025", "2025te yakalanan pokemonları bul", "2025\'te yakalanan pokemonları bul"', () => {
+    const rEn = parseSearchIntent('caught in 2025', fixedToday)
+    expect(rEn.canBuild).toBe(true)
+    expect(rEn.rawQuery).toBe('year2025')
+    expect(rEn.rawQuery).not.toContain('|')
+
+    const rTr1 = parseSearchIntent('2025te yakalanan pokemonları bul', fixedToday)
+    expect(rTr1.canBuild).toBe(true)
+    expect(rTr1.rawQuery).toBe('year2025')
+
+    const rTr2 = parseSearchIntent("2025'te yakalanan pokemonları bul", fixedToday)
+    expect(rTr2.canBuild).toBe(true)
+    expect(rTr2.rawQuery).toBe('year2025')
+  })
+
+  it('parses bare caught requests with helpful guidance: "find caught pokemon", "yakalanan pokemonları bul"', () => {
+    const rEn = parseSearchIntent('find caught pokemon', fixedToday)
+    expect(rEn.canBuild).toBe(false)
+    expect(rEn.rawQuery).toBe('')
+    expect(rEn.explanation).toContain('caught in April 2025')
+
+    const rTr = parseSearchIntent('yakalanan pokemonları bul', fixedToday)
+    expect(rTr.canBuild).toBe(false)
+    expect(rTr.rawQuery).toBe('')
+    expect(rTr.explanation).toContain("Nisan 2025'te yakalanan")
+  })
+
+  it('correctly composes caught date with other search intents', () => {
+    // 1. find shiny pokemon caught in April 2025
+    const rShinyDate = parseSearchIntent('find shiny pokemon caught in April 2025', fixedToday)
+    expect(rShinyDate.canBuild).toBe(true)
+    expect(rShinyDate.rawQuery).toBe('year2025&age475-504&shiny')
+    expect(rShinyDate.rawQuery).not.toContain('|')
+
+    // 2. find hundos caught in 2025
+    const rHundoDate = parseSearchIntent('find hundos caught in 2025', fixedToday)
+    expect(rHundoDate.canBuild).toBe(true)
+    expect(rHundoDate.rawQuery).toBe('year2025&4*')
+    expect(rHundoDate.rawQuery).not.toContain('|')
+
+    // 3. find legendary pokemon caught in April
+    const rLegDate = parseSearchIntent('find legendary pokemon caught in April', fixedToday)
+    expect(rLegDate.canBuild).toBe(true)
+    expect(rLegDate.rawQuery).toBe('year2026&age110-139&legendary')
+    expect(rLegDate.rawQuery).not.toContain('|')
+
+    // 4. Turkish: nisan 2025te yakalanan parlak pokemonları bul
+    const rTrShiny = parseSearchIntent('nisan 2025te yakalanan parlak pokemonları bul', fixedToday)
+    expect(rTrShiny.canBuild).toBe(true)
+    expect(rTrShiny.rawQuery).toBe('year2025&age475-504&shiny')
+    expect(rTrShiny.rawQuery).not.toContain('|')
+
+    // 5. exclude shiny pokemon caught in 2025
+    const rExclShiny = parseSearchIntent('exclude shiny pokemon caught in 2025', fixedToday)
+    expect(rExclShiny.canBuild).toBe(true)
+    expect(rExclShiny.rawQuery).toBe('year2025&!shiny')
+    expect(rExclShiny.rawQuery).not.toContain('|')
+
+    // 6. find hundos caught in April 2025 and exclude shiny
+    const rHundoExclShiny = parseSearchIntent('find hundos caught in April 2025 and exclude shiny', fixedToday)
+    expect(rHundoExclShiny.canBuild).toBe(true)
+    expect(rHundoExclShiny.rawQuery).toBe('year2025&age475-504&4*&!shiny')
+    expect(rHundoExclShiny.rawQuery).not.toContain('|')
+
+    // 7. find shadow pokemon caught in 2025
+    const rShadowDate = parseSearchIntent('find shadow pokemon caught in 2025', fixedToday)
+    expect(rShadowDate.canBuild).toBe(true)
+    expect(rShadowDate.rawQuery).toBe('year2025&shadow')
+    expect(rShadowDate.rawQuery).not.toContain('|')
+
+    // 8. 2018 collision: find shiny pokemon caught in 2018 must NOT contain age365-
+    const r2018 = parseSearchIntent('find shiny pokemon caught in 2018', fixedToday)
+    expect(r2018.canBuild).toBe(true)
+    expect(r2018.rawQuery).toBe('year2018&shiny')
+    expect(r2018.rawQuery).not.toContain('age365-')
+    expect(r2018.rawQuery).not.toContain('|')
+
+    // 9. find old shiny pokemon MUST contain age365-
+    const rOldShiny = parseSearchIntent('find old shiny pokemon', fixedToday)
+    expect(rOldShiny.canBuild).toBe(true)
+    expect(rOldShiny.rawQuery).toBe('age365-&shiny')
+  })
+
+  it('handles caught date edge cases: current month, Dec past-year inference, future date, leap year', () => {
+    // Current month: August 2026 (clamped to today: Aug 18)
+    const rCurrent = parseSearchIntent('caught in August 2026', fixedToday)
+    expect(rCurrent.canBuild).toBe(true)
+    expect(rCurrent.rawQuery).toBe('year2026&age0-17')
+
+    // Month-only December (inferred past year: Dec 2025)
+    const rDec = parseSearchIntent('caught in December', fixedToday)
+    expect(rDec.canBuild).toBe(true)
+    expect(rDec.rawQuery).toBe('year2025&age230-260')
+
+    // Future year
+    const rFuture = parseSearchIntent('caught in 2030', fixedToday)
+    expect(rFuture.canBuild).toBe(false)
+    expect(rFuture.rawQuery).toBe('')
+
+    // Leap year: Feb 2024 (29 days)
+    const rLeap = parseSearchIntent('caught in February 2024', fixedToday)
+    expect(rLeap.canBuild).toBe(true)
+    expect(rLeap.rawQuery).toBe('year2024&age901-929')
+  })
+
+  it('recognizes all 12 EN and TR months in caught context', () => {
+    const enMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    for (const m of enMonths) {
+      const res = parseSearchIntent(`caught in ${m} 2024`, fixedToday)
+      expect(res.canBuild).toBe(true)
+      expect(res.rawQuery.startsWith('year2024&age')).toBe(true)
+      expect(res.rawQuery).not.toContain('|')
+    }
+
+    const trMonths = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
+    for (const m of trMonths) {
+      const res = parseSearchIntent(`${m} 2024'te yakalanan`, fixedToday)
+      expect(res.canBuild).toBe(true)
+      expect(res.rawQuery.startsWith('year2024&age')).toBe(true)
+      expect(res.rawQuery).not.toContain('|')
+    }
+  })
+
+  it('verifies DST safety in days calculation', () => {
+    // Cross US Daylight Saving Time start (March 8, 2026)
+    const dstDay = new Date(2026, 2, 15) // March 15, 2026
+    const r = parseSearchIntent('caught in March 2026', dstDay)
+    expect(r.canBuild).toBe(true)
+    // start 2026-03-01 to 2026-03-15 = 14 days; end clamped to 2026-03-15 = 0 days
+    expect(r.rawQuery).toBe('year2026&age0-14')
+  })
 })

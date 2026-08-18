@@ -5,6 +5,14 @@ import { translateSyntax } from './searchTermMapper'
 
 const passthroughGoals = new Set(['hundo_check', 'nundo_finder', 'pvp_candidates'])
 
+function syntaxTokens(raw: string): Set<string> {
+  return new Set(
+    raw.split(/[&,;:]/)
+      .map(token => token.trim())
+      .filter(Boolean),
+  )
+}
+
 export function buildFinal(
   baseGoal: GeneratedString,
   optionalProtections: string[],
@@ -13,14 +21,16 @@ export function buildFinal(
   if (passthroughGoals.has(baseGoal.goalId)) return baseGoal
 
   const existing = baseGoal.rawSyntax
-  const alreadyPresent = optionalProtections.filter(p => existing.includes(`!${p}`))
-  const toAdd = optionalProtections
-    .filter(p => !existing.includes(`!${p}`))
+  const existingTokens = syntaxTokens(existing)
+  const translatedProtections = [...new Set(optionalProtections)]
     .map(token => `!${translateSyntax(token, language)}`)
+
+  const toAdd = translatedProtections
+    .filter(token => !existingTokens.has(token))
     .join('&')
 
-  if (alreadyPresent.length === 0 && toAdd.length === 0) return baseGoal
+  if (!toAdd) return baseGoal
 
-  const merged = toAdd.length === 0 ? existing : `${existing}&${toAdd}`
+  const merged = existing ? `${existing}&${toAdd}` : toAdd
   return { ...baseGoal, rawSyntax: merged }
 }

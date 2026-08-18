@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'sprites/*.png', 'sprites/*.webp'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'sprites/*.png', 'sprites/*.webp', 'knowledgebase.json', 'event-feed-fallback.json'],
       manifest: {
         name: 'PokeQuery',
         short_name: 'PokeQuery',
@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,json,png,webp,svg,woff2}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/.*/i,

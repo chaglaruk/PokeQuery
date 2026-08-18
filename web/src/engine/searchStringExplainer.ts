@@ -1,5 +1,4 @@
 // Port of com.caglar.pokequery.domain.assist.SearchStringExplainer
-// 1:1 TypeScript port — token-by-token search string breakdown.
 
 import type { RiskLevel } from '../types'
 
@@ -26,8 +25,24 @@ export interface ExplainedString {
 
 const exactTokens = new Set(['4*', '0attack', '0defense', '0hp', 'nundo'])
 const shortlistTokens = new Set(['shiny', 'legendary', 'shadow', 'purified', 'lucky', 'favorite', 'costume', 'traded'])
-// approximateTokens is defined in the Kotlin source but unused (kept for parity documentation)
-// const approximateTokens = new Set(['3*', '2*', '1*', '0*', 'age', 'distance', 'count', 'cp'])
+
+function computePrecision(tokens: ExplainedToken[]): SearchPrecision {
+  const cleanTokens = tokens.filter(t => !t.isExclusion).map(t => t.token.replace(/^!/, ''))
+  if (cleanTokens.some(t => exactTokens.has(t))) return 'EXACT'
+  if (cleanTokens.some(t => shortlistTokens.has(t))) return 'SHORTLIST'
+  const categories = new Set(tokens.map(t => t.category))
+  if (['iv_stat', 'age_filter', 'distance_filter', 'cp_range', 'count_filter'].some(c => categories.has(c))) return 'APPROXIMATE'
+  return 'NEEDS_VERIFICATION'
+}
+
+function computeScopeBreadth(tokens: ExplainedToken[]): string {
+  const cleanCount = tokens.filter(t => !t.isExclusion).length
+  if (cleanCount === 0) return 'All (no filter)'
+  if (cleanCount <= 1) return 'Very Narrow'
+  if (cleanCount <= 2) return 'Narrow'
+  if (cleanCount <= 3) return 'Moderate'
+  return 'Broad'
+}
 
 const knownTokens: Record<string, string> = {
   shiny: 'Filters for Shiny Pokémon',
@@ -65,22 +80,28 @@ const knownTokens: Record<string, string> = {
 
 const riskyTokens = new Set(['shiny', 'legendary', 'mythical', 'lucky'])
 
-function computePrecision(tokens: ExplainedToken[]): SearchPrecision {
-  const cleanTokens = tokens.filter(t => !t.isExclusion).map(t => t.token)
-  if (cleanTokens.some(t => exactTokens.has(t))) return 'EXACT'
-  if (cleanTokens.some(t => shortlistTokens.has(t))) return 'SHORTLIST'
-  const categories = new Set(tokens.map(t => t.category))
-  if (['iv_band', 'age_filter', 'distance_filter', 'cp_range', 'count_filter'].some(c => categories.has(c))) return 'APPROXIMATE'
-  return 'NEEDS_VERIFICATION'
+function structuredCategory(clean: string): string | null {
+  if (/^\d+(?:-\d+)?(?:hp|attack|defense)$/.test(clean)) return 'iv_stat'
+  if (/^(?:hp|attack|defense)[<>]?\d*(?:-\d*)?$/.test(clean)) return 'iv_stat'
+  if (/^cp-?\d+(?:-\d*)?$/.test(clean)) return 'cp_range'
+  if (/^age\d+(?:-\d*)?$/.test(clean)) return 'age_filter'
+  if (/^distance\d+(?:-\d*)?$/.test(clean)) return 'distance_filter'
+  if (/^count\d*(?:-\d*)?$/.test(clean)) return 'count_filter'
+  if (/^@[^&,:;]+$/.test(clean)) return 'special_move'
+  return null
 }
 
-function computeScopeBreadth(tokens: ExplainedToken[]): string {
-  const cleanCount = tokens.filter(t => !t.isExclusion).length
-  if (cleanCount === 0) return 'All (no filter)'
-  if (cleanCount <= 1) return 'Very Narrow'
-  if (cleanCount <= 2) return 'Narrow'
-  if (cleanCount <= 3) return 'Moderate'
-  return 'Broad'
+function descriptionFor(category: string): string {
+  const descriptions: Record<string, string> = {
+    iv_stat: 'Individual IV stat filter',
+    cp_range: 'CP range filter',
+    age_filter: 'Age (days since caught) filter',
+    distance_filter: 'Trade distance filter',
+    count_filter: 'Species count filter',
+    special_move: 'Special move / form filter',
+    unknown: 'Unknown token — verify this works in Pokémon GO',
+  }
+  return descriptions[category] ?? descriptions.unknown ?? 'Unknown token — verify this works in Pokémon GO'
 }
 
 export function explain(input: string): ExplainedString {
@@ -90,44 +111,18 @@ export function explain(input: string): ExplainedString {
   }
 
   const parts = raw.split('&').filter(p => p.trim().length > 0)
-
   const tokens: ExplainedToken[] = parts.map(part => {
     const isExclusion = part.startsWith('!')
     const clean = isExclusion ? part.slice(1) : part
-
-    const knownKey = Object.keys(knownTokens).find(key => clean === key || clean.startsWith(key))
-
-    if (knownKey) {
-      const risk: RiskLevel = riskyTokens.has(knownKey) ? 'Medium' : 'Info'
-      return { token: part, category: knownKey, isExclusion, description: knownTokens[knownKey], riskHint: risk }
-    }
-
-    let category = 'unknown'
-    if (/^\d+\*$/.test(clean)) category = 'iv_band'
-    else if (/^(hp|attack|defense)[<>]?\d*$/.test(clean)) category = 'iv_stat'
-    else if (/^cp-?\d*$/.test(clean)) category = 'cp_range'
-    else if (/^age\d+$/.test(clean)) category = 'age_filter'
-    else if (/^distance\d+$/.test(clean)) category = 'distance_filter'
-    else if (/^count\d*$/.test(clean)) category = 'count_filter'
-    else if (/^@\w*$/.test(clean)) category = 'special_move'
-
-    const descriptions: Record<string, string> = {
-      iv_band: 'IV appraisal band filter',
-      iv_stat: 'Individual IV stat filter',
-      cp_range: 'CP range filter',
-      age_filter: 'Age (days since caught) filter',
-      distance_filter: 'Trade distance filter',
-      count_filter: 'Species count filter',
-      special_move: 'Special move / form filter',
-      unknown: 'Unknown token — verify this works in Pokémon GO',
-    }
-
+    const known = knownTokens[clean]
+    const category = known !== undefined ? clean : structuredCategory(clean) ?? 'unknown'
+    const riskHint: RiskLevel = riskyTokens.has(clean) ? 'Medium' : category === 'unknown' ? 'Low' : 'Info'
     return {
       token: part,
       category,
       isExclusion,
-      description: descriptions[category] ?? descriptions.unknown,
-      riskHint: category === 'unknown' ? 'Low' : 'Info',
+      description: known ?? descriptionFor(category),
+      riskHint,
     }
   })
 
@@ -137,7 +132,6 @@ export function explain(input: string): ExplainedString {
 
   const inclusions = tokens.filter(t => !t.isExclusion)
   const exclusions = tokens.filter(t => t.isExclusion)
-
   let summary = 'This search string'
   if (inclusions.length > 0) summary += ` looks for ${inclusions.map(t => t.token).join(', ')}`
   if (exclusions.length > 0) summary += ` and excludes ${exclusions.map(t => t.token).join(', ')}`
@@ -150,7 +144,5 @@ export function explain(input: string): ExplainedString {
     : precision === 'NEEDS_VERIFICATION' ? 'Needs verification'
     : 'Unknown'
 
-  const scope = computeScopeBreadth(tokens)
-
-  return { original: raw, tokens, totalRisk, hasUnknownTokens: hasUnknown, summary, precision, precisionLabel, scopeBreadth: scope }
+  return { original: raw, tokens, totalRisk, hasUnknownTokens: hasUnknown, summary, precision, precisionLabel, scopeBreadth: computeScopeBreadth(tokens) }
 }

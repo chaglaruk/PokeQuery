@@ -7,6 +7,7 @@ on:
       - 'web/**'
       - '.github/workflows/deploy-pwa.yml'
       - 'app/src/test/resources/golden-corpus.json'
+      - 'app/src/main/assets/knowledgebase.json'
       - 'docs/event-feed/pokequery-events.json'
       - 'scripts/check_web_fallback_fresh.py'
   pull_request:
@@ -14,6 +15,7 @@ on:
       - 'web/**'
       - '.github/workflows/deploy-pwa.yml'
       - 'app/src/test/resources/golden-corpus.json'
+      - 'app/src/main/assets/knowledgebase.json'
       - 'docs/event-feed/pokequery-events.json'
       - 'scripts/check_web_fallback_fresh.py'
   workflow_dispatch:
@@ -26,7 +28,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Web PWA validation (all PRs + master)
   build:
     runs-on: ubuntu-latest
     permissions:
@@ -106,7 +107,6 @@ jobs:
         with:
           path: web/dist
 
-  # Deploy - only on master push
   deploy:
     needs: build
     runs-on: ubuntu-latest

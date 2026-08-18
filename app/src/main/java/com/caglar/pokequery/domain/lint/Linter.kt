@@ -13,17 +13,30 @@ object Linter {
     )
     private val riskyCategories = setOf("shiny", "legendary", "mythical", "lucky")
 
+    private fun tokens(query: String): List<String> =
+        query.lowercase()
+            .split('&', ',', ';', ':')
+            .map(String::trim)
+            .filter(String::isNotBlank)
+
     fun lint(query: String): List<LintWarning> {
         val warnings = mutableListOf<LintWarning>()
         val lower = query.lowercase()
-        val tokens = lower.split('&', ',', ';', ':').map(String::trim)
+        val tokens = tokens(query)
 
         if ('|' in query) {
             warnings += LintWarning("T3 uncertain operator '|'. Do not use it; use '&' or ',' instead.", true)
         }
 
-        if ("count" in lower) {
-            val missing = StringBuilderEngine.COUNT_MANDATORY_PROTECTIONS.filter { "!$it" !in lower }
+        if (tokens.any { it == "!untraded" || it == "untraded" }) {
+            warnings += LintWarning("Unsupported token 'untraded'. Use 'traded' to include traded Pokémon or '!traded' to exclude them.", true)
+        }
+
+        val hasCount = tokens.any { it.matches(Regex("count\\d*-?")) }
+        if (hasCount) {
+            val missing = StringBuilderEngine.COUNT_MANDATORY_PROTECTIONS.filter { protection ->
+                tokens.none { it == "!$protection" }
+            }
             if (missing.isNotEmpty()) {
                 warnings += LintWarning(
                     "Unsafe count usage; missing mandatory exclusions: ${missing.joinToString { "!$it" }}.",
@@ -37,15 +50,9 @@ object Linter {
             warnings += LintWarning("0* is an IV band, not exact 0% IV.", false)
         }
 
-        // PvP candidate strings should not be treated as cleanup strings
-        val isPvP = lower.contains("0-1attack") || lower.contains("3-4defense")
-        val isTradePrep = lower.contains("age365-") || lower.contains("distance100-")
-
-        // v0.5.1 (Fix 7): The bare 'traded' status token is a positive filter, NOT a
-        // cleanup/trade search. The previous `"trade" in lower` substring matched the
-        // 'traded' token, so `lucky&traded` was wrongly fail-closed as a risky cleanup.
-        // Genuine transfer/cleanup contexts are count (candy prep) and star bands (0/1/2*).
-        val cleanupOrCount = ("count" in lower || tokens.any { it in setOf("0*", "1*", "2*") }) && !isPvP && !isTradePrep
+        val isPvP = tokens.any { it == "0-1attack" || it == "3-4defense" }
+        val isTradePrep = tokens.any { it == "age365-" || it == "distance100-" }
+        val cleanupOrCount = (hasCount || tokens.any { it in setOf("0*", "1*", "2*") }) && !isPvP && !isTradePrep
 
         if (cleanupOrCount) {
             riskyCategories.filter { it in tokens }.forEach {
@@ -57,9 +64,6 @@ object Linter {
             warnings += LintWarning("Trade prep search. Review manually. Valuable Pokémon may appear.", false)
         }
 
-        // v0.5.1 (Fix 7): Advisory (not blocking) for a positive risky-category filter
-        // outside any cleanup/count/PvP/trade-prep context — e.g. lucky&traded. The user
-        // explicitly chose these conditions, so copy stays enabled with a visible hint.
         if (!cleanupOrCount && !isPvP && !isTradePrep) {
             riskyCategories.filter { it in tokens }.forEach {
                 warnings += LintWarning("Includes $it as a positive filter. Review matches before acting.", false)
@@ -80,7 +84,10 @@ object Linter {
         }
 
         if (query.any { it.code > 127 }) {
-            warnings += LintWarning("T4 localized search terms are unverified; MVP assumes an English game client.", false)
+            warnings += LintWarning(
+                "Localized search terms detected. Officially documented localized terms may still be beta until independently verified in the live game client.",
+                false
+            )
         }
         return warnings.distinct()
     }

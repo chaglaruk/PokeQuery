@@ -22,24 +22,95 @@ object SearchIntentParser {
     private fun normalize(text: String): String =
         text.lowercase().trim().replace(Regex("\\s+"), " ")
 
+    private enum class ControlPolarity { POSITIVE, NEGATIVE }
+
+    private val clauseBreak = Regex("""\b(?:and|or|ve|veya)\b|[,&;:]""")
+    private val contrastRegex = Regex("""\b(?:but|ama|ancak|fakat|lakin)\b""")
+
+    private val negatorPrefix = """(?:don'?t|do\s+not|doesn'?t|does\s+not|isn'?t|is\s+not|aren'?t|are\s+not|can'?t|cannot|won'?t|wont|wouldn'?t|wouldnt)"""
+    private val negativeWords = """(?:hide|exclude|without|except|gizle|hariç|haric|dışında|disinda|no|not)"""
+    private val positiveWords = """(?:find|show|include|keep|want|get|with|bul|göster|goster|dahil|sakla|ile|birlikte)"""
+
+    private val combinedControlRegex = Regex(
+        """\b(?:($negatorPrefix)\s+($negativeWords|$positiveWords)|($negativeWords)|($positiveWords))\b"""
+    )
+
+    private val negativeWordSet = setOf(
+        "hide", "exclude", "without", "except", "gizle", "hariç", "haric", "dışında", "disinda", "no", "not"
+    )
+
+    private val suffixNegations = listOf(
+        "degil", "değil", "olmayan", "yok", "hariç", "haric", "disinda", "dışında", "excluded", "hidden"
+    )
+
+    private fun isNegativeWord(word: String): Boolean = word.lowercase() in negativeWordSet
+
+    private fun extractLastControl(text: String): ControlPolarity? {
+        val matches = combinedControlRegex.findAll(text).toList()
+        val last = matches.lastOrNull() ?: return null
+
+        val negator = last.groups[1]?.value
+        val negatedWord = last.groups[2]?.value
+        val standaloneNeg = last.groups[3]?.value
+        val standalonePos = last.groups[4]?.value
+
+        return when {
+            negator != null && negatedWord != null -> {
+                if (isNegativeWord(negatedWord)) ControlPolarity.POSITIVE
+                else ControlPolarity.NEGATIVE
+            }
+            standaloneNeg != null -> ControlPolarity.NEGATIVE
+            standalonePos != null -> ControlPolarity.POSITIVE
+            else -> null
+        }
+    }
+
+    private fun polarityForPrefix(prefix: String): Boolean {
+        val trimmedPrefix = prefix.trimEnd()
+        if (trimmedPrefix.endsWith("!")) return true
+
+        val contrastMatches = contrastRegex.findAll(prefix).toList()
+        if (contrastMatches.isNotEmpty()) {
+            val lastContrast = contrastMatches.last()
+            val preContrast = prefix.substring(0, lastContrast.range.first)
+            val postContrast = prefix.substring(lastContrast.range.last + 1)
+
+            val postControl = extractLastControl(postContrast)
+            if (postControl != null) {
+                return postControl == ControlPolarity.NEGATIVE
+            }
+
+            val preControl = extractLastControl(preContrast) ?: ControlPolarity.POSITIVE
+            return preControl == ControlPolarity.POSITIVE
+        }
+
+        val control = extractLastControl(prefix)
+        return control == ControlPolarity.NEGATIVE
+    }
+
+    /**
+     * Uses the polarity derived from controls, negators, and contrast markers before the matched keyword.
+     * This handles:
+     * - Inverted controls: "don't hide shiny" -> shiny, "don't include shiny" -> !shiny
+     * - Contrast: "without shiny but with hundo" -> 4*&!shiny, "show all but shiny" -> !shiny, "hide shiny but hundo" -> 4*&!shiny
+     * - List inheritance: "hide shiny and favourites" -> !shiny&!favorite
+     * - Independent clauses: "Find hundos and exclude shinies" -> 4*&!shiny
+     */
     private fun isPatternNegated(normalized: String, keyword: String): Boolean {
         if (keyword.isBlank()) return false
         val index = normalized.indexOf(keyword)
         if (index == -1) return false
+
         val prefix = normalized.substring(0, index)
         val suffix = normalized.substring(index + keyword.length)
-        if (normalized.contains("hide") || normalized.contains("exclude") || normalized.contains("without") || normalized.contains("gizle") || normalized.contains("hariç") || normalized.contains("haric") || normalized.contains("dışında") || normalized.contains("disinda")) return true
 
-        val prefixNegations = listOf("not", "no", "!", "non")
-        val suffixNegations = listOf("değil", "degil", "olmayan", "yok")
+        val prefixNegated = polarityForPrefix(prefix)
 
-        val prefixMatch = prefixNegations.any { neg ->
-            prefix.trim().endsWith(neg) || prefix.contains("$neg ")
+        val suffixClause = suffix.split(clauseBreak).firstOrNull().orEmpty().trim()
+        val suffixNegated = suffixNegations.any { neg ->
+            suffixClause == neg || suffixClause.startsWith("$neg ") || suffixClause.startsWith(neg)
         }
-        val suffixMatch = suffixNegations.any { neg ->
-            suffix.trim().startsWith(neg) || suffix.contains(" $neg")
-        }
-        return prefixMatch || suffixMatch
+        return prefixNegated || suffixNegated
     }
 
     private val patterns = listOf(
@@ -175,15 +246,43 @@ object SearchIntentParser {
         )
     )
 
-    fun parse(text: String): ParsedIntent {
-        val normalized = normalize(text)
-        if (normalized.isBlank()) return ParsedIntent(emptyList(), explanation = "Enter a description of what you want to find.", canBuild = false)
+    fun parse(text: String): ParsedIntent =
+        parse(text, LocalDate.now())
 
-        val matched = patterns.filter { pattern ->
-            pattern.keywords.any { keyword -> normalized.contains(keyword) }
+    internal fun parse(text: String, today: LocalDate): ParsedIntent {
+        val caughtMatch = CaughtDateIntentParser.parse(text, today)
+        if (caughtMatch != null && !caughtMatch.canBuild) {
+            return ParsedIntent(
+                tokens = emptyList(),
+                exclusions = emptyList(),
+                rawQuery = "",
+                explanation = caughtMatch.explanation,
+                limitations = emptyList(),
+                canBuild = false
+            )
         }
 
-        if (matched.isEmpty()) {
+        val normalized = normalize(text)
+        if (normalized.isBlank() && caughtMatch == null) {
+            return ParsedIntent(emptyList(), explanation = "Enter a description of what you want to find.", canBuild = false)
+        }
+
+        val matched = patterns.filter { pattern ->
+            val matchingKeywords = pattern.keywords.filter { keyword -> normalized.contains(keyword) }
+            if (matchingKeywords.isEmpty()) return@filter false
+
+            // Suppress legacy "old" pattern if it only matched 2016/2017/2018 from caught year
+            if (caughtMatch != null && caughtMatch.canBuild && pattern.tokens == listOf("age365-") && pattern.exclusions.isEmpty()) {
+                val nonYearKeywords = pattern.keywords.filter { it !in listOf("2016", "2017", "2018") }
+                val hasExplicitOldKeyword = nonYearKeywords.any { normalized.contains(it) }
+                if (!hasExplicitOldKeyword) {
+                    return@filter false
+                }
+            }
+            true
+        }
+
+        if (matched.isEmpty() && caughtMatch == null) {
             return ParsedIntent(
                 emptyList(),
                 explanation = "Could not understand \"$text\". Try words like: shiny, hundo, cleanup, trade, pvp, lucky, shadow, old, costume. (Türkçe: parlak, efsanevi, temizlik, takas, gölge, eski...)",
@@ -192,12 +291,16 @@ object SearchIntentParser {
             )
         }
 
-        // Combine ALL matched patterns — not just the "best" one.
-        val allTokens = mutableSetOf<String>()
+        val allTokens = mutableListOf<String>()
         val allExclusions = mutableSetOf<String>()
         val explanations = mutableListOf<String>()
         val allLimitations = mutableListOf<String>()
-        var anyCanBuild = false
+
+        if (caughtMatch != null && caughtMatch.canBuild) {
+            allTokens.addAll(caughtMatch.tokens)
+            explanations.add(caughtMatch.explanation)
+            allLimitations.addAll(caughtMatch.limitations)
+        }
 
         for (pattern in matched) {
             val matchedKeyword = pattern.keywords.firstOrNull { normalized.contains(it) } ?: ""
@@ -212,7 +315,6 @@ object SearchIntentParser {
             }
             explanations.add(pattern.explanation)
             allLimitations.addAll(pattern.limitations)
-            if (pattern.canBuild) anyCanBuild = true
         }
 
         val hasShiny = normalized.contains("shiny")
@@ -222,11 +324,8 @@ object SearchIntentParser {
         val extraTokens = buildList {
             if (hasShiny && "shiny" !in allTokens.map { it.lowercase() } && "shiny" !in allExclusions.map { it.lowercase() }) {
                 val negated = isPatternNegated(normalized, "shiny")
-                if (negated) {
-                    allExclusions.add("shiny")
-                } else {
-                    add("shiny"); allLimitations.add("Shiny search added based on your input. Verify before transferring.")
-                }
+                if (negated) allExclusions.add("shiny")
+                else { add("shiny"); allLimitations.add("Shiny search added based on your input. Verify before transferring.") }
             }
             if (hasLegendary && "legendary" !in allTokens.map { it.lowercase() } && "legendary" !in allExclusions.map { it.lowercase() }) {
                 val negated = isPatternNegated(normalized, "legendary")
@@ -246,13 +345,14 @@ object SearchIntentParser {
             return ParsedIntent(emptyList(), explanation = combinedExplanation, limitations = allLimitations.distinct(), canBuild = false)
         }
 
-        // canBuild when there are any tokens OR any exclusions (e.g. untagged → no tokens, !# exclusion)
         val canBuildResult = allTokens.isNotEmpty() || allExclusions.isNotEmpty()
-
         val combinedExplanation = explanations.distinct().joinToString(" ") + extraLabel
 
-        // Build rawQuery beautifully
-        val distinctTokens = allTokens.toList().distinct()
+        // Ensure date tokens (year..., age...) come first, preserving order
+        val dateTokens = allTokens.filter { it.startsWith("year") || it.startsWith("age") }.distinct()
+        val otherTokens = allTokens.filter { !it.startsWith("year") && !it.startsWith("age") }.distinct()
+        val distinctTokens = dateTokens + otherTokens
+
         val distinctExclusions = allExclusions.toList().distinct()
         val parts = distinctTokens + distinctExclusions.map { "!$it" }
         val rawQuery = parts.joinToString("&")
