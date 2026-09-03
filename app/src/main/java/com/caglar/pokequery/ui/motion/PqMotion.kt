@@ -63,7 +63,7 @@ object PqMotionTokens {
     const val STAGGER_DURATION_MS = 230
     const val MAX_STAGGER_INDEX = 6   // beyond this, items appear without further delay
 
-    /** Icon spring-pop. Subtle overshoot — never cartoonish. */
+    /** Icon spring-pop: a one-shot scale `ICON_POP_FROM → 1` with a gentle overshoot. */
     const val ICON_POP_FROM = 0.92f
     val iconSpring: FiniteAnimationSpec<Float> = spring(
         dampingRatio = 0.80f,            // near-critical → minimal overshoot, settles fast and quiet
@@ -110,7 +110,7 @@ fun ProvidePqMotion(content: @Composable () -> Unit) {
  *
  * Hoists one `visible` flag that flips to `true` **exactly once** on first composition (via a
  * one-shot [LaunchedEffect]). Callers receive [visible] and tag their children with
- * [Modifier.pqStaggeredItem] / [Modifier.pqSpringPop]. Because each item's animation target is a
+ * [Modifier.pqStaggeredItem] / [pqSpringPop]. Because each item's animation target is a
  * pure function of `(visible, index)` — never of the item's own first composition — a
  * `LazyColumn` item that first composes *after* the entrance is complete animates instantly from
  * rest (its target is already reached) → scrolling never replays the cascade (C1).
