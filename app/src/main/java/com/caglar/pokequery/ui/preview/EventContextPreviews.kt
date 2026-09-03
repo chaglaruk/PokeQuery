@@ -1,12 +1,11 @@
 package com.caglar.pokequery.ui.preview
 
 import androidx.compose.runtime.Composable
-import com.caglar.pokequery.theme.PokeQueryTheme
 import com.caglar.pokequery.ui.screens.EventContextScreen
 
 @Composable
 private fun EventContextPreviewContent() {
-    PokeQueryTheme {
+    PokeQueryPreviewFrame(currentRoute = "builder") {
         EventContextScreen(onBack = {})
     }
 }
