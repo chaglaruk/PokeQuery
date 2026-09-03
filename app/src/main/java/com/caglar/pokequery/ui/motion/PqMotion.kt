@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
@@ -61,12 +61,12 @@ object PqMotionTokens {
     const val STAGGER_STEP_MS = 65
     const val STAGGER_SLIDE_DP = 10
     const val STAGGER_DURATION_MS = 230
-    const val MAX_STAGGER_INDEX = 6
+    const val MAX_STAGGER_INDEX = 6   // beyond this, items appear without further delay
 
-    /** Icon spring-pop. Subtle overshoot — never cartoonish. */
+    /** Icon spring-pop: a one-shot scale `ICON_POP_FROM → 1` with a gentle overshoot. */
     const val ICON_POP_FROM = 0.92f
     val iconSpring: FiniteAnimationSpec<Float> = spring(
-        dampingRatio = 0.80f,
+        dampingRatio = 0.80f,            // near-critical → minimal overshoot, settles fast and quiet
         stiffness = Spring.StiffnessMediumLow
     )
 
@@ -110,23 +110,21 @@ fun ProvidePqMotion(content: @Composable () -> Unit) {
  *
  * Hoists one `visible` flag that flips to `true` **exactly once** on first composition (via a
  * one-shot [LaunchedEffect]). Callers receive [visible] and tag their children with
- * [Modifier.pqStaggeredItem] / [Modifier.pqSpringPop]. Because each item's animation target is a
+ * [Modifier.pqStaggeredItem] / [pqSpringPop]. Because each item's animation target is a
  * pure function of `(visible, index)` — never of the item's own first composition — a
  * `LazyColumn` item that first composes *after* the entrance is complete animates instantly from
  * rest (its target is already reached) → scrolling never replays the cascade (C1).
  *
- * Android Studio Preview renders many independent compositions concurrently. Layoutlib has a
- * known-sensitive snapshot path, so Preview must not launch mutable entrance state at all.
- * Production behavior is unchanged: only inspection mode takes the static path.
+ * Passing `visible` as a parameter (rather than via a scope receiver) is deliberate: it lets
+ * callers build the stagger modifiers inside `LazyColumn`/`item { }` blocks, where a custom
+ * receiver scope would be shadowed by `LazyListScope`. Top-level modifier extensions have no such
+ * restriction.
  */
 @Composable
 fun PqStaggeredEntrance(content: @Composable (visible: Boolean) -> Unit) {
-    if (LocalInspectionMode.current) {
-        content(true)
-        return
-    }
-
     var visible by remember { mutableStateOf(false) }
+    // One-shot: flip on once, never back. Reduced-motion still flips it (targets jump to rest);
+    // the only difference is the per-item animation specs collapse to instant.
     LaunchedEffect(Unit) { visible = true }
     content(visible)
 }
@@ -137,15 +135,23 @@ fun PqStaggeredEntrance(content: @Composable (visible: Boolean) -> Unit) {
  * Item entrance: a fade + small upward slide that settles at the at-rest position. The slide
  * offset animates from `+STAGGER_SLIDE_DP` to `0`, so the final layout is identical to the
  * non-animated layout (no post-animation shift).
+ *
+ * Safe inside `LazyColumn` items: the target depends only on [visible] and [index], so an item
+ * that first composes after the entrance is done appears instantly. Pass the [visible] flag
+ * provided by [PqStaggeredEntrance].
  */
 fun Modifier.pqStaggeredItem(visible: Boolean, index: Int): Modifier = composed {
     val config = LocalPqMotion.current
     if (config.reducedMotion || !visible) {
+        // Reduced-motion, or not yet started, or already past entrance: render at rest.
         this
     } else {
         val clampedIndex = index.coerceIn(0, config.tokens.MAX_STAGGER_INDEX)
+        // A single per-item Animatable; target is at-rest once `visible` is true. When a recycled
+        // item composes after entrance, target == current → no visible animation.
         val progress = remember { Animatable(0f) }
         LaunchedEffect(visible) {
+            // `visible` is the only key. Once true it stays true, so this runs once per item.
             if (visible) {
                 val delayMs = clampedIndex * config.staggerStepMs
                 progress.animateTo(
@@ -168,7 +174,7 @@ fun Modifier.pqStaggeredItem(visible: Boolean, index: Int): Modifier = composed 
 /**
  * Icon spring-pop: a one-shot scale `ICON_POP_FROM → 1` with a gentle overshoot. **Icons /
  * illustrations only** — never body text, search strings, settings rows, nav labels, or copy
- * buttons.
+ * buttons. Pass the [visible] flag provided by [PqStaggeredEntrance].
  */
 fun Modifier.pqSpringPop(visible: Boolean): Modifier = composed {
     val config = LocalPqMotion.current
