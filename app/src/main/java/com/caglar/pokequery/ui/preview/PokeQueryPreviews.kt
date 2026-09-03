@@ -1,20 +1,25 @@
 package com.caglar.pokequery.ui.preview
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.caglar.pokequery.theme.PokeQueryTheme
+import com.caglar.pokequery.ui.components.BottomNavBar
 import com.caglar.pokequery.ui.screens.HomeScreen
 
 /**
- * Reusable Android Studio preview set for the phone sizes that are most useful for
+ * Reusable Android Studio preview set for the screen sizes that are most useful for
  * PokeQuery visual QA. Keep this list deliberately small enough that Grid mode remains fast.
  */
-@Preview(name = "01 - Small 320x568", group = "Phone sizes", widthDp = 320, heightDp = 568)
-@Preview(name = "02 - Compact 360x640", group = "Phone sizes", widthDp = 360, heightDp = 640)
-@Preview(name = "03 - Standard 360x800", group = "Phone sizes", widthDp = 360, heightDp = 800)
-@Preview(name = "04 - Tall 393x852", group = "Phone sizes", widthDp = 393, heightDp = 852)
-@Preview(name = "05 - Large 412x915", group = "Phone sizes", widthDp = 412, heightDp = 915)
-@Preview(name = "06 - Small tablet 600x960", group = "Phone sizes", widthDp = 600, heightDp = 960)
+@Preview(name = "01 - Small 320x568", group = "Screen sizes", widthDp = 320, heightDp = 568)
+@Preview(name = "02 - Compact 360x640", group = "Screen sizes", widthDp = 360, heightDp = 640)
+@Preview(name = "03 - Standard 360x800", group = "Screen sizes", widthDp = 360, heightDp = 800)
+@Preview(name = "04 - Tall 393x852", group = "Screen sizes", widthDp = 393, heightDp = 852)
+@Preview(name = "05 - Large 412x915", group = "Screen sizes", widthDp = 412, heightDp = 915)
+@Preview(name = "06 - Small tablet 600x960", group = "Screen sizes", widthDp = 600, heightDp = 960)
 annotation class PokeQueryPhonePreviews
 
 /**
@@ -29,9 +34,28 @@ annotation class PokeQueryPhonePreviews
 @Preview(name = "Italiano", group = "UI locales", locale = "it", widthDp = 393, heightDp = 852)
 annotation class PokeQueryLocalePreviews
 
+/** Mirrors MainNavigation's bottom-bar viewport so previews do not overestimate usable height. */
+@Composable
+internal fun PokeQueryPreviewFrame(
+    currentRoute: String = "builder",
+    content: @Composable () -> Unit
+) {
+    PokeQueryTheme {
+        Scaffold(
+            bottomBar = {
+                BottomNavBar(currentRoute = currentRoute, onNavigate = {})
+            }
+        ) { paddingValues ->
+            Box(modifier = Modifier.padding(paddingValues)) {
+                content()
+            }
+        }
+    }
+}
+
 @Composable
 private fun HomePreviewContent() {
-    PokeQueryTheme {
+    PokeQueryPreviewFrame(currentRoute = "builder") {
         HomeScreen(onGoalSelected = {})
     }
 }
