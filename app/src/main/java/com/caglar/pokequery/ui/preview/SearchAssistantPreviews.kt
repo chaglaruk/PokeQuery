@@ -1,12 +1,11 @@
 package com.caglar.pokequery.ui.preview
 
 import androidx.compose.runtime.Composable
-import com.caglar.pokequery.theme.PokeQueryTheme
 import com.caglar.pokequery.ui.screens.SearchAssistantScreen
 
 @Composable
 private fun SearchAssistantPreviewContent() {
-    PokeQueryTheme {
+    PokeQueryPreviewFrame(currentRoute = "builder") {
         SearchAssistantScreen(
             onBack = {},
             onCopyRaw = {},
