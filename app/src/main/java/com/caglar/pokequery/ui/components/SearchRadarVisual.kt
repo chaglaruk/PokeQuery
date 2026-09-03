@@ -26,11 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.R
 import com.caglar.pokequery.theme.BackgroundDark
-import com.caglar.pokequery.theme.CardDark
 import com.caglar.pokequery.theme.CyanGlow
 import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
@@ -56,10 +54,13 @@ import kotlin.math.sin
  * app theme — not a pasted boxed poster.
  *
  * Honors [rememberReducedMotion]: when the user has disabled animation, the radar renders static.
+ * Android Studio previews also render a static radar so multi-preview grids do not run multiple
+ * infinite animations inside Layoutlib at the same time.
  */
 @Composable
 fun SearchAssistantEmptyState(modifier: Modifier = Modifier) {
     val reducedMotion = rememberReducedMotion()
+    val animateRadar = !reducedMotion && !LocalInspectionMode.current
 
     Box(
         modifier = modifier
@@ -75,7 +76,7 @@ fun SearchAssistantEmptyState(modifier: Modifier = Modifier) {
             )
     ) {
         SearchRadarBackground(
-            active = !reducedMotion,
+            active = animateRadar,
             modifier = Modifier.matchParentSize()
         )
 
@@ -85,7 +86,7 @@ fun SearchAssistantEmptyState(modifier: Modifier = Modifier) {
                 .padding(horizontal = 24.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SearchRadarCore(active = !reducedMotion)
+            SearchRadarCore(active = animateRadar)
             Spacer(Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.search_assistant_empty_state_title),
@@ -130,6 +131,8 @@ private fun SearchRadarBackground(active: Boolean, modifier: Modifier = Modifier
         val cx = w * 0.5f
         val cy = h * 0.42f
         val maxR = size.minDimension * 0.55f
+        // Keep the bright sweep close to the radar core so it never crosses the explanatory copy.
+        val sweepR = maxR * 0.28f
 
         // Soft radar rings
         for (i in 1..3) {
@@ -142,7 +145,7 @@ private fun SearchRadarBackground(active: Boolean, modifier: Modifier = Modifier
             )
         }
 
-        // Sweeping wave — a translucent wedge gradient.
+        // Sweeping wave — a translucent wedge gradient kept inside the visual area.
         rotate(sweep, pivot = Offset(cx, cy)) {
             for (i in 0..12) {
                 val a = (12 - i) * 0.018f
@@ -150,8 +153,8 @@ private fun SearchRadarBackground(active: Boolean, modifier: Modifier = Modifier
                     color = CyanGlow.copy(alpha = a),
                     start = Offset(cx, cy),
                     end = Offset(
-                        cx + maxR * cos(Math.toRadians(0.0)).toFloat(),
-                        cy + maxR * sin(Math.toRadians(0.0)).toFloat()
+                        cx + sweepR * cos(Math.toRadians(0.0)).toFloat(),
+                        cy + sweepR * sin(Math.toRadians(0.0)).toFloat()
                     ),
                     strokeWidth = (12 - i).toFloat(),
                     cap = StrokeCap.Round
