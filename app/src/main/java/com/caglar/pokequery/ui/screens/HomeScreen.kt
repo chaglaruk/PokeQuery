@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -314,11 +315,23 @@ private fun MoreToolsSection(onGoalSelected: (String) -> Unit) {
 
 @Composable
 private fun GoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val compact = LocalConfiguration.current.screenWidthDp < 400
     val shape = RoundedCornerShape(16.dp)
+    val cardHeight = if (compact) 132.dp else 126.dp
+    val contentPadding = if (compact) 10.dp else 12.dp
+    val leadingSize = if (compact) 24.dp else 28.dp
+    val leadingGlyphSize = if (compact) 16.dp else 18.dp
+    val titleGap = if (compact) 6.dp else 8.dp
+    val titleSize = if (compact) 13.sp else 14.sp
+    val titleLineHeight = if (compact) 15.sp else 16.sp
+    val titleMaxLines = if (compact) 3 else 2
+    val subtitleSize = if (compact) 11.sp else 12.sp
+    val subtitleLineHeight = if (compact) 15.sp else 16.sp
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(126.dp)
+            .height(cardHeight)
             .clip(shape)
             .background(Brush.verticalGradient(listOf(CardPremium, CardDark)))
             .border(1.dp, goal.accent.copy(alpha = 0.25f), shape)
@@ -338,34 +351,35 @@ private fun GoalCard(goal: HomeGoal, modifier: Modifier = Modifier, onClick: () 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp)
+                .padding(contentPadding)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(28.dp).clip(RoundedCornerShape(8.dp)).background(goal.accent.copy(alpha = 0.16f)),
+                    Modifier.size(leadingSize).clip(RoundedCornerShape(8.dp)).background(goal.accent.copy(alpha = 0.16f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    GoalGlyph(goal.id, goal.accent, Modifier.size(18.dp))
+                    GoalGlyph(goal.id, goal.accent, Modifier.size(leadingGlyphSize))
                 }
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(titleGap))
                 Text(
                     text = stringResource(goal.titleRes),
                     color = TextPrimary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    maxLines = 2,
+                    fontSize = titleSize,
+                    maxLines = titleMaxLines,
                     overflow = TextOverflow.Ellipsis,
-                    lineHeight = 16.sp
+                    lineHeight = titleLineHeight,
+                    modifier = Modifier.weight(1f)
                 )
             }
             Spacer(Modifier.height(4.dp))
             Text(
                 text = stringResource(goal.subtitleRes),
                 color = TextSecondary,
-                fontSize = 12.sp,
+                fontSize = subtitleSize,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                lineHeight = 16.sp
+                lineHeight = subtitleLineHeight
             )
         }
     }
