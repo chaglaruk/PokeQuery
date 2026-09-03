@@ -111,7 +111,9 @@ internal fun formatEventCheckTime(date: Date, locale: Locale): String =
 @Composable
 fun EventContextScreen(
     onBack: () -> Unit,
-    debugEventFeedUrl: String? = null
+    debugEventFeedUrl: String? = null,
+    initialFeedState: ContextFeedState? = null,
+    autoRefresh: Boolean = true
 ) {
     val density = currentDensity()
     val context = LocalContext.current
@@ -121,7 +123,7 @@ fun EventContextScreen(
     val scope = rememberCoroutineScope()
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
-    var feedState by remember { mutableStateOf<ContextFeedState>(ContextFeedState.Loading()) }
+    var feedState by remember { mutableStateOf(initialFeedState ?: ContextFeedState.Loading()) }
     var refreshing by remember { mutableStateOf(false) }
     var lastChecked by remember { mutableStateOf<String?>(null) }
     var clickedEventDetail by remember { mutableStateOf<EventContext?>(null) }
@@ -147,7 +149,7 @@ fun EventContextScreen(
     androidx.compose.runtime.LaunchedEffect(Unit) {
         // Auto-refresh on every Event Guide open (online-first, cache fallback, bundled fallback).
         // Manual "Refresh now" button remains for user-initiated refresh.
-        if (!hasAutoRefreshed) {
+        if (autoRefresh && !hasAutoRefreshed) {
             hasAutoRefreshed = true
             refresh()
         }
@@ -447,10 +449,6 @@ private fun CompactRefreshButton(
     }
 }
 
-/**
- * One-line source + last-checked status. Replaces the old large status banner so the screen leads
- * with the event itself, not a status panel.
- */
 @Composable
 private fun SourceStatusLine(
     feedState: ContextFeedState,
@@ -467,40 +465,18 @@ private fun SourceStatusLine(
     }
     Column(modifier = modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(7.dp)
-                    .background(CyanGlow, CircleShape)
-            )
+            Box(Modifier.size(7.dp).background(CyanGlow, CircleShape))
             Spacer(Modifier.width(8.dp))
-            Text(
-                text = stringResource(sourceLabelRes),
-                color = CyanGlow,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text(text = stringResource(sourceLabelRes), color = CyanGlow, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(2.dp))
-        Text(
-            text = statusText,
-            color = TextSecondary,
-            fontSize = 11.sp,
-            lineHeight = 15.sp
-        )
+        Text(text = statusText, color = TextSecondary, fontSize = 11.sp, lineHeight = 15.sp)
         lastChecked?.let {
-            Text(
-                text = stringResource(R.string.event_context_last_checked, it),
-                color = TextTertiary,
-                fontSize = 10.sp
-            )
+            Text(text = stringResource(R.string.event_context_last_checked, it), color = TextTertiary, fontSize = 10.sp)
         }
     }
 }
 
-/**
- * The single featured event card. Shows the current event (or nearest upcoming) with featured
- * Pokémon, bonuses, ELI5 sections, suggested search + copy, and event-specific notes.
- */
 @Composable
 private fun EventMainCard(
     event: EventContext,
@@ -556,26 +532,14 @@ private fun EventPickerPanel(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Box(
-                    Modifier
-                        .size(5.dp)
-                        .background(tone, CircleShape)
-                )
+                Box(Modifier.size(5.dp).background(tone, CircleShape))
                 Spacer(Modifier.height(4.dp))
-
                 val displayTitle = when {
-                    event.id.contains("anniversary") -> {
-                        if (lang == "tr") "10. Yıl Dönümü" else "10th Anniv."
-                    }
-                    event.id.contains("legends") -> {
-                        if (lang == "tr") "Efsaneler Yolu" else "Road of Legends"
-                    }
-                    event.id.contains("fest") -> {
-                        if (lang == "tr") "GO Fest 2026" else "GO Fest 2026"
-                    }
+                    event.id.contains("anniversary") -> if (lang == "tr") "10. Yıl Dönümü" else "10th Anniv."
+                    event.id.contains("legends") -> if (lang == "tr") "Efsaneler Yolu" else "Road of Legends"
+                    event.id.contains("fest") -> "GO Fest 2026"
                     else -> event.localizedTitle(lang)
                 }
-
                 Text(
                     text = displayTitle,
                     color = if (selected) TextPrimary else TextSecondary,
@@ -619,7 +583,6 @@ private fun eventNotesBadge(lang: String): String = when (lang) {
     else -> "Note"
 }
 
-/** Section title localization helper — no XML resources needed. */
 private fun sectionTitle(section: String, lang: String): String = when (lang) {
     "tr" -> when (section) {
         "featured" -> "Öne çıkan"
@@ -678,10 +641,7 @@ private fun sectionTitle(section: String, lang: String): String = when (lang) {
 }
 
 @Composable
-private fun SectionHeader(
-    title: String,
-    modifier: Modifier = Modifier
-) {
+private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
         color = TextPrimary,
@@ -710,12 +670,7 @@ private fun CompactEventCard(
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Status dot
-        Box(
-            Modifier
-                .size(8.dp)
-                .background(statusColor, CircleShape)
-        )
+        Box(Modifier.size(8.dp).background(statusColor, CircleShape))
         Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -729,36 +684,22 @@ private fun CompactEventCard(
             )
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Status chip
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
                         .background(statusColor.copy(alpha = 0.14f))
                         .padding(horizontal = 5.dp, vertical = 1.dp)
                 ) {
-                    Text(
-                        text = statusLabel,
-                        color = statusColor,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = statusLabel, color = statusColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(6.dp))
-                // Date range
                 val dateText = event.dateLabel(lang).orEmpty()
                 if (dateText.isNotBlank()) {
-                    Text(
-                        text = dateText,
-                        color = TextTertiary,
-                        fontSize = 10.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Text(text = dateText, color = TextTertiary, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
         Spacer(Modifier.width(8.dp))
-        // Time remaining label
         Text(
             text = event.remainingTimeLabel(lang = lang),
             color = statusColor.copy(alpha = 0.85f),
@@ -961,7 +902,6 @@ private fun EventDashboardContent(
     }
 
     Column(modifier = columnModifier) {
-        // Optional full-detail entry point for hero cards (opens modal, not list-bottom append).
         if (!compactForDialog && onOpenFullDetail != null) {
             Row(
                 modifier = Modifier
@@ -1004,7 +944,6 @@ private fun EventDashboardContent(
                 Spacer(Modifier.height(4.dp))
                 Text(it, color = TextTertiary, fontSize = 12.sp)
             }
-
             val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
             if (summary.isNotBlank()) {
                 Spacer(Modifier.height(8.dp))
@@ -1047,7 +986,6 @@ private fun EventDashboardContent(
                 cardKey = null
             )
         }
-
         if (tiles.showRaids) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
@@ -1062,7 +1000,6 @@ private fun EventDashboardContent(
                 cardKey = "raid_targets"
             )
         }
-
         if (tiles.showResearch) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
@@ -1077,7 +1014,6 @@ private fun EventDashboardContent(
                 cardKey = null
             )
         }
-
         if (tiles.showCostumeBackground) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
@@ -1104,7 +1040,6 @@ private fun EventDashboardContent(
                 cardKey = null
             )
         }
-
         if (tiles.showBonuses) {
             val hasFusion = event.id.contains("go-fest") || event.id.contains("legends") ||
                     tiles.bonusesBody.contains("energy", ignoreCase = true) ||
@@ -1124,7 +1059,6 @@ private fun EventDashboardContent(
                 cardKey = if (hasFusion) "link_energy" else "bonuses"
             )
         }
-
         if (tiles.showPrep) {
             Spacer(Modifier.height(10.dp))
             EventGroupCard(
@@ -1139,7 +1073,6 @@ private fun EventDashboardContent(
                 cardKey = "prep_list"
             )
         }
-
         if (tiles.showHonestFallback) {
             Spacer(Modifier.height(10.dp))
             Row(
@@ -1159,17 +1092,10 @@ private fun EventDashboardContent(
                     "it" -> "Dettagli limitati; controlla la fonte prima di pianificare."
                     else -> "Details are limited; check the source before planning."
                 }
-                Text(
-                    text = fallbackText,
-                    color = TextSecondary,
-                    fontSize = 13.sp,
-                    lineHeight = 17.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Text(text = fallbackText, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp, fontWeight = FontWeight.Medium)
             }
         }
 
-        // Source attribution when available from the static feed.
         val sourceName = event.sourceName?.takeIf { it.isNotBlank() }
         val sourceUrl = event.sourceUrl?.takeIf { it.isNotBlank() }
         if (sourceName != null || sourceUrl != null) {
@@ -1187,9 +1113,7 @@ private fun EventDashboardContent(
                 fontSize = 11.sp,
                 lineHeight = 14.sp
             )
-            sourceUrl?.let {
-                Text(it, color = TextTertiary, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
+            sourceUrl?.let { Text(it, color = TextTertiary, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis) }
         }
 
         if (showSearch) {
@@ -1262,9 +1186,7 @@ private fun EventSpriteRow(
                         Text(entry.localizedBadges(lang), color = tone, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                if (rowEntries.size == 1) {
-                    Spacer(Modifier.weight(1f))
-                }
+                if (rowEntries.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
@@ -1461,12 +1383,7 @@ private fun EventInfoDialog(
                     val detailAction = cardKeyAction(content.cardKey, event, lang, localCtx)
                     SectionLabel(stringResource(R.string.event_card_summary), TealPrimary)
                     Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = detailBody ?: content.body,
-                        color = TextSecondary,
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp
-                    )
+                    Text(text = detailBody ?: content.body, color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
                     if (content.cardKey == "prep_list") {
                         Spacer(Modifier.height(10.dp))
                         PrepChecklist(prepItems)
@@ -1474,12 +1391,7 @@ private fun EventInfoDialog(
                     Spacer(Modifier.height(10.dp))
                     SectionLabel(whatToDoLabel(lang), AmberWarning)
                     Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = detailAction ?: content.action,
-                        color = TextPrimary,
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp
-                    )
+                    Text(text = detailAction ?: content.action, color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
                 }
             }
         )
@@ -1500,9 +1412,7 @@ private fun EventDetailsDialog(
     val closeLabel = stringResource(R.string.event_close)
     val localCtx = LocalContext.current
     val localConfig = LocalConfiguration.current
-    val dialogConfig = android.content.res.Configuration(localConfig).apply {
-        setLocale(Locale.forLanguageTag(lang))
-    }
+    val dialogConfig = android.content.res.Configuration(localConfig).apply { setLocale(Locale.forLanguageTag(lang)) }
     val dialogContext = localCtx.createConfigurationContext(dialogConfig)
 
     androidx.compose.runtime.CompositionLocalProvider(
@@ -1542,9 +1452,7 @@ private fun EventDetailsDialog(
                     ) {
                         val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
                         if (summary.isNotBlank()) {
-                            item {
-                                Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
-                            }
+                            item { Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp) }
                         }
                         item {
                             EventDashboardContent(
@@ -1565,9 +1473,7 @@ private fun EventDetailsDialog(
         )
     }
 
-    infoDialog?.let { content ->
-        EventInfoDialog(content = content, event = event, lang = lang, onDismiss = { infoDialog = null })
-    }
+    infoDialog?.let { content -> EventInfoDialog(content = content, event = event, lang = lang, onDismiss = { infoDialog = null }) }
 }
 
 @Composable
@@ -1581,9 +1487,7 @@ private fun PrepChecklist(items: List<String>) {
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(if (checked[index]) TealPrimary.copy(alpha = 0.08f) else CardPremium.copy(alpha = 0.5f))
-                    .clickable {
-                        checked[index] = !checked[index]
-                    }
+                    .clickable { checked[index] = !checked[index] }
                     .padding(horizontal = 10.dp, vertical = 8.dp)
             ) {
                 Box(
@@ -1593,9 +1497,7 @@ private fun PrepChecklist(items: List<String>) {
                         .background(if (checked[index]) TealPrimary else TextTertiary.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (checked[index]) {
-                        Text("✓", color = SlateBlack, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
+                    if (checked[index]) Text("✓", color = SlateBlack, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(10.dp))
                 Text(
@@ -1622,11 +1524,7 @@ private fun cardKeyBody(cardKey: String?, event: EventContext, lang: String, con
                 event.localizedNotes(lang).contains("energy", ignoreCase = true) ||
                 event.localizedBonuses(lang).contains("enerji", ignoreCase = true) ||
                 event.localizedNotes(lang).contains("enerji", ignoreCase = true)
-        if (isGoFest) {
-            context.getString(R.string.event_detail_link_energy_body)
-        } else {
-            null
-        }
+        if (isGoFest) context.getString(R.string.event_detail_link_energy_body) else null
     }
     "link_charges" -> {
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
@@ -1634,11 +1532,7 @@ private fun cardKeyBody(cardKey: String?, event: EventContext, lang: String, con
                 event.localizedNotes(lang).contains("charge", ignoreCase = true) ||
                 event.localizedBonuses(lang).contains("şarj", ignoreCase = true) ||
                 event.localizedNotes(lang).contains("şarj", ignoreCase = true)
-        if (isGoFest) {
-            context.getString(R.string.event_detail_link_charges_body)
-        } else {
-            null
-        }
+        if (isGoFest) context.getString(R.string.event_detail_link_charges_body) else null
     }
     "incubators" -> {
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
@@ -1646,11 +1540,7 @@ private fun cardKeyBody(cardKey: String?, event: EventContext, lang: String, con
                 event.localizedBonuses(lang).contains("mesafe", ignoreCase = true) ||
                 event.localizedBonuses(lang).contains("egg", ignoreCase = true) ||
                 event.localizedBonuses(lang).contains("yumurta", ignoreCase = true)
-        if (isGoFest) {
-            context.getString(R.string.event_detail_incubators_body)
-        } else {
-            null
-        }
+        if (isGoFest) context.getString(R.string.event_detail_incubators_body) else null
     }
     "prep_list" -> context.getString(R.string.event_detail_prep_list_body)
     else -> null
@@ -1660,19 +1550,11 @@ private fun cardKeyAction(cardKey: String?, event: EventContext, lang: String, c
     "raid_targets" -> context.getString(R.string.event_detail_raid_targets_action)
     "link_energy", "fusion_energy" -> {
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends")
-        if (isGoFest) {
-            context.getString(R.string.event_detail_link_energy_action)
-        } else {
-            null
-        }
+        if (isGoFest) context.getString(R.string.event_detail_link_energy_action) else null
     }
     "link_charges" -> {
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends")
-        if (isGoFest) {
-            context.getString(R.string.event_detail_link_charges_action)
-        } else {
-            null
-        }
+        if (isGoFest) context.getString(R.string.event_detail_link_charges_action) else null
     }
     "incubators" -> {
         val isGoFest = event.id.contains("go-fest") || event.id.contains("legends") ||
@@ -1680,11 +1562,7 @@ private fun cardKeyAction(cardKey: String?, event: EventContext, lang: String, c
                 event.localizedBonuses(lang).contains("mesafe", ignoreCase = true) ||
                 event.localizedBonuses(lang).contains("egg", ignoreCase = true) ||
                 event.localizedBonuses(lang).contains("yumurta", ignoreCase = true)
-        if (isGoFest) {
-            context.getString(R.string.event_detail_incubators_action)
-        } else {
-            null
-        }
+        if (isGoFest) context.getString(R.string.event_detail_incubators_action) else null
     }
     "prep_list" -> context.getString(R.string.event_detail_prep_list_action)
     else -> null
@@ -1716,30 +1594,16 @@ private fun EventEmptyState(modifier: Modifier = Modifier, onRefresh: () -> Unit
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = stringResource(R.string.event_no_events_title),
-            color = TextPrimary,
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp
-        )
+        Text(text = stringResource(R.string.event_no_events_title), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         Spacer(Modifier.height(6.dp))
-        Text(
-            text = stringResource(R.string.event_no_events_desc),
-            color = TextSecondary,
-            fontSize = 12.sp,
-            lineHeight = 17.sp
-        )
+        Text(text = stringResource(R.string.event_no_events_desc), color = TextSecondary, fontSize = 12.sp, lineHeight = 17.sp)
         Spacer(Modifier.height(12.dp))
         Button(
             onClick = onRefresh,
             colors = ButtonDefaults.buttonColors(containerColor = TealPrimary, contentColor = SlateBlack),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
-            )
+            Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.events_refresh), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
@@ -1755,11 +1619,6 @@ private fun themeTone(themeKey: String): Color = when (themeKey) {
     else -> CyanGlow
 }
 
-/**
- * Integrated, full-bleed background visual for the Event Guide. A soft scan/ribbon motif blending
- * AI-assist + GO-style search + PokeQuery identity, drawn entirely with Compose primitives.
- * IP-safe: no images, sprites, or official art. Honors reduced motion.
- */
 @Composable
 private fun EventGuideBackground(active: Boolean, modifier: Modifier = Modifier) {
     val sweep = if (active) {
@@ -1783,43 +1642,23 @@ private fun EventGuideBackground(active: Boolean, modifier: Modifier = Modifier)
         val cx = w * 0.78f
         val cy = h * 0.14f
         val maxR = size.minDimension * 0.45f
-
-        // Top-right soft glow wash.
-        drawCircle(
-            color = TealPrimary.copy(alpha = 0.05f),
-            radius = maxR * 1.4f,
-            center = Offset(cx, cy)
-        )
-
-        // Faint radar rings anchored top-right.
+        drawCircle(color = TealPrimary.copy(alpha = 0.05f), radius = maxR * 1.4f, center = Offset(cx, cy))
         for (i in 1..4) {
             val r = maxR * (i / 4f)
-            drawCircle(
-                color = TealPrimary.copy(alpha = 0.06f - (i * 0.01f)),
-                radius = r,
-                center = Offset(cx, cy),
-                style = Stroke(width = 1.2f)
-            )
+            drawCircle(color = TealPrimary.copy(alpha = 0.06f - (i * 0.01f)), radius = r, center = Offset(cx, cy), style = Stroke(width = 1.2f))
         }
-
-        // Slow sweeping scan wedge.
         rotate(sweep, pivot = Offset(cx, cy)) {
             for (i in 0..10) {
                 val a = (10 - i) * 0.012f
                 drawLine(
                     color = CyanGlow.copy(alpha = a),
                     start = Offset(cx, cy),
-                    end = Offset(
-                        cx + maxR * cos(Math.toRadians(0.0)).toFloat(),
-                        cy + maxR * sin(Math.toRadians(0.0)).toFloat()
-                    ),
+                    end = Offset(cx + maxR * cos(Math.toRadians(0.0)).toFloat(), cy + maxR * sin(Math.toRadians(0.0)).toFloat()),
                     strokeWidth = (10 - i).toFloat(),
                     cap = StrokeCap.Round
                 )
             }
         }
-
-        // Sparse dot field — suggests event "blips".
         val dots = listOf(
             Offset(cx - maxR * 0.4f, cy - maxR * 0.1f),
             Offset(cx + maxR * 0.3f, cy - maxR * 0.35f),
@@ -1829,11 +1668,7 @@ private fun EventGuideBackground(active: Boolean, modifier: Modifier = Modifier)
         )
         dots.forEachIndexed { i, p ->
             if (p.x in 0f..w && p.y in 0f..h) {
-                drawCircle(
-                    color = CyanGlow.copy(alpha = 0.22f - (i * 0.03f)),
-                    radius = 2.5f,
-                    center = p
-                )
+                drawCircle(color = CyanGlow.copy(alpha = 0.22f - (i * 0.03f)), radius = 2.5f, center = p)
             }
         }
     }
@@ -1875,11 +1710,6 @@ private fun EventThemeMark(themeKey: String, tone: Color, modifier: Modifier = M
                 }
             }
         }
-        Icon(
-            imageVector = Icons.Default.AutoAwesome,
-            contentDescription = null,
-            tint = tone.copy(alpha = 0.6f),
-            modifier = Modifier.size(16.dp)
-        )
+        Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, tint = tone.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
     }
 }
