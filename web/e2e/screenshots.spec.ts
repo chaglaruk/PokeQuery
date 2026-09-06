@@ -191,3 +191,37 @@ test('generate current PWA visual QA states', async ({ page }) => {
   ))
   await screenshot(page, projectName, '13-update-banner-viewport')
 })
+
+test('capture Share Search and review gate in every UI language', async ({ page }) => {
+  const projectName = test.info().project.name
+  test.setTimeout(180000)
+
+  const languages = [
+    ['en', 'English'],
+    ['tr', 'Türkçe'],
+    ['de', 'Deutsch'],
+    ['es', 'Español'],
+    ['fr', 'Français'],
+    ['it', 'Italiano'],
+  ] as const
+
+  for (const [code, value] of languages) {
+    await gotoRoute(page, '/settings')
+    const appLanguage = page.locator('select').first()
+    await expect(appLanguage).toBeVisible()
+    await appLanguage.selectOption(value)
+
+    await gotoRoute(page, '/goal/safe_cleanup')
+    await expect(page.locator('.search-string')).toBeVisible()
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await screenshot(page, projectName, `14-growth-share-${code}-viewport`)
+
+    const shareButton = page.locator('.detail-actions button').last()
+    await expect(shareButton).toBeVisible()
+    await shareButton.click()
+    const reviewDialog = page.getByRole('dialog')
+    await expect(reviewDialog).toBeVisible()
+    await screenshot(page, projectName, `15-growth-share-review-${code}-viewport`)
+    await reviewDialog.getByRole('button').last().click()
+  }
+})
