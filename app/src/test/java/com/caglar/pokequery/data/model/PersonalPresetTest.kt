@@ -7,7 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * v0.6.1 — Personal Preset model + Favorites-bridge tests.
+ * v0.6.1 Ã¢â‚¬â€ Personal Preset model + Favorites-bridge tests.
  *
  * Pins the safety contract: a personal preset preserves the risk level of its source (never
  * downgrades), and `asGeneratedString()` yields a GeneratedString that still routes through
