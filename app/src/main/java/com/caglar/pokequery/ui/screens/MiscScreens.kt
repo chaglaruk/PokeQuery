@@ -580,7 +580,7 @@ fun ChangelogScreen(onBack: () -> Unit) {
                     Column(Modifier.weight(1f)) {
                         Text("v${entry.versionName} (${entry.versionCode})", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                         if (entry.isCurrent) {
-                            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_subtitle), color = TextSecondary, fontSize = 12.sp)
+                            Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_subtitle), color = TextSecondary, fontSize = 12.sp)
                         } else {
                             Text("${entry.releaseLabel} \u2022 ${entry.title}", color = TextSecondary, fontSize = 12.sp)
                         }
@@ -591,9 +591,9 @@ fun ChangelogScreen(onBack: () -> Unit) {
                 }
                 Spacer(Modifier.height(density.innerElementGap))
                 if (entry.isCurrent) {
-                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_b1), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
-                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_b2), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
-                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_b3), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_b1), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_b2), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                    Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_b3), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
                 } else {
                     entry.highlights.forEach { Text("\u2022 $it", color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp) }
                 }
@@ -601,9 +601,9 @@ fun ChangelogScreen(onBack: () -> Unit) {
                     Spacer(Modifier.height(8.dp))
                     Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.changelog_safety_notes), color = AmberWarning, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                     val safetyNotes = if (entry.isCurrent) listOf(
-                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_safety1),
-                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_safety2),
-                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_safety3)
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_safety1),
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_safety2),
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_safety3)
                     ) else entry.safetyNotes
                     safetyNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
                 }
@@ -611,9 +611,9 @@ fun ChangelogScreen(onBack: () -> Unit) {
                     Spacer(Modifier.height(8.dp))
                     Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.changelog_tester_notes), color = TealPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                     val testerNotes = if (entry.isCurrent) listOf(
-                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_tester1),
-                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_tester2),
-                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v066_tester3)
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_tester1),
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_tester2),
+                        androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v077_tester3)
                     ) else entry.testerNotes
                     testerNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
                 }
