@@ -14,9 +14,32 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.7.7",
+            versionCode = 27,
+            releaseLabel = "Production Candidate",
+            title = "Safer Sharing & Search Assistant",
+            highlights = listOf(
+                "Goal Detail can now share generated searches through the Android system share sheet, with Medium/High-risk searches reviewed before sharing",
+                "Search Assistant copy now follows canonical risk on Android and Web: Info/Low output can copy directly while Medium/High output stays out of the clipboard until confirmation",
+                "A local-only rating prompt appears after successful use, and all new Share/rating surfaces are localized across English, Turkish, German, Spanish, French, and Italian"
+            ),
+            safetyNotes = listOf(
+                "PokeQuery-generated search strings remain pipe-free and all Pokémon GO actions stay manual copy/paste",
+                "Share and Search Assistant risk gates were physically validated so Medium-risk output cannot bypass review",
+                "The rating prompt is local-only; no analytics, telemetry, attribution, ads, or Pokémon GO account access were added"
+            ),
+            testerNotes = listOf(
+                "Share an Info/Low goal and confirm the Android chooser contains the exact query plus PokeQuery attribution and Play Store link",
+                "Share a Medium-risk goal and confirm Risk Warning appears before the chooser; cancel must not share",
+                "In Search Assistant, verify hundo -> 4* copies directly while shiny requires review before replacing the clipboard",
+                "Switch UI and Search String languages independently and verify Share/rating copy remains localized without changing canonical risk behavior"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.7.6",
             versionCode = 26,
-            releaseLabel = "Closed Testing Candidate",
+            releaseLabel = "Release",
             title = "Search Correctness & Event Guide Hardening",
             highlights = listOf(
                 "Search Assistant intent matching is stricter, including traded/storage substring collisions, negation, caught-date May disambiguation, and pipe-input rejection",
@@ -34,7 +57,7 @@ object Changelog {
                 "Switch the device language while App Language is System Default, then switch between explicit App Language and System Default without force-stopping",
                 "Open several Event Guide entries and repeat widget/app-shortcut Event Guide navigation; confirm dates, status, content, and routing remain stable"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.7.5",
