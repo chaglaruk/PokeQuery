@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="growth_share_search">Suche teilen</string>
+    <string name="growth_share_heading">Pokémon GO-Suche</string>
+    <string name="growth_share_built_with">Mit PokeQuery erstellt</string>
+    <string name="growth_risk_review_before_share">Prüfe die Treffer in Pokémon GO, bevor du diese Suche teilst. Es können Pokémon erscheinen, die jemand nicht bearbeiten möchte.</string>
+    <string name="growth_risk_accept_share">Prüfen &amp; teilen</string>
+    <string name="growth_rate_title">Ist PokeQuery hilfreich?</string>
+    <string name="growth_rate_body">Eine Bewertung im Play Store hilft anderen Pokémon GO-Spielern, PokeQuery zu finden. Du kannst das überspringen und die App normal weiterverwenden.</string>
+    <string name="growth_rate_action">PokeQuery bewerten</string>
+    <string name="growth_rate_later">Später</string>
+</resources>
