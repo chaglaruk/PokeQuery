@@ -20,8 +20,8 @@ test.describe('Base path /PokeQuery/ (scenario 1)', () => {
   test('1. HTML loads at the configured base path', async ({ page }) => {
     const response = await page.goto('')
     expect(response?.status()).toBe(200)
-    // The HTML title should be "PokeQuery"
-    await expect(page).toHaveTitle('PokeQuery')
+    // Keep the SEO title intentional and regression-tested.
+    await expect(page).toHaveTitle('PokeQuery - Pokémon GO Search String Helper')
     // Root element is populated
     await page.waitForSelector('#root:has(*)', { timeout: 15000 })
     // After onboarding skip, should land on Home
