@@ -159,7 +159,7 @@ export function GoalDetailScreen() {
           <button type="button" className={`btn btn-copy ${requiresReview ? 'medium' : ''}`} onClick={() => requestAction('copy')} disabled={!canCopyResult}>
             <AppIcon name="copy" size={18} /> {clipboard?.status === 'copied' ? t('goal_detail_copied') : t('goal_detail_copy_search_string')}
           </button>
-          <button type="button" className="btn btn-edit" onClick={() => requestAction('share')} disabled={!canCopyResult}>
+          <button type="button" className="btn btn-edit" style={{ minHeight: '48px' }} onClick={() => requestAction('share')} disabled={!canCopyResult}>
             <AppIcon name="share" size={18} /> {growth.shareSearch}
           </button>
         </div>
@@ -221,11 +221,11 @@ export function GoalDetailScreen() {
       <Dialog open={pendingAction !== null} title={growth.riskTitle} onClose={() => setPendingAction(null)} closeLabel={growth.cancel}>
         <p>{growth.riskBody}</p>
         <div className="detail-actions" style={{ marginTop: '16px' }}>
-          <button type="button" className="btn btn-copy medium" onClick={confirmPendingAction}>
+          <button type="button" className="btn btn-copy medium" style={{ minHeight: '48px' }} onClick={confirmPendingAction}>
             <AppIcon name={pendingAction === 'share' ? 'share' : 'copy'} size={18} />
             {pendingAction === 'share' ? growth.continueShare : growth.continueCopy}
           </button>
-          <button type="button" className="btn btn-edit" onClick={() => setPendingAction(null)}>{growth.cancel}</button>
+          <button type="button" className="btn btn-edit" style={{ minHeight: '48px' }} onClick={() => setPendingAction(null)}>{growth.cancel}</button>
         </div>
       </Dialog>
     </main>
