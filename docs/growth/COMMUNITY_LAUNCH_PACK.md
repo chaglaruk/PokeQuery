@@ -2,24 +2,29 @@
 
 Prepared: 2026-09-06
 
-Goal: earn installs by solving a real Pokémon GO storage/search problem in the post itself. Do not lead with “I made an app”. Do not mass-post identical copy. Check each community's current self-promotion rules before posting.
+Goal: earn installs by solving a real Pokémon GO storage/search problem in the Reddit post itself. Do not lead with “I made an app”. Do not mass-post identical copy. Check the target subreddit's current rules immediately before posting.
 
-Current timely hook: Pokémon GO Fest 2026: Mega Finale ran September 5-6, 2026, making post-event storage cleanup a timely problem to address. Re-verify official event facts immediately before any event-specific post.
+Current timely hook: the official Pokémon GO events page lists Pokémon GO Fest 2026: Mega Finale for September 5-6, 2026. Use “Mega Finale weekend” while the event is still running somewhere in the world; only switch to “after Mega Finale” once the event has actually ended. Re-verify official event facts immediately before any event-specific post.
 
-## Channel decision — September 2026
+## Channel decision — Reddit first
 
-**Do not use r/TheSilphRoad for a direct PokeQuery promotional post.** Recent 2026 moderation removals show that the community still restricts posts to specific allowed types and routinely removes otherwise relevant submissions that fall outside them. Tool/resource roundups can perform well there, but that does not make a standalone product promo safe.
+Other social networks are deliberately deferred. Reddit is the primary acquisition channel until the first Reddit experiments produce enough signal to decide what message deserves wider distribution.
 
-Preferred order:
-1. Existing WhatsApp/raid groups where the developer is already an active participant.
-2. Discord communities where self-promotion/tool sharing is explicitly allowed.
-3. r/pokemongo only after checking the current rules and choosing a value-first post rather than an ad.
-4. r/TheSilphRoad only if PokeQuery naturally belongs in an allowed resource/mechanics discussion; never force a promotional post there.
+Priority order:
+1. **r/pokemongo** — first launch target. Use one value-first storage/search post, not an ad blast.
+2. **r/TheSilphRoad** — second wave only when the post is substantive analysis, mechanics, strategy, or a genuinely useful resource. Do not submit a generic PokeQuery promo there.
+3. Other subreddits only after their current rules and audience fit have been checked. Do not use raid-only communities for promotion.
 
-Evidence checked on 2026-09-06:
-- A recent r/TheSilphRoad resource roundup that included search-string tools received strong engagement.
-- Recent r/TheSilphRoad removals explicitly cite the community's narrow allowed-post-type policy.
-- r/pokemongo moderation continues to call out cheating-tool restrictions, so PokeQuery copy must stay explicit about manual text generation, no account access and no automation.
+Do not cross-post the first PokeQuery submission. Let one post run for at least 48 hours and learn from the comments before deciding on a second subreddit.
+
+## Evidence checked on 2026-09-06
+
+- A July 2026 r/pokemongo post that supplied a concrete storage-cleanup search string received strong engagement (roughly +692 at the time checked).
+- An April 2026 r/pokemongo post about a free, text-only storage-cleanup tool received strong engagement (roughly +213 at the time checked). Its framing led with the storage problem and explicitly said there was no account/server access, login, download, or tracking.
+- Recent August 2026 r/pokemongo questions still ask for safe-ish storage cleanup and search-string help, so the problem remains current.
+- r/pokemongo's anti-cheating reminder is still active on current posts. PokeQuery copy must remain explicit: manual text generation only, no Pokémon GO account access, no automation.
+- r/pokemongo's spam/self-promotion policy means one useful post is preferable to repeated promotional submissions.
+- r/TheSilphRoad search-string/tool posts can perform well, but its allowed-post-type policy is narrower and moderators retain broad removal discretion. Use it only for a substantive mechanics/resource contribution.
 
 ## Core positioning
 
@@ -32,98 +37,119 @@ Supporting proof points:
 - Safety-focused goals protect special categories conservatively.
 - Search Assistant helps turn a plain-language goal into search text.
 - Event Guide helps with event preparation.
-- No Pokémon GO login, automation, analytics, ads or tracking.
+- No Pokémon GO login, account access, automation, analytics, ads or tracking.
 - Manual copy/paste only.
 
-## Reddit post A: post-event cleanup
+Never market a PokeQuery filter as “safe to delete everything”. PokeQuery is a review aid. The player must inspect the matches in Pokémon GO before transferring anything.
 
-**Title**
+## First Reddit experiment — r/pokemongo
 
-`GO Fest filled my storage again, so I made my cleanup search easier to review`
+### Objective
 
-**Body**
+Prove that the storage-cleanup problem itself earns attention before asking Reddit users to care about the PokeQuery brand.
 
-`If your storage looks anything like mine after an event weekend, the annoying part isn't knowing that you need to clean it. It's rebuilding a long search and checking that you didn't accidentally include something you meant to keep.`
+### Timely angle
 
-`I've been using a conservative cleanup search that excludes things like shinies, legendaries/mythicals, costumes, shadows, favourites, lucky/traded Pokémon and 4★ entries. I still check every match in Pokémon GO before transferring anything.`
+During September 5-6, use Mega Finale weekend as the context. The post must still be useful to someone who never installs PokeQuery.
 
-`I ended up putting the builder into a small app called PokeQuery so I don't have to remember the whole search syntax every time. It only generates text for you to review and copy. It doesn't log into Pokémon GO or touch your storage.`
+### Recommended title
 
-`If it's useful to anyone else: https://play.google.com/store/apps/details?id=com.caglar.pokequery`
+`Mega Finale filling your storage? Here's the conservative cleanup filter I use`
 
-`I'm also interested in search cases people repeatedly rebuild by hand, because those are the ones worth adding as safe presets.`
+### Recommended body
 
-Use this only where current self-promotion rules permit it. Do not post this to r/TheSilphRoad as a standalone promotion.
+`If your storage is getting wrecked this weekend, this is the kind of conservative filter I use before I start transferring anything:`
 
-## Reddit post B: search-syntax problem
+`1*&!shiny&!legendary&!mythical&!ultrabeast&!costume&!background&!locationbackground&!specialbackground&!shadow&!purified&!favorite&!lucky&!#&!traded&!4*`
 
-**Title**
+`It deliberately starts with 1★ candidates and excludes a long list of things I normally want another look at first: shinies, legendary/mythical/Ultra Beasts, costumes, backgrounds, shadows/purified, favourites, lucky/traded, tagged Pokémon and 4★.`
 
-`What Pokémon GO search do you keep rebuilding from memory?`
+`Important: I still review every match in Pokémon GO before transferring. This is a filter for making the review pile smaller, not a “delete everything shown” button.`
 
-**Body**
-
-`I kept forgetting pieces of my cleanup / transfer-candy / trade searches, especially once exclusions were added.`
-
-`So I built PokeQuery around the opposite workflow: choose what you're trying to do first, then it builds the search and shows you exactly what will be copied. Riskier cleanup-style searches have a review step and protected categories stay excluded by default.`
-
-`There's also a Search Assistant for describing what you want, plus an Event Guide for prep searches. Everything is manual copy/paste. No GO login or account access.`
+`I got tired of rebuilding and checking these strings, so I put the workflow into a small Android app called PokeQuery. It generates the text, explains it, and you manually copy/paste it into GO. It doesn't log into your Pokémon GO account or automate anything.`
 
 `Android: https://play.google.com/store/apps/details?id=com.caglar.pokequery`
 
-`What search do you currently keep in Notes, favourites, or rebuild every event?`
+`If you have a cleanup/search string you keep rebuilding every event, post the use case. Those are the ones I'm most interested in improving.`
 
-Use this as a discussion-first option where tool/self-promotion rules allow it. Do not disguise promotion where disclosure is required.
+### Why this version
 
-## Discord / local raid group version
+- The useful string appears before the product pitch.
+- It states what the string intentionally does and does not guarantee.
+- PokeQuery's safety/privacy boundary is clear.
+- The CTA asks for search problems, which can generate product feedback instead of only install clicks.
+- There is one normal Play Store link and no shortener/tracking parameter.
 
-`Quick one for anyone whose storage gets wrecked after events: I made PokeQuery to build the Pokémon GO search strings I kept having to remember or save in Notes. Pick cleanup, candy prep, trades, PvP etc., review the exact search, then copy/paste it into GO. It doesn't connect to your account or automate anything.`
+## First 48 hours after posting
 
-`Android: https://play.google.com/store/apps/details?id=com.caglar.pokequery`
+1. Reply to genuine search questions. Give the useful answer first.
+2. Do not paste the Play Store link into every reply. The original post already contains it.
+3. If someone challenges a token or safety assumption, verify it against current PokeQuery code/tests and official Pokémon GO search documentation before answering.
+4. If a user supplies a useful recurring workflow, record it as a potential preset/problem statement. Do not claim support until it exists and passes parity/safety validation.
+5. Do not make a second promotional Reddit post during this window.
+6. Record outcomes manually: post score, comments, recurring questions, complaints, requests, and any visible Play Console install movement. Do not add an analytics/tracking SDK to PokeQuery.
+7. If moderators remove the post, do not repost around the removal. Read the stated reason and adjust the channel/content strategy.
 
-`If there's a search you use all the time that it doesn't cover, send it to me.`
+## What counts as a useful first signal
 
-## WhatsApp raid-group version
+Do not judge the experiment on installs alone. The first post is useful if it produces one or more of:
+- trainers copying/discussing the supplied search string;
+- substantive questions about storage cleanup or search syntax;
+- repeated requests for the same missing workflow;
+- comments positively reacting to manual copy/paste, safety protections, or no account access;
+- a visible increase in Play listing visits/installs if Play Console exposes it.
 
-`Bu arada geçen bahsettiğim PokeQuery artık yayında. Event sonrası storage temizlerken ya da candy/takas/PvP için arama yaparken uzun Pokémon GO search stringlerini ezberlemek yerine app oluşturuyor, sen kontrol edip GO'ya yapıştırıyorsun. Hesaba bağlanmıyor, oyunda hiçbir şeyi kendi yapmıyor.`
+A low score with no meaningful comments is a message failure, not a reason to immediately spam another subreddit. Change the angle first.
 
-`Android: https://play.google.com/store/apps/details?id=com.caglar.pokequery`
+## Second Reddit experiment — r/TheSilphRoad
 
-`Sürekli kullandığınız ama app'te olmayan bir arama varsa atın, işe yarıyorsa ekleyelim.`
+Do not reuse the r/pokemongo copy.
 
-## Seven-day organic launch sequence
+Only proceed if there is a substantive contribution suitable for the Road's mechanics/strategy/resource focus. Preferred concept:
 
-Day 1: share the post-event cleanup angle in one suitable community or existing group. Reply to actual search questions; do not cross-post immediately.
+`A conservative Pokémon GO storage-cleanup workflow: why I separate candidate filtering from transfer decisions`
 
-Day 2: share the short Discord/WhatsApp version in existing groups where the developer is already a participant.
+The post should explain the reasoning, exclusions, review gate, localized-search limitations, and what can go wrong with broad cleanup strings. PokeQuery can be disclosed as the implementation/tool at the end. The article must stand on its own without requiring an install.
 
-Day 3: publish one useful search tip without an install CTA. Establish that the account provides value beyond promotion.
+Before posting, re-check the current r/TheSilphRoad rules and confirm the exact post type/flair is allowed. If the fit is weak, skip the subreddit rather than forcing promotion.
 
-Day 4: post the “what search do you keep rebuilding?” question only where current discussion/self-promotion rules explicitly allow it.
+## Reddit-only seven-day sequence
 
-Day 5: turn the best real user request into a small PokeQuery tip or preset candidate. Do not claim it is supported until it actually is.
+Day 1: publish the single r/pokemongo value-first storage-cleanup experiment after re-checking current rules and the event hook.
 
-Day 6: publish an Event Guide / upcoming-event preparation example based on current verified official event data.
+Day 2: answer comments and collect recurring use cases. No second promo post.
 
-Day 7: review Google Play store-listing data and community response. Keep the message that actually drove interest; drop the rest.
+Day 3: inspect the first 48-hour signal. Improve PokeQuery copy/presets only if user feedback reveals a real gap and the change passes normal safety/parity validation.
 
-## Breakreach publishing gate
+Day 4: contribute one useful Reddit comment or non-promotional search tip where it naturally answers an existing question. Do not manufacture a reason to drop the app link.
 
-Before publishing through Breakreach:
-1. Breakreach MCP must return connected accounts successfully; a ChatGPT OAuth connection alone is not sufficient if Breakreach reports that no active trial/subscription exists.
-2. Confirm the exact destination account/community.
-3. Re-check current community rules immediately before a public Reddit post.
-4. Publish to one community first. Do not send the same copy to multiple communities simultaneously.
-5. Prefer scheduling/publishing existing-group Discord content before public Reddit promotion when both are available.
+Day 5: decide whether the next experiment should be another problem angle in r/pokemongo at a later safe interval or a substantive r/TheSilphRoad analysis. Do not publish simply because the calendar says Day 5.
+
+Day 6: prepare an event-specific search/prep contribution using current verified official event data if a real upcoming event creates a useful hook.
+
+Day 7: compare Reddit response with Google Play listing data. Keep the pain point/message that produced genuine engagement; discard weak positioning before expanding to other social networks.
+
+## Reddit publishing gate
+
+Before every public Reddit submission:
+1. Re-check the target subreddit's current rules.
+2. Confirm that the post is useful without installing PokeQuery.
+3. Verify every event/date claim against current official Pokémon GO sources.
+4. Verify any generated search string against current PokeQuery code/tests; never hand-edit syntax and call it verified.
+5. Confirm that no generated query contains `|`.
+6. Keep PokeQuery disclosure clear rather than pretending to be an unrelated community recommendation.
+7. Publish to one subreddit first. Do not duplicate/cross-post simultaneously.
+8. Do not evade a moderator removal or repost the same promotion through another account.
 
 ## Rules for every post
 
 - No fake testimonials, install counts or popularity claims.
-- No identical spam across multiple subreddits/Discords.
-- Do not claim official affiliation.
+- No identical spam across communities.
+- Do not claim official affiliation with Pokémon, Niantic, Scopely or Nintendo.
 - Do not promise that a generated search makes transfers automatically safe.
-- Never expose a generated query containing `|`.
-- Event facts must be verified against current official sources before publishing.
+- Never expose a PokeQuery-generated query containing `|`.
+- Event facts must be verified against current official sources immediately before publishing.
 - Use the normal Play Store URL until a dedicated custom store listing URL has been created.
-- No link shorteners or tracking SDKs.
-- Do not use r/TheSilphRoad as a generic app-promotion channel.
+- No link shorteners, tracking parameters, analytics SDKs or attribution SDKs.
+- No Pokémon GO login/account access/private API claims or functionality.
+- r/TheSilphRoad is not a generic app-promotion channel.
