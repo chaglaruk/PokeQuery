@@ -56,6 +56,10 @@ fun MainNavigation(
     val shareChooserTitle = stringResource(R.string.growth_share_search)
     val copiedToClipboard = stringResource(R.string.goal_detail_copied)
     val assistantExplanation = stringResource(R.string.search_assistant_generated_explanation)
+    val rateTitle = stringResource(R.string.growth_rate_title)
+    val rateBody = stringResource(R.string.growth_rate_body)
+    val rateAction = stringResource(R.string.growth_rate_action)
+    val rateLater = stringResource(R.string.growth_rate_later)
 
     val backStack = rememberNavBackStack(initialEntry)
     var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
@@ -325,16 +329,16 @@ fun MainNavigation(
         if (showRatePrompt) {
             AlertDialog(
                 onDismissRequest = { showRatePrompt = false },
-                title = { Text(stringResource(R.string.growth_rate_title)) },
-                text = { Text(stringResource(R.string.growth_rate_body)) },
+                title = { Text(rateTitle) },
+                text = { Text(rateBody) },
                 confirmButton = {
                     TextButton(onClick = ::openPlayStoreRating) {
-                        Text(stringResource(R.string.growth_rate_action))
+                        Text(rateAction)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showRatePrompt = false }) {
-                        Text(stringResource(R.string.growth_rate_later))
+                        Text(rateLater)
                     }
                 }
             )
