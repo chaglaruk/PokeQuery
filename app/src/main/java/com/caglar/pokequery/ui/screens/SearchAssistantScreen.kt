@@ -39,14 +39,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.data.model.RiskLevel
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.assist.AiProviderRegistry
@@ -87,10 +86,9 @@ fun resolveAssistantOutputQuery(rawQuery: String, gameLanguage: String?, appLang
 }
 
 @Composable
-fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, onExplain: (String) -> Unit = {}) {
+fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String, RiskLevel) -> Unit = { _, _ -> }, onExplain: (String) -> Unit = {}) {
     val context = LocalContext.current
     val isEnglishUi = LocalConfiguration.current.locales[0]?.language == "en"
-    val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
@@ -162,7 +160,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                                 result.fold(
                                     onSuccess = { suggestion ->
                                         parseResult = com.caglar.pokequery.domain.assist.ParsedIntent(
-                                            tokens = suggestion.rawSyntax.split(Regex("[&!]")).filter { it.isNotBlank() },
+                                            tokens = suggestion.rawSyntax.split(Regex("[&!]" )).filter { it.isNotBlank() },
                                             rawQuery = suggestion.rawSyntax,
                                             explanation = suggestion.explanation,
                                             limitations = suggestion.limitations
@@ -268,11 +266,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         PqPrimaryButton(
                             text = if (copyBlocked) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_fix_errors) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_copy_btn),
-                            onClick = {
-                                clipboard.setText(AnnotatedString(translatedQuery))
-                                onCopyRaw(translatedQuery)
-                                Toast.makeText(context, context.resources.getString(com.caglar.pokequery.R.string.assistant_copied), Toast.LENGTH_SHORT).show()
-                            },
+                            onClick = { onCopyRaw(translatedQuery, SearchStringExplainer.explain(result.rawQuery).totalRisk) },
                             enabled = !copyBlocked,
                             leadingIcon = Icons.Default.ContentCopy,
                             modifier = Modifier.weight(1f)

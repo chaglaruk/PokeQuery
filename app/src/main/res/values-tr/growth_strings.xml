@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="growth_share_search">Aramayı paylaş</string>
+    <string name="growth_share_heading">Pokémon GO araması</string>
+    <string name="growth_share_built_with">PokeQuery ile oluşturuldu</string>
+    <string name="growth_risk_review_before_share">Bu aramayı paylaşmadan önce Pokémon GO’daki sonuçları kontrol et. İşlem yapmak istemeyeceğin Pokémonlar da görünebilir.</string>
+    <string name="growth_risk_accept_share">Kontrol et ve paylaş</string>
+    <string name="growth_rate_title">PokeQuery işine yarıyor mu?</string>
+    <string name="growth_rate_body">Play Store’daki yorumun başka Pokémon GO oyuncularının PokeQuery’yi bulmasına yardımcı olur. İstersen atlayıp uygulamayı normal kullanmaya devam edebilirsin.</string>
+    <string name="growth_rate_action">PokeQuery’yi değerlendir</string>
+    <string name="growth_rate_later">Şimdi değil</string>
+</resources>

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
+import { growthStrings } from '@i18n/growthStrings'
 import { parseSearchIntent, type ParsedIntent } from '@engine/searchIntentParser'
 import { lint, type LintWarning } from '@engine/linter'
 import { canCopy } from '@engine/expertCopyPolicy'
@@ -9,6 +10,7 @@ import { translateSyntax, findUnverifiedTokens, resolveLanguage } from '@engine/
 import { copyToClipboard, type ClipboardStatus } from '@ui/clipboard'
 import type { ClipboardResult } from '@ui/clipboard'
 import { AppIcon } from '@ui/components/SpriteIcon'
+import { Dialog } from '@ui/components/Dialog'
 import { addHistory } from '@ui/savedSearches'
 
 const scopeBreadthKeys: Record<string, string> = {
@@ -29,11 +31,13 @@ const precisionLabelKeys: Record<string, string> = {
 
 export function SearchAssistantScreen() {
   const { t, resolvedSearchLanguage, locale } = useI18n()
+  const growth = growthStrings(locale)
   const navigate = useNavigate()
   const [input, setInput] = useState('')
   const [result, setResult] = useState<ParsedIntent | null>(null)
   const [explained, setExplained] = useState<ExplainedString | null>(null)
   const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
+  const [pendingCopyReview, setPendingCopyReview] = useState(false)
 
   const rawQuery = result?.rawQuery ?? ''
   const resolvedLanguage = resolveLanguage(resolvedSearchLanguage)
@@ -42,21 +46,24 @@ export function SearchAssistantScreen() {
   const warnings: LintWarning[] = rawQuery ? lint(rawQuery) : []
   const copyBlocked = rawQuery ? !canCopy(rawQuery) : false
   const hasAdvisory = !copyBlocked && warnings.length > 0
+  const requiresReview = explained?.totalRisk === 'Medium' || explained?.totalRisk === 'High'
 
   const handleParse = useCallback(() => {
     if (!input.trim()) {
       setResult(null)
       setExplained(null)
       setClipboard(null)
+      setPendingCopyReview(false)
       return
     }
     const parsed = parseSearchIntent(input)
     setResult(parsed)
     setExplained(parsed.rawQuery ? explain(parsed.rawQuery) : null)
     setClipboard(null)
+    setPendingCopyReview(false)
   }, [input])
 
-  const handleCopy = useCallback(async () => {
+  const performCopy = useCallback(async () => {
     if (!result?.rawQuery || copyBlocked) return
     const target = translatedQuery || result.rawQuery
     const res = await copyToClipboard(target)
@@ -66,6 +73,20 @@ export function SearchAssistantScreen() {
       setTimeout(() => setClipboard(null), 2500)
     }
   }, [result, translatedQuery, copyBlocked, explained, t])
+
+  const handleCopy = useCallback(() => {
+    if (!result?.rawQuery || copyBlocked) return
+    if (requiresReview) {
+      setPendingCopyReview(true)
+      return
+    }
+    void performCopy()
+  }, [result, copyBlocked, requiresReview, performCopy])
+
+  const confirmCopy = useCallback(() => {
+    setPendingCopyReview(false)
+    void performCopy()
+  }, [performCopy])
 
   const localizedLintMessage = useCallback((warning: LintWarning) => {
     if (locale === 'en') return warning.message
@@ -140,10 +161,10 @@ export function SearchAssistantScreen() {
           {result.noteKeys.map((key) => <p key={key} style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px', fontStyle: 'italic' }}>{t(key)}</p>)}
 
           <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-            <button className="btn btn-primary" onClick={handleCopy} disabled={copyBlocked} style={{ flex: 1 }}>
+            <button className="btn btn-primary" onClick={handleCopy} disabled={copyBlocked} style={{ flex: 1, minHeight: '48px' }} data-testid="assistant-copy-button">
               {copyBlocked ? t('search_intent_fix_errors') : hasAdvisory ? t('search_intent_copy_advisory') : t('search_assistant_copy_btn')}
             </button>
-            <button className="btn btn-secondary" onClick={() => navigate('/explain', { state: { rawQuery: result.rawQuery } })} style={{ flex: 1 }}>{t('search_assistant_explain_btn')}</button>
+            <button className="btn btn-secondary" onClick={() => navigate('/explain', { state: { rawQuery: result.rawQuery } })} style={{ flex: 1, minHeight: '48px' }}>{t('search_assistant_explain_btn')}</button>
           </div>
 
           {clipboard && <div className={`clipboard-feedback ${clipboard.status}`} role="status" aria-live="polite">{t(clipboard.i18nKey)}</div>}
@@ -191,6 +212,16 @@ export function SearchAssistantScreen() {
           )}
         </div>
       )}
+
+      <Dialog open={pendingCopyReview} title={growth.riskTitle} onClose={() => setPendingCopyReview(false)} closeLabel={growth.cancel}>
+        <p>{growth.riskBody}</p>
+        <div className="detail-actions" style={{ marginTop: '16px' }}>
+          <button type="button" className="btn btn-copy medium" style={{ minHeight: '48px' }} onClick={confirmCopy} data-testid="assistant-review-copy-button">
+            <AppIcon name="copy" size={18} /> {growth.continueCopy}
+          </button>
+          <button type="button" className="btn btn-edit" style={{ minHeight: '48px' }} onClick={() => setPendingCopyReview(false)}>{growth.cancel}</button>
+        </div>
+      </Dialog>
     </div>
   )
 }

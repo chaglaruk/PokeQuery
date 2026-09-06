@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
 import { skipOnboarding, gotoRoute } from './helpers'
 
-// Scenarios 8-13: Goal selection, exact search text, forbidden |, !traded, clipboard.
+// Scenarios 8-14: Goal selection, exact search text, forbidden |, risk gate, clipboard, sharing.
 
-test.describe('Goal selection and search text (scenarios 8-13)', () => {
+test.describe('Goal selection and search text (scenarios 8-14)', () => {
   test.beforeEach(async ({ page }) => {
     await skipOnboarding(page)
   })
@@ -16,7 +16,6 @@ test.describe('Goal selection and search text (scenarios 8-13)', () => {
 
   test('9. Safe Cleanup shows exact generated search text', async ({ page }) => {
     await gotoRoute(page, '/goal/safe_cleanup')
-    // Wait for the result section with .search-string
     await expect(page.locator('.search-string')).toBeVisible()
     const text = await page.locator('.search-string').textContent()
     expect(text).toContain('1*')
@@ -30,7 +29,6 @@ test.describe('Goal selection and search text (scenarios 8-13)', () => {
     expect(text).toContain('!lucky')
     expect(text).toContain('!traded')
     expect(text).toContain('!4*')
-    // Exact full string
     expect(text).toBe('1*&!shiny&!legendary&!mythical&!ultrabeast&!costume&!background&!locationbackground&!specialbackground&!shadow&!purified&!favorite&!lucky&!#&!traded&!4*')
   })
 
@@ -49,7 +47,6 @@ test.describe('Goal selection and search text (scenarios 8-13)', () => {
     const input = page.locator('input[type="text"]').first()
     await input.fill('shiny|4*')
     await expect(input).toHaveValue('shiny|4*')
-    // Copy button should be disabled
     await expect(page.locator('.btn-copy')).toBeDisabled()
     await expect(page.getByText('Fix errors to copy').first()).toBeVisible()
   })
@@ -67,18 +64,13 @@ test.describe('Goal selection and search text (scenarios 8-13)', () => {
     const text = await page.locator('.search-string').textContent() ?? ''
     const count = (text.match(/!traded/g) ?? []).length
     expect(count).toBe(1)
-    // traded without ! should NOT appear (would be a positive filter)
     const tradedPositive = (text.match(/(?<!!)traded/g) ?? []).length
     expect(tradedPositive).toBe(0)
   })
 
-  test('12. clipboard success writes search string', async ({ page, browserName }) => {
+  test('12. medium-risk copy requires review and writes exact search string', async ({ page, browserName }) => {
     test.skip(browserName === 'webkit', 'Clipboard write requires secure context or user gesture in WebKit; tested in chromium')
 
-    await gotoRoute(page, '/goal/safe_cleanup')
-    await expect(page.locator('.search-string')).toBeVisible()
-
-    // Grant clipboard permissions and mock the API
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
     await page.addInitScript(() => {
       const items = new Map<string, string>()
@@ -89,35 +81,76 @@ test.describe('Goal selection and search text (scenarios 8-13)', () => {
       Object.defineProperty(navigator, 'clipboard', { value: clipboard, configurable: true })
     })
 
-    // Navigate fresh so the mock is installed
-    await page.reload()
+    await gotoRoute(page, '/goal/safe_cleanup')
     await expect(page.locator('.search-string')).toBeVisible()
-
     const expectedText = await page.locator('.search-string').textContent()
-    await page.getByText('Copy', { exact: false }).first().click()
-    // Verify copied indicator appears
+
+    await page.getByRole('button', { name: /Copy/i }).click()
+    await expect(page.getByRole('dialog', { name: 'Check this search first' })).toBeVisible()
+    await page.getByRole('button', { name: 'Review & copy' }).click()
+
     await expect(page.getByText(/Copied/i).first()).toBeVisible({ timeout: 5000 })
-    // Verify clipboard content matches the search string
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
     expect(clipboardText).toBe(expectedText)
   })
 
-  test('13. clipboard denied/failure does not crash the app', async ({ page }) => {
+  test('13. clipboard denied/failure after review does not crash the app', async ({ page }) => {
     await gotoRoute(page, '/goal/safe_cleanup')
     await expect(page.locator('.search-string')).toBeVisible()
 
-    // Override clipboard.writeText to reject (simulate permission denied)
     await page.evaluate(() => {
       const writeText = () => Promise.reject(new DOMException('Permission denied', 'NotAllowedError'))
       Object.defineProperty(navigator, 'clipboard', { value: { writeText, readText: () => Promise.resolve('') }, configurable: true })
     })
 
-    // Clicking copy should not throw; app continues
-    await page.getByText('Copy', { exact: false }).first().click()
-    // Wait briefly to confirm no crash
+    await page.getByRole('button', { name: /Copy/i }).click()
+    await expect(page.getByRole('dialog', { name: 'Check this search first' })).toBeVisible()
+    await page.getByRole('button', { name: 'Review & copy' }).click()
+
     await expect(page.locator('.search-string')).toBeVisible()
-    // App is still functional: can navigate
     await page.locator('.back-btn').click()
     await expect(page).toHaveURL(/#\/$/)
+  })
+
+  test('14. share search preserves the generated query and PokeQuery explain link', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'share', { value: undefined, configurable: true })
+      let sharedText = ''
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: (text: string) => { sharedText = text; return Promise.resolve() },
+          readText: () => Promise.resolve(sharedText),
+        },
+        configurable: true,
+      })
+    })
+
+    await gotoRoute(page, '/goal/safe_cleanup')
+    const expectedText = await page.locator('.search-string').textContent() ?? ''
+    const shareButton = page.getByRole('button', { name: 'Share search' })
+    const shareButtonBox = await shareButton.boundingBox()
+    expect(shareButtonBox?.height ?? 0).toBeGreaterThanOrEqual(48)
+    await shareButton.click()
+
+    const reviewDialog = page.getByRole('dialog', { name: 'Check this search first' })
+    await expect(reviewDialog).toBeVisible()
+    await reviewDialog.evaluate(async element => {
+      await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished))
+    })
+    const reviewShareButton = page.getByRole('button', { name: 'Review & share' })
+    const reviewShareButtonBox = await reviewShareButton.boundingBox()
+    expect(reviewShareButtonBox?.height ?? 0).toBeGreaterThanOrEqual(48)
+    await reviewShareButton.click()
+
+    await expect(page.getByText('Share text copied')).toBeVisible()
+    const shared = await page.evaluate(() => navigator.clipboard.readText())
+    expect(shared).toContain(expectedText)
+    expect(shared).toContain('Built with PokeQuery')
+
+    const sharedUrl = shared.split('\n').at(-1) ?? ''
+    const parsed = new URL(sharedUrl)
+    expect(parsed.hash).toMatch(/^#\/explain\?query=/)
+    const queryParams = new URLSearchParams(parsed.hash.split('?')[1] ?? '')
+    expect(queryParams.get('query')).toBe(expectedText)
   })
 })

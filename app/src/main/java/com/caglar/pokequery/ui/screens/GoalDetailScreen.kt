@@ -29,8 +29,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -75,16 +75,15 @@ import com.caglar.pokequery.domain.risk.RiskExplanation
 import com.caglar.pokequery.domain.risk.RiskExplanations
 import com.caglar.pokequery.requiresRiskWarning
 import com.caglar.pokequery.theme.BackgroundDark
-import com.caglar.pokequery.theme.CardDark
 import com.caglar.pokequery.theme.CardPremium
 import com.caglar.pokequery.theme.GoldCaution
 import com.caglar.pokequery.theme.SlateBlack
 import com.caglar.pokequery.theme.TealPrimary
 import com.caglar.pokequery.theme.TextPrimary
 import com.caglar.pokequery.theme.TextSecondary
+import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqCard
 import com.caglar.pokequery.ui.pq.PqGlowCard
-import com.caglar.pokequery.ui.motion.pqStaggeredItem
 import com.caglar.pokequery.ui.pq.PqSectionHeader
 import com.caglar.pokequery.ui.pq.PqStringBox
 import kotlinx.coroutines.launch
@@ -95,6 +94,8 @@ fun GoalDetailScreen(
     goalId: String,
     onBack: () -> Unit,
     onNavigateRisk: (GeneratedString) -> Unit,
+    onShare: (GeneratedString) -> Unit = {},
+    onCopyCompleted: () -> Unit = {},
     onEditSearch: (GeneratedString) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -187,7 +188,6 @@ fun GoalDetailScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            // Top action bar matching design
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -224,20 +224,10 @@ fun GoalDetailScreen(
                         modifier = Modifier.size(24.dp)
                     )
                 }
-                IconButton(onClick = { /* Settings context option or similar */ }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Options",
-                        tint = TextSecondary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
             }
 
             Spacer(Modifier.height(density.sectionGap))
 
-            // RESULT block: search box + edit/copy buttons directly beneath it.
-            // Risk level is conveyed via accent color (no separate top risk card).
             PqGlowCard(
                 modifier = Modifier.pqStaggeredItem(visible, 1),
                 accent = if (isMedium) GoldCaution else TealPrimary
@@ -283,14 +273,12 @@ fun GoalDetailScreen(
                 }
                 PqStringBox(generatedString.rawSyntax)
                 Spacer(Modifier.height(14.dp))
-                // High-contrast Edit search button directly under search box.
                 CustomActionButton(
                     text = stringResource(R.string.goal_detail_edit_search),
                     containerColor = TealPrimary,
                     onClick = { showRefineOptions = !showRefineOptions }
                 )
                 Spacer(Modifier.height(10.dp))
-                // Copy search button.
                 CustomCopyButton(
                     text = stringResource(R.string.goal_detail_copy_search_string),
                     isMedium = isMedium,
@@ -301,19 +289,22 @@ fun GoalDetailScreen(
                             clipboard.setText(AnnotatedString(generatedString.rawSyntax))
                             scope.launch { repository.addHistory(SavedTemplate.from(generatedString)) }
                             Toast.makeText(context, copiedToast, Toast.LENGTH_SHORT).show()
+                            onCopyCompleted()
                         }
                     }
                 )
+                Spacer(Modifier.height(10.dp))
+                CustomShareButton(
+                    text = stringResource(R.string.growth_share_search),
+                    onClick = { onShare(generatedString) }
+                )
             }
 
-            // ONE combined info / risk / help box. No separate cards for
-            // "what does this do", "about count", or "tip".
             Spacer(Modifier.height(density.sectionGap))
             IllustratedCard(
                 borderColor = if (isMedium) GoldCaution else TealPrimary,
                 modifier = Modifier.pqStaggeredItem(visible, 2)
             ) {
-                // Header: what does this search do?
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Info,
@@ -337,7 +328,6 @@ fun GoalDetailScreen(
                     lineHeight = 18.sp
                 )
 
-                // Medium/high-risk sub-section: what to watch out for + check first.
                 if (isMedium) {
                     Spacer(Modifier.height(12.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -411,7 +401,6 @@ fun GoalDetailScreen(
                 }
             }
 
-            // Protected categories chips (upgraded to teal rounded pills).
             if (generatedString.protectedCategories.isNotEmpty()) {
                 Spacer(Modifier.height(density.sectionGap))
                 PqSectionHeader(
@@ -429,7 +418,6 @@ fun GoalDetailScreen(
         }
     }
 }
-
 
 @Composable
 fun CustomCopyButton(
@@ -469,10 +457,6 @@ fun CustomCopyButton(
     }
 }
 
-/**
- * High-contrast outlined action button used for the "Edit search" CTA directly beneath
- * the search box. Outlined so it is visually distinct from the filled copy button.
- */
 @Composable
 fun CustomActionButton(
     text: String,
@@ -503,6 +487,31 @@ fun CustomActionButton(
             Spacer(Modifier.width(8.dp))
             Text(text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
+    }
+}
+
+@Composable
+fun CustomShareButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        onClick = onClick,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = TealPrimary),
+        border = androidx.compose.foundation.BorderStroke(1.dp, TealPrimary.copy(alpha = 0.8f)),
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Share,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
     }
 }
 

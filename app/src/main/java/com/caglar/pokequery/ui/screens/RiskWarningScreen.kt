@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.caglar.pokequery.R
+import com.caglar.pokequery.RiskAction
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -45,11 +46,10 @@ import com.caglar.pokequery.ui.pq.PqSecondaryButton
 @Composable
 fun RiskWarningScreen(
     generatedString: GeneratedString,
-    onConfirmCopy: () -> Unit,
+    action: RiskAction = RiskAction.Copy,
+    onConfirmAction: () -> Unit,
     onBack: () -> Unit
 ) {
-    // Package 4: per-goal explanation. RiskMessageBuilder appends the Turkish-beta
-    // caution when the output looks Turkish, so the warning is goal-aware + localized.
     val turkish = SearchTermMapper.looksTurkish(generatedString.rawSyntax)
     val goalMessage = RiskMessageBuilder.messageFor(generatedString.goalId, turkish)
     val riskExplanation = RiskExplanations.forGoal(generatedString.goalId, generatedString.riskLevel)
@@ -64,9 +64,17 @@ fun RiskWarningScreen(
         com.caglar.pokequery.data.model.RiskLevel.Low -> stringResource(R.string.risk_low)
         com.caglar.pokequery.data.model.RiskLevel.Info -> stringResource(R.string.risk_info)
     }
+    val reviewCopy = if (action == RiskAction.Share) {
+        stringResource(R.string.growth_risk_review_before_share)
+    } else {
+        stringResource(R.string.risk_warning_review_before_copy)
+    }
+    val primaryLabel = if (action == RiskAction.Share) {
+        stringResource(R.string.growth_risk_accept_share)
+    } else {
+        stringResource(R.string.risk_warning_accept_copy)
+    }
 
-    // v0.5.3 motion polish: staggered entrance. The risk icon gets a subtle spring-pop
-    // (illustration only); title/explanation/buttons fade+slide. One hoisted flag → once only.
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
     Column(
         modifier = Modifier.fillMaxSize().background(BackgroundDark).verticalScroll(rememberScrollState()).padding(20.dp),
@@ -91,14 +99,13 @@ fun RiskWarningScreen(
         )
         Spacer(Modifier.height(14.dp))
         Text(
-            stringResource(R.string.risk_warning_review_before_copy),
+            reviewCopy,
             color = TextSecondary,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 12.dp).pqStaggeredItem(visible, 1)
         )
         Spacer(Modifier.height(14.dp))
-        // Goal-specific explanation surface (includes Turkish caution if relevant).
         Box(
             Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(CardDark)
                 .padding(14.dp)
@@ -127,7 +134,7 @@ fun RiskWarningScreen(
         }
         Spacer(Modifier.height(28.dp))
         Box(Modifier.pqStaggeredItem(visible, 3)) {
-            PqPrimaryButton(text = stringResource(R.string.risk_warning_accept_copy), onClick = onConfirmCopy)
+            PqPrimaryButton(text = primaryLabel, onClick = onConfirmAction)
         }
         Spacer(Modifier.height(10.dp))
         Box(Modifier.pqStaggeredItem(visible, 4)) {

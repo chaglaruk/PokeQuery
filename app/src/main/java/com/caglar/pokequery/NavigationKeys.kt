@@ -15,7 +15,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object Settings : NavKey
 @Serializable data object ChangelogRoute : NavKey
 @Serializable data object Presets : NavKey
-@Serializable data class RiskWarning(val generatedString: GeneratedString) : NavKey
+@Serializable enum class RiskAction { Copy, Share }
+@Serializable data class RiskWarning(val generatedString: GeneratedString, val action: RiskAction = RiskAction.Copy) : NavKey
 // v0.6.1: new workflow + context surfaces.
 @Serializable data object MyPresets : NavKey
 @Serializable data object PracticeMode : NavKey

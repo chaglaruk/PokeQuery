@@ -51,7 +51,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Android Unit Tests, Lint & Asset Validation
+    name: Android Unit Tests, Lint, Build & Asset Validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,6 +92,10 @@ jobs:
 
       - name: Run Android lint
         run: ./gradlew :app:lintDebug
+        shell: bash
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug
         shell: bash
 
       - name: Set up Python
