@@ -26,11 +26,15 @@ test.describe('Search Assistant copy safety', () => {
     expect(generated).toBe('shiny')
 
     await page.getByTestId('assistant-copy-button').click()
-    await expect(page.getByRole('dialog', { name: 'Check this search first' })).toBeVisible()
+    const reviewDialog = page.getByRole('dialog', { name: 'Check this search first' })
+    await expect(reviewDialog).toBeVisible()
 
     const beforeConfirm = await page.evaluate(() => navigator.clipboard.readText())
     expect(beforeConfirm).toBe('')
 
+    await reviewDialog.evaluate(async element => {
+      await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished))
+    })
     const reviewCopy = page.getByTestId('assistant-review-copy-button')
     const box = await reviewCopy.boundingBox()
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(48)
