@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.caglar.pokequery.data.model.RiskLevel
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.assist.AiProviderRegistry
@@ -85,7 +86,7 @@ fun resolveAssistantOutputQuery(rawQuery: String, gameLanguage: String?, appLang
 }
 
 @Composable
-fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, onExplain: (String) -> Unit = {}) {
+fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String, RiskLevel) -> Unit = { _, _ -> }, onExplain: (String) -> Unit = {}) {
     val context = LocalContext.current
     val isEnglishUi = LocalConfiguration.current.locales[0]?.language == "en"
     val scope = rememberCoroutineScope()
@@ -159,7 +160,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                                 result.fold(
                                     onSuccess = { suggestion ->
                                         parseResult = com.caglar.pokequery.domain.assist.ParsedIntent(
-                                            tokens = suggestion.rawSyntax.split(Regex("[&!]")).filter { it.isNotBlank() },
+                                            tokens = suggestion.rawSyntax.split(Regex("[&!]" )).filter { it.isNotBlank() },
                                             rawQuery = suggestion.rawSyntax,
                                             explanation = suggestion.explanation,
                                             limitations = suggestion.limitations
@@ -265,7 +266,7 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String) -> Unit = {}, 
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         PqPrimaryButton(
                             text = if (copyBlocked) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_fix_errors) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_copy_btn),
-                            onClick = { onCopyRaw(translatedQuery) },
+                            onClick = { onCopyRaw(translatedQuery, SearchStringExplainer.explain(result.rawQuery).totalRisk) },
                             enabled = !copyBlocked,
                             leadingIcon = Icons.Default.ContentCopy,
                             modifier = Modifier.weight(1f)
