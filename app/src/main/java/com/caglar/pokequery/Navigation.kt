@@ -250,15 +250,19 @@ fun MainNavigation(
                         entry<SearchAssistant> {
                             SearchAssistantScreen(
                                 onBack = { safePop() },
-                                onCopyRaw = { rawSyntax ->
+                                onCopyRaw = { rawSyntax, riskLevel ->
                                     val generated = GeneratedString(
                                         rawSyntax = rawSyntax,
                                         plainLanguageExplanation = assistantExplanation,
                                         protectedCategories = emptyList(),
                                         includedHighRiskCategories = emptyList(),
-                                        riskLevel = RiskLevel.Medium
+                                        riskLevel = riskLevel
                                     )
-                                    backStack.add(RiskWarning(generated, RiskAction.Copy))
+                                    if (requiresRiskWarning(riskLevel)) {
+                                        backStack.add(RiskWarning(generated, RiskAction.Copy))
+                                    } else {
+                                        copyGenerated(generated)
+                                    }
                                 },
                                 onExplain = { query -> backStack.add(ExplainRoute(query)) }
                             )
