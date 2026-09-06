@@ -58,15 +58,33 @@ The release branch contains the release/version metadata set plus the narrow PR-
 
 The UI implementation delta is limited to rebinding the current Changelog row from stale `what_changed_v066_*` resources to the dedicated localized `what_changed_v077_*` resources. The locale coverage regression test requires every supported locale to provide the complete v0.7.7 changelog key set and rejects stale `what_changed_v066_*` keys in those new files. No search-engine behavior, Event Guide feed data, signing configuration, keystore material, tag or release artifact is changed by the release-prep branch.
 
+## Final cloud validation
+
+Android CI run `34062529062`, job `101566131322`, on code/test HEAD `2c3289752c90ee195219b5e13574cb5e97f82c9b`: **PASS**.
+
+Passed steps:
+- golden corpus cross-platform identity;
+- Android bundled Event Guide fallback freshness;
+- Android unit tests, including the v0.7.7 six-locale changelog resource regression coverage;
+- Android lint;
+- debug APK assembly;
+- generator safety invariants;
+- generator/enrichment/fallback validators;
+- event feed validation;
+- runtime asset validation.
+
+The later readiness update is documentation-only and does not alter Android code, resources, tests, workflows, or build metadata.
+
+CodeRabbit status on the validated code/test head is success. Both verified PR #33 inline review findings are resolved.
+
 ## Required before merge / release-source freeze
 
-- [ ] Release-branch Android CI passes completely on **0.7.7 / code 27** on the final head including the v0.7.7 locale-coverage regression test.
+- [x] Release-branch Android CI passes completely on **0.7.7 / code 27** including the v0.7.7 locale-coverage regression test.
 - [x] Confirm release-branch diff is the intentional 15-file version/changelog/readiness + review-hardening set above.
 - [ ] Confirm the new v0.7.7 Changelog current-entry copy is readable without clipping/overlap in EN/TR/DE/ES/FR/IT on the physical Android validation device.
-- [x] Resolve the verified Markdown-spacing PR #33 review finding after validating its fix.
-- [ ] Resolve the remaining changelog-localization review finding after physical visual validation.
+- [x] Resolve the verified PR #33 review findings after validating their fixes.
 - [x] Confirm `versionName=0.7.7`, `versionCode=27`, package `com.caglar.pokequery` from the release branch itself.
-- [ ] Squash-merge the release PR only after the release-branch gate is terminal green and the physical visual gate passes.
+- [ ] Squash-merge the release PR only after the physical Changelog visual gate passes.
 - [ ] Record the exact resulting master merge SHA as the v0.7.7 release-source candidate.
 
 ## Required after merge — local signing/artifact gate
@@ -100,4 +118,4 @@ PR #32 already passed full PWA Playwright and visual QA before the Android-only 
 
 ## Current blocker
 
-The candidate is not yet releasable. The immediate gates are terminal-green Android CI on the final review-hardened release head, six-locale physical Changelog copy/overflow validation, and resolution of the remaining changelog review thread. Merge, signing, AAB generation, tagging and Google Play publication remain separate gated operations.
+The only remaining pre-merge blocker is the physical Android six-locale visual check of the new v0.7.7 Changelog current-entry content. Merge, signing, AAB generation, tagging and Google Play publication remain separate gated operations.
