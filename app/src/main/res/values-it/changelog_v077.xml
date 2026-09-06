@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v077_subtitle">Versione • Condivisione più sicura e Assistente di ricerca</string>
+    <string name="what_changed_v077_b1">• Condividi una ricerca generata tramite il menu di condivisione di sistema di Android.</string>
+    <string name="what_changed_v077_b2">• Le ricerche a rischio medio/alto devono essere verificate prima di essere copiate o condivise.</string>
+    <string name="what_changed_v077_b3">• La richiesta locale di valutazione e le nuove schermate di condivisione sono disponibili in tutte e sei le lingue dell’app.</string>
+    <string name="what_changed_v077_safety1">Le ricerche generate continuano a non usare mai l’operatore |; le azioni in Pokémon GO restano manuali.</string>
+    <string name="what_changed_v077_safety2">I flussi Condividi e Assistente di ricerca a rischio medio sono stati verificati su un dispositivo Android fisico.</string>
+    <string name="what_changed_v077_safety3">La richiesta di valutazione resta sul dispositivo. Non sono stati aggiunti strumenti di analisi, pubblicità, tracciamento o accesso agli account.</string>
+    <string name="what_changed_v077_tester1">Condividi un obiettivo a basso rischio e verifica che il menu Android mostri la ricerca corretta.</string>
+    <string name="what_changed_v077_tester2">Prova a condividere una ricerca a rischio medio; annullando l’avviso non deve aprirsi il menu di condivisione.</string>
+    <string name="what_changed_v077_tester3">Nell’Assistente di ricerca, hundo deve copiare direttamente 4*; shiny deve richiedere prima la verifica.</string>
+</resources>

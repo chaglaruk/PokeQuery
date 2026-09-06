@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v077_subtitle">Version • Partage plus sûr et Assistant de recherche</string>
+    <string name="what_changed_v077_b1">• Partage une recherche générée via la feuille de partage système d’Android.</string>
+    <string name="what_changed_v077_b2">• Les recherches à risque moyen/élevé doivent être vérifiées avant d’être copiées ou partagées.</string>
+    <string name="what_changed_v077_b3">• L’invite locale de notation et les nouveaux écrans de partage sont disponibles dans les six langues de l’app.</string>
+    <string name="what_changed_v077_safety1">Les recherches générées n’utilisent toujours jamais l’opérateur | ; les actions dans Pokémon GO restent manuelles.</string>
+    <string name="what_changed_v077_safety2">Les parcours Partager et Assistant de recherche à risque moyen ont été vérifiés sur un appareil Android physique.</string>
+    <string name="what_changed_v077_safety3">L’invite de notation reste sur l’appareil. Aucun outil d’analyse, publicité, suivi ni accès au compte n’a été ajouté.</string>
+    <string name="what_changed_v077_tester1">Partage un objectif à faible risque et vérifie que le menu Android affiche la bonne recherche.</string>
+    <string name="what_changed_v077_tester2">Essaie de partager une recherche à risque moyen ; annuler l’avertissement ne doit pas ouvrir le menu de partage.</string>
+    <string name="what_changed_v077_tester3">Dans l’Assistant de recherche, hundo doit copier 4* directement ; shiny doit d’abord demander une vérification.</string>
+</resources>
