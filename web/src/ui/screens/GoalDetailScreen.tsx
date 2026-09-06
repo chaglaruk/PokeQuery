@@ -159,7 +159,7 @@ export function GoalDetailScreen() {
           <button type="button" className={`btn btn-copy ${requiresReview ? 'medium' : ''}`} onClick={() => requestAction('copy')} disabled={!canCopyResult}>
             <AppIcon name="copy" size={18} /> {clipboard?.status === 'copied' ? t('goal_detail_copied') : t('goal_detail_copy_search_string')}
           </button>
-          <button type="button" className="btn btn-edit" style={{ minHeight: '48px' }} onClick={() => requestAction('share')} disabled={!canCopyResult}>
+          <button type="button" data-testid="share-search-button" className="btn btn-edit" style={{ minHeight: '48px' }} onClick={() => requestAction('share')} disabled={!canCopyResult}>
             <AppIcon name="share" size={18} /> {growth.shareSearch}
           </button>
         </div>
