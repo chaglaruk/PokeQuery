@@ -1,11 +1,14 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
+import { growthStrings } from '@i18n/growthStrings'
 import { explain } from '@engine/searchStringExplainer'
 import type { ExplainedToken } from '@engine/searchStringExplainer'
 import type { RiskLevel } from '@/types'
 import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
 import { addHistory } from '@ui/savedSearches'
+import { Dialog } from '@ui/components/Dialog'
+import { AppIcon } from '@ui/components/SpriteIcon'
 
 const riskBadgeClass: Record<RiskLevel, string> = {
   Info: 'badge-info',
@@ -32,19 +35,37 @@ const scopeLabels: Record<string, string> = {
 
 export function ExplainScreen() {
   const { t, locale } = useI18n()
+  const growth = growthStrings(locale)
   const navigate = useNavigate()
-  const [query, setQuery] = useState('')
+  const [searchParams] = useSearchParams()
+  const sharedQuery = (searchParams.get('query') ?? '').slice(0, 2000)
+  const [query, setQuery] = useState(sharedQuery)
   const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
+  const [reviewCopy, setReviewCopy] = useState(false)
 
   const result = useMemo(() => explain(query), [query])
+  const requiresReview = result.totalRisk === 'Medium' || result.totalRisk === 'High'
 
-  const handleCopy = async () => {
+  const performCopy = async () => {
     const copyResult = await copyToClipboard(result.original)
     setClipboard(copyResult)
     if (copyResult.status === 'copied') {
       addHistory({ name: t('goal_explain'), rawSyntax: result.original, goalId: 'explain', riskLevel: result.totalRisk })
       setTimeout(() => setClipboard(null), 2000)
     }
+  }
+
+  const handleCopy = () => {
+    if (requiresReview) {
+      setReviewCopy(true)
+      return
+    }
+    void performCopy()
+  }
+
+  const confirmCopy = () => {
+    setReviewCopy(false)
+    void performCopy()
   }
 
   return (
@@ -67,7 +88,6 @@ export function ExplainScreen() {
 
       {result.tokens.length > 0 && (
         <>
-          {/* Summary */}
           <div className="card">
             <div className="section-title" style={{ margin: '0 0 8px' }}>{t('explain_summary')}</div>
             <p style={{ fontSize: '14px', lineHeight: 1.6 }}>
@@ -102,7 +122,6 @@ export function ExplainScreen() {
             )}
           </div>
 
-          {/* Token breakdown */}
           <div className="card">
             <div className="section-title" style={{ margin: '0 0 10px' }}>{t('explain_tokens_title')}</div>
             {result.tokens.map((tok, i) => (
@@ -110,7 +129,6 @@ export function ExplainScreen() {
             ))}
           </div>
 
-          {/* Copy */}
           <div style={{ marginTop: '16px' }}>
             <button className="btn btn-primary" onClick={handleCopy}>
               {clipboard?.status === 'copied' ? `\u2714 ${t('explain_copied')}` : t('explain_copy_search_string')}
@@ -125,6 +143,16 @@ export function ExplainScreen() {
           <p className="text-muted" style={{ textAlign: 'center' }}>{t('explain_intro')}</p>
         </div>
       )}
+
+      <Dialog open={reviewCopy} title={growth.riskTitle} onClose={() => setReviewCopy(false)} closeLabel={growth.cancel}>
+        <p>{growth.riskBody}</p>
+        <div className="detail-actions" style={{ marginTop: '16px' }}>
+          <button type="button" className="btn btn-copy medium" onClick={confirmCopy}>
+            <AppIcon name="copy" size={18} /> {growth.continueCopy}
+          </button>
+          <button type="button" className="btn btn-edit" onClick={() => setReviewCopy(false)}>{growth.cancel}</button>
+        </div>
+      </Dialog>
     </div>
   )
 }
