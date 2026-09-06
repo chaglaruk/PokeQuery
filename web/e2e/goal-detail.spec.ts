@@ -112,7 +112,7 @@ test.describe('Goal selection and search text (scenarios 8-14)', () => {
     await expect(page).toHaveURL(/#\/$/)
   })
 
-  test('14. share search preserves the generated query and PokeQuery link', async ({ page }) => {
+  test('14. share search preserves the generated query and PokeQuery explain link', async ({ page }) => {
     await page.addInitScript(() => {
       Object.defineProperty(navigator, 'share', { value: undefined, configurable: true })
       let sharedText = ''
@@ -135,6 +135,11 @@ test.describe('Goal selection and search text (scenarios 8-14)', () => {
     const shared = await page.evaluate(() => navigator.clipboard.readText())
     expect(shared).toContain(expectedText)
     expect(shared).toContain('Built with PokeQuery')
-    expect(shared).toContain('#/goal/safe_cleanup')
+
+    const sharedUrl = shared.split('\n').at(-1) ?? ''
+    const parsed = new URL(sharedUrl)
+    expect(parsed.hash).toMatch(/^#\/explain\?query=/)
+    const queryParams = new URLSearchParams(parsed.hash.split('?')[1] ?? '')
+    expect(queryParams.get('query')).toBe(expectedText)
   })
 })
