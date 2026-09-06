@@ -13,9 +13,9 @@ import org.junit.Test
 class AppVersionTest {
 
     @Test
-    fun `display version matches the v0-dot-7-dot-6 release`() {
-        assertEquals("0.7.6", AppVersion.versionName)
-        assertEquals(26, AppVersion.versionCode)
+    fun `display version matches the v0-dot-7-dot-7 release`() {
+        assertEquals("0.7.7", AppVersion.versionName)
+        assertEquals(27, AppVersion.versionCode)
     }
 
     @Test
@@ -30,6 +30,6 @@ class AppVersionTest {
     fun `about display string starts with PokeQuery and includes the version`() {
         val display = AppVersion.aboutDisplayString
         assertTrue("Expected 'PokeQuery' in: $display", display.contains("PokeQuery"))
-        assertTrue("Expected '0.7.6' in: $display", display.contains("0.7.6"))
+        assertTrue("Expected '0.7.7' in: $display", display.contains("0.7.7"))
     }
 }
