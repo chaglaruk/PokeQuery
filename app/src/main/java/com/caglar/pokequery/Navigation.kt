@@ -6,7 +6,10 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -21,7 +24,7 @@ import com.caglar.pokequery.data.model.RiskLevel
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
-
+import com.caglar.pokequery.growth.GrowthPromptStore
 import com.caglar.pokequery.ui.components.BottomNavBar
 import com.caglar.pokequery.ui.motion.PqMotionTokens
 import com.caglar.pokequery.ui.motion.ProvidePqMotion
@@ -40,6 +43,8 @@ fun MainNavigation(
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
     val repository = remember { UserPreferencesRepository(context.dataStore) }
+    val growthPromptStore = remember { GrowthPromptStore(context) }
+    var showRatePrompt by remember { mutableStateOf(false) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
     val initialEntry = remember(startRoute, userPrefs) {
         startDestination(startRoute, userPrefs?.firstUseSeen)
@@ -47,6 +52,59 @@ fun MainNavigation(
 
     val backStack = rememberNavBackStack(initialEntry)
     var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
+
+    fun recordSuccessfulCopy() {
+        if (growthPromptStore.recordSuccessfulCopyAndShouldPrompt()) {
+            growthPromptStore.markPromptShown()
+            showRatePrompt = true
+        }
+    }
+
+    fun openPlayStoreRating() {
+        val packageName = context.packageName
+        val marketIntent = android.content.Intent(
+            android.content.Intent.ACTION_VIEW,
+            android.net.Uri.parse("market://details?id=$packageName")
+        ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        val webIntent = android.content.Intent(
+            android.content.Intent.ACTION_VIEW,
+            android.net.Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+        ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        val opened = runCatching {
+            if (marketIntent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(marketIntent)
+            } else {
+                context.startActivity(webIntent)
+            }
+        }.isSuccess
+        if (opened) growthPromptStore.markRatingOpened()
+        showRatePrompt = false
+    }
+
+    fun shareGenerated(generated: GeneratedString) {
+        val shareText = buildString {
+            append(context.getString(R.string.growth_share_heading))
+            append('\n')
+            append(generated.rawSyntax)
+            append("\n\n")
+            append(context.getString(R.string.growth_share_built_with))
+            append('\n')
+            append("https://play.google.com/store/apps/details?id=${context.packageName}")
+        }
+        val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+        }
+        runCatching {
+            context.startActivity(
+                android.content.Intent.createChooser(
+                    shareIntent,
+                    context.getString(R.string.growth_share_search)
+                )
+            )
+        }
+    }
 
     // rememberNavBackStack intentionally survives recomposition, so routed onNewIntent calls need
     // an explicit reset. The version also changes when the same widget route is tapped twice.
@@ -85,16 +143,25 @@ fun MainNavigation(
                 )
             }
             android.widget.Toast.makeText(context, copiedToClipboard, android.widget.Toast.LENGTH_SHORT).show()
+            recordSuccessfulCopy()
             onCopyHandled()
         }
     }
 
-    // v0.5.3 motion polish: provide the resolved reduced-motion state to the whole UI.
     ProvidePqMotion {
     fun copyGenerated(generated: GeneratedString) {
         clipboard.setText(AnnotatedString(generated.rawSyntax))
         scope.launch { repository.addHistory(SavedTemplate.from(generated)) }
         android.widget.Toast.makeText(context, copiedToClipboard, android.widget.Toast.LENGTH_SHORT).show()
+        recordSuccessfulCopy()
+    }
+
+    fun requestShare(generated: GeneratedString) {
+        if (requiresRiskWarning(generated.riskLevel)) {
+            backStack.add(RiskWarning(generated, RiskAction.Share))
+        } else {
+            shareGenerated(generated)
+        }
     }
 
     val safePop: () -> Unit = {
@@ -121,10 +188,6 @@ fun MainNavigation(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            // v0.5.3 motion polish: smooth PURE crossfade between destinations (no vertical slide).
-            // Subtlety over visible motion — a slide was deliberately NOT added (the reference app
-            // has more motion, but PokeQuery stays premium/utility-like). Durations centralized in
-            // PqMotionTokens so the "reduce until premium" dial lives in one place.
             NavDisplay(
                 backStack = backStack,
                 onBack = { safePop() },
@@ -133,9 +196,9 @@ fun MainNavigation(
                 predictivePopTransitionSpec = { _ -> fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
                 entryProvider = entryProvider {
                     entry<Onboarding> { route ->
-                        val scope = rememberCoroutineScope()
+                        val onboardingScope = rememberCoroutineScope()
                         OnboardingScreen(initialPage = route.initialPage) {
-                            scope.launch { repository.setFirstUseSeen(true) }
+                            onboardingScope.launch { repository.setFirstUseSeen(true) }
                             backStack.clear()
                             backStack.add(Home)
                         }
@@ -150,8 +213,10 @@ fun MainNavigation(
                             goalId = route.goalId,
                             onBack = { safePop() },
                             onNavigateRisk = { generatedString ->
-                                backStack.add(RiskWarning(generatedString))
-                            }
+                                backStack.add(RiskWarning(generatedString, RiskAction.Copy))
+                            },
+                            onShare = ::requestShare,
+                            onCopyCompleted = ::recordSuccessfulCopy
                         )
                     }
                     entry<ExpertBuilder> {
@@ -159,7 +224,7 @@ fun MainNavigation(
                         ExpertBuilderScreen(
                             onGenerate = { query ->
                                 val generated = StringBuilderEngine.buildGoal("expert", customQuery = query, language = language)
-                                if (requiresRiskWarning(generated.riskLevel)) backStack.add(RiskWarning(generated)) else copyGenerated(generated)
+                                if (requiresRiskWarning(generated.riskLevel)) backStack.add(RiskWarning(generated, RiskAction.Copy)) else copyGenerated(generated)
                             },
                             onBack = { safePop() }
                         )
@@ -169,49 +234,44 @@ fun MainNavigation(
                             onBack = { safePop() },
                             onCopy = ::copyGenerated,
                             onNavigateRisk = { generatedString ->
-                                backStack.add(RiskWarning(generatedString))
+                                backStack.add(RiskWarning(generatedString, RiskAction.Copy))
                             }
                         )
                     }
-                    // v0.6.1: Personal Presets (local only). Risk gating preserved.
                     entry<MyPresets> {
                         MyPresetsScreen(
                             onBack = { safePop() },
                             onCopy = ::copyGenerated,
                             onNavigateRisk = { generatedString ->
-                                backStack.add(RiskWarning(generatedString))
+                                backStack.add(RiskWarning(generatedString, RiskAction.Copy))
                             }
                         )
                     }
-                    // v0.6.1: Practice Mode (fake inventory sandbox, conceptual only).
                     entry<PracticeMode> {
                         PracticeModeScreen(onBack = { safePop() })
                     }
-                    // v0.6.1: Cleaning Journal (user-entered memory only, local).
                     entry<CleaningJournal> {
                         CleaningJournalScreen(onBack = { safePop() })
                     }
-                    // v0.6.8: Event Guide.
                     entry<EventContext> {
                         EventContextScreen(
                             onBack = { safePop() },
                             debugEventFeedUrl = debugEventFeedUrl
                         )
                     }
-                    // v0.6.2: Safe NL search-string assistant.
                     entry<SearchAssistant> {
                         SearchAssistantScreen(
                             onBack = { safePop() },
                             onCopyRaw = { rawSyntax ->
                                 clipboard.setText(AnnotatedString(rawSyntax))
                                 scope.launch { repository.addHistory(com.caglar.pokequery.data.model.SavedTemplate.from(com.caglar.pokequery.data.model.GeneratedString(rawSyntax, assistantExplanation, emptyList(), emptyList(), com.caglar.pokequery.data.model.RiskLevel.Medium))) }
+                                recordSuccessfulCopy()
                             },
                             onExplain = { query ->
                                 backStack.add(ExplainRoute(query))
                             }
                         )
                     }
-                    // v0.6.2: Search String Explain mode.
                     entry<ExplainRoute> { route ->
                         ExplainScreen(
                             onBack = { safePop() },
@@ -222,7 +282,7 @@ fun MainNavigation(
                         FavoritesScreen(
                             onCopy = { favorite ->
                                 if (requiresRiskWarning(favorite.riskLevel)) {
-                                    backStack.add(RiskWarning(favorite.asGeneratedString()))
+                                    backStack.add(RiskWarning(favorite.asGeneratedString(), RiskAction.Copy))
                                 } else {
                                     copyGenerated(favorite.asGeneratedString())
                                 }
@@ -234,7 +294,7 @@ fun MainNavigation(
                         HistoryScreen(
                             onCopy = { history ->
                                 if (requiresRiskWarning(history.riskLevel)) {
-                                    backStack.add(RiskWarning(history.asGeneratedString()))
+                                    backStack.add(RiskWarning(history.asGeneratedString(), RiskAction.Copy))
                                 } else {
                                     copyGenerated(history.asGeneratedString())
                                 }
@@ -253,8 +313,13 @@ fun MainNavigation(
                     entry<RiskWarning> { route ->
                         RiskWarningScreen(
                             generatedString = route.generatedString,
-                            onConfirmCopy = {
-                                copyGenerated(route.generatedString)
+                            action = route.action,
+                            onConfirmAction = {
+                                if (route.action == RiskAction.Share) {
+                                    shareGenerated(route.generatedString)
+                                } else {
+                                    copyGenerated(route.generatedString)
+                                }
                                 safePop()
                             },
                             onBack = { safePop() }
@@ -264,5 +329,23 @@ fun MainNavigation(
             )
         }
     }
-    } // end ProvidePqMotion
+
+    if (showRatePrompt) {
+        AlertDialog(
+            onDismissRequest = { showRatePrompt = false },
+            title = { Text(androidx.compose.ui.res.stringResource(R.string.growth_rate_title)) },
+            text = { Text(androidx.compose.ui.res.stringResource(R.string.growth_rate_body)) },
+            confirmButton = {
+                TextButton(onClick = ::openPlayStoreRating) {
+                    Text(androidx.compose.ui.res.stringResource(R.string.growth_rate_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRatePrompt = false }) {
+                    Text(androidx.compose.ui.res.stringResource(R.string.growth_rate_later))
+                }
+            }
+        )
+    }
+    }
 }
