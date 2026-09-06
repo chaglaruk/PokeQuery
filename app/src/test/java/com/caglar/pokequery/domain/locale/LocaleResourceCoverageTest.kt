@@ -146,6 +146,7 @@ class LocaleResourceCoverageTest {
             val path = "src/main/res/$dir/changelog_v077.xml"
             assertTrue("$dir missing v0.7.7 changelog resource file", File(path).isFile)
             assertEquals("$dir v0.7.7 changelog keys", changelogKeys, keys(path))
+            assertFalse("$dir v0.7.7 changelog file must not retain stale v0.6.6 keys", File(path).readText(Charsets.UTF_8).contains("what_changed_v066_"))
         }
     }
 
