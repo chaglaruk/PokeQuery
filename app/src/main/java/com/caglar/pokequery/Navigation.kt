@@ -103,8 +103,11 @@ fun MainNavigation(
             type = "text/plain"
             putExtra(android.content.Intent.EXTRA_TEXT, shareText)
         }
+        val chooserIntent = android.content.Intent.createChooser(shareIntent, shareChooserTitle).apply {
+            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
         runCatching {
-            context.startActivity(android.content.Intent.createChooser(shareIntent, shareChooserTitle))
+            context.startActivity(chooserIntent)
         }
     }
 
