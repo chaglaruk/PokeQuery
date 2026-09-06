@@ -13,17 +13,11 @@ class GrowthPromptStore(context: Context) {
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun recordSuccessfulCopyAndShouldPrompt(): Boolean {
-        if (prefs.getBoolean(KEY_RATING_OPENED, false)) return false
-
         val count = prefs.getInt(KEY_SUCCESSFUL_COPIES, 0) + 1
         val lastPromptCount = prefs.getInt(KEY_LAST_PROMPT_COUNT, 0)
+        val ratingOpened = prefs.getBoolean(KEY_RATING_OPENED, false)
         prefs.edit().putInt(KEY_SUCCESSFUL_COPIES, count).apply()
-
-        return if (lastPromptCount == 0) {
-            count >= FIRST_PROMPT_COPY_COUNT
-        } else {
-            count - lastPromptCount >= REPEAT_PROMPT_COPY_GAP
-        }
+        return GrowthPromptPolicy.shouldPrompt(count, lastPromptCount, ratingOpened)
     }
 
     fun markPromptShown() {
@@ -41,7 +35,5 @@ class GrowthPromptStore(context: Context) {
         private const val KEY_SUCCESSFUL_COPIES = "successful_copies"
         private const val KEY_LAST_PROMPT_COUNT = "last_rating_prompt_count"
         private const val KEY_RATING_OPENED = "rating_opened"
-        private const val FIRST_PROMPT_COPY_COUNT = 3
-        private const val REPEAT_PROMPT_COPY_GAP = 10
     }
 }
