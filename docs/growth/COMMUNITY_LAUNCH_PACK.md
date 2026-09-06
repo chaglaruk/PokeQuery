@@ -18,27 +18,31 @@ The developer has published distinct, subreddit-specific PokeQuery posts to:
 - r/indiehackers
 - r/AppsWebappsFullstack
 
-Do not immediately repeat the same message elsewhere. Engage with any real replies before the next promotional submission.
+Do not immediately repeat the same message elsewhere. Engage with real replies before the next promotional submission.
 
 ### Pending moderator approval
 
 - **r/pokemongo** — modmail sent. Do not publish an app/Play Store link until moderators approve it. If approved, use the value-first storage/search post below.
 - **r/TheSilphRoad** — modmail sent. Only publish if moderators confirm the substantive mechanics/resource format is acceptable.
 
-### Next candidates, not yet published
+### Next eligible candidates, not yet published
 
-- **r/buildinpublic** — suitable only as a build-story/lessons post with genuine context and a feedback question. Do not use as a plain advertisement. The community may be restricted to approved posters; respect that gate if encountered.
-- **r/alphaandbetausers** — suitable for a focused feedback request on the Search Assistant and Event Guide. Ask testers specific questions and avoid pretending a production app is still a closed beta.
-- **r/androidapps** — no standalone self-promotion. Use only the current official self-promotion megathread if one is visibly active and its current frequency/engagement rules are satisfied.
+- **r/IMadeThis** — public community explicitly intended for creators to show what they made. Use a creator/showcase story, not another identical launch ad.
+- **r/IndieDev** — public community that explicitly says indie content is welcome and that there are few strict rules; peer/developer audience, so emphasize product/UX decisions and include useful visual context if possible.
+- **r/apps** — public and app-related, but its rules say not to create an account just to advertise and prohibit spam/low-quality posts. Because the account has several recent PokeQuery posts, treat this as a later candidate rather than an immediate target.
+- **r/buildinpublic** — content fit is good for a build-story/lessons post, but the subreddit currently reports `subreddit_type: restricted`. Only post if Reddit grants/indicates contributor approval; do not work around the restriction.
+- **r/androidapps** — no standalone self-promotion. Use only a currently visible official self-promotion megathread and only if its current frequency/engagement rules are satisfied.
 - **r/droidappshowcase** — paused because Reddit surfaced a Rule 2 warning during submission. Do not bypass that warning until its exact current rule and required format are confirmed.
 
-### Do not use for PokeQuery promotion
+### Not eligible / do not use for current PokeQuery promotion
 
+- **r/alphaandbetausers** — current subreddit rules require links to products genuinely ready for Alpha/Beta testing, require stage/system tags, and state that products believed not to be Alpha or Beta will be removed. PokeQuery is already production, so do not misrepresent it as beta merely to gain exposure.
 - r/PokemonGoRaids — advertising/self-promotion prohibited.
 - r/AppDevelopers — self-promotion, app name and app links prohibited.
 - r/Startup_Ideas — not a standalone product-promotion channel.
 - r/TestMyApp / r/AndroidClosedTesting — only use for genuine testing/recruitment needs, not acquisition marketing.
 - r/InternetIsBeautiful — do not use while the account's recent activity is heavily PokeQuery-focused; its anti-self-promo expectations make removal likely.
+- r/Android — developer self-promotion is only allowed when the account is at least three months old **and** has a reasonable posting history specifically in r/Android, plus the developer must stay engaged in the thread. Do not use unless those account-history requirements are demonstrably met.
 
 Priority remains quality over volume. The account must not look like it exists only to post the same product across unrelated communities.
 
@@ -46,12 +50,15 @@ Priority remains quality over volume. The account must not look like it exists o
 
 - A July 2026 r/pokemongo post that supplied a concrete storage-cleanup search string received strong engagement (roughly +692 at the time checked).
 - An April 2026 r/pokemongo post about a free, text-only storage-cleanup tool received strong engagement (roughly +213 at the time checked). Its framing led with the storage problem and explicitly said there was no account/server access, login, download, or tracking.
-- Recent August 2026 r/pokemongo questions still ask for safe-ish storage cleanup and search-string help, so the problem remains current.
+- Recent August 2026 r/pokemongo questions still ask for storage cleanup and search-string help, so the problem remains current.
 - r/pokemongo's anti-cheating reminder is still active on current posts. PokeQuery copy must remain explicit: manual text generation only, no Pokémon GO account access, no automation.
 - r/pokemongo's spam/self-promotion policy means one useful post is preferable to repeated promotional submissions.
 - r/TheSilphRoad search-string/tool posts can perform well, but its allowed-post-type policy is narrower and moderators retain broad removal discretion. Use it only for a substantive mechanics/resource contribution.
-- r/alphaandbetausers has recent 2026 posts explicitly asking users to test Android/web products and provide targeted UX feedback, so it is a better fit for feedback than generic promotion.
-- r/androidapps moderation currently redirects standalone developer promotion/testing/feedback to its dedicated mechanisms rather than allowing normal standalone promo posts.
+- r/alphaandbetausers' current own subreddit description requires genuine Alpha/Beta products and says non-Alpha/Beta links will be removed; production PokeQuery is therefore not an eligible acquisition post there.
+- r/buildinpublic's current subreddit metadata reports it as restricted; its public description strongly fits transparent progress/challenges/lessons, but posting access remains a hard gate.
+- r/IMadeThis explicitly invites creators to show what they made.
+- r/IndieDev explicitly invites indie content, says visual posts perform better, and currently has no broad self-promotion prohibition.
+- r/androidapps moderation redirects standalone developer promotion/testing/feedback to its dedicated mechanisms rather than normal standalone promo posts.
 
 ## Core positioning
 
@@ -69,7 +76,7 @@ Supporting proof points:
 
 Never market a PokeQuery filter as “safe to delete everything”. PokeQuery is a review aid. The player must inspect the matches in Pokémon GO before transferring anything.
 
-## First Reddit experiment — r/pokemongo
+## First high-value Pokémon GO experiment — r/pokemongo
 
 ### Objective
 
@@ -99,14 +106,6 @@ During September 5-6, use Mega Finale weekend as the context. The post must stil
 
 `If you have a cleanup/search string you keep rebuilding every event, post the use case. Those are the ones I'm most interested in improving.`
 
-### Why this version
-
-- The useful string appears before the product pitch.
-- It states what the string intentionally does and does not guarantee.
-- PokeQuery's safety/privacy boundary is clear.
-- The CTA asks for search problems, which can generate product feedback instead of only install clicks.
-- There is one normal Play Store link and no shortener/tracking parameter.
-
 ## First 48 hours after a high-value Pokémon GO post
 
 1. Reply to genuine search questions. Give the useful answer first.
@@ -128,7 +127,7 @@ Do not judge the experiment on installs alone. The first post is useful if it pr
 
 A low score with no meaningful comments is a message failure, not a reason to immediately spam another subreddit. Change the angle first.
 
-## Second Reddit experiment — r/TheSilphRoad
+## r/TheSilphRoad experiment
 
 Do not reuse the r/pokemongo copy.
 
@@ -138,43 +137,55 @@ Only proceed if moderators approve a substantive contribution suitable for the R
 
 The post should explain the reasoning, exclusions, review gate, localized-search limitations, and what can go wrong with broad cleanup strings. PokeQuery can be disclosed as the implementation/tool at the end. The article must stand on its own without requiring an install.
 
-Before posting, re-check the current r/TheSilphRoad rules and confirm the exact post type/flair is allowed. If the fit is weak, skip the subreddit rather than forcing promotion.
+## Creator-showcase experiment — r/IMadeThis
 
-## Next feedback experiment — r/alphaandbetausers
+Use a creator-first story and showcase the strongest shipped surfaces:
+- natural-language Search Assistant;
+- Event Guide;
+- goal-based cleanup/candy/trade/PvP flows;
+- explicit generated syntax and review gates;
+- privacy boundary: no GO account access or automation.
 
-Use this only as a real feedback exercise, not as another generic launch ad.
+Do not reuse the exact SideProject copy. The post should read as “this is what I made and why,” not as a generic advertisement.
 
-Ask people to test two specific surfaces:
-1. **Search Assistant:** can a new user describe a Pokémon GO goal in plain language and understand the generated result without already knowing the search syntax?
-2. **Event Guide:** can a player understand what is current/upcoming and identify useful preparation context quickly?
+## Indie peer experiment — r/IndieDev
 
-Ask for confusion, missing use cases, and wording/UX issues. Do not ask for ratings, reciprocal installs, or test-for-test. The app is already live, so disclose that honestly.
+Use a peer/development framing. Prefer screenshots/GIFs because the community guidelines explicitly say visual posts usually get more attention. Focus on the interesting product decisions:
+- exposing generated syntax instead of hiding it behind natural language;
+- Android/Web parity via shared golden-corpus expectations;
+- local deterministic search engine vs changing public Event Guide data;
+- conservative review gates for higher-risk search actions.
 
-## Build-story experiment — r/buildinpublic
+Do not pretend the audience is primarily Pokémon GO players; it is a room of indie-development peers.
 
-If posting permission is available, lead with the evolution of the product rather than the Play Store link:
+## Restricted build-story experiment — r/buildinpublic
+
+Only proceed if the account is approved to post. The subreddit is currently restricted.
+
+If access is available, lead with the evolution of the product rather than the Play Store link:
 - started as a deterministic string builder;
 - natural-language Search Assistant was added without making generated syntax opaque;
 - Event Guide required separating deterministic local engine logic from changing public event data;
 - Android and Web remain parity-checked;
 - privacy boundary stayed manual-copy/paste with no account access or tracking.
 
-The post should end with a concrete product/UX lesson or question. Do not present it as “here is my app, download it.”
+End with a concrete product/UX lesson or question. Do not present it as “here is my app, download it.”
 
 ## Reddit-only sequence from this checkpoint
 
 1. Engage with replies on the four already-published builder/developer posts.
 2. Wait for r/pokemongo and r/TheSilphRoad moderator responses before posting there.
-3. Do not publish another generic promotional post immediately; use the next slot for a genuine feedback/build-story contribution if the target community rules allow it.
-4. r/alphaandbetausers is the preferred next feedback channel.
-5. r/buildinpublic is the preferred next maker-story channel if posting access is available.
-6. After meaningful feedback arrives, decide whether it justifies a product change; changes must still pass normal safety/parity validation.
-7. Compare Reddit response with Google Play listing data before expanding to more social networks.
+3. Do not publish another batch of generic promotional posts immediately.
+4. The next safe standalone showcase candidate is r/IMadeThis; r/IndieDev is a later peer-focused candidate with different creative/visual framing.
+5. Use r/buildinpublic only if the account has posting approval.
+6. Do not use r/alphaandbetausers for production PokeQuery.
+7. After meaningful feedback arrives, decide whether it justifies a product change; changes must still pass normal safety/parity validation.
+8. Compare Reddit response with Google Play listing data before expanding to more social networks.
 
 ## Reddit publishing gate
 
 Before every public Reddit submission:
-1. Re-check the target subreddit's current rules.
+1. Re-check the target subreddit's current rules and current public/restricted state.
 2. Confirm that the post is useful without installing PokeQuery.
 3. Verify every event/date claim against current official Pokémon GO sources.
 4. Verify any generated search string against current PokeQuery code/tests; never hand-edit syntax and call it verified.
