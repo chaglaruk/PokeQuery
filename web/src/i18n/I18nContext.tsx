@@ -44,12 +44,28 @@ function detectSystemLocale(): LocaleCode {
   return 'en'
 }
 
-function resolveSearchLanguage(ssl: SearchStringLanguage, al: AppLanguage): string {
-  if (ssl === 'Auto') return 'English'
+function engineLanguageForLocale(locale: LocaleCode): string {
+  const map: Record<LocaleCode, string> = {
+    en: 'English',
+    tr: 'Turkish',
+    de: 'German',
+    es: 'Spanish',
+    fr: 'French',
+    it: 'Italian',
+  }
+  return map[locale]
+}
+
+/** Mirrors Android LocalizationModel.SearchStringLanguage.resolve. */
+export function resolveSearchLanguage(
+  ssl: SearchStringLanguage,
+  al: AppLanguage,
+  systemLocale: LocaleCode = detectSystemLocale(),
+): string {
+  if (ssl === 'Auto') return engineLanguageForLocale(systemLocale)
   if (ssl === 'Match App Language') {
-    const locale = appLanguageToLocale[al]
-    const map: Record<LocaleCode, string> = { en: 'English', tr: 'Turkish', de: 'German', es: 'Spanish', fr: 'French', it: 'Italian' }
-    return map[locale]
+    const locale = al === 'System Default' ? systemLocale : appLanguageToLocale[al]
+    return engineLanguageForLocale(locale)
   }
   return searchLanguageToEngineName[ssl]
 }
@@ -87,8 +103,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return saved ?? 'Auto'
   })
 
+  const systemLocale = detectSystemLocale()
   const locale: LocaleCode = appLanguage === 'System Default'
-    ? detectSystemLocale()
+    ? systemLocale
     : appLanguageToLocale[appLanguage]
 
   const stringMap = localeMaps[locale] ?? en
@@ -115,7 +132,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('pq_search_language', lang)
   }, [])
 
-  const resolvedSearchLanguage = resolveSearchLanguage(searchLanguage, appLanguage)
+  const resolvedSearchLanguage = resolveSearchLanguage(searchLanguage, appLanguage, systemLocale)
 
   return (
     <I18nContext.Provider value={{ t, appLanguage, setAppLanguage, searchLanguage, setSearchLanguage, resolvedSearchLanguage, locale }}>
