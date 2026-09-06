@@ -56,7 +56,7 @@ The release branch contains the release/version metadata set plus the narrow PR-
 - `app/src/test/java/com/caglar/pokequery/privacy/BuildConfigRegressionTest.kt`
 - `docs/release/RELEASE_READINESS.md`
 
-The UI implementation delta is limited to rebinding the current Changelog row from stale `what_changed_v066_*` resources to the dedicated localized `what_changed_v077_*` resources. The locale coverage test now also requires every supported locale to provide the complete v0.7.7 changelog key set. No search-engine behavior, Event Guide feed data, signing configuration, keystore material, tag or release artifact is changed by the release-prep branch.
+The UI implementation delta is limited to rebinding the current Changelog row from stale `what_changed_v066_*` resources to the dedicated localized `what_changed_v077_*` resources. The locale coverage regression test requires every supported locale to provide the complete v0.7.7 changelog key set and rejects stale `what_changed_v066_*` keys in those new files. No search-engine behavior, Event Guide feed data, signing configuration, keystore material, tag or release artifact is changed by the release-prep branch.
 
 ## Required before merge / release-source freeze
 
