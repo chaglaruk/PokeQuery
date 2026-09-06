@@ -10,21 +10,48 @@ Current timely hook: the official Pokémon GO events page lists Pokémon GO Fest
 
 Other social networks are deliberately deferred. Reddit is the primary acquisition channel until the first Reddit experiments produce enough signal to decide what message deserves wider distribution.
 
-Priority order:
-1. **r/pokemongo** — first launch target, but ask moderators for permission before including the PokeQuery/Play Store link. Use one value-first storage/search post, not an ad blast.
-2. **r/TheSilphRoad** — second wave only when the post is substantive analysis, mechanics, strategy, or a genuinely useful resource. Do not submit a generic PokeQuery promo there.
-3. Other subreddits only after their current rules and audience fit have been checked. Do not use raid-only communities for promotion.
+### Already published on 2026-09-06
 
-Do not cross-post the first PokeQuery submission. Let one post run for at least 48 hours and learn from the comments before deciding on a second subreddit.
+The developer has published distinct, subreddit-specific PokeQuery posts to:
+- r/SideProject
+- r/GooglePlayDeveloper
+- r/indiehackers
+- r/AppsWebappsFullstack
+
+Do not immediately repeat the same message elsewhere. Engage with any real replies before the next promotional submission.
+
+### Pending moderator approval
+
+- **r/pokemongo** — modmail sent. Do not publish an app/Play Store link until moderators approve it. If approved, use the value-first storage/search post below.
+- **r/TheSilphRoad** — modmail sent. Only publish if moderators confirm the substantive mechanics/resource format is acceptable.
+
+### Next candidates, not yet published
+
+- **r/buildinpublic** — suitable only as a build-story/lessons post with genuine context and a feedback question. Do not use as a plain advertisement. The community may be restricted to approved posters; respect that gate if encountered.
+- **r/alphaandbetausers** — suitable for a focused feedback request on the Search Assistant and Event Guide. Ask testers specific questions and avoid pretending a production app is still a closed beta.
+- **r/androidapps** — no standalone self-promotion. Use only the current official self-promotion megathread if one is visibly active and its current frequency/engagement rules are satisfied.
+- **r/droidappshowcase** — paused because Reddit surfaced a Rule 2 warning during submission. Do not bypass that warning until its exact current rule and required format are confirmed.
+
+### Do not use for PokeQuery promotion
+
+- r/PokemonGoRaids — advertising/self-promotion prohibited.
+- r/AppDevelopers — self-promotion, app name and app links prohibited.
+- r/Startup_Ideas — not a standalone product-promotion channel.
+- r/TestMyApp / r/AndroidClosedTesting — only use for genuine testing/recruitment needs, not acquisition marketing.
+- r/InternetIsBeautiful — do not use while the account's recent activity is heavily PokeQuery-focused; its anti-self-promo expectations make removal likely.
+
+Priority remains quality over volume. The account must not look like it exists only to post the same product across unrelated communities.
 
 ## Evidence checked on 2026-09-06
 
 - A July 2026 r/pokemongo post that supplied a concrete storage-cleanup search string received strong engagement (roughly +692 at the time checked).
 - An April 2026 r/pokemongo post about a free, text-only storage-cleanup tool received strong engagement (roughly +213 at the time checked). Its framing led with the storage problem and explicitly said there was no account/server access, login, download, or tracking.
-- Recent 2026 r/pokemongo posts still ask for external non-cheating tools and storage/search help, so the problem remains current.
+- Recent August 2026 r/pokemongo questions still ask for safe-ish storage cleanup and search-string help, so the problem remains current.
 - r/pokemongo's anti-cheating reminder is still active on current posts. PokeQuery copy must remain explicit: manual text generation only, no Pokémon GO account access, no automation.
-- r/pokemongo's published Rule 4 guidance says website/community promotion should be cleared with moderators via modmail first. Treat that as the gate before posting a Play Store link.
+- r/pokemongo's spam/self-promotion policy means one useful post is preferable to repeated promotional submissions.
 - r/TheSilphRoad search-string/tool posts can perform well, but its allowed-post-type policy is narrower and moderators retain broad removal discretion. Use it only for a substantive mechanics/resource contribution.
+- r/alphaandbetausers has recent 2026 posts explicitly asking users to test Android/web products and provide targeted UX feedback, so it is a better fit for feedback than generic promotion.
+- r/androidapps moderation currently redirects standalone developer promotion/testing/feedback to its dedicated mechanisms rather than allowing normal standalone promo posts.
 
 ## Core positioning
 
@@ -48,23 +75,6 @@ Never market a PokeQuery filter as “safe to delete everything”. PokeQuery is
 
 Prove that the storage-cleanup problem itself earns attention before asking Reddit users to care about the PokeQuery brand.
 
-### Step 0 — modmail approval
-
-Do not publish the promotional/link-bearing version until the moderators approve it.
-
-Suggested modmail:
-
-`Hi! I built a free Android utility called PokeQuery that only generates Pokémon GO search strings for manual copy/paste. It does not log into Pokémon GO, access accounts/servers, automate gameplay, or use scanners.`
-
-`I'd like to make one value-first Discussion post about storage cleanup during/after Mega Finale. The post would include the actual conservative cleanup search and explain what it excludes, so it is useful without installing anything. I would disclose that I built the app and include one normal Google Play link near the end.`
-
-`Would that be allowed under Rule 4/self-promotion, and is Discussion the appropriate flair? Happy to remove the app link or adjust the format if you prefer.`
-
-If moderators decline the link:
-- do not argue or repost around the decision;
-- optionally make a genuinely non-promotional search-tip contribution only if their reply permits it;
-- otherwise skip r/pokemongo promotion and move to the next rule-compatible Reddit opportunity.
-
 ### Timely angle
 
 During September 5-6, use Mega Finale weekend as the context. The post must still be useful to someone who never installs PokeQuery.
@@ -79,7 +89,7 @@ During September 5-6, use Mega Finale weekend as the context. The post must stil
 
 `1*&!shiny&!legendary&!mythical&!ultrabeast&!costume&!background&!locationbackground&!specialbackground&!shadow&!purified&!favorite&!lucky&!#&!traded&!4*`
 
-`It deliberately starts with 1★ candidates and excludes a long list of things I normally want another look at first: shinies, legendary/mythical/Ultra Beasts, costumes, backgrounds, shadows/purified, favourites, lucky/traded, tagged Pokémon and 4★.`
+`It deliberately starts with 1★ candidates and excludes a long list of things I normally want another look at first: shinies, legendary/mythical/Ultra Beasts, costumes, backgrounds, shadows/purified, favourites, lucky/traded Pokémon, tagged Pokémon and 4★.`
 
 `Important: I still review every match in Pokémon GO before transferring. This is a filter for making the review pile smaller, not a “delete everything shown” button.`
 
@@ -97,15 +107,15 @@ During September 5-6, use Mega Finale weekend as the context. The post must stil
 - The CTA asks for search problems, which can generate product feedback instead of only install clicks.
 - There is one normal Play Store link and no shortener/tracking parameter.
 
-## First 48 hours after posting
+## First 48 hours after a high-value Pokémon GO post
 
 1. Reply to genuine search questions. Give the useful answer first.
 2. Do not paste the Play Store link into every reply. The original post already contains it.
 3. If someone challenges a token or safety assumption, verify it against current PokeQuery code/tests and official Pokémon GO search documentation before answering.
 4. If a user supplies a useful recurring workflow, record it as a potential preset/problem statement. Do not claim support until it exists and passes parity/safety validation.
-5. Do not make a second promotional Reddit post during this window.
+5. Do not make a second promotional Pokémon GO subreddit post during this window.
 6. Record outcomes manually: post score, comments, recurring questions, complaints, requests, and any visible Play Console install movement. Do not add an analytics/tracking SDK to PokeQuery.
-7. If moderators remove the post, do not repost around the removal. Read the stated reason and adjust the channel/content strategy.
+7. If moderators remove a post, do not repost around the removal. Read the stated reason and adjust the channel/content strategy.
 
 ## What counts as a useful first signal
 
@@ -122,7 +132,7 @@ A low score with no meaningful comments is a message failure, not a reason to im
 
 Do not reuse the r/pokemongo copy.
 
-Only proceed if there is a substantive contribution suitable for the Road's mechanics/strategy/resource focus. Preferred concept:
+Only proceed if moderators approve a substantive contribution suitable for the Road's mechanics/strategy/resource focus. Preferred concept:
 
 `A conservative Pokémon GO storage-cleanup workflow: why I separate candidate filtering from transfer decisions`
 
@@ -130,34 +140,49 @@ The post should explain the reasoning, exclusions, review gate, localized-search
 
 Before posting, re-check the current r/TheSilphRoad rules and confirm the exact post type/flair is allowed. If the fit is weak, skip the subreddit rather than forcing promotion.
 
-## Reddit-only seven-day sequence
+## Next feedback experiment — r/alphaandbetausers
 
-Day 1: send r/pokemongo modmail asking permission for the single value-first storage-cleanup post with one Play Store link. Prepare the post while waiting; do not publish the promotional version without approval.
+Use this only as a real feedback exercise, not as another generic launch ad.
 
-Day 2: if approved, publish once and answer comments. If not approved, respect the decision and pivot to a rule-compatible Reddit contribution instead of reposting elsewhere immediately.
+Ask people to test two specific surfaces:
+1. **Search Assistant:** can a new user describe a Pokémon GO goal in plain language and understand the generated result without already knowing the search syntax?
+2. **Event Guide:** can a player understand what is current/upcoming and identify useful preparation context quickly?
 
-Day 3: inspect the first 48-hour signal after publication. Improve PokeQuery copy/presets only if user feedback reveals a real gap and the change passes normal safety/parity validation.
+Ask for confusion, missing use cases, and wording/UX issues. Do not ask for ratings, reciprocal installs, or test-for-test. The app is already live, so disclose that honestly.
 
-Day 4: contribute one useful Reddit comment or non-promotional search tip where it naturally answers an existing question. Do not manufacture a reason to drop the app link.
+## Build-story experiment — r/buildinpublic
 
-Day 5: decide whether the next experiment should be another problem angle in r/pokemongo at a later safe interval or a substantive r/TheSilphRoad analysis. Do not publish simply because the calendar says Day 5.
+If posting permission is available, lead with the evolution of the product rather than the Play Store link:
+- started as a deterministic string builder;
+- natural-language Search Assistant was added without making generated syntax opaque;
+- Event Guide required separating deterministic local engine logic from changing public event data;
+- Android and Web remain parity-checked;
+- privacy boundary stayed manual-copy/paste with no account access or tracking.
 
-Day 6: prepare an event-specific search/prep contribution using current verified official event data if a real upcoming event creates a useful hook.
+The post should end with a concrete product/UX lesson or question. Do not present it as “here is my app, download it.”
 
-Day 7: compare Reddit response with Google Play listing data. Keep the pain point/message that produced genuine engagement; discard weak positioning before expanding to other social networks.
+## Reddit-only sequence from this checkpoint
+
+1. Engage with replies on the four already-published builder/developer posts.
+2. Wait for r/pokemongo and r/TheSilphRoad moderator responses before posting there.
+3. Do not publish another generic promotional post immediately; use the next slot for a genuine feedback/build-story contribution if the target community rules allow it.
+4. r/alphaandbetausers is the preferred next feedback channel.
+5. r/buildinpublic is the preferred next maker-story channel if posting access is available.
+6. After meaningful feedback arrives, decide whether it justifies a product change; changes must still pass normal safety/parity validation.
+7. Compare Reddit response with Google Play listing data before expanding to more social networks.
 
 ## Reddit publishing gate
 
 Before every public Reddit submission:
 1. Re-check the target subreddit's current rules.
-2. Obtain moderator permission where the subreddit's rules require approval for website/app/self-promotion links.
-3. Confirm that the post is useful without installing PokeQuery.
-4. Verify every event/date claim against current official Pokémon GO sources.
-5. Verify any generated search string against current PokeQuery code/tests; never hand-edit syntax and call it verified.
-6. Confirm that no generated query contains `|`.
-7. Keep PokeQuery disclosure clear rather than pretending to be an unrelated community recommendation.
-8. Publish to one subreddit first. Do not duplicate/cross-post simultaneously.
-9. Do not evade a moderator removal or repost the same promotion through another account.
+2. Confirm that the post is useful without installing PokeQuery.
+3. Verify every event/date claim against current official Pokémon GO sources.
+4. Verify any generated search string against current PokeQuery code/tests; never hand-edit syntax and call it verified.
+5. Confirm that no generated query contains `|`.
+6. Keep PokeQuery disclosure clear rather than pretending to be an unrelated community recommendation.
+7. Publish to one subreddit first. Do not duplicate/cross-post simultaneously.
+8. Do not evade a moderator removal or repost the same promotion through another account.
+9. If Reddit itself shows a rule warning during composition, stop and verify the exact rule instead of bypassing the warning.
 
 ## Rules for every post
 
