@@ -1,9 +1,9 @@
 package com.caglar.pokequery
 
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
@@ -14,13 +14,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.caglar.pokequery.data.model.GeneratedString
-import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.model.RiskLevel
+import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.engine.StringBuilderEngine
@@ -49,6 +50,12 @@ fun MainNavigation(
     val initialEntry = remember(startRoute, userPrefs) {
         startDestination(startRoute, userPrefs?.firstUseSeen)
     } ?: return
+
+    val shareHeading = stringResource(R.string.growth_share_heading)
+    val shareBuiltWith = stringResource(R.string.growth_share_built_with)
+    val shareChooserTitle = stringResource(R.string.growth_share_search)
+    val copiedToClipboard = stringResource(R.string.goal_detail_copied)
+    val assistantExplanation = stringResource(R.string.search_assistant_generated_explanation)
 
     val backStack = rememberNavBackStack(initialEntry)
     var currentTab by remember { mutableStateOf(tabForStartRoute(startRoute)) }
@@ -84,11 +91,11 @@ fun MainNavigation(
 
     fun shareGenerated(generated: GeneratedString) {
         val shareText = buildString {
-            append(context.getString(R.string.growth_share_heading))
+            append(shareHeading)
             append('\n')
             append(generated.rawSyntax)
             append("\n\n")
-            append(context.getString(R.string.growth_share_built_with))
+            append(shareBuiltWith)
             append('\n')
             append("https://play.google.com/store/apps/details?id=${context.packageName}")
         }
@@ -97,17 +104,10 @@ fun MainNavigation(
             putExtra(android.content.Intent.EXTRA_TEXT, shareText)
         }
         runCatching {
-            context.startActivity(
-                android.content.Intent.createChooser(
-                    shareIntent,
-                    context.getString(R.string.growth_share_search)
-                )
-            )
+            context.startActivity(android.content.Intent.createChooser(shareIntent, shareChooserTitle))
         }
     }
 
-    // rememberNavBackStack intentionally survives recomposition, so routed onNewIntent calls need
-    // an explicit reset. The version also changes when the same widget route is tapped twice.
     LaunchedEffect(startRoute, navigationIntentVersion, userPrefs?.firstUseSeen) {
         if (navigationIntentVersion > 0 && startRoute != null) {
             val destination = startDestination(startRoute, userPrefs?.firstUseSeen) ?: return@LaunchedEffect
@@ -116,9 +116,6 @@ fun MainNavigation(
             backStack.add(destination)
         }
     }
-
-    val copiedToClipboard = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_copied)
-    val assistantExplanation = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_generated_explanation)
 
     LaunchedEffect(startRoute, copySearch) {
         if (!copySearch.isNullOrBlank()) {
@@ -149,203 +146,198 @@ fun MainNavigation(
     }
 
     ProvidePqMotion {
-    fun copyGenerated(generated: GeneratedString) {
-        clipboard.setText(AnnotatedString(generated.rawSyntax))
-        scope.launch { repository.addHistory(SavedTemplate.from(generated)) }
-        android.widget.Toast.makeText(context, copiedToClipboard, android.widget.Toast.LENGTH_SHORT).show()
-        recordSuccessfulCopy()
-    }
-
-    fun requestShare(generated: GeneratedString) {
-        if (requiresRiskWarning(generated.riskLevel)) {
-            backStack.add(RiskWarning(generated, RiskAction.Share))
-        } else {
-            shareGenerated(generated)
+        fun copyGenerated(generated: GeneratedString) {
+            clipboard.setText(AnnotatedString(generated.rawSyntax))
+            scope.launch { repository.addHistory(SavedTemplate.from(generated)) }
+            android.widget.Toast.makeText(context, copiedToClipboard, android.widget.Toast.LENGTH_SHORT).show()
+            recordSuccessfulCopy()
         }
-    }
 
-    val safePop: () -> Unit = {
-        if (backStack.size > 1) {
-            backStack.removeLastOrNull()
-        } else if (backStack.lastOrNull() != Home) {
-            currentTab = "builder"
-            backStack.clear()
-            backStack.add(Home)
+        fun requestShare(generated: GeneratedString) {
+            if (requiresRiskWarning(generated.riskLevel)) {
+                backStack.add(RiskWarning(generated, RiskAction.Share))
+            } else {
+                shareGenerated(generated)
+            }
         }
-    }
 
-    Scaffold(
-        bottomBar = {
-            if (backStack.lastOrNull() !is Onboarding) {
-                BottomNavBar(currentRoute = currentTab) { route ->
-                    bottomTabDestination(route)?.let { destination ->
-                        currentTab = route
-                        backStack.clear()
-                        backStack.add(destination)
+        val safePop: () -> Unit = {
+            if (backStack.size > 1) {
+                backStack.removeLastOrNull()
+            } else if (backStack.lastOrNull() != Home) {
+                currentTab = "builder"
+                backStack.clear()
+                backStack.add(Home)
+            }
+        }
+
+        Scaffold(
+            bottomBar = {
+                if (backStack.lastOrNull() !is Onboarding) {
+                    BottomNavBar(currentRoute = currentTab) { route ->
+                        bottomTabDestination(route)?.let { destination ->
+                            currentTab = route
+                            backStack.clear()
+                            backStack.add(destination)
+                        }
                     }
                 }
             }
+        ) { paddingValues ->
+            Box(modifier = Modifier.padding(paddingValues)) {
+                NavDisplay(
+                    backStack = backStack,
+                    onBack = { safePop() },
+                    transitionSpec = { fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
+                    popTransitionSpec = { fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
+                    predictivePopTransitionSpec = { _ -> fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
+                    entryProvider = entryProvider {
+                        entry<Onboarding> { route ->
+                            val onboardingScope = rememberCoroutineScope()
+                            OnboardingScreen(initialPage = route.initialPage) {
+                                onboardingScope.launch { repository.setFirstUseSeen(true) }
+                                backStack.clear()
+                                backStack.add(Home)
+                            }
+                        }
+                        entry<Home> {
+                            HomeScreen { goalId -> backStack.add(homeGoalDestination(goalId)) }
+                        }
+                        entry<GoalDetail> { route ->
+                            GoalDetailScreen(
+                                goalId = route.goalId,
+                                onBack = { safePop() },
+                                onNavigateRisk = { generatedString ->
+                                    backStack.add(RiskWarning(generatedString, RiskAction.Copy))
+                                },
+                                onShare = ::requestShare,
+                                onCopyCompleted = ::recordSuccessfulCopy
+                            )
+                        }
+                        entry<ExpertBuilder> {
+                            val language = userPrefs?.gameLanguage ?: "English"
+                            ExpertBuilderScreen(
+                                onGenerate = { query ->
+                                    val generated = StringBuilderEngine.buildGoal("expert", customQuery = query, language = language)
+                                    if (requiresRiskWarning(generated.riskLevel)) {
+                                        backStack.add(RiskWarning(generated, RiskAction.Copy))
+                                    } else {
+                                        copyGenerated(generated)
+                                    }
+                                },
+                                onBack = { safePop() }
+                            )
+                        }
+                        entry<Presets> {
+                            PresetsScreen(
+                                onBack = { safePop() },
+                                onCopy = ::copyGenerated,
+                                onNavigateRisk = { generatedString -> backStack.add(RiskWarning(generatedString, RiskAction.Copy)) }
+                            )
+                        }
+                        entry<MyPresets> {
+                            MyPresetsScreen(
+                                onBack = { safePop() },
+                                onCopy = ::copyGenerated,
+                                onNavigateRisk = { generatedString -> backStack.add(RiskWarning(generatedString, RiskAction.Copy)) }
+                            )
+                        }
+                        entry<PracticeMode> { PracticeModeScreen(onBack = { safePop() }) }
+                        entry<CleaningJournal> { CleaningJournalScreen(onBack = { safePop() }) }
+                        entry<EventContext> {
+                            EventContextScreen(onBack = { safePop() }, debugEventFeedUrl = debugEventFeedUrl)
+                        }
+                        entry<SearchAssistant> {
+                            SearchAssistantScreen(
+                                onBack = { safePop() },
+                                onCopyRaw = { rawSyntax ->
+                                    clipboard.setText(AnnotatedString(rawSyntax))
+                                    scope.launch {
+                                        repository.addHistory(
+                                            SavedTemplate.from(
+                                                GeneratedString(
+                                                    rawSyntax,
+                                                    assistantExplanation,
+                                                    emptyList(),
+                                                    emptyList(),
+                                                    RiskLevel.Medium
+                                                )
+                                            )
+                                        )
+                                    }
+                                    recordSuccessfulCopy()
+                                },
+                                onExplain = { query -> backStack.add(ExplainRoute(query)) }
+                            )
+                        }
+                        entry<ExplainRoute> { route ->
+                            ExplainScreen(onBack = { safePop() }, initialQuery = route.query)
+                        }
+                        entry<Favorites> {
+                            FavoritesScreen(
+                                onCopy = { favorite ->
+                                    if (requiresRiskWarning(favorite.riskLevel)) {
+                                        backStack.add(RiskWarning(favorite.asGeneratedString(), RiskAction.Copy))
+                                    } else {
+                                        copyGenerated(favorite.asGeneratedString())
+                                    }
+                                },
+                                onBack = { safePop() }
+                            )
+                        }
+                        entry<History> {
+                            HistoryScreen(
+                                onCopy = { history ->
+                                    if (requiresRiskWarning(history.riskLevel)) {
+                                        backStack.add(RiskWarning(history.asGeneratedString(), RiskAction.Copy))
+                                    } else {
+                                        copyGenerated(history.asGeneratedString())
+                                    }
+                                },
+                                onBack = { safePop() }
+                            )
+                        }
+                        entry<Settings> {
+                            SettingsScreen(onBack = { safePop() }, onOpenChangelog = { backStack.add(ChangelogRoute) })
+                        }
+                        entry<ChangelogRoute> { ChangelogScreen { safePop() } }
+                        entry<KnowledgeBase> { route -> KnowledgeBaseScreen(startExpanded = route.startExpanded) { safePop() } }
+                        entry<RiskWarning> { route ->
+                            RiskWarningScreen(
+                                generatedString = route.generatedString,
+                                action = route.action,
+                                onConfirmAction = {
+                                    if (route.action == RiskAction.Share) {
+                                        shareGenerated(route.generatedString)
+                                    } else {
+                                        copyGenerated(route.generatedString)
+                                    }
+                                    safePop()
+                                },
+                                onBack = { safePop() }
+                            )
+                        }
+                    }
+                )
+            }
         }
-    ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
-            NavDisplay(
-                backStack = backStack,
-                onBack = { safePop() },
-                transitionSpec = { fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
-                popTransitionSpec = { fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
-                predictivePopTransitionSpec = { _ -> fadeIn(tween(PqMotionTokens.SCREEN_CROSSFADE_MS)) togetherWith fadeOut(tween(PqMotionTokens.CROSSFADE_FADE_MS)) },
-                entryProvider = entryProvider {
-                    entry<Onboarding> { route ->
-                        val onboardingScope = rememberCoroutineScope()
-                        OnboardingScreen(initialPage = route.initialPage) {
-                            onboardingScope.launch { repository.setFirstUseSeen(true) }
-                            backStack.clear()
-                            backStack.add(Home)
-                        }
+
+        if (showRatePrompt) {
+            AlertDialog(
+                onDismissRequest = { showRatePrompt = false },
+                title = { Text(stringResource(R.string.growth_rate_title)) },
+                text = { Text(stringResource(R.string.growth_rate_body)) },
+                confirmButton = {
+                    TextButton(onClick = ::openPlayStoreRating) {
+                        Text(stringResource(R.string.growth_rate_action))
                     }
-                    entry<Home> {
-                        HomeScreen { goalId ->
-                            backStack.add(homeGoalDestination(goalId))
-                        }
-                    }
-                    entry<GoalDetail> { route ->
-                        GoalDetailScreen(
-                            goalId = route.goalId,
-                            onBack = { safePop() },
-                            onNavigateRisk = { generatedString ->
-                                backStack.add(RiskWarning(generatedString, RiskAction.Copy))
-                            },
-                            onShare = ::requestShare,
-                            onCopyCompleted = ::recordSuccessfulCopy
-                        )
-                    }
-                    entry<ExpertBuilder> {
-                        val language = userPrefs?.gameLanguage ?: "English"
-                        ExpertBuilderScreen(
-                            onGenerate = { query ->
-                                val generated = StringBuilderEngine.buildGoal("expert", customQuery = query, language = language)
-                                if (requiresRiskWarning(generated.riskLevel)) backStack.add(RiskWarning(generated, RiskAction.Copy)) else copyGenerated(generated)
-                            },
-                            onBack = { safePop() }
-                        )
-                    }
-                    entry<Presets> {
-                        PresetsScreen(
-                            onBack = { safePop() },
-                            onCopy = ::copyGenerated,
-                            onNavigateRisk = { generatedString ->
-                                backStack.add(RiskWarning(generatedString, RiskAction.Copy))
-                            }
-                        )
-                    }
-                    entry<MyPresets> {
-                        MyPresetsScreen(
-                            onBack = { safePop() },
-                            onCopy = ::copyGenerated,
-                            onNavigateRisk = { generatedString ->
-                                backStack.add(RiskWarning(generatedString, RiskAction.Copy))
-                            }
-                        )
-                    }
-                    entry<PracticeMode> {
-                        PracticeModeScreen(onBack = { safePop() })
-                    }
-                    entry<CleaningJournal> {
-                        CleaningJournalScreen(onBack = { safePop() })
-                    }
-                    entry<EventContext> {
-                        EventContextScreen(
-                            onBack = { safePop() },
-                            debugEventFeedUrl = debugEventFeedUrl
-                        )
-                    }
-                    entry<SearchAssistant> {
-                        SearchAssistantScreen(
-                            onBack = { safePop() },
-                            onCopyRaw = { rawSyntax ->
-                                clipboard.setText(AnnotatedString(rawSyntax))
-                                scope.launch { repository.addHistory(com.caglar.pokequery.data.model.SavedTemplate.from(com.caglar.pokequery.data.model.GeneratedString(rawSyntax, assistantExplanation, emptyList(), emptyList(), com.caglar.pokequery.data.model.RiskLevel.Medium))) }
-                                recordSuccessfulCopy()
-                            },
-                            onExplain = { query ->
-                                backStack.add(ExplainRoute(query))
-                            }
-                        )
-                    }
-                    entry<ExplainRoute> { route ->
-                        ExplainScreen(
-                            onBack = { safePop() },
-                            initialQuery = route.query
-                        )
-                    }
-                    entry<Favorites> {
-                        FavoritesScreen(
-                            onCopy = { favorite ->
-                                if (requiresRiskWarning(favorite.riskLevel)) {
-                                    backStack.add(RiskWarning(favorite.asGeneratedString(), RiskAction.Copy))
-                                } else {
-                                    copyGenerated(favorite.asGeneratedString())
-                                }
-                            },
-                            onBack = { safePop() }
-                        )
-                    }
-                    entry<History> {
-                        HistoryScreen(
-                            onCopy = { history ->
-                                if (requiresRiskWarning(history.riskLevel)) {
-                                    backStack.add(RiskWarning(history.asGeneratedString(), RiskAction.Copy))
-                                } else {
-                                    copyGenerated(history.asGeneratedString())
-                                }
-                            },
-                            onBack = { safePop() }
-                        )
-                    }
-                    entry<Settings> {
-                        SettingsScreen(
-                            onBack = { safePop() },
-                            onOpenChangelog = { backStack.add(ChangelogRoute) }
-                        )
-                    }
-                    entry<ChangelogRoute> { ChangelogScreen { safePop() } }
-                    entry<KnowledgeBase> { route -> KnowledgeBaseScreen(startExpanded = route.startExpanded) { safePop() } }
-                    entry<RiskWarning> { route ->
-                        RiskWarningScreen(
-                            generatedString = route.generatedString,
-                            action = route.action,
-                            onConfirmAction = {
-                                if (route.action == RiskAction.Share) {
-                                    shareGenerated(route.generatedString)
-                                } else {
-                                    copyGenerated(route.generatedString)
-                                }
-                                safePop()
-                            },
-                            onBack = { safePop() }
-                        )
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRatePrompt = false }) {
+                        Text(stringResource(R.string.growth_rate_later))
                     }
                 }
             )
         }
-    }
-
-    if (showRatePrompt) {
-        AlertDialog(
-            onDismissRequest = { showRatePrompt = false },
-            title = { Text(androidx.compose.ui.res.stringResource(R.string.growth_rate_title)) },
-            text = { Text(androidx.compose.ui.res.stringResource(R.string.growth_rate_body)) },
-            confirmButton = {
-                TextButton(onClick = ::openPlayStoreRating) {
-                    Text(androidx.compose.ui.res.stringResource(R.string.growth_rate_action))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRatePrompt = false }) {
-                    Text(androidx.compose.ui.res.stringResource(R.string.growth_rate_later))
-                }
-            }
-        )
-    }
     }
 }
