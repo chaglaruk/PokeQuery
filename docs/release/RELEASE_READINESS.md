@@ -39,7 +39,7 @@ Web/PWA remains independently versioned at 0.7.3. The Android version bump does 
 
 ## Intentional release-branch delta
 
-The release branch contains the release/version metadata set plus the narrow PR-review hardening required to make the v0.7.7 Changelog screen truthful. Relative to exact base `fb00bcd...`, the intentional delta is these 14 files:
+The release branch contains the release/version metadata set plus the narrow PR-review hardening required to make the v0.7.7 Changelog screen truthful. Relative to exact base `fb00bcd...`, the intentional delta is these 15 files:
 - `app/build.gradle.kts`
 - `CHANGELOG.md`
 - `app/src/main/java/com/caglar/pokequery/domain/changelog/Changelog.kt`
@@ -52,19 +52,21 @@ The release branch contains the release/version metadata set plus the narrow PR-
 - `app/src/main/res/values-it/changelog_v077.xml`
 - `app/src/test/java/com/caglar/pokequery/AppVersionTest.kt`
 - `app/src/test/java/com/caglar/pokequery/data/model/PersonalPresetTest.kt`
+- `app/src/test/java/com/caglar/pokequery/domain/locale/LocaleResourceCoverageTest.kt`
 - `app/src/test/java/com/caglar/pokequery/privacy/BuildConfigRegressionTest.kt`
 - `docs/release/RELEASE_READINESS.md`
 
-The UI implementation delta is limited to rebinding the current Changelog row from stale `what_changed_v066_*` resources to the dedicated localized `what_changed_v077_*` resources. No search-engine behavior, Event Guide feed data, signing configuration, keystore material, tag or release artifact is changed by the release-prep branch.
+The UI implementation delta is limited to rebinding the current Changelog row from stale `what_changed_v066_*` resources to the dedicated localized `what_changed_v077_*` resources. The locale coverage test now also requires every supported locale to provide the complete v0.7.7 changelog key set. No search-engine behavior, Event Guide feed data, signing configuration, keystore material, tag or release artifact is changed by the release-prep branch.
 
 ## Required before merge / release-source freeze
 
-- [ ] Release-branch Android CI passes completely on **0.7.7 / code 27** after the review-hardening commits.
-- [x] Confirm release-branch diff is the intentional 14-file version/changelog/readiness + review-hardening set above.
+- [ ] Release-branch Android CI passes completely on **0.7.7 / code 27** on the final head including the v0.7.7 locale-coverage regression test.
+- [x] Confirm release-branch diff is the intentional 15-file version/changelog/readiness + review-hardening set above.
 - [ ] Confirm the new v0.7.7 Changelog current-entry copy is readable without clipping/overlap in EN/TR/DE/ES/FR/IT on the physical Android validation device.
-- [ ] Resolve the two verified PR #33 review findings after their fixes are validated.
-- [ ] Confirm `versionName=0.7.7`, `versionCode=27`, package `com.caglar.pokequery` from the release branch itself.
-- [ ] Squash-merge the release PR only after the release-branch gate is terminal green.
+- [x] Resolve the verified Markdown-spacing PR #33 review finding after validating its fix.
+- [ ] Resolve the remaining changelog-localization review finding after physical visual validation.
+- [x] Confirm `versionName=0.7.7`, `versionCode=27`, package `com.caglar.pokequery` from the release branch itself.
+- [ ] Squash-merge the release PR only after the release-branch gate is terminal green and the physical visual gate passes.
 - [ ] Record the exact resulting master merge SHA as the v0.7.7 release-source candidate.
 
 ## Required after merge — local signing/artifact gate
@@ -98,4 +100,4 @@ PR #32 already passed full PWA Playwright and visual QA before the Android-only 
 
 ## Current blocker
 
-The candidate is not yet releasable. The immediate gates are terminal-green Android CI on the final review-hardened release head, six-locale physical Changelog copy/overflow validation, resolution of the verified PR #33 review threads, and confirmation of the release metadata. Merge, signing, AAB generation, tagging and Google Play publication remain separate gated operations.
+The candidate is not yet releasable. The immediate gates are terminal-green Android CI on the final review-hardened release head, six-locale physical Changelog copy/overflow validation, and resolution of the remaining changelog review thread. Merge, signing, AAB generation, tagging and Google Play publication remain separate gated operations.
