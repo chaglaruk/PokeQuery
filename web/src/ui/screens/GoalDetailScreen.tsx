@@ -1,24 +1,31 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
+import { growthStrings } from '@i18n/growthStrings'
 import { buildGoal } from '@engine/stringBuilderEngine'
 import { buildFinal } from '@engine/goalStringBuilder'
 import { lint } from '@engine/linter'
 import { canCopy } from '@engine/expertCopyPolicy'
 import { AppIcon } from '@ui/components/SpriteIcon'
+import { Dialog } from '@ui/components/Dialog'
 import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
 import { addFavorite, addHistory, findFavorite, removeFavorite, type SavedSearch } from '@ui/savedSearches'
+
+type PendingAction = 'copy' | 'share' | null
 
 export function GoalDetailScreen() {
   const { goalId = '' } = useParams<{ goalId: string }>()
   const navigate = useNavigate()
-  const { t, resolvedSearchLanguage } = useI18n()
+  const { t, resolvedSearchLanguage, locale } = useI18n()
+  const growth = growthStrings(locale)
   const [config, setConfig] = useState('')
   const [expertQuery, setExpertQuery] = useState('')
   const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
   const [favorite, setFavorite] = useState<SavedSearch | null>(null)
   const [showRefine, setShowRefine] = useState(false)
   const [optionalProtections, setOptionalProtections] = useState<string[]>([])
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null)
+  const [shareFeedback, setShareFeedback] = useState(false)
 
   const goal = useMemo(
     () => buildGoal(goalId, config, expertQuery, resolvedSearchLanguage),
@@ -37,12 +44,13 @@ export function GoalDetailScreen() {
     [goalId, expertQuery, goal.rawSyntax],
   )
   const hasOptions = ['safe_cleanup', 'pvp_candidates', 'lucky_trade'].includes(goalId)
+  const requiresReview = finalString.riskLevel === 'Medium' || finalString.riskLevel === 'High'
 
   useEffect(() => {
     setFavorite(findFavorite(finalString.rawSyntax) ?? null)
   }, [finalString.rawSyntax])
 
-  const handleCopy = useCallback(async () => {
+  const performCopy = useCallback(async () => {
     if (!canCopyResult) return
     const result = await copyToClipboard(finalString.rawSyntax)
     setClipboard(result)
@@ -51,6 +59,47 @@ export function GoalDetailScreen() {
       setTimeout(() => setClipboard(null), 2000)
     }
   }, [finalString.rawSyntax, finalString.riskLevel, canCopyResult, goalId, t])
+
+  const performShare = useCallback(async () => {
+    if (!canCopyResult) return
+    const title = t(`goal_${goalId}`)
+    const text = `${title}\n${finalString.rawSyntax}\n\n${growth.shareBuiltWith}`
+    const url = window.location.href
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `PokeQuery: ${title}`, text, url })
+        return
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+      }
+    }
+
+    const result = await copyToClipboard(`${text}\n${url}`)
+    if (result.status === 'copied') {
+      setShareFeedback(true)
+      setTimeout(() => setShareFeedback(false), 2000)
+    } else {
+      setClipboard(result)
+    }
+  }, [canCopyResult, finalString.rawSyntax, goalId, growth.shareBuiltWith, t])
+
+  const requestAction = useCallback((action: Exclude<PendingAction, null>) => {
+    if (!canCopyResult) return
+    if (requiresReview) {
+      setPendingAction(action)
+      return
+    }
+    if (action === 'copy') void performCopy()
+    else void performShare()
+  }, [canCopyResult, requiresReview, performCopy, performShare])
+
+  const confirmPendingAction = useCallback(() => {
+    const action = pendingAction
+    setPendingAction(null)
+    if (action === 'copy') void performCopy()
+    if (action === 'share') void performShare()
+  }, [pendingAction, performCopy, performShare])
 
   const toggleFavorite = useCallback(() => {
     if (favorite) {
@@ -88,7 +137,7 @@ export function GoalDetailScreen() {
         </button>
       </header>
 
-      <section className={`detail-result ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`}>
+      <section className={`detail-result ${requiresReview ? 'medium' : ''}`}>
         <h2 className="detail-result-title">{t('goal_detail_result')}</h2>
         {goalId === 'pvp_candidates' && renderLeagueSelector()}
         {goalId === 'expert' && (
@@ -107,11 +156,15 @@ export function GoalDetailScreen() {
           {hasOptions && (
             <button type="button" className="btn btn-edit" onClick={() => setShowRefine(value => !value)}><AppIcon name="assistant" size={18} /> {t('goal_detail_edit_search')}</button>
           )}
-          <button type="button" className={`btn btn-copy ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`} onClick={handleCopy} disabled={!canCopyResult}>
+          <button type="button" className={`btn btn-copy ${requiresReview ? 'medium' : ''}`} onClick={() => requestAction('copy')} disabled={!canCopyResult}>
             <AppIcon name="copy" size={18} /> {clipboard?.status === 'copied' ? t('goal_detail_copied') : t('goal_detail_copy_search_string')}
+          </button>
+          <button type="button" className="btn btn-edit" onClick={() => requestAction('share')} disabled={!canCopyResult}>
+            <AppIcon name="share" size={18} /> {growth.shareSearch}
           </button>
         </div>
         {clipboard && <div className={`clipboard-feedback ${clipboard.status}`} role="status" aria-live="polite">{t(clipboard.i18nKey)}</div>}
+        {shareFeedback && <div className="clipboard-feedback copied" role="status" aria-live="polite">{growth.shareFallbackCopied}</div>}
         {!canCopyResult && <p className="setting-help">{t('goal_detail_fix_errors')}</p>}
       </section>
 
@@ -147,7 +200,7 @@ export function GoalDetailScreen() {
         </section>
       )}
 
-      <section className={`card info-card ${finalString.riskLevel === 'Medium' ? 'medium' : ''}`}>
+      <section className={`card info-card ${requiresReview ? 'medium' : ''}`}>
         <h2 className="info-heading"><AppIcon name="info" size={16} /> {t('goal_detail_what_does_this_do')}</h2>
         <p style={{ marginTop: '8px' }}>{t(`risk_${goalId}_short`)}</p>
         <h3 className="info-heading warning-heading"><AppIcon name="warning" size={16} /> {t('goal_detail_watch_out')}</h3>
@@ -164,6 +217,17 @@ export function GoalDetailScreen() {
           </div>
         </section>
       )}
+
+      <Dialog open={pendingAction !== null} title={growth.riskTitle} onClose={() => setPendingAction(null)} closeLabel={growth.cancel}>
+        <p>{growth.riskBody}</p>
+        <div className="detail-actions" style={{ marginTop: '16px' }}>
+          <button type="button" className="btn btn-copy medium" onClick={confirmPendingAction}>
+            <AppIcon name={pendingAction === 'share' ? 'share' : 'copy'} size={18} />
+            {pendingAction === 'share' ? growth.continueShare : growth.continueCopy}
+          </button>
+          <button type="button" className="btn btn-edit" onClick={() => setPendingAction(null)}>{growth.cancel}</button>
+        </div>
+      </Dialog>
     </main>
   )
 }
