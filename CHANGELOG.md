@@ -2,10 +2,33 @@
 
 Notable changes to PokeQuery. Dates are grouped by release.
 
-The current Android release candidate is **0.7.6** (`versionCode 26`).
+The current Android release candidate is **0.7.7** (`versionCode 27`).
 The Web/PWA version remains **0.7.3** and is versioned independently.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
+
+---
+
+## [0.7.7] — safer sharing, Search Assistant risk parity, local rating prompt
+
+### Added
+- **Share Search on Android** using the system share sheet, including the exact generated search string, PokeQuery attribution and Play Store link.
+- **Risk-gated sharing** so Medium/High-risk Goal Detail searches must pass the existing Risk Warning review before the Android chooser opens.
+- **Local-only Play Store rating prompt** after successful use. The prompt uses local state only; no review SDK, telemetry, analytics or attribution was added.
+- **Growth/share localization** across EN/TR/DE/ES/FR/IT for the new Share, Risk Warning and rating-prompt surfaces.
+
+### Fixed
+- **Search Assistant copy risk-gate parity** across Android and Web: canonical Info/Low output can copy directly while Medium/High output cannot replace the clipboard before explicit review confirmation.
+- **Localized Search Assistant copy behavior** so canonical risk classification remains stable while the confirmed clipboard text follows the selected Search String Language.
+- **Android Share chooser launch** from the localized configuration context by launching the chooser with the required new-task flag; the previous failure was silent inside the failure-safe share path.
+- **Rating prompt locale fallback** where dialog-slot strings could fall back to English under Turkish/German UI; strings are now resolved from the localized composition before the dialog renders.
+- **PWA Auto / Match App Language search-language resolution** aligned with the Android model.
+
+### Validation
+- Final growth head passed Android unit tests, lint, debug APK assembly, golden-corpus parity, Event Guide fallback, generator safety, feed validation and runtime-asset validation before release branching.
+- Final PWA growth head passed typecheck, lint, unit tests, production build, Chromium/WebKit Playwright E2E and mobile visual QA.
+- Physical Android validation covered low/Info Share, Medium-risk Share gating, Search Assistant `hundo -> 4*`, Medium-risk `shiny` clipboard protection, localized German `schillernd` copy, and EN/TR/DE/ES/FR/IT visual checks.
+- The v0.7.7 release branch is based on exact merged master SHA `fb00bcdbeee1d8694684835375af89a6aece0221`; release-branch CI and signed-AAB verification are separate gates.
 
 ---
 
@@ -177,6 +200,7 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+[0.7.7]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.7.7
 [0.7.6]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.7.6
 [0.7.5]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.7.5
 [0.5.2]: https://github.com/chaglaruk/PokeQuery/releases/tag/v0.5.2
