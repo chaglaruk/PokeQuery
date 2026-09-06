@@ -127,9 +127,17 @@ test.describe('Goal selection and search text (scenarios 8-14)', () => {
 
     await gotoRoute(page, '/goal/safe_cleanup')
     const expectedText = await page.locator('.search-string').textContent() ?? ''
-    await page.getByRole('button', { name: 'Share search' }).click()
-    await expect(page.getByRole('dialog', { name: 'Check this search first' })).toBeVisible()
-    await page.getByRole('button', { name: 'Review & share' }).click()
+    const shareButton = page.getByRole('button', { name: 'Share search' })
+    const shareButtonBox = await shareButton.boundingBox()
+    expect(shareButtonBox?.height ?? 0).toBeGreaterThanOrEqual(48)
+    await shareButton.click()
+
+    const reviewDialog = page.getByRole('dialog', { name: 'Check this search first' })
+    await expect(reviewDialog).toBeVisible()
+    const reviewShareButton = page.getByRole('button', { name: 'Review & share' })
+    const reviewShareButtonBox = await reviewShareButton.boundingBox()
+    expect(reviewShareButtonBox?.height ?? 0).toBeGreaterThanOrEqual(48)
+    await reviewShareButton.click()
 
     await expect(page.getByText('Share text copied')).toBeVisible()
     const shared = await page.evaluate(() => navigator.clipboard.readText())
