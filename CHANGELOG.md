@@ -31,6 +31,7 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
 - Final growth head passed Android unit tests, lint, debug APK assembly, golden-corpus parity, Event Guide fallback, generator safety, feed validation and runtime-asset validation before release branching.
 - Final PWA growth head passed typecheck, lint, unit tests, production build, Chromium/WebKit Playwright E2E and mobile visual QA.
 - Physical Android validation covered low/Info Share, Medium-risk Share gating, Search Assistant `hundo -> 4*`, Medium-risk `shiny` clipboard protection, localized German `schillernd` copy, and EN/TR/DE/ES/FR/IT visual checks.
+- Release-branch locale regression coverage requires the dedicated v0.7.7 Changelog key set in EN/TR/DE/ES/FR/IT and rejects stale v0.6.6 keys in those new resource files.
 - The v0.7.7 release branch is based on exact merged master SHA `fb00bcdbeee1d8694684835375af89a6aece0221`; release-branch CI and signed-AAB verification are separate gates.
 
 ---
