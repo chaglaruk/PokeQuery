@@ -64,7 +64,7 @@ export function GoalDetailScreen() {
     if (!canCopyResult) return
     const title = t(`goal_${goalId}`)
     const text = `${title}\n${finalString.rawSyntax}\n\n${growth.shareBuiltWith}`
-    const url = window.location.href
+    const url = `${window.location.origin}${window.location.pathname}#/explain?query=${encodeURIComponent(finalString.rawSyntax)}`
 
     if (navigator.share) {
       try {
