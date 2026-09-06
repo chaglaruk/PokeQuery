@@ -221,6 +221,9 @@ test('capture Share Search and review gate in every UI language', async ({ page 
     await shareButton.click()
     const reviewDialog = page.getByRole('dialog')
     await expect(reviewDialog).toBeVisible()
+    await reviewDialog.evaluate(async element => {
+      await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished))
+    })
     await screenshot(page, projectName, `15-growth-share-review-${code}-viewport`)
     await reviewDialog.getByRole('button').last().click()
   }
