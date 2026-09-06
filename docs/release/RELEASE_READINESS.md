@@ -21,6 +21,7 @@ Included release-facing areas:
 - local-only Play Store rating prompt with no analytics, telemetry, attribution or review SDK;
 - EN/TR/DE/ES/FR/IT Share/rating/risk copy and the rating-dialog locale fallback fix;
 - Android share-chooser launch fix for the localized configuration context;
+- v0.7.7 Changelog current-entry copy localized for EN/TR/DE/ES/FR/IT and bound to dedicated `what_changed_v077_*` resources after PR review caught the stale v0.6.6 binding;
 - the current master Event Guide fallback/assets bundled at the release branch base.
 
 Web/PWA remains independently versioned at 0.7.3. The Android version bump does not itself create a new Web/PWA release.
@@ -38,22 +39,30 @@ Web/PWA remains independently versioned at 0.7.3. The Android version bump does 
 
 ## Intentional release-branch delta
 
-The release branch should contain only release/version metadata changes relative to base `fb00bcd...`:
+The release branch contains the release/version metadata set plus the narrow PR-review hardening required to make the v0.7.7 Changelog screen truthful. Relative to exact base `fb00bcd...`, the intentional delta is these 14 files:
 - `app/build.gradle.kts`
 - `CHANGELOG.md`
 - `app/src/main/java/com/caglar/pokequery/domain/changelog/Changelog.kt`
+- `app/src/main/java/com/caglar/pokequery/ui/screens/MiscScreens.kt`
+- `app/src/main/res/values/changelog_v077.xml`
+- `app/src/main/res/values-tr/changelog_v077.xml`
+- `app/src/main/res/values-de/changelog_v077.xml`
+- `app/src/main/res/values-es/changelog_v077.xml`
+- `app/src/main/res/values-fr/changelog_v077.xml`
+- `app/src/main/res/values-it/changelog_v077.xml`
 - `app/src/test/java/com/caglar/pokequery/AppVersionTest.kt`
 - `app/src/test/java/com/caglar/pokequery/data/model/PersonalPresetTest.kt`
 - `app/src/test/java/com/caglar/pokequery/privacy/BuildConfigRegressionTest.kt`
 - `docs/release/RELEASE_READINESS.md`
 
-No search-engine behavior, Event Guide feed data, UI implementation, signing configuration, keystore material, tag or release artifact should be changed by the release-prep branch.
+The UI implementation delta is limited to rebinding the current Changelog row from stale `what_changed_v066_*` resources to the dedicated localized `what_changed_v077_*` resources. No search-engine behavior, Event Guide feed data, signing configuration, keystore material, tag or release artifact is changed by the release-prep branch.
 
 ## Required before merge / release-source freeze
 
-- [ ] Release-branch Android CI passes completely on **0.7.7 / code 27**.
-- [ ] Confirm release-branch diff is exactly the intentional seven-file version/changelog/readiness set above.
-- [ ] Resolve any real CI/review finding before merge.
+- [ ] Release-branch Android CI passes completely on **0.7.7 / code 27** after the review-hardening commits.
+- [x] Confirm release-branch diff is the intentional 14-file version/changelog/readiness + review-hardening set above.
+- [ ] Confirm the new v0.7.7 Changelog current-entry copy is readable without clipping/overlap in EN/TR/DE/ES/FR/IT on the physical Android validation device.
+- [ ] Resolve the two verified PR #33 review findings after their fixes are validated.
 - [ ] Confirm `versionName=0.7.7`, `versionCode=27`, package `com.caglar.pokequery` from the release branch itself.
 - [ ] Squash-merge the release PR only after the release-branch gate is terminal green.
 - [ ] Record the exact resulting master merge SHA as the v0.7.7 release-source candidate.
@@ -72,7 +81,7 @@ These steps require the local Windows/Android signing environment and must be pe
 - [ ] Validate the AAB with the official bundletool and inspect package/version metadata directly from the bundle.
 - [ ] Copy the verified artifact to `PokeQuery-v0.7.7-code27.aab` and record file size + SHA-256.
 - [ ] Confirm the delivery-copy SHA-256 exactly matches the Gradle output artifact.
-- [ ] Perform a final physical-device smoke only if the exact release-source delta after the already-tested growth base becomes device-sensitive. Pure version/changelog metadata does not require repeating the full device matrix.
+- [ ] Perform a final physical-device smoke only if the exact release-source delta after the already-tested growth base becomes device-sensitive beyond the Changelog copy check above.
 
 ## Publication gate
 
@@ -85,8 +94,8 @@ These steps require the local Windows/Android signing environment and must be pe
 
 ## Playwright policy for this Android release
 
-PR #32 already passed full PWA Playwright and visual QA before the Android-only version bump. The v0.7.7 release branch intentionally changes no Web/PWA source, so another PWA E2E run is not a release blocker unless the release diff unexpectedly expands into Web/PWA behavior.
+PR #32 already passed full PWA Playwright and visual QA before the Android-only version bump. The v0.7.7 release branch changes no Web/PWA source, so another PWA E2E run is not a release blocker.
 
 ## Current blocker
 
-The candidate is not yet releasable. The immediate gate is terminal-green Android CI on the version-bumped release branch plus exact seven-file diff verification. Merge, signing, AAB generation, tagging and Google Play publication remain separate gated operations.
+The candidate is not yet releasable. The immediate gates are terminal-green Android CI on the final review-hardened release head, six-locale physical Changelog copy/overflow validation, resolution of the verified PR #33 review threads, and confirmation of the release metadata. Merge, signing, AAB generation, tagging and Google Play publication remain separate gated operations.
