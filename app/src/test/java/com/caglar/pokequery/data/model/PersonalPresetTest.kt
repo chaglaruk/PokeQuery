@@ -7,7 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * v0.6.1 Ã¢â‚¬â€ Personal Preset model + Favorites-bridge tests.
+ * v0.6.1 — Personal Preset model + Favorites-bridge tests.
  *
  * Pins the safety contract: a personal preset preserves the risk level of its source (never
  * downgrades), and `asGeneratedString()` yields a GeneratedString that still routes through
@@ -80,8 +80,8 @@ class PersonalPresetTest {
  */
 class AppVersionReferenceTest {
     @Test
-    fun `app version is the v0_7_6 release`() {
-        assertEquals("0.7.6", AppVersion.versionName)
-        assertEquals(26, AppVersion.versionCode)
+    fun `app version is the v0_7_7 release`() {
+        assertEquals("0.7.7", AppVersion.versionName)
+        assertEquals(27, AppVersion.versionCode)
     }
 }
