@@ -16,7 +16,7 @@ object Changelog {
         ChangelogEntry(
             versionName = "0.7.7",
             versionCode = 27,
-            releaseLabel = "Production Candidate",
+            releaseLabel = "Release",
             title = "Safer Sharing & Search Assistant",
             highlights = listOf(
                 "Goal Detail can now share generated searches through the Android system share sheet, with Medium/High-risk searches reviewed before sharing",
