@@ -251,21 +251,14 @@ fun MainNavigation(
                             SearchAssistantScreen(
                                 onBack = { safePop() },
                                 onCopyRaw = { rawSyntax ->
-                                    clipboard.setText(AnnotatedString(rawSyntax))
-                                    scope.launch {
-                                        repository.addHistory(
-                                            SavedTemplate.from(
-                                                GeneratedString(
-                                                    rawSyntax,
-                                                    assistantExplanation,
-                                                    emptyList(),
-                                                    emptyList(),
-                                                    RiskLevel.Medium
-                                                )
-                                            )
-                                        )
-                                    }
-                                    recordSuccessfulCopy()
+                                    val generated = GeneratedString(
+                                        rawSyntax = rawSyntax,
+                                        plainLanguageExplanation = assistantExplanation,
+                                        protectedCategories = emptyList(),
+                                        includedHighRiskCategories = emptyList(),
+                                        riskLevel = RiskLevel.Medium
+                                    )
+                                    backStack.add(RiskWarning(generated, RiskAction.Copy))
                                 },
                                 onExplain = { query -> backStack.add(ExplainRoute(query)) }
                             )
