@@ -134,6 +134,9 @@ test.describe('Goal selection and search text (scenarios 8-14)', () => {
 
     const reviewDialog = page.getByRole('dialog', { name: 'Check this search first' })
     await expect(reviewDialog).toBeVisible()
+    await reviewDialog.evaluate(async element => {
+      await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished))
+    })
     const reviewShareButton = page.getByRole('button', { name: 'Review & share' })
     const reviewShareButtonBox = await reviewShareButton.boundingBox()
     expect(reviewShareButtonBox?.height ?? 0).toBeGreaterThanOrEqual(48)
