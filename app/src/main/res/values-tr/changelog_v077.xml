@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v077_subtitle">Sürüm • Daha güvenli paylaşım ve Arama Asistanı</string>
+    <string name="what_changed_v077_b1">• Oluşturduğun aramayı Android’in sistem paylaşım menüsüyle paylaşabilirsin.</string>
+    <string name="what_changed_v077_b2">• Orta/Yüksek riskli aramalar kopyalanmadan veya paylaşılmadan önce inceleme ister.</string>
+    <string name="what_changed_v077_b3">• Yerel puanlama istemi ve yeni paylaşım ekranları altı uygulama dilinin tamamında hazır.</string>
+    <string name="what_changed_v077_safety1">Üretilen aramalarda hâlâ | operatörü kullanılmaz; Pokémon GO’daki işlemleri yine sen manuel yaparsın.</string>
+    <string name="what_changed_v077_safety2">Orta riskli Paylaş ve Arama Asistanı akışları fiziksel bir Android cihazda doğrulandı.</string>
+    <string name="what_changed_v077_safety3">Puanlama istemi cihazda kalır. Analitik, reklam, takip veya hesap erişimi eklenmedi.</string>
+    <string name="what_changed_v077_tester1">Düşük riskli bir hedefi paylaş; Android paylaşım menüsünde doğru aramanın göründüğünü kontrol et.</string>
+    <string name="what_changed_v077_tester2">Orta riskli bir aramayı paylaşmayı dene; uyarıyı iptal edince paylaşım menüsü açılmamalı.</string>
+    <string name="what_changed_v077_tester3">Arama Asistanı’nda hundo doğrudan 4* kopyalamalı; shiny ise önce inceleme istemeli.</string>
+</resources>

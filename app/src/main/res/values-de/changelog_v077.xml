@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v077_subtitle">Release • Sichereres Teilen und Suchassistent</string>
+    <string name="what_changed_v077_b1">• Teile eine erstellte Suche über das Android-Systemmenü.</string>
+    <string name="what_changed_v077_b2">• Suchen mit mittlerem/hohem Risiko müssen vor dem Kopieren oder Teilen geprüft werden.</string>
+    <string name="what_changed_v077_b3">• Die lokale Bewertungsabfrage und die neuen Teilen-Oberflächen sind in allen sechs App-Sprachen verfügbar.</string>
+    <string name="what_changed_v077_safety1">Erstellte Suchen verwenden weiterhin nie den Operator |; Aktionen in Pokémon GO bleiben manuell.</string>
+    <string name="what_changed_v077_safety2">Teilen- und Suchassistent-Abläufe mit mittlerem Risiko wurden auf einem physischen Android-Gerät geprüft.</string>
+    <string name="what_changed_v077_safety3">Die Bewertungsabfrage bleibt auf dem Gerät. Es wurden keine Analysen, Werbung, Tracking- oder Kontozugriffe hinzugefügt.</string>
+    <string name="what_changed_v077_tester1">Teile ein Ziel mit niedrigem Risiko und prüfe, ob das Android-Menü die richtige Suche zeigt.</string>
+    <string name="what_changed_v077_tester2">Versuche eine Suche mit mittlerem Risiko zu teilen; nach Abbrechen der Warnung darf sich das Teilen-Menü nicht öffnen.</string>
+    <string name="what_changed_v077_tester3">Im Suchassistenten sollte hundo direkt 4* kopieren; shiny sollte zuerst eine Prüfung verlangen.</string>
+</resources>

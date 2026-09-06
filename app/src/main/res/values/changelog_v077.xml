@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v077_subtitle">Release • Safer sharing and Search Assistant</string>
+    <string name="what_changed_v077_b1">• Share a generated search through Android’s system share sheet.</string>
+    <string name="what_changed_v077_b2">• Medium/High-risk searches must be reviewed before they can be copied or shared.</string>
+    <string name="what_changed_v077_b3">• The local rating prompt and new sharing screens are available in all six app languages.</string>
+    <string name="what_changed_v077_safety1">Generated searches still never use the | operator; Pokémon GO actions stay manual.</string>
+    <string name="what_changed_v077_safety2">Medium-risk Share and Search Assistant paths were checked on a physical Android device.</string>
+    <string name="what_changed_v077_safety3">The rating prompt stays on-device. No analytics, ads, tracking, or account access were added.</string>
+    <string name="what_changed_v077_tester1">Share a low-risk goal and confirm the Android chooser shows the correct search.</string>
+    <string name="what_changed_v077_tester2">Try a Medium-risk share; cancelling the warning must not open the chooser.</string>
+    <string name="what_changed_v077_tester3">In Search Assistant, hundo should copy 4* directly; shiny should require review first.</string>
+</resources>

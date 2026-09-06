@@ -129,6 +129,28 @@ class LocaleResourceCoverageTest {
     }
 
     @Test
+    fun `v077 changelog resources exist in all supported locales`() {
+        val changelogKeys = setOf(
+            "what_changed_v077_subtitle",
+            "what_changed_v077_b1",
+            "what_changed_v077_b2",
+            "what_changed_v077_b3",
+            "what_changed_v077_safety1",
+            "what_changed_v077_safety2",
+            "what_changed_v077_safety3",
+            "what_changed_v077_tester1",
+            "what_changed_v077_tester2",
+            "what_changed_v077_tester3"
+        )
+        listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
+            val path = "src/main/res/$dir/changelog_v077.xml"
+            assertTrue("$dir missing v0.7.7 changelog resource file", File(path).isFile)
+            assertEquals("$dir v0.7.7 changelog keys", changelogKeys, keys(path))
+            assertFalse("$dir v0.7.7 changelog file must not retain stale v0.6.6 keys", File(path).readText(Charsets.UTF_8).contains("what_changed_v066_"))
+        }
+    }
+
+    @Test
     fun `knowledge tier risk accepts string tier value`() {
         listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
             val text = File("src/main/res/$dir/strings.xml").readText(Charsets.UTF_8)
@@ -142,4 +164,3 @@ class LocaleResourceCoverageTest {
     private fun keys(path: String): Set<String> =
         stringName.findAll(File(path).readText(Charsets.UTF_8)).map { it.groupValues[1] }.toSet()
 }
-
