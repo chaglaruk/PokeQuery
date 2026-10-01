@@ -148,7 +148,7 @@ npm test
 npm run build
 ```
 
-Playwright E2E is intentionally separated from routine PR validation because it is slow. Do not block ordinary development on it. Run the manual `PWA Playwright E2E` workflow only for targeted routing/offline regressions or when an explicit release gate calls for it. Optimising/re-expanding automatic Playwright coverage is deferred work.
+Playwright E2E is intentionally separated from routine PR validation because full multi-browser coverage is slow. Do not block ordinary development on it. The manual `PWA Playwright E2E` workflow exposes `smoke`, `full`, and `visual` modes: use `smoke` for targeted Chromium routing/offline/safety regressions, `full` for an explicit Chromium + WebKit release gate, and `visual` for deterministic mobile screenshot evidence. The full mode is sharded in two; there is no scheduled Playwright run and no automatic PR Playwright blocker.
 
 ### Visual/device gates
 - UI/copy/localization changes: screenshots/contact sheet + compact/long-locale review.
