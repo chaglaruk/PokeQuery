@@ -130,6 +130,7 @@ private fun SearchRadarBackground(active: Boolean, modifier: Modifier = Modifier
         val cx = w * 0.5f
         val cy = h * 0.42f
         val maxR = size.minDimension * 0.55f
+        val sweepR = maxR * 0.28f
 
         // Soft radar rings
         for (i in 1..3) {
@@ -142,7 +143,7 @@ private fun SearchRadarBackground(active: Boolean, modifier: Modifier = Modifier
             )
         }
 
-        // Sweeping wave — a translucent wedge gradient.
+        // Sweeping wave — keep the bright line within the radar visual and away from copy.
         rotate(sweep, pivot = Offset(cx, cy)) {
             for (i in 0..12) {
                 val a = (12 - i) * 0.018f
@@ -150,8 +151,8 @@ private fun SearchRadarBackground(active: Boolean, modifier: Modifier = Modifier
                     color = CyanGlow.copy(alpha = a),
                     start = Offset(cx, cy),
                     end = Offset(
-                        cx + maxR * cos(Math.toRadians(0.0)).toFloat(),
-                        cy + maxR * sin(Math.toRadians(0.0)).toFloat()
+                        cx + sweepR * cos(Math.toRadians(0.0)).toFloat(),
+                        cy + sweepR * sin(Math.toRadians(0.0)).toFloat()
                     ),
                     strokeWidth = (12 - i).toFloat(),
                     cap = StrokeCap.Round
