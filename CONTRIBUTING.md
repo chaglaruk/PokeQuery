@@ -80,7 +80,7 @@ npm test
 npm run build
 ```
 
-Playwright E2E is a separate manual workflow and is not a routine PR blocker. Run `PWA Playwright E2E` when a targeted routing/offline regression or explicit release gate requires it. Playwright optimisation/automatic scheduling is deferred.
+Playwright E2E is a separate manual workflow and is not a routine PR blocker. `PWA Playwright E2E` now has three explicit manual modes: `smoke` (targeted Chromium routing/offline/safety coverage), `full` (the complete Chromium + WebKit matrix split across two shards for a release gate), and `visual` (deterministic mobile screenshot evidence). Keep routine PRs on the fast gate; there is no scheduled Playwright run.
 
 UI/copy/localization work also requires visual review; device-specific Android behavior requires appropriate physical-device/ADB validation.
 
