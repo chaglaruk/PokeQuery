@@ -16,7 +16,7 @@ Use this as a minimum-evidence matrix. Current GitHub workflows and exact-ref co
 | Release metadata | full relevant Android gate + exact versionName/versionCode | exact source SHA, AAB/signing gate, tag immutability |
 | PWA deployment | fast deploy workflow green | deployed-site smoke; run manual Playwright only when the release/risk scope calls for it |
 
-## Current workflow facts — captured 2026-08-18
+## Current workflow facts — captured 2026-10-01
 
 ### `android-validate.yml`
 
@@ -41,13 +41,18 @@ Routine fast PR/deploy gate checks:
 - unit tests;
 - production build.
 
-Pages deployment occurs only for the master ref after the fast build job passes.
+Playwright browser installation, E2E, and screenshot capture are intentionally absent from the routine PR gate. Pages deployment occurs only for the master ref after the fast build job passes.
 
 ### `pwa-e2e.yml`
 
 Playwright is separated from routine PWA validation and runs only by manual `workflow_dispatch`.
 
-It builds the PWA, installs Chromium + WebKit, runs the full Playwright suite and uploads the Playwright report. It is a targeted/release gate, not an ordinary PR blocker. Optimisation or automatic scheduling of this workflow is deferred work.
+Manual modes:
+- `smoke`: Chromium-mobile only, covering base-path/routing, Event Guide network/cache/offline behavior, goal/search safety gates, navigation/overflow, PWA/service-worker behavior, and language persistence;
+- `full`: the complete configured Chromium + WebKit project matrix, split across two Playwright shards for lower wall-clock release-gate latency;
+- `visual`: deterministic Chromium-mobile screenshot capture.
+
+There is no scheduled Playwright run and no automatic PR Playwright blocker. Historical successful PR runs measured the fast non-Playwright checks at roughly 25–30 seconds, Playwright browser installation at roughly 36–125 seconds, and the full multi-project E2E execution at roughly 3.4–4.2 minutes. That makes browser setup + E2E the dominant routine latency, so they remain explicit targeted/release gates.
 
 ### `update-event-feed.yml`
 
@@ -103,7 +108,7 @@ npm run build
 ```
 
 ### Manual Playwright gate
-Run GitHub Actions workflow `PWA Playwright E2E` only when specifically required. Do not block routine development on Playwright while its optimisation is deferred.
+Run GitHub Actions workflow `PWA Playwright E2E` only when specifically required. Prefer `smoke` for a targeted regression, `full` for a Web/PWA release gate, and `visual` when screenshot evidence is part of the task. Routine development remains on the fast deploy workflow.
 
 ## Completion rule
 
