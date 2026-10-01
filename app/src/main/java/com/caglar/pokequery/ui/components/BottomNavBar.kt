@@ -16,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.theme.BottomNavBackground
@@ -37,13 +40,38 @@ fun BottomNavBar(
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val compactLabels = screenWidthDp < 480
+    val labelSize = when {
+        screenWidthDp < 360 -> 9.sp
+        compactLabels -> 10.sp
+        else -> 11.sp
+    }
+
     NavigationBar(containerColor = BottomNavBackground, contentColor = Color.White) {
         tabs.forEach { tab ->
+            val selected = currentRoute == tab.route
             NavigationBarItem(
-                selected = currentRoute == tab.route,
+                selected = selected,
                 onClick = { onNavigate(tab.route) },
-                icon = { Icon(tab.icon, contentDescription = androidx.compose.ui.res.stringResource(tab.labelRes), modifier = Modifier.size(26.dp)) },
-                label = { Text(androidx.compose.ui.res.stringResource(tab.labelRes), fontSize = 11.sp, fontWeight = if (currentRoute == tab.route) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium) },
+                icon = {
+                    Icon(
+                        tab.icon,
+                        contentDescription = androidx.compose.ui.res.stringResource(tab.labelRes),
+                        modifier = Modifier.size(26.dp)
+                    )
+                },
+                label = {
+                    Text(
+                        text = androidx.compose.ui.res.stringResource(tab.labelRes),
+                        fontSize = labelSize,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                alwaysShowLabel = !compactLabels,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = TealPrimary,
                     unselectedIconColor = TextSecondary,
