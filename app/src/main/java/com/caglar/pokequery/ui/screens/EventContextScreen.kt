@@ -111,7 +111,9 @@ internal fun formatEventCheckTime(date: Date, locale: Locale): String =
 @Composable
 fun EventContextScreen(
     onBack: () -> Unit,
-    debugEventFeedUrl: String? = null
+    debugEventFeedUrl: String? = null,
+    initialFeedState: ContextFeedState? = null,
+    autoRefresh: Boolean = true
 ) {
     val density = currentDensity()
     val context = LocalContext.current
@@ -121,7 +123,7 @@ fun EventContextScreen(
     val scope = rememberCoroutineScope()
     val repository = remember { UserPreferencesRepository(context.dataStore) }
     val userPrefs by repository.userPreferencesFlow.collectAsState(initial = null)
-    var feedState by remember { mutableStateOf<ContextFeedState>(ContextFeedState.Loading()) }
+    var feedState by remember { mutableStateOf(initialFeedState ?: ContextFeedState.Loading()) }
     var refreshing by remember { mutableStateOf(false) }
     var lastChecked by remember { mutableStateOf<String?>(null) }
     var clickedEventDetail by remember { mutableStateOf<EventContext?>(null) }
@@ -147,7 +149,7 @@ fun EventContextScreen(
     androidx.compose.runtime.LaunchedEffect(Unit) {
         // Auto-refresh on every Event Guide open (online-first, cache fallback, bundled fallback).
         // Manual "Refresh now" button remains for user-initiated refresh.
-        if (!hasAutoRefreshed) {
+        if (autoRefresh && !hasAutoRefreshed) {
             hasAutoRefreshed = true
             refresh()
         }
