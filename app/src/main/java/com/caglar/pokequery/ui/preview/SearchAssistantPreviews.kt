@@ -8,7 +8,7 @@ private fun SearchAssistantPreviewContent() {
     PokeQueryPreviewFrame(currentRoute = "builder") {
         SearchAssistantScreen(
             onBack = {},
-            onCopyRaw = {},
+            onCopyRaw = { _, _ -> },
             onExplain = {}
         )
     }
