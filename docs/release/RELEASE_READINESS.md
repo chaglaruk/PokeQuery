@@ -1,121 +1,131 @@
 # Release Readiness Status
 
-**Android release candidate:** 0.7.7  
+**Android published release:** v0.7.7  
 **versionCode:** 27  
-**Web/PWA:** 0.7.3 (independent versioning)  
-**Release branch:** `release/v0.7.7`  
-**Release branch base:** `fb00bcdbeee1d8694684835375af89a6aece0221`  
+**Web/PWA:** v0.7.3 (independent versioning)  
+**Immutable Android release source SHA:** `93bf178f942048e0fee8cbb47976b23f86ecde3f`  
+**Release tag:** `v0.7.7`  
+**Google Play publication date:** 2026-10-01  
 **Previous published Android release:** v0.7.6 / code 26  
 
-> Historical note: the repository does not currently provide a verified immutable `v0.7.6` tag/release source record. Do not infer one from moving `master` or from the version-bump commit alone. v0.7.7 must establish its own exact release-source SHA after the release PR is merged and the signed AAB is verified.
+> Release identity is anchored to the exact immutable source SHA above, not moving `master`. The scheduled Event Guide workflow may create feed-only commits after the binary release.
 
-## Candidate scope
+## Published scope
 
-v0.7.7 is the Android production-update candidate for the user-facing growth/safety work merged in PR #32.
+v0.7.7 is the published Android production update for the growth and safety work originally merged through PR #32 and finalized by PR #33.
 
-Included release-facing areas:
-- Android Goal Detail **Share Search** via the system share chooser;
+Release-facing areas include:
+- Android Goal Detail **Share Search** through the system share chooser;
 - Medium/High-risk Share actions preserve the Risk Warning gate before the chooser opens;
 - Search Assistant copy risk parity: canonical Info/Low output may copy directly, while Medium/High output must be reviewed before the clipboard changes;
-- localized Search Assistant output still follows the selected Search String Language after confirmation;
+- localized Search Assistant output continues to follow the selected Search String Language after confirmation;
 - local-only Play Store rating prompt with no analytics, telemetry, attribution or review SDK;
-- EN/TR/DE/ES/FR/IT Share/rating/risk copy and the rating-dialog locale fallback fix;
-- Android share-chooser launch fix for the localized configuration context;
-- v0.7.7 Changelog current-entry copy localized for EN/TR/DE/ES/FR/IT and bound to dedicated `what_changed_v077_*` resources after PR review caught the stale v0.6.6 binding;
-- the current master Event Guide fallback/assets bundled at the release branch base.
+- EN/TR/DE/ES/FR/IT Share/rating/risk copy and rating-dialog locale fallback fix;
+- Android share-chooser launch fix for localized configuration context;
+- v0.7.7 Changelog current-entry copy localized for EN/TR/DE/ES/FR/IT and bound to dedicated `what_changed_v077_*` resources.
 
-Web/PWA remains independently versioned at 0.7.3. The Android version bump does not itself create a new Web/PWA release.
+Web/PWA remains independently versioned at **v0.7.3**. The Android publication does not imply a Web/PWA release.
 
-## Completed pre-release gates inherited from the exact release base
+## Source and cloud validation
 
-- ✅ Growth foundation PR #32 was squash-merged to exact master SHA `fb00bcdbeee1d8694684835375af89a6aece0221`.
-- ✅ PR #32 final Android CI passed unit tests, lint, `assembleDebug`, golden-corpus identity, Event Guide fallback freshness, generator/enrichment/fallback validation, event-feed validation and runtime-asset validation.
-- ✅ PR #32 final PWA CI passed typecheck, lint, unit tests, production build, Chromium/WebKit Playwright E2E and mobile visual QA.
-- ✅ Physical Android validation covered low/Info Share, Medium-risk Share gating, Search Assistant `hundo -> 4*`, Medium-risk `shiny` clipboard protection, German localized `schillernd` copy after canonical Medium review, and EN/TR/DE/ES/FR/IT changed growth surfaces.
-- ✅ The first physical pass found and fixed the Android chooser launch defect; the follow-up pass confirmed the real system chooser opens after the risk gate.
-- ✅ The follow-up locale pass found and fixed the rating-dialog English fallback; the committed final file content matched the device-tested patched worktree.
-- ✅ CodeRabbit actionable findings on PR #32 were resolved before merge.
-- ✅ `release/v0.7.7` was created from exact master `fb00bcdbeee1d8694684835375af89a6aece0221` before any subsequent moving-master Event Guide bot commit could be mistaken for the release base.
+PR #33 was merged as exact source commit:
 
-## Intentional release-branch delta
+`93bf178f942048e0fee8cbb47976b23f86ecde3f`
 
-The release branch contains the release/version metadata set plus the narrow PR-review hardening required to make the v0.7.7 Changelog screen truthful. Relative to exact base `fb00bcd...`, the intentional delta is these 15 files:
-- `app/build.gradle.kts`
-- `CHANGELOG.md`
-- `app/src/main/java/com/caglar/pokequery/domain/changelog/Changelog.kt`
-- `app/src/main/java/com/caglar/pokequery/ui/screens/MiscScreens.kt`
-- `app/src/main/res/values/changelog_v077.xml`
-- `app/src/main/res/values-tr/changelog_v077.xml`
-- `app/src/main/res/values-de/changelog_v077.xml`
-- `app/src/main/res/values-es/changelog_v077.xml`
-- `app/src/main/res/values-fr/changelog_v077.xml`
-- `app/src/main/res/values-it/changelog_v077.xml`
-- `app/src/test/java/com/caglar/pokequery/AppVersionTest.kt`
-- `app/src/test/java/com/caglar/pokequery/data/model/PersonalPresetTest.kt`
-- `app/src/test/java/com/caglar/pokequery/domain/locale/LocaleResourceCoverageTest.kt`
-- `app/src/test/java/com/caglar/pokequery/privacy/BuildConfigRegressionTest.kt`
-- `docs/release/RELEASE_READINESS.md`
+The release branch was originally created from exact post-growth master SHA:
 
-The UI implementation delta is limited to rebinding the current Changelog row from stale `what_changed_v066_*` resources to the dedicated localized `what_changed_v077_*` resources. The locale coverage regression test requires every supported locale to provide the complete v0.7.7 changelog key set and rejects stale `what_changed_v066_*` keys in those new files. No search-engine behavior, Event Guide feed data, signing configuration, keystore material, tag or release artifact is changed by the release-prep branch.
+`fb00bcdbeee1d8694684835375af89a6aece0221`
 
-## Final cloud validation
-
-Android CI run `34062529062`, job `101566131322`, on code/test HEAD `2c3289752c90ee195219b5e13574cb5e97f82c9b`: **PASS**.
-
-Passed steps:
-- golden corpus cross-platform identity;
+Final Android CI on the release branch passed:
+- cross-platform golden-corpus identity;
 - Android bundled Event Guide fallback freshness;
-- Android unit tests, including the v0.7.7 six-locale changelog resource regression coverage;
+- Android unit tests;
 - Android lint;
 - debug APK assembly;
 - generator safety invariants;
 - generator/enrichment/fallback validators;
-- event feed validation;
-- runtime asset validation.
+- event-feed validation;
+- runtime-asset validation.
 
-The later readiness update is documentation-only and does not alter Android code, resources, tests, workflows, or build metadata.
+The v0.7.7 Changelog was physically checked in EN/TR/DE/ES/FR/IT before merge for content, wrapping, clipping, overlap, horizontal overflow, scrolling and navigation obstruction.
 
-CodeRabbit status on the validated code/test head is success. Both verified PR #33 inline review findings are resolved.
+## Local signing and artifact verification
 
-## Required before merge / release-source freeze
+The exact release source `93bf178f942048e0fee8cbb47976b23f86ecde3f` was checked out in an isolated clean worktree and independently validated before upload.
 
-- [x] Release-branch Android CI passes completely on **0.7.7 / code 27** including the v0.7.7 locale-coverage regression test.
-- [x] Confirm release-branch diff is the intentional 15-file version/changelog/readiness + review-hardening set above.
-- [ ] Confirm the new v0.7.7 Changelog current-entry copy is readable without clipping/overlap in EN/TR/DE/ES/FR/IT on the physical Android validation device.
-- [x] Resolve the verified PR #33 review findings after validating their fixes.
-- [x] Confirm `versionName=0.7.7`, `versionCode=27`, package `com.caglar.pokequery` from the release branch itself.
-- [ ] Squash-merge the release PR only after the physical Changelog visual gate passes.
-- [ ] Record the exact resulting master merge SHA as the v0.7.7 release-source candidate.
+Identity verified from the source and built bundle:
+- package: `com.caglar.pokequery`;
+- versionName: `0.7.7`;
+- versionCode: `27`.
 
-## Required after merge — local signing/artifact gate
+Required Gradle gates passed:
+- `:app:testDebugUnitTest`;
+- `:app:lintDebug`;
+- `:app:assembleDebug`;
+- `:app:bundleRelease`.
 
-These steps require the local Windows/Android signing environment and must be performed from the **exact merged v0.7.7 release-source SHA**, not from a moving `master` assumption.
+The signed AAB was verified with `jarsigner` and official bundletool 1.18.3.
 
-- [ ] Fetch/checkout the exact merged release-source SHA in the local PokeQuery repository or an isolated clean worktree.
-- [ ] Confirm clean worktree and exact `versionName=0.7.7`, `versionCode=27`, package `com.caglar.pokequery`.
-- [ ] Run `:app:testDebugUnitTest`.
-- [ ] Run `:app:lintDebug`.
-- [ ] Run `:app:assembleDebug`.
-- [ ] Run release-relevant `:app:bundleRelease` using the existing configured Play upload keystore.
-- [ ] Verify the signed AAB with `jarsigner` and record the upload-certificate fingerprint.
-- [ ] Validate the AAB with the official bundletool and inspect package/version metadata directly from the bundle.
-- [ ] Copy the verified artifact to `PokeQuery-v0.7.7-code27.aab` and record file size + SHA-256.
-- [ ] Confirm the delivery-copy SHA-256 exactly matches the Gradle output artifact.
-- [ ] Perform a final physical-device smoke only if the exact release-source delta after the already-tested growth base becomes device-sensitive beyond the Changelog copy check above.
+Verified Play upload certificate SHA-1:
 
-## Publication gate
+`28:7D:20:73:0E:F2:02:C1:49:FB:80:67:A1:42:9B:50:1D:1D:01:78`
 
-- [ ] Upload the exact verified `PokeQuery-v0.7.7-code27.aab` to the intended Google Play production update track only after explicit publication approval.
-- [ ] Confirm Google Play accepts versionCode 27 and the configured upload certificate.
-- [ ] Do not assume rollout/publication from upload alone; verify the Play Console release state explicitly.
-- [ ] Create/push annotated `v0.7.7` only at the exact verified release-source SHA after artifact verification; never retarget older tags.
-- [ ] Update this document from candidate state to published state only after Google Play acceptance/publication is confirmed.
-- [ ] Update public release-facing version references such as README only after v0.7.7 is actually published; until then v0.7.6 remains the shipped Android version.
+Verified release AAB:
+- file name: `PokeQuery-v0.7.7-code27.aab`;
+- size: **4,966,207 bytes**;
+- SHA-256: `a4f54fcfb699e1048f313bb6346ba85ce3d0ac45f7b84bbd7f73e7d1afc33e56`;
+- bundletool manifest: package `com.caglar.pokequery`, versionCode `27`, versionName `0.7.7`;
+- delivery copy was byte-identical to the Gradle output artifact.
 
-## Playwright policy for this Android release
+No keystore, password, signing property, build output or other secret material was committed.
 
-PR #32 already passed full PWA Playwright and visual QA before the Android-only version bump. The v0.7.7 release branch changes no Web/PWA source, so another PWA E2E run is not a release blocker.
+## Google Play publication
 
-## Current blocker
+The exact verified `PokeQuery-v0.7.7-code27.aab` was accepted by Google Play for Production with:
+- versionCode 27;
+- versionName 0.7.7;
+- target SDK 36;
+- six of six localized release-note languages;
+- 100% production rollout.
 
-The only remaining pre-merge blocker is the physical Android six-locale visual check of the new v0.7.7 Changelog current-entry content. Merge, signing, AAB generation, tagging and Google Play publication remain separate gated operations.
+The upload-key reset completed before this release. Google Play accepted the replacement upload certificate matching the SHA-1 recorded above.
+
+Publication was confirmed on **2026-10-01**.
+
+## Post-publication physical smoke
+
+The installed Play Store build reported **0.7.7**, while the Play Store offered **Open / Uninstall** rather than Update.
+
+Post-publication smoke passed on the installed Play build:
+- existing state/settings remained intact;
+- low-risk Share Search opened the Android share flow correctly;
+- Medium-risk Share preserved the Risk Warning gate;
+- cancelling the warning did not open the share chooser;
+- Search Assistant `hundo` produced `4*` directly;
+- `shiny` preserved the review/risk gate;
+- Event Guide opened normally;
+- no blocking crash, locale regression or layout issue was observed.
+
+**Production smoke: PASS.**
+
+## Release closure checklist
+
+- [x] Release PR merged.
+- [x] Exact immutable source SHA recorded.
+- [x] Android CI passed.
+- [x] Six-locale physical Changelog visual gate passed.
+- [x] Exact source rebuilt locally.
+- [x] Unit tests, lint, debug assembly and release bundle passed.
+- [x] Signed AAB certificate verified.
+- [x] bundletool package/version metadata verified.
+- [x] Artifact size and SHA-256 recorded.
+- [x] Delivery copy matched the Gradle artifact byte-for-byte.
+- [x] Google Play accepted versionCode 27 and the reset upload certificate.
+- [x] Production publication confirmed.
+- [x] Play Store physical smoke passed.
+- [x] Immutable `v0.7.7` tag points to exact release source SHA.
+- [x] Public release-facing version references refreshed.
+
+## Ongoing rule
+
+Do not use moving `master` as evidence of a shipped Android binary. Event Guide automation can legitimately advance `master` after release without changing the installed Android package. Future release claims must continue to use the exact immutable release tag/source SHA and the verified release artifact.

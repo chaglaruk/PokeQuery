@@ -56,10 +56,13 @@ Include the affected PokeQuery version/ref, platform/device, reproduction steps 
 
 ## Supported versions and release identity
 
-Security fixes target the latest released Android build, currently **v0.7.5 / versionCode 25**.
+Security fixes target the latest released Android build, currently **v0.7.7 / versionCode 27**.
 
-Immutable Android v0.7.5 release source SHA:
-`b19c3b150468318a71da6c4763266cf4aba10cdd`
+Immutable Android v0.7.7 release source SHA:
+`93bf178f942048e0fee8cbb47976b23f86ecde3f`
+
+Verified release AAB SHA-256:
+`a4f54fcfb699e1048f313bb6346ba85ce3d0ac45f7b84bbd7f73e7d1afc33e56`
 
 Web/PWA is independently versioned (currently v0.7.3).
 
