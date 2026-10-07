@@ -1,7 +1,7 @@
 # PokeQuery organic growth execution checkpoint
 
-**Reviewed:** 2026-10-07  
-**Release boundary:** Android v0.7.7 / code 27 (published, immutable source `93bf178f942048e0fee8cbb47976b23f86ecde3f`); Web/PWA v0.7.3 independently versioned.  
+**Reviewed:** 2026-10-07
+**Release boundary:** Android v0.7.7 / code 27 (published, immutable source `93bf178f942048e0fee8cbb47976b23f86ecde3f`); Web/PWA v0.7.3 independently versioned.
 **Scope:** store conversion, honest discovery, screenshots, and community feedback. No app SDKs, attribution, or public posting without review.
 
 ## What is verified vs. not yet verified
