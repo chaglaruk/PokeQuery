@@ -1,43 +1,45 @@
 # PokeQuery Roadmap
 
 **Owner:** PokeQuery · **Package:** `com.caglar.pokequery`
-**Applies from:** v0.5.5
+**Current product baseline:** Android v0.7.7 / code 27 (published); Web/PWA v0.7.3 (independently versioned). Updated 2026-10-07.
 
-This document tracks direction. Items here are **not built yet** and are not a commitment —
-they are candidates evaluated against PokeQuery's hard privacy/safety constraints. Nothing here
-implies a release date.
+This document distinguishes current product boundaries and already-shipped milestones from **future candidates**. Proposals are not commitments and have no implied release date. Current code, tests and release evidence outrank any roadmap statement.
 
 ## Product invariants (every candidate must respect these)
 
 These never change, regardless of feature:
 
-- **Offline-first.** No INTERNET permission, no network calls, no analytics/tracking/ads/login.
+- **Offline-first, with the documented Event Guide exception.** Android declares INTERNET for the public PokeQuery event feed over HTTPS, not for Pokémon GO account access or unrelated networking. No analytics, tracking, ads, or login.
 - **Text only.** The app generates search strings. It never connects to Pokémon GO, never reads
   a Pokémon collection, never performs OCR/scanning/automation.
-- **Zero-permission manifest**, `allowBackup=false`.
-- **Two-layer localization independence.** App Language (Layer A, UI) never forces Search
-  String Language (Layer B, generated strings). Turkish output stays an explicit, beta, opt-in
-  choice; Auto (Safe) always resolves to English.
+- **No unrelated permissions.** Android's current manifest includes the documented Event Guide INTERNET permission; `allowBackup=false` remains enforced.
+- **Two-layer localization independence.** App Language (Layer A, UI) and Search String Language (Layer B, generated strings) remain independent. `Auto` follows a supported device locale with English fallback; `Match App Language` follows the explicitly chosen App Language or supported device locale under System Default. Explicit search-language choices override both. Official localized Help Center evidence is BETA; independent live localized-client confirmation is required before VERIFIED.
 - **Safety-first risk model.** Inspection-only goals may be Info; action-adjacent
   cleanup/trade workflows are Medium and route through Risk Warning with mandatory protections.
-- **No copyrighted assets.** No Pokémon/Niantic/Nintendo fonts, logos, colors, creatures, or
-  Poké Ball art. Original artwork only.
+- **Original visual assets.** No official Pokémon/Niantic/Nintendo artwork, sprites, fonts, logos, characters or Poké Ball imagery. Follow the current runtime-asset/IP policy.
 - **No fake verification.** Turkish tokens are never marked VERIFIED without a recorded live
   confirmation in `turkish_verification_matrix.md`.
 
-## Future / Post closed-testing candidates
+## Already delivered since the original roadmap
 
-The following ideas came out of the v0.5.5 audit. They are documented here, not implemented.
+- **Changelog / What's New** ships with the Android app as locally bundled content and is reachable from Settings.
+- **Event Guide** uses the documented public-feed HTTPS exception, caching and an offline bundled fallback.
+- Android **Share Search** preserves Medium/High Risk Warning gates and shipped in v0.7.7.
+- Search-language semantics and token confidence rules have changed since v0.5.5. Current code/tests and `docs/localization/` outrank this historical plan.
+
+## Future candidates (not scheduled)
+
+The following ideas originated in earlier audits and remain proposals, not shipped capabilities.
 Each carries the privacy/safety constraints that would govern a future build.
 
-### 1. Community Turkish token verification mode
+### 1. Offline localized-token verification records
 
 **Idea.** Let trusted testers record live Pokémon GO Turkish-client confirmations of token
 candidates (e.g. the contesting `count` candidates `toplam`/`sayı`/`sayısı`, and the compound
 tokens' spacing variants) directly into a structured form, feeding
 `SearchTokenRegistry` + `turkish_verification_matrix.md`.
 
-**Value.** Today the matrix is a manual markdown table; a structured capture path would let
+**Value.** The verification matrix remains a manually reviewed record; a structured capture path would let
 verification progress from `untested` → `works` faster and more reliably, which is the gating
 factor for graduating Turkish output out of beta.
 
@@ -46,27 +48,10 @@ factor for graduating Turkish output out of beta.
   verification record is stored locally on the tester's device.
 - Must **never auto-promote** a token to VERIFIED. A human still reviews and flips the status in
   code + the matrix together (the existing rule).
-- Must respect **honesty**: a candidate stays `untested`/`risky` until a real live confirmation
-  is recorded, with date/tester/device. No "AI guesses".
-- Search String Language independence and Auto→English must be preserved.
+- Must respect **honesty**: a candidate stays UNTESTED/RISKY/BETA until a real live-client confirmation is recorded with date, device and source notes. No AI guesses or automatic VERIFIED promotion.
+- Search String Language independence and the current `Auto` / `Match App Language` resolution rules must be preserved.
 
-### 2. Changelog screen
-
-**Idea.** An in-app "What's new" / changelog screen surfaced after an update (and reachable
-from Settings), summarizing the per-release changes.
-
-**Value.** Closed-testing testers currently rely on external notes; an in-app changelog makes
-each release's safety/feature deltas visible at the moment they matter.
-
-**Privacy/safety constraints.**
-- **No network.** The changelog content must ship with the app (a local resource / structured
-  model), not be fetched online. No version-check server call.
-- **No tracking.** No analytics on views, no "did the user read it" telemetry.
-- **Honest wording.** Must never claim automation, Pokémon GO connectivity, or verified
-  localization that does not exist. Turkish content follows the same Foundation/coming-later
-  honesty rule as App Language (Fix 2).
-
-### 3. Personalized scope breadth
+### 2. Personalized scope breadth
 
 **Idea.** Today scope breadth (Very Narrow / Narrow / Moderate / Broad / Very Broad) is a pure
 function of the query. A personalized layer could let a tester tag their own context (e.g.
@@ -82,7 +67,7 @@ generated strings' safety.
   remove `COUNT_MANDATORY_PROTECTIONS` / the `!traded` invariant.
 - Inspection-only vs action-adjacent intent (Fix 5) must be preserved.
 
-### 4. Favorites ↔ Presets bridge
+### 3. Favorites ↔ Presets bridge
 
 **Idea.** Let a tester promote a customized Favorite (a saved generated string) into a personal
 "preset" they can re-run, and/or seed Presets from Favorites — blurring the current Favorites
@@ -101,5 +86,4 @@ generated strings' safety.
 ---
 
 Items graduate out of this document into a release plan only after a dedicated design + safety
-review. Until then they are explicitly **not active** and must not appear as functional UI
-beyond the existing disabled "Coming Later" cards.
+review. Until then these are **not active features**. Do not add fake functional controls or non-working settings to advertise them.

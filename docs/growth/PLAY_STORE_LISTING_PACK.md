@@ -1,8 +1,10 @@
 # PokeQuery Google Play listing pack
 
-Prepared: 2026-09-06
+Prepared: 2026-09-06; execution reviewed 2026-10-07
 
 Purpose: improve store-listing conversion without changing PokeQuery's privacy or product boundaries. Google Play currently allows up to 30 characters for the app name, 80 for the short description and 4,000 for the full description. Localized listings should be entered separately rather than machine-translated in Play Console.
+
+> **Publication status:** This file contains **proposed** copy, not evidence it is already live in Google Play. Verify actual Play Console listings in all six languages first. All six names are within 30 characters, short descriptions within 80, and full descriptions within 4,000 at the 2026-10-07 review. See [execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md).
 
 ## Recommended localized app names
 
@@ -151,13 +153,13 @@ The first five screenshots should communicate outcomes, not architecture.
 
 | Slot | EN headline | Screen to use |
 |---|---|---|
-| 1 | `Storage full? Clean it up safely.` | Safe Cleanup result + protections |
-| 2 | `Build the search you need in seconds.` | Home or Search Assistant |
-| 3 | `Get ready before the event starts.` | Event Guide |
-| 4 | `Trade, PvP and candy prep without memorising syntax.` | Goal grid / selected workflows |
-| 5 | `Your app language and search language stay separate.` | Settings language controls |
+| 1 | `Review before you transfer.` | Safe Cleanup result + protections |
+| 2 | `Build the search you need.` | Home or Search Assistant |
+| 3 | `Prepare for upcoming events.` | Event Guide |
+| 4 | `Find trade, PvP & candy candidates.` | Goal grid / selected workflows |
+| 5 | `Keep UI and search languages separate.` | Settings language controls |
 
-Localized screenshot headlines should be created from the same meaning, not word-for-word translations. Do not use official Pokémon artwork, sprites, Poké Balls or logos.
+The [October 2026 execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md) supplies short editorial headlines for EN/TR/DE/ES/FR/IT and a truthful screenshot-capture matrix. Review their naturalness and overflow on actual localized UI before publishing; these are NOT already approved graphics. Never fabricate app UI or conceal a Risk Warning. Do not use official Pokémon artwork, sprites, Poké Balls or logos.
 
 ## First store-listing experiment
 
@@ -180,7 +182,7 @@ Do not add SDK tracking parameters. Measurement should use Google Play's own agg
 
 ## Manual Play Console gate
 
-ChatGPT has no connected Google Play Console integration in this workspace. After review, enter these fields under the Main store listing and localized listings, upload the approved screenshots, then create the experiments/custom listings in Play Console.
+A verified live Play Console connection is not currently available through this workflow. First read and record the actual published Main store listing and localized metadata; do not assume this proposed copy has already been applied. After graphics and copy are approved, update the chosen listings in Play Console. Publishing listings, running public experiments and creating custom listing URLs require a separate intentional store operation; they are not completed by this repository document.
 
 Official references used for limits and capabilities:
 - https://support.google.com/googleplay/android-developer/answer/9859152

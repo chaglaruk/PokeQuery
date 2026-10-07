@@ -2,6 +2,8 @@
 
 Prepared: 2026-09-06
 
+> **2026-10-07 checkpoint:** This paid gate remains **closed**. No verified evidence yet of a live outcome-first six-locale screenshot baseline, a conclusive store-listing experiment, or organic conversion lift. Android v0.7.7 Share Search and its review behavior are already shipped/physically validated. Check the [growth execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md) for current prerequisites.
+
 ## Decision
 
 Do not spend on paid acquisition yet.
