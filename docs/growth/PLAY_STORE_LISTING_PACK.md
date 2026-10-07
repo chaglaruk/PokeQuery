@@ -5,7 +5,7 @@ Prepared: 2026-09-06; execution reviewed 2026-10-07
 Purpose: improve store-listing conversion without changing PokeQuery's privacy or product boundaries. Google Play currently allows up to 30 characters for the app name, 80 for the short description and 4,000 for the full description. Localized listings should be entered separately rather than machine-translated in Play Console.
 
 > **Publication status:** This file contains **proposed** copy, not evidence it is already live in Google Play. Verify actual Play Console listings in all six languages first. All six names are within 30 characters, short descriptions within 80, and full descriptions within 4,000 at the 2026-10-07 review. See [execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md).
- 
+
 ## Recommended localized app names
 
 | Locale | App name | Characters |
