@@ -3,9 +3,7 @@
 **Owner:** PokeQuery · **Package:** `com.caglar.pokequery`
 **Current product baseline:** Android v0.7.7 / code 27 (published); Web/PWA v0.7.3 (independently versioned). Updated 2026-10-07.
 
-This document tracks direction. Items here are **not built yet** and are not a commitment —
-they are candidates evaluated against PokeQuery's hard privacy/safety constraints. Nothing here
-implies a release date.
+This document distinguishes current product boundaries and already-shipped milestones from **future candidates**. Proposals are not commitments and have no implied release date. Current code, tests and release evidence outrank any roadmap statement.
 
 ## Product invariants (every candidate must respect these)
 
@@ -18,10 +16,16 @@ These never change, regardless of feature:
 - **Two-layer localization independence.** App Language (Layer A, UI) and Search String Language (Layer B, generated strings) remain independent. `Auto` follows a supported device locale with English fallback; `Match App Language` follows the explicitly chosen App Language or supported device locale under System Default. Explicit search-language choices override both. Official localized Help Center evidence is BETA; independent live localized-client confirmation is required before VERIFIED.
 - **Safety-first risk model.** Inspection-only goals may be Info; action-adjacent
   cleanup/trade workflows are Medium and route through Risk Warning with mandatory protections.
-- **No copyrighted assets.** No Pokémon/Niantic/Nintendo fonts, logos, colors, creatures, or
-  Poké Ball art. Original artwork only.
+- **Original visual assets.** No official Pokémon/Niantic/Nintendo artwork, sprites, fonts, logos, characters or Poké Ball imagery. Follow the current runtime-asset/IP policy.
 - **No fake verification.** Turkish tokens are never marked VERIFIED without a recorded live
   confirmation in `turkish_verification_matrix.md`.
+
+## Already delivered since the original roadmap
+
+- **Changelog / What's New** ships with the Android app as locally bundled content and is reachable from Settings.
+- **Event Guide** uses the documented public-feed HTTPS exception, caching and an offline bundled fallback.
+- Android **Share Search** preserves Medium/High Risk Warning gates and shipped in v0.7.7.
+- Search-language semantics and token confidence rules have changed since v0.5.5. Current code/tests and `docs/localization/` outrank this historical plan.
 
 ## Future candidates (not scheduled)
 
@@ -46,13 +50,6 @@ factor for graduating Turkish output out of beta.
   code + the matrix together (the existing rule).
 - Must respect **honesty**: a candidate stays UNTESTED/RISKY/BETA until a real live-client confirmation is recorded with date, device and source notes. No AI guesses or automatic VERIFIED promotion.
 - Search String Language independence and the current `Auto` / `Match App Language` resolution rules must be preserved.
-
-## Already delivered since the original roadmap
-
-- **Changelog / What's New** ships with the Android app as locally bundled content and is reachable from Settings.
-- **Event Guide** uses the documented public-feed HTTPS exception, caching and an offline bundled fallback.
-- Android **Share Search** preserves Medium/High Risk Warning gates and shipped in v0.7.7.
-- Search-language semantics and token confidence rules have changed since v0.5.5. Current code/tests and `docs/localization/` outrank this historical plan.
 
 ### 2. Personalized scope breadth
 
