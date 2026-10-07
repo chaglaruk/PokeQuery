@@ -2,6 +2,8 @@
 
 Prepared: 2026-09-06
 
+> **Historical planning record (2026-09-06).** Event-specific Mega Finale references and the sample dated Reddit post are expired as of 2026-10-07; **do not copy them as current campaign material**. Four developer/builder posts were recorded as published then, but current replies and moderator approval states remain unverified. Follow [the current execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md) before any further submission.
+
 Goal: earn installs by solving a real Pokémon GO storage/search problem in the Reddit post itself. Do not lead with “I made an app”. Do not mass-post identical copy. Check the target subreddit's current rules immediately before posting.
 
 Current timely hook: the official Pokémon GO events page lists Pokémon GO Fest 2026: Mega Finale for September 5-6, 2026. Use “Mega Finale weekend” while the event is still running somewhere in the world; only switch to “after Mega Finale” once the event has actually ended. Re-verify official event facts immediately before any event-specific post.
