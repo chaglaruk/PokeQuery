@@ -100,7 +100,8 @@ These checks **did not independently establish that the tested installed binary 
 
 During the read-only growth/screenshot audit on 2026-10-07, a connected physical device reported the same package/versionCode **27** and versionName **0.7.7**, but its installed package was flagged **DEBUGGABLE**, with no installer package recorded. This build is not a qualifying Play production screenshot source. Whether the original smoke was performed on precisely the same installation was not independently verified, so do not silently equate these sessions. An absent installer field by itself is not definitive signing evidence; the DEBUGGABLE flag independently disqualifies the observed package from a non-debuggable production capture.
 
-**Functional smoke on a reported v0.7.7 installation: PASS (user report).**  
+**Functional smoke on a reported v0.7.7 installation: PASS (user report).**
+
 **Independently verified Play-signed physical smoke: NOT YET VERIFIED.**
 
 The GitHub source, signed upload AAB, Google Play bundle acceptance and 2026-10-01 production publication remain independently established. The outstanding step is **only** verification of an actual Play-signed production installation, preferably on a separate device so the existing debuggable test installation and local app data are not disturbed. Verify the installed APK certificate against the **Google Play App Signing certificate** (not the upload certificate), and confirm it is not debuggable.
