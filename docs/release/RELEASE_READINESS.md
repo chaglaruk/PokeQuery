@@ -92,21 +92,19 @@ The upload-key reset completed before this release. Google Play accepted the rep
 
 Publication was confirmed on **2026-10-01**.
 
-## Post-publication physical smoke
+## Post-publication physical smoke: provenance clarification (2026-10-07)
 
-The installed Play Store build reported **0.7.7**, while the Play Store offered **Open / Uninstall** rather than Update.
+On 2026-10-01, the user reported that the installed app displayed version **0.7.7** and Google Play offered **Open / Uninstall** rather than Update. Functional smoke was reported clean for state retention, Share Search, Medium-risk review/cancellation, Search Assistant `hundo` / `shiny`, Event Guide, and basic locale/layout behavior.
 
-Post-publication smoke passed on the installed Play build:
-- existing state/settings remained intact;
-- low-risk Share Search opened the Android share flow correctly;
-- Medium-risk Share preserved the Risk Warning gate;
-- cancelling the warning did not open the share chooser;
-- Search Assistant `hundo` produced `4*` directly;
-- `shiny` preserved the review/risk gate;
-- Event Guide opened normally;
-- no blocking crash, locale regression or layout issue was observed.
+These checks **did not independently establish that the tested installed binary was Play-signed production**. VersionName alone and the Play Store's Open/Uninstall buttons do not prove app-signing provenance.
 
-**Production smoke: PASS.**
+During the read-only growth/screenshot audit on 2026-10-07, a connected physical device reported the same package/versionCode **27** and versionName **0.7.7**, but its installed package was flagged **DEBUGGABLE**, with no installer package recorded. This build is not a qualifying Play production screenshot source. Whether the original smoke was performed on precisely the same installation was not independently verified, so do not silently equate these sessions. An absent installer field by itself is not definitive signing evidence; the DEBUGGABLE flag independently disqualifies the observed package from a non-debuggable production capture.
+
+**Functional smoke on a reported v0.7.7 installation: PASS (user report).**
+
+**Independently verified Play-signed physical smoke: NOT YET VERIFIED.**
+
+The GitHub source, signed upload AAB, Google Play bundle acceptance and 2026-10-01 production publication remain independently established. The outstanding step is **only** verification of an actual Play-signed production installation, preferably on a separate device so the existing debuggable test installation and local app data are not disturbed. Verify the installed APK certificate against the **Google Play App Signing certificate** (not the upload certificate), and confirm it is not debuggable.
 
 ## Release closure checklist
 
@@ -122,7 +120,7 @@ Post-publication smoke passed on the installed Play build:
 - [x] Delivery copy matched the Gradle artifact byte-for-byte.
 - [x] Google Play accepted versionCode 27 and the reset upload certificate.
 - [x] Production publication confirmed.
-- [x] Play Store physical smoke passed.
+- [ ] Play-signed production installation and physical smoke independently verified (a later connected installation was DEBUGGABLE; preserve it until a separate qualifying build can be tested).
 - [x] Immutable `v0.7.7` tag points to exact release source SHA.
 - [x] Public release-facing version references refreshed.
 

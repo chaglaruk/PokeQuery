@@ -8,10 +8,10 @@
 
 | Surface | Established evidence | Still needs verification |
 |---|---|---|
-| Android production | v0.7.7 published and Play-installed smoke passed | No new Android binary needed for listing-only work |
-| Google Play listing | Existing six-locale title/short/full description proposals are in `PLAY_STORE_LISTING_PACK.md`; names 22–28 characters, short descriptions 72–78, full descriptions 962–1,139: all within Play's 30/80/4,000 limits | **Current live Play Console** listing fields, locales and screenshot order. Public search indexing can lag and is not Console truth |
-| Visual assets | Earlier README/store screenshots exist in the repository, but many are historic captures and some show older layouts | Real installed v0.7.7 screenshots of all five chosen screen states, plus every supported locale and final overflow/IP review |
-| Store performance | Play Console has aggregate store-listing metrics without an app-side tracking SDK | Baseline visitors, acquisitions, conversion, search terms and top languages for a comparable 28-day window; no figures have been supplied |
+| Android production | v0.7.7 / code27 accepted and published by Google Play; signed upload AAB independently verified | **Play-signed physical smoke provenance is still unverified.** The connected v0.7.7/code27 device seen on 2026-10-07 has a DEBUGGABLE package and no installer record. Preserve its data; use a separate Play-signed production installation for capture/QA |
+| Google Play listing | Read-only 2026-10-07 Play Console inspection: six explicit locales, live title **PokeQuery** in all six, eight existing phone screenshots per locale (48 total), shared icon/feature graphic, no current or historical experiments and no custom listings. The 18 proposed title/short/full fields differ from live values. | Do not confuse proposed copy with live metadata. Inspect old image contents, especially potential German Home clipping, before reusing. Re-verify Console before any edit. |
+| Visual assets | Six live locales have eight screenshots each, uploaded in August 2026; current ordering varies sharply between locales and a German Home preview appeared clipped in read-only inspection | **0/30** new production capture cells accepted: get actual Play-signed/non-debuggable v0.7.7 captures for 5 story slots × 6 locales, plus mobile legibility/IP/date/overflow review |
+| Store performance | Read-only 2026-10-07 audit established comparable 28-day Console metrics for **7 Sep–4 Oct** vs **10 Aug–6 Sep**; full requested 9 Sep–6 Oct window was not available (new report ended 4 Oct). Detailed account metrics remain in a **private local evidence archive**, not this public repository. | Recheck refreshed complete windows after Console data catches up; distinguish unique install clicks from legacy daily acquisitions and report language/traffic mix before testing |
 | Organic community | Four distinct Reddit developer/builder posts were reported published on 2026-09-06 | Their actual reply outcomes; status of previous r/pokemongo and r/TheSilphRoad moderator messages |
 | Web/PWA | Version v0.7.3 and four static SEO guides are published via GitHub Pages workflow; routine Web tests are green | Independently open the deployed pages and check mobile sharing/indexing before calling a new SEO experiment effective |
 
@@ -19,15 +19,15 @@
 
 ### Phase A — read-only store baseline
 
-Before uploading anything, capture the **current** Play Console Main store listing for EN/TR/DE/ES/FR/IT, including title, short description, full description, feature graphic and ordered screenshots. Record which locales have a manually localized store listing rather than automatic translation.
+A read-only Console baseline audit was completed on 2026-10-07: the live title is `PokeQuery` in all six explicitly localized listings; all six have eight existing phone screenshots, with different orders. No store experiments or custom listings were visible. The audit's sensitive/account-level raw fields and metrics are deliberately retained **outside** this public repository.
 
-Record aggregate Play Console `Store performance` for the previous completed 28 days and a comparison period: store-listing visitors, acquisitions and the Console's conversion rate. Break down by traffic source, country, language and available search terms. Small sample sizes should be reported as inconclusive, not evidence of a winner.
+The comparable available complete 28-day date ranges were **7 Sep–4 Oct** and **10 Aug–6 Sep**. Console had not yet made 5–6 October available for the originally requested later window. Do not use sparse legacy daily data as deduplicated 28-day uniques, or conflate unique install clicks with legacy acquisitions. Re-verify the freshest complete window and traffic mix before any live experiment. Small samples or a changing visitor-source mix do not prove a screenshot or metadata effect.
 
 Do not assume Google search-result snippets are real-time publication state. Do not add analytics, tracking parameters or third-party attribution to the app.
 
 ### Phase B — capture a truthful v0.7.7 screenshot story
 
-**Priority:** one complete EN baseline, then localized variants after the capture/layout gate. Reuse screenshots only when their underlying UI content actually matches the chosen language.
+**Priority:** one complete EN baseline, then localized variants after the capture/layout gate. **Production provenance gate:** a matching versionName/versionCode is insufficient. Confirm the installed APK is **not DEBUGGABLE** and that its signing certificate matches the Google Play **App Signing** certificate rather than merely the upload certificate. The 2026-10-07 connected test installation was debuggable; do not uninstall, clear, overwrite, or replace it solely to obtain store graphics. Use a different physical device with a qualifying Play install if available. Reuse screenshots only when their underlying UI content actually matches the chosen language.
 
 Each of the following five slots needs a real, non-synthetic Android app capture from the installed v0.7.7 build, taken at a repeatable clean state:
 
