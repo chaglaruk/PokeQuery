@@ -39,6 +39,20 @@ def validate_feed(file_path):
         print("Error: events must be a non-empty list")
         return False
         
+    # News index timestamps represent publication, not event dates.
+    # These duplicate discovery slugs must never escape canonicalization.
+    stale_article_ids = {
+        "event-tcg-30th-celebration-event",
+        "event-communityday-october-2026-zorua",
+    }
+    ids = [event.get("id") for event in events]
+    if len(ids) != len(set(ids)):
+        print("Error: duplicate event IDs in public feed")
+        return False
+    if stale_article_ids.intersection(ids):
+        print("Error: official-news publication records escaped event deduplication")
+        return False
+
     # Check each event
     for i, event in enumerate(events):
         event_id = event.get("id")
