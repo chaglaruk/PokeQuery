@@ -230,7 +230,7 @@ export const de: Record<string, string> = {
   "what_changed_v066_tester3": "Überprüfe, ob der Such-Assistent türkische Begriffe wie \"parlak\" erkennt.",
   "goal_safe_cleanup": "Sicheres Aufräumen",
   "goal_safe_cleanup_desc": "Überprüfe wenig nützliche Kandidaten zum Verschicken",
-  "goal_candy_prep": "2x Bonbon-Vorbereitung",
+  "goal_candy_prep": "2× Bonbon-Planung",
   "goal_candy_prep_desc": "Finde Überbleibsel zum Verschicken",
   "goal_trade_fodder": "Tausch-Kandidaten",
   "goal_trade_fodder_desc": "Nicht getauschte Duplikate",
