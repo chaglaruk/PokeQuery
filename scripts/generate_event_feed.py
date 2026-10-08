@@ -539,6 +539,8 @@ def generate_feed(fixture_mode, output_path):
     
     for ev_id, ev in raw_events.items():
         meta = resolve_event_metadata(metadata, ev_id, ev.get("title", ""))
+        category = meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"])
+        editorial_only = category == "ANNOUNCEMENT"
         
         # Determine status dynamically based on current date (defaults to UPCOMING)
         # Curated metadata may override scraped article dates with real event windows.
@@ -580,21 +582,21 @@ def generate_feed(fixture_mode, output_path):
             "summaryEs": meta.get("summaryEs"),
             "summaryFr": meta.get("summaryFr"),
             "summaryIt": meta.get("summaryIt"),
-            "prep": meta.get("prep", "Prepare for event catches and inventory limits."),
-            "prepTr": meta.get("prepTr", "Etkinlik yakalamaları ve envanter limitleri için hazırlık yapın."),
+            "prep": meta.get("prep", "" if editorial_only else "Prepare for event catches and inventory limits."),
+            "prepTr": meta.get("prepTr", "" if editorial_only else "Etkinlik yakalamaları ve envanter limitleri için hazırlık yapın."),
             "prepDe": meta.get("prepDe"),
             "prepEs": meta.get("prepEs"),
             "prepFr": meta.get("prepFr"),
             "prepIt": meta.get("prepIt"),
-            "suggestedSearch": ensure_traded_exclusion(meta.get("suggestedSearch", "age0&!favorite")),
-            "eventNotes": meta.get("eventNotes", "Review recent catches before transfer."),
-            "eventNotesTr": meta.get("eventNotesTr", "Transferden önce son yakalamaları kontrol edin."),
+            "suggestedSearch": ("" if editorial_only and not meta.get("suggestedSearch") else ensure_traded_exclusion(meta.get("suggestedSearch", "age0&!favorite"))),
+            "eventNotes": meta.get("eventNotes", "" if editorial_only else "Review recent catches before transfer."),
+            "eventNotesTr": meta.get("eventNotesTr", "" if editorial_only else "Transferden önce son yakalamaları kontrol edin."),
             "eventNotesDe": meta.get("eventNotesDe"),
             "eventNotesEs": meta.get("eventNotesEs"),
             "eventNotesFr": meta.get("eventNotesFr"),
             "eventNotesIt": meta.get("eventNotesIt"),
             "themeKey": meta.get("themeKey", "generic_event"),
-            "eventCategory": meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"]),
+            "eventCategory": category,
             "importanceTier": meta.get("importanceTier") or get_importance_tier(meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"])),
             "sourceNotes": meta.get("sourceNotes") or f"Generated from {ev['sourceName']}: {ev['sourceUrl']}",
             "sourceName": meta.get("sourceName") or ev["sourceName"],
