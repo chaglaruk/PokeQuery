@@ -63,7 +63,10 @@ def validate_feed(file_path):
         print(f"  Validating event: {event_id}")
         
         # Verify required non-blank fields
-        required_fields = ["title", "note", "summary", "prep", "suggestedSearch", "eventNotes", "sourceName", "sourceUrl", "sourceType", "lastUpdated"]
+        required_fields = ["title", "note", "summary", "sourceName", "sourceUrl", "sourceType", "lastUpdated"]
+        # Editorial announcements may have no inventory action; never force a transfer query.
+        if event.get("eventCategory") != "ANNOUNCEMENT":
+            required_fields += ["prep", "suggestedSearch", "eventNotes"]
         for field in required_fields:
             val = event.get(field)
             if not val or not val.strip():
@@ -101,10 +104,12 @@ def validate_feed(file_path):
                 print(f"Error: Event {event_id} field '{field}' contains banned '|': {val}")
                 return False
 
-        search_tokens = [token.strip().lower() for token in event["suggestedSearch"].split("&") if token.strip()]
-        if search_tokens.count("!traded") != 1 or "traded" in search_tokens:
-            print(f"Error: Event {event_id} suggestedSearch must contain exactly one !traded exclusion")
-            return False
+        search = event.get("suggestedSearch") or ""
+        search_tokens = [token.strip().lower() for token in search.split("&") if token.strip()]
+        if search or event_category != "ANNOUNCEMENT":
+            if search_tokens.count("!traded") != 1 or "traded" in search_tokens:
+                print(f"Error: Event {event_id} suggestedSearch must contain exactly one !traded exclusion")
+                return False
             
         # Check themeKey
         theme_key = event.get("themeKey", "generic_event")
