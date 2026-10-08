@@ -1539,29 +1539,36 @@ private fun EventDetailsDialog(
                 }
             },
             text = {
-                Box(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(vertical = 8.dp)
-                    ) {
-                        val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
-                        if (summary.isNotBlank()) {
-                            item {
-                                Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+                // AlertDialog installs its own Android context. Restore the app language
+                // inside its content so resource-backed explanations keep that language.
+                androidx.compose.runtime.CompositionLocalProvider(
+                    LocalContext provides dialogContext,
+                    LocalConfiguration provides dialogConfig
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            contentPadding = PaddingValues(vertical = 8.dp)
+                        ) {
+                            val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
+                            if (summary.isNotBlank()) {
+                                item {
+                                    Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+                                }
                             }
-                        }
-                        item {
-                            EventDashboardContent(
-                                event = event,
-                                sourceLabelRes = sourceLabelRes,
-                                lastChecked = lastChecked,
-                                tone = tone,
-                                clipboard = clipboard,
-                                lang = lang,
-                                onOpen = { infoDialog = it },
-                                compactForDialog = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            item {
+                                EventDashboardContent(
+                                    event = event,
+                                    sourceLabelRes = sourceLabelRes,
+                                    lastChecked = lastChecked,
+                                    tone = tone,
+                                    clipboard = clipboard,
+                                    lang = lang,
+                                    onOpen = { infoDialog = it },
+                                    compactForDialog = true,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }
