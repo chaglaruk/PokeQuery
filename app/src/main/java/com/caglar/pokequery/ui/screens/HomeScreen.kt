@@ -125,6 +125,8 @@ data class ChipInfo(val title: String, val desc: String)
 @Composable
 fun HomeScreen(onGoalSelected: (String) -> Unit) {
     val density = currentDensity()
+    // Large-font labels need the width of a full card rather than mid-word wraps.
+    val goalColumns = if (LocalConfiguration.current.fontScale >= 1.3f) 1 else 2
     var activeChipInfo by remember { mutableStateOf<ChipInfo?>(null) }
 
     com.caglar.pokequery.ui.motion.PqStaggeredEntrance { visible ->
@@ -139,7 +141,7 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
                     item { HomeHeader(Modifier.pqStaggeredItem(visible, 0)) }
-                    primaryGoals.chunked(2).forEachIndexed { rowIndex, row ->
+                    primaryGoals.chunked(goalColumns).forEachIndexed { rowIndex, row ->
                         item {
                             val staggerIndex = (1 + rowIndex).coerceAtMost(PqMotionTokens.MAX_STAGGER_INDEX)
                             Row(
@@ -151,7 +153,7 @@ fun HomeScreen(onGoalSelected: (String) -> Unit) {
                                 row.forEach { goal ->
                                     GoalCard(goal, Modifier.weight(1f)) { onGoalSelected(goal.id) }
                                 }
-                                if (row.size == 1) Spacer(Modifier.weight(1f))
+                                if (row.size == 1 && goalColumns > 1) Spacer(Modifier.weight(1f))
                             }
                         }
                     }
@@ -256,6 +258,7 @@ private fun HomeHeader(entranceModifier: Modifier = Modifier) {
 @Composable
 private fun MoreToolsSection(onGoalSelected: (String) -> Unit) {
     val density = currentDensity()
+    val goalColumns = if (LocalConfiguration.current.fontScale >= 1.3f) 1 else 2
     var expanded by rememberSaveable { mutableStateOf(false) }
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
@@ -296,7 +299,7 @@ private fun MoreToolsSection(onGoalSelected: (String) -> Unit) {
             exit = shrinkVertically(animationSpec = tween(250))
         ) {
             Column {
-                toolGoals.chunked(2).forEachIndexed { rowIndex, row ->
+                toolGoals.chunked(goalColumns).forEachIndexed { rowIndex, row ->
                     Row(
                         Modifier.fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 5.dp),
@@ -305,7 +308,7 @@ private fun MoreToolsSection(onGoalSelected: (String) -> Unit) {
                         row.forEach { goal ->
                             GoalCard(goal, Modifier.weight(1f)) { onGoalSelected(goal.id) }
                         }
-                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                        if (row.size == 1 && goalColumns > 1) Spacer(Modifier.weight(1f))
                     }
                 }
             }
