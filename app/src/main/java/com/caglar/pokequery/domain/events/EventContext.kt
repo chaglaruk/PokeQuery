@@ -623,44 +623,44 @@ private fun formatRemainingTime(diffMs: Long, prefix: Boolean, lang: String): St
     } else {
         when (lang) {
             "tr" -> when {
-                days == 1 -> "Yarın başlıyor"
-                days > 1 && hours > 0 -> "$days gün $hours saat sonra"
-                days > 1 -> "$days gün sonra"
+                
+                days > 0 && hours > 0 -> "$days gün $hours saat sonra"
+                days > 0 -> "$days gün sonra"
                 hours > 0 -> "$hours saat sonra"
                 else -> "Bugün başlıyor"
             }
             "de" -> when {
-                days == 1 -> "Beginnt morgen"
-                days > 1 && hours > 0 -> "in $days Tg. $hours Std."
-                days > 1 -> "in $days Tg."
+                
+                days > 0 && hours > 0 -> "in $days Tg. $hours Std."
+                days > 0 -> "in $days Tg."
                 hours > 0 -> "in $hours Std."
                 else -> "Beginnt heute"
             }
             "es" -> when {
-                days == 1 -> "Empieza mañana"
-                days > 1 && hours > 0 -> "en $days d. $hours h."
-                days > 1 -> "en $days d."
+                
+                days > 0 && hours > 0 -> "en $days d. $hours h."
+                days > 0 -> "en $days d."
                 hours > 0 -> "en $hours h."
                 else -> "Empieza hoy"
             }
             "fr" -> when {
-                days == 1 -> "Commence demain"
-                days > 1 && hours > 0 -> "dans $days j. $hours h."
-                days > 1 -> "dans $days j."
+                
+                days > 0 && hours > 0 -> "dans $days j. $hours h."
+                days > 0 -> "dans $days j."
                 hours > 0 -> "dans $hours h."
                 else -> "Commence aujourd'hui"
             }
             "it" -> when {
-                days == 1 -> "Inizia domani"
-                days > 1 && hours > 0 -> "tra $days g. $hours o."
-                days > 1 -> "tra $days g."
+                
+                days > 0 && hours > 0 -> "tra $days g. $hours o."
+                days > 0 -> "tra $days g."
                 hours > 0 -> "tra $hours o."
                 else -> "Inizia oggi"
             }
             else -> when {
-                days == 1 -> "Starts tomorrow"
-                days > 1 && hours > 0 -> "in ${days}d ${hours}h"
-                days > 1 -> "in ${days}d"
+                
+                days > 0 && hours > 0 -> "in ${days}d ${hours}h"
+                days > 0 -> "in ${days}d"
                 hours > 0 -> "in ${hours}h"
                 else -> "Starts today"
             }
