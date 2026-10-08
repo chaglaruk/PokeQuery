@@ -1,5 +1,7 @@
 # PokeQuery paid acquisition gate
 
+> **2026-10-08 update:** Paid acquisition remains closed. The latest visual gate is 24/30 PASS, with six Event cells deferred until a verified updated Play build. Existing aggregate performance evidence does not demonstrate causal uplift or justify paid promotion. No experiment or paid campaign was started. See [current status](../release/PRERELEASE_EXECUTION_2026-10-08.md).
+
 Prepared: 2026-09-06
 
 > **2026-10-07 checkpoint:** This paid gate remains **closed**. No verified evidence yet of a live outcome-first six-locale screenshot baseline, a conclusive store-listing experiment, or organic conversion lift. Android v0.7.7 Share Search and its review behavior are already shipped/physically validated. Check the [growth execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md) for current prerequisites.

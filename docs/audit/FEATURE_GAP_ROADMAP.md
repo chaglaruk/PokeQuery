@@ -1,5 +1,7 @@
 # PokeQuery — Feature Gap Analysis & Risk Register & Roadmap
 
+> **Reconciliation added 2026-10-08; original date/findings unchanged:** This is historical evidence, not the current feature/status registry. Current code ships deterministic local Search Assistant, risk/linter protections, privacy/Settings safeguards and Android personal presets; the documented Event Guide public-feed exception supersedes older blanket zero-network assumptions. The current Knowledge reference-copy defect is handled as a new narrow review candidate. Generative/cloud AI remains unshipped and outside current boundaries. See [active pre-release status](../release/PRERELEASE_EXECUTION_2026-10-08.md) before treating an old finding as unresolved.
+
 **Date:** 2026-06-21 · **Version:** 0.4.1 · **Mode:** Analysis only.
 
 This document combines (7) feature gap analysis, (10) risk register, and (11) prioritized roadmap as requested.

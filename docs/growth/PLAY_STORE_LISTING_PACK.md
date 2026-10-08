@@ -1,190 +1,231 @@
-# PokeQuery Google Play listing pack
+# Final Play listing drafts — 2026-10-08
 
-Prepared: 2026-09-06; execution reviewed 2026-10-07
+READY FOR REVIEW. Prepared for a separately authorized Android publication; no live fields changed. Android remains 0.7.7/code 27. Descriptions refer to shipped workflows, not automatic game actions or cloud AI. Event information and localized tokens retain limitations.
 
-Purpose: improve store-listing conversion without changing PokeQuery's privacy or product boundaries. Google Play currently allows up to 30 characters for the app name, 80 for the short description and 4,000 for the full description. Localized listings should be entered separately rather than machine-translated in Play Console.
+Limits: title 30, short description 80, full description 4,000 characters. Counts include spaces, punctuation and full-description newlines. Source: [Google Play app setup](https://support.google.com/googleplay/android-developer/answer/9859152).
 
-> **Publication status:** This file contains **proposed** copy, not evidence it is already live in Google Play. Verify actual Play Console listings in all six languages first. All six names are within 30 characters, short descriptions within 80, and full descriptions within 4,000 at the 2026-10-07 review. See [execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md).
+The five-cell story remains Cleanup / Home or Assistant / Events / Goals / two language controls. All 24 approved images and their filenames remain unchanged; the six rejected Event cells require a verified future Play build. Do not replace screenshots with QA/debug captures.
 
-## Recommended localized app names
+## EN
 
-| Locale | App name | Characters |
-|---|---|---:|
-| EN | `PokeQuery: GO Search Helper` | 27 |
-| TR | `PokeQuery: GO Arama Yardımı` | 27 |
-| DE | `PokeQuery: GO-Suchhilfe` | 23 |
-| ES | `PokeQuery: Búsqueda GO` | 22 |
-| FR | `PokeQuery: Aide recherche GO` | 28 |
-| IT | `PokeQuery: Ricerca GO facile` | 28 |
+App name (27/30):
 
-## Short descriptions
+PokeQuery: GO Search Helper
 
-### EN
-Build safer Pokémon GO search strings for cleanup, events, trades and more.
+Short description (77/80):
 
-### TR
-Temizlik, etkinlik ve takas için daha güvenli Pokémon GO aramaları oluştur.
+Build Pokémon GO searches for cleanup, candy, trades and PvP. Review matches.
 
-### DE
-Erstelle sicherere Pokémon GO-Suchen für Aufräumen, Events, Tauschen und mehr.
+Full description (1970/4,000):
 
-### ES
-Crea búsquedas más seguras de Pokémon GO para limpiar, eventos, cambios y más.
+Build and understand Pokémon GO inventory searches with PokeQuery. Start with a goal, describe your search in Search Assistant, or choose filters in Expert Builder. Review the resulting text, copy it, and paste it into Pokémon GO yourself.
 
-### FR
-Créez des recherches Pokémon GO plus sûres pour tri, événements et échanges.
+FIND CANDIDATES FOR YOUR GOAL
+• Safe Cleanup starts with protections for valuable categories.
+• Candy Prep helps you find Pokémon to review before a transfer-candy event.
+• Trade and PvP goals help you narrow your candidates.
+• Hundo and Nundo checks, presets, favorites and local history help you reuse searches.
+• The Knowledge Base explains search syntax and its limitations.
 
-### IT
-Crea ricerche Pokémon GO più sicure per pulizia, eventi, scambi e altro.
+PREPARE WITH EVENT GUIDE
+Check current and upcoming events, dates, highlights and available raid, research and bonus information. Follow the source links and check regional, purchase or redemption conditions. Event details may change; refresh the guide and verify the official announcement.
 
-## Full descriptions
+TWO SEPARATE LANGUAGE SETTINGS
+Choose App Language for the interface: English, Turkish, German, Spanish, French or Italian. Choose Search String Language separately to match your Pokémon GO client. Some terms deliberately use canonical English where localized syntax is not supported or verified.
 
-### EN
-PokeQuery helps you build, understand and review Pokémon GO inventory search strings without memorising every search token.
+REVIEW BEFORE ANY ACTION
+Searches identify candidates, not Pokémon that are guaranteed safe to transfer. Read the protections and risk warnings, then inspect every match in Pokémon GO. Higher-risk copy/share actions require review. You decide what to keep, trade or transfer.
 
-Choose a goal such as Safe Cleanup, Candy Prep, Trade Fodder, PvP Candidates or Lucky Trade. You can also describe what you want in Search Assistant or build a query yourself. PokeQuery shows the exact search before you copy it and keeps safety-focused exclusions visible.
+LOCAL SEARCHES, MANUAL COPY AND PASTE
+Search generation and saved searches stay on your device. The Search Assistant uses local, rule-based interpretation. No Pokémon GO login, account connection, scanning, gameplay automation or automatic transfer/deletion. No ads, analytics or tracking. Event Guide can download PokeQuery's public event feed; core searches work offline.
 
-Event Guide helps you prepare for active and upcoming events with useful summaries and suggested searches.
+PokeQuery is an independent fan-made utility, not affiliated with Niantic, The Pokémon Company or Nintendo.
 
-PokeQuery is deliberately simple:
-- no Pokémon GO login
-- no account or inventory access
-- no gameplay automation
-- no analytics, ads or tracking
-- manual copy and paste only
+## TR
 
-For cleanup-style searches, protected categories are excluded conservatively by default and riskier queries require review before use.
+App name (27/30):
 
-PokeQuery is an independent fan-made utility and is not affiliated with, endorsed by, or sponsored by Niantic, The Pokémon Company or Nintendo.
+PokeQuery: GO Arama Yardımı
 
-### TR
-PokeQuery, Pokémon GO envanter aramalarını bütün arama terimlerini ezberlemek zorunda kalmadan oluşturmanı, anlamanı ve kontrol etmeni sağlar.
+Short description (72/80):
 
-Güvenli Temizlik, Şeker Hazırlığı, Takaslık Pokémonlar, PvP Adayları veya Şanslı Takas gibi bir hedef seçebilirsin. İstersen Arama Asistanı'na ne aradığını anlatabilir ya da kendi sorgunu oluşturabilirsin. PokeQuery kopyalamadan önce aramanın tamamını gösterir ve güvenlik amaçlı korumaları açıkça belirtir.
+Pokémon GO'da temizlik, şeker, takas ve PvP için arama dizeleri oluştur.
 
-Etkinlik Rehberi, aktif ve yaklaşan etkinlikleri kısa bilgiler ve önerilen aramalarla takip etmene yardımcı olur.
+Full description (2124/4,000):
 
-PokeQuery'nin sınırları nettir:
-- Pokémon GO girişi yok
-- hesabına veya Pokémonlarına erişmez
-- oyunu otomatik olarak kontrol etmez
-- analiz, reklam veya takip yok
-- yalnızca manuel kopyala ve yapıştır
+PokeQuery ile Pokémon GO envanter aramalarını oluştur ve ne anlama geldiklerini öğren. Bir hedef seç, Arama Asistanı'na ne aradığını yaz veya Uzman Oluşturucu'da filtreleri belirle. Oluşan metni incele, kopyala ve Pokémon GO'ya kendin yapıştır.
 
-Temizlik odaklı aramalarda özel kategoriler varsayılan olarak korunur; daha riskli sorgular kullanılmadan önce kontrol ekranından geçer.
+HEDEFİNE UYGUN ADAYLARI BUL
+• Güvenli Temizlik, değerli kategorileri koruyan filtrelerle başlar.
+• Şeker Hazırlığı, transfer şekeri etkinlikleri öncesinde inceleyeceğin Pokémon'ları bulmana yardımcı olur.
+• Takas ve PvP hedefleri, adaylarını daraltmanı sağlar.
+• Hundo ve Nundo kontrolleri, hazır aramalar, favoriler ve yerel geçmiş ile aramalarını yeniden kullan.
+• Bilgi Bankası, arama sözdizimini ve sınırlamalarını açıklar.
 
-PokeQuery bağımsız bir hayran uygulamasıdır. Niantic, The Pokémon Company veya Nintendo ile bağlantılı değildir ve bu şirketler tarafından desteklenmemektedir.
+ETKİNLİK REHBERİ İLE HAZIRLAN
+Güncel ve yaklaşan etkinlikleri, tarihleri, öne çıkan bilgileri ve mevcut baskın, araştırma ve bonus ayrıntılarını incele. Kaynak bağlantılarını aç; bölge, satın alma veya kod kullanımı koşullarını kontrol et. Bilgiler değişebilir: rehberi yenile ve resmî duyuruyu doğrula.
 
-### DE
-PokeQuery hilft dir, Pokémon GO-Inventarsuchen zu erstellen, zu verstehen und zu prüfen, ohne jeden Suchbegriff auswendig lernen zu müssen.
+İKİ AYRI DİL AYARI
+Uygulama Dili ile arayüzü İngilizce, Türkçe, Almanca, İspanyolca, Fransızca veya İtalyanca kullan. Arama Dizesi Dili'ni Pokémon GO istemcine göre ayrıca seç. Yerelleştirilmiş sözdizimi desteklenmediğinde veya doğrulanmadığında bazı terimler bilerek standart İngilizce kullanır.
 
-Wähle ein Ziel wie Sicheres Aufräumen, Bonbon-Vorbereitung, Tauschkandidaten, PvP-Kandidaten oder Glückstausch. Du kannst auch dem Suchassistenten beschreiben, was du suchst, oder eine eigene Abfrage bauen. PokeQuery zeigt dir die komplette Suche vor dem Kopieren und macht Schutzfilter sichtbar.
+İŞLEM YAPMADAN ÖNCE İNCELE
+Aramalar, kesin olarak güvenle transfer edilebilecek Pokémon'ları değil, inceleme adaylarını gösterir. Korumaları ve risk uyarılarını oku; Pokémon GO'daki her eşleşmeyi kontrol et. Daha yüksek riskli kopyalama/paylaşma işlemlerinden önce inceleme gerekir. Saklama, takas ve transfer kararını sen verirsin.
 
-Der Event Guide fasst aktive und kommende Events zusammen und schlägt passende Suchvorgänge zur Vorbereitung vor.
+YEREL ARAMALAR, ELLE KOPYALA VE YAPIŞTIR
+Arama üretimi ve kayıtlı aramalar cihazında kalır. Arama Asistanı yerel, kurallara dayalı yorumlama kullanır. Pokémon GO girişi, hesap bağlantısı, tarama, oyun otomasyonu veya otomatik transfer/silme yoktur. Reklam, analiz veya takip yoktur. Etkinlik Rehberi, PokeQuery'nin herkese açık etkinlik akışını indirebilir; temel aramalar çevrimdışı çalışır.
 
-PokeQuery bleibt bewusst einfach:
-- kein Pokémon GO-Login
-- kein Zugriff auf Konto oder Inventar
-- keine Spielautomatisierung
-- keine Analyse, Werbung oder Nachverfolgung
-- nur manuelles Kopieren und Einfügen
+PokeQuery bağımsız, hayran yapımı bir yardımcıdır. Niantic, The Pokémon Company veya Nintendo ile bağlantılı değildir.
 
-Bei Aufräum-Suchen werden geschützte Kategorien standardmäßig konservativ ausgeschlossen. Riskantere Suchen müssen vor der Nutzung geprüft werden.
+## DE
 
-PokeQuery ist ein unabhängiges Fan-Tool und steht in keiner Verbindung zu Niantic, The Pokémon Company oder Nintendo.
+App name (23/30):
 
-### ES
-PokeQuery te ayuda a crear, entender y revisar búsquedas del inventario de Pokémon GO sin tener que memorizar cada término de búsqueda.
+PokeQuery: GO-Suchhilfe
 
-Elige un objetivo como Limpieza segura, Preparar caramelos, Pokémon para intercambio, Candidatos PvP o Intercambio con suerte. También puedes explicar lo que buscas al Asistente de búsqueda o crear tu propia consulta. PokeQuery muestra la búsqueda completa antes de copiarla y mantiene visibles las protecciones de seguridad.
+Short description (78/80):
 
-La Guía de eventos resume eventos activos y próximos y propone búsquedas útiles para prepararte.
+Pokémon GO-Suchen für Aufräumen, Bonbons, Tausch und PvP. Prüfe jeden Treffer.
 
-PokeQuery funciona con límites claros:
-- sin inicio de sesión de Pokémon GO
-- sin acceso a tu cuenta ni a tu inventario
-- sin automatización del juego
-- sin analítica, anuncios ni seguimiento
-- solo copiar y pegar manualmente
+Full description (2299/4,000):
 
-En las búsquedas de limpieza, las categorías protegidas se excluyen de forma conservadora por defecto. Las búsquedas de mayor riesgo requieren una revisión antes de usarse.
+Erstelle und verstehe Suchzeichenfolgen für deine Pokémon GO-Sammlung mit PokeQuery. Wähle ein Ziel, beschreibe deine Suche im Suchassistenten oder stelle Filter im Experten-Builder zusammen. Prüfe den erzeugten Text, kopiere ihn und füge ihn selbst in Pokémon GO ein.
 
-PokeQuery es una utilidad independiente creada por fans y no está afiliada, respaldada ni patrocinada por Niantic, The Pokémon Company o Nintendo.
+FINDE KANDIDATEN FÜR DEIN ZIEL
+• Sicheres Aufräumen beginnt mit Schutzfiltern für wertvolle Kategorien.
+• Die Bonbon-Planung hilft dir, Pokémon vor einem Event mit Transfer-Bonbons zur Prüfung zu finden.
+• Tausch- und PvP-Ziele grenzen deine Kandidaten ein.
+• Hundo- und Nundo-Prüfungen, Vorlagen, Favoriten und ein lokaler Verlauf erleichtern die Wiederverwendung von Suchen.
+• Die Wissensdatenbank erklärt die Suchsyntax und ihre Grenzen.
 
-### FR
-PokeQuery vous aide à créer, comprendre et vérifier des recherches d'inventaire Pokémon GO sans avoir à mémoriser tous les termes de recherche.
+MIT DEM EVENT-GUIDE VORBEREITEN
+Sieh dir laufende und kommende Events, Termine, Highlights sowie verfügbare Raid-, Forschungs- und Bonusinformationen an. Öffne die Quellen und prüfe regionale Beschränkungen sowie Kauf- oder Einlösebedingungen. Angaben können sich ändern: Aktualisiere den Guide und prüfe die offizielle Ankündigung.
 
-Choisissez un objectif comme Nettoyage sûr, Préparation bonbons, Pokémon à échanger, Candidats PvP ou Échange chanceux. Vous pouvez aussi expliquer votre besoin à l'Assistant de recherche ou construire votre propre requête. PokeQuery affiche la recherche complète avant la copie et garde les protections clairement visibles.
+ZWEI GETRENNTE SPRACHEINSTELLUNGEN
+Die App-Sprache bestimmt die Oberfläche: Englisch, Türkisch, Deutsch, Spanisch, Französisch oder Italienisch. Wähle die Sprache der Suchzeichenfolge separat passend zu deinem Pokémon GO-Client. Manche Begriffe bleiben bewusst auf Englisch, wenn die lokalisierte Syntax nicht unterstützt oder bestätigt ist.
 
-Le Guide des événements résume les événements en cours et à venir et propose des recherches utiles pour s'y préparer.
+VOR JEDER AKTION PRÜFEN
+Suchen zeigen Kandidaten; sie garantieren nicht, dass du Pokémon gefahrlos verschicken kannst. Lies die Schutzregeln und Risikohinweise und prüfe jeden Treffer in Pokémon GO. Kopieren oder Teilen bei höherem Risiko erfordert eine Prüfung. Du entscheidest, was du behältst, tauschst oder verschickst.
 
-PokeQuery reste volontairement simple :
-- aucune connexion à Pokémon GO
-- aucun accès à votre compte ou à votre inventaire
-- aucune automatisation du jeu
-- aucune analyse, publicité ou traçage
-- copier-coller manuel uniquement
+LOKALE SUCHEN, MANUELL KOPIEREN UND EINFÜGEN
+Sucherstellung und gespeicherte Suchen bleiben auf deinem Gerät. Der Suchassistent arbeitet lokal und regelbasiert. Keine Pokémon GO-Anmeldung, Kontoverbindung, Erkennung von Bildschirminhalten, Spielautomatisierung oder automatisches Verschicken/Löschen. Keine Werbung, Analyse oder Nachverfolgung. Der Event-Guide kann den öffentlichen Event-Feed von PokeQuery laden; die grundlegenden Suchen funktionieren offline.
 
-Pour les recherches de nettoyage, les catégories protégées sont exclues de manière prudente par défaut. Les requêtes plus risquées doivent être vérifiées avant utilisation.
+PokeQuery ist ein unabhängiges Fan-Werkzeug und steht in keiner Verbindung zu Niantic, The Pokémon Company oder Nintendo.
 
-PokeQuery est un outil indépendant créé par des fans. Il n'est ni affilié, ni approuvé, ni sponsorisé par Niantic, The Pokémon Company ou Nintendo.
+## ES
 
-### IT
-PokeQuery ti aiuta a creare, capire e controllare le ricerche dell'inventario di Pokémon GO senza dover ricordare ogni termine di ricerca.
+App name (22/30):
 
-Scegli un obiettivo come Pulizia sicura, Preparazione caramelle, Pokémon da scambiare, Candidati PvP o Scambio fortunato. Puoi anche descrivere ciò che cerchi all'Assistente di ricerca oppure creare una query personalizzata. PokeQuery mostra sempre la ricerca completa prima della copia e rende visibili le protezioni di sicurezza.
+PokeQuery: Búsqueda GO
 
-La Guida eventi riassume gli eventi attivi e in arrivo e propone ricerche utili per prepararti.
+Short description (74/80):
 
-PokeQuery mantiene limiti chiari:
-- nessun accesso a Pokémon GO
-- nessun accesso all'account o all'inventario
-- nessuna automazione del gioco
-- nessuna analisi, pubblicità o tracciamento
-- solo copia e incolla manuale
+Crea búsquedas de Pokémon GO para limpieza, caramelos, intercambios y PvP.
 
-Nelle ricerche di pulizia, le categorie protette vengono escluse in modo prudente per impostazione predefinita. Le ricerche più rischiose richiedono una verifica prima dell'uso.
+Full description (2344/4,000):
 
-PokeQuery è uno strumento indipendente creato da fan e non è affiliato, approvato o sponsorizzato da Niantic, The Pokémon Company o Nintendo.
+Crea y entiende cadenas de búsqueda para tu colección de Pokémon GO con PokeQuery. Elige un objetivo, describe tu búsqueda en el Asistente de búsqueda o selecciona filtros en el constructor experto. Revisa el texto, cópialo y pégalo tú mismo en Pokémon GO.
 
-## Screenshot story order
+ENCUENTRA CANDIDATOS PARA TU OBJETIVO
+• La limpieza segura empieza con filtros que protegen categorías valiosas.
+• La preparación de caramelos te ayuda a encontrar Pokémon que revisar antes de un evento de caramelos por transferencia.
+• Los objetivos de intercambio y PvP reducen la lista de candidatos.
+• Las comprobaciones de Hundo y Nundo, las búsquedas predefinidas, los favoritos y el historial local facilitan reutilizar búsquedas.
+• La base de conocimientos explica la sintaxis y sus limitaciones.
 
-The first five screenshots should communicate outcomes, not architecture.
+PREPÁRATE CON LA GUÍA DE EVENTOS
+Consulta eventos actuales y próximos, fechas, puntos destacados e información disponible sobre incursiones, investigaciones y bonus. Abre las fuentes y revisa las restricciones regionales y las condiciones de compra o canje. La información puede cambiar: actualiza la guía y comprueba el anuncio oficial.
 
-| Slot | EN headline | Screen to use |
-|---|---|---|
-| 1 | `Review before you transfer.` | Safe Cleanup result + protections |
-| 2 | `Build the search you need.` | Home or Search Assistant |
-| 3 | `Prepare for upcoming events.` | Event Guide |
-| 4 | `Find trade, PvP & candy candidates.` | Goal grid / selected workflows |
-| 5 | `Keep UI and search languages separate.` | Settings language controls |
+DOS AJUSTES DE IDIOMA INDEPENDIENTES
+El idioma de la aplicación controla la interfaz: inglés, turco, alemán, español, francés o italiano. Elige por separado el idioma de la cadena de búsqueda para tu cliente de Pokémon GO. Algunos términos se mantienen en inglés cuando la sintaxis localizada no está admitida o verificada.
 
-The [October 2026 execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md) supplies short editorial headlines for EN/TR/DE/ES/FR/IT and a truthful screenshot-capture matrix. Review their naturalness and overflow on actual localized UI before publishing; these are NOT already approved graphics. Never fabricate app UI or conceal a Risk Warning. Do not use official Pokémon artwork, sprites, Poké Balls or logos.
+REVISA ANTES DE ACTUAR
+Las búsquedas muestran candidatos; no garantizan que sea seguro transferirlos. Lee las protecciones y advertencias de riesgo y revisa cada resultado en Pokémon GO. Copiar o compartir búsquedas de mayor riesgo requiere una revisión. Tú decides qué conservar, intercambiar o transferir.
 
-## First store-listing experiment
+BÚSQUEDAS LOCALES, COPIAR Y PEGAR MANUALMENTE
+La generación y las búsquedas guardadas permanecen en tu dispositivo. El Asistente de búsqueda interpreta solicitudes mediante reglas locales. Sin inicio de sesión en Pokémon GO, conexión a cuentas, escaneo, automatización del juego ni transferencias o eliminaciones automáticas. Sin anuncios, analítica ni seguimiento. La guía de eventos puede descargar el feed público de PokeQuery; las búsquedas básicas funcionan sin conexión.
 
-Run one localized/default experiment only after the new baseline listing has enough traffic to produce a useful result.
+PokeQuery es una herramienta independiente creada por un aficionado. No está afiliada a Niantic, The Pokémon Company ni Nintendo.
 
-- Control: current live graphics.
-- Variant A: outcome-first screenshots above.
-- Target metric: Unique user install clicks.
-- Do not change icon, screenshots and description in the same experiment. Start with screenshots so the result is interpretable.
+## FR
 
-## Custom store listings
+App name (28/30):
 
-Prepare these audience-specific listings after the baseline is live:
+PokeQuery: Aide recherche GO
 
-1. `community-cleanup`: unique URL used in Reddit/Discord/WhatsApp cleanup posts. First screenshot = Safe Cleanup.
-2. `event-prep`: unique URL used around Community Day / major events. First screenshot = Event Guide + Candy Prep.
-3. `search-helper`: search-keyword-focused listing. First screenshot = Search Assistant / generator.
+Short description (71/80):
 
-Do not add SDK tracking parameters. Measurement should use Google Play's own aggregate store-listing reports and custom-listing metrics.
+Recherches Pokémon GO pour le tri, les Bonbons, les échanges et le PvP.
 
-## Manual Play Console gate
+Full description (2516/4,000):
 
-A verified live Play Console connection is not currently available through this workflow. First read and record the actual published Main store listing and localized metadata; do not assume this proposed copy has already been applied. After graphics and copy are approved, update the chosen listings in Play Console. Publishing listings, running public experiments and creating custom listing URLs require a separate intentional store operation; they are not completed by this repository document.
+Créez et comprenez des chaînes de recherche pour votre collection Pokémon GO avec PokeQuery. Choisissez un objectif, décrivez votre recherche dans l’assistant ou sélectionnez des filtres dans le générateur expert. Vérifiez le texte, copiez-le et collez-le vous-même dans Pokémon GO.
 
-Official references used for limits and capabilities:
-- https://support.google.com/googleplay/android-developer/answer/9859152
-- https://support.google.com/googleplay/android-developer/answer/12053285
-- https://support.google.com/googleplay/android-developer/answer/9867158
+TROUVEZ DES CANDIDATS SELON VOTRE OBJECTIF
+• Le nettoyage prudent commence avec des filtres qui protègent les catégories précieuses.
+• La préparation des Bonbons aide à repérer les Pokémon à examiner avant un événement de Bonbons de transfert.
+• Les objectifs d’échange et de PvP permettent d’affiner vos candidats.
+• Les vérifications Hundo et Nundo, les recherches prédéfinies, les favoris et l’historique local facilitent la réutilisation de vos recherches.
+• La base de connaissances explique la syntaxe et ses limites.
+
+PRÉPAREZ-VOUS AVEC LE GUIDE DES ÉVÉNEMENTS
+Consultez les événements en cours et à venir, leurs dates, les points clés et les informations disponibles sur les Raids, études et bonus. Ouvrez les sources et vérifiez les restrictions régionales ainsi que les conditions d’achat ou d’utilisation des codes. Les informations peuvent changer : actualisez le guide et consultez l’annonce officielle.
+
+DEUX RÉGLAGES DE LANGUE DISTINCTS
+La langue de l’application définit l’interface : anglais, turc, allemand, espagnol, français ou italien. Choisissez séparément la langue des chaînes de recherche selon votre version de Pokémon GO. Certains termes restent volontairement en anglais si leur syntaxe localisée n’est pas prise en charge ou vérifiée.
+
+VÉRIFIEZ AVANT TOUTE ACTION
+Les recherches indiquent des candidats ; elles ne garantissent pas qu’un transfert soit sans risque. Lisez les protections et avertissements, puis examinez chaque résultat dans Pokémon GO. Copier ou partager une recherche présentant un risque plus élevé nécessite une vérification. Vous décidez quoi conserver, échanger ou transférer.
+
+RECHERCHES LOCALES, COPIER-COLLER MANUEL
+La création des recherches et vos recherches enregistrées restent sur votre appareil. L’assistant utilise une interprétation locale fondée sur des règles. Aucun accès à votre compte Pokémon GO, aucune analyse d’écran, automatisation du jeu ni transfert ou suppression automatique. Sans publicité, analyse d’utilisation ni suivi. Le guide peut télécharger le flux public d’événements de PokeQuery ; les recherches de base fonctionnent hors ligne.
+
+PokeQuery est un outil indépendant créé par un fan, sans affiliation avec Niantic, The Pokémon Company ou Nintendo.
+
+## IT
+
+App name (28/30):
+
+PokeQuery: Ricerca GO facile
+
+Short description (63/80):
+
+Crea ricerche Pokémon GO per riordino, caramelle, scambi e PvP.
+
+Full description (2325/4,000):
+
+Crea e comprendi le stringhe di ricerca per la tua raccolta di Pokémon GO con PokeQuery. Scegli un obiettivo, descrivi la ricerca nell’Assistente di ricerca oppure seleziona i filtri nel generatore esperto. Controlla il testo, copialo e incollalo manualmente in Pokémon GO.
+
+TROVA CANDIDATI PER IL TUO OBIETTIVO
+• La pulizia prudente parte da filtri che proteggono le categorie di valore.
+• La preparazione delle caramelle aiuta a trovare Pokémon da esaminare prima di un evento con caramelle da trasferimento.
+• Gli obiettivi di scambio e PvP restringono i candidati.
+• I controlli Hundo e Nundo, le ricerche predefinite, i preferiti e la cronologia locale aiutano a riutilizzare le ricerche.
+• La base di conoscenze spiega la sintassi e i suoi limiti.
+
+PREPARATI CON LA GUIDA AGLI EVENTI
+Consulta gli eventi in corso e in arrivo, le date, i punti principali e le informazioni disponibili su raid, ricerche e bonus. Apri le fonti e verifica le limitazioni regionali e le condizioni di acquisto o riscatto dei codici. Le informazioni possono cambiare: aggiorna la guida e controlla l’annuncio ufficiale.
+
+DUE IMPOSTAZIONI DI LINGUA SEPARATE
+La lingua dell’app controlla l’interfaccia: inglese, turco, tedesco, spagnolo, francese o italiano. Scegli separatamente la lingua delle stringhe di ricerca in base al tuo client di Pokémon GO. Alcuni termini restano in inglese quando la sintassi localizzata non è supportata o verificata.
+
+CONTROLLA PRIMA DI AGIRE
+Le ricerche mostrano candidati; non garantiscono che il trasferimento sia sicuro. Leggi le protezioni e gli avvisi di rischio, poi esamina ogni risultato in Pokémon GO. Copiare o condividere ricerche a rischio più elevato richiede una verifica. Decidi tu cosa conservare, scambiare o trasferire.
+
+RICERCHE LOCALI, COPIA E INCOLLA MANUALE
+La creazione e le ricerche salvate rimangono sul dispositivo. L’Assistente di ricerca interpreta le richieste con regole locali. Nessun accesso all’account Pokémon GO, scansione, automazione del gioco o trasferimento/eliminazione automatica. Nessuna pubblicità, analisi dell’utilizzo o tracciamento. La guida può scaricare il feed pubblico degli eventi di PokeQuery; le ricerche di base funzionano offline.
+
+PokeQuery è uno strumento indipendente creato da un appassionato, non affiliato a Niantic, The Pokémon Company o Nintendo.
+
+## Field-by-field publication checklist
+
+1. Select the intended six locales; paste each name, short and full description without mixing languages. Confirm Console counters and rendering against the counts above.
+2. Confirm feature and privacy statements against the exact release source, Data safety declaration and [privacy page](https://chaglaruk.github.io/PokeQuery/privacy.html). Do not change permissions, contact details or Data safety solely from this copy.
+3. Preserve the existing icon, feature graphic and 24 approved PNGs. Upload only the six future verified Event replacements after their complete gate passes. Rebuild contact sheets/manifest/hashes/final growth archive then.
+4. Keep App Language and Search String Language separate in text and pictures. Do not call Help Center-backed localized syntax live-client VERIFIED.
+5. Recheck event dates/regions/purchase conditions at actual publication. Refresh the app normally. Do not imply a permanent double-candy bonus or an active event after expiry.
+6. Check risk warnings are readable, generated queries contain no pipe operator, and manual review/copy/paste remains explicit. No official game art or affiliation claims.
+7. Review title terminology/brand use, particularly “GO”, and compact localized goal names with the publisher. A native-speaker pass for DE/ES/FR/IT is recommended; none has been represented as completed. These drafts are ready for review, not a claim of legal approval or proven search ranking improvement.
+8. Add separately approved What's New text from the v0.7.8 plan once the final release source and release submission are authorized. Review the notes before publication, confirm locale fallback and preview each listing before submission.
+9. Record exact published text, locale, build/version and timestamps after an explicitly authorized submission. No listing experiment, social posting or paid acquisition starts from this checklist.
+
+The 2026-10-07 Play Console baseline audit is complete and is not repeated here. A short pre-publication field check is still necessary because live fields can change.

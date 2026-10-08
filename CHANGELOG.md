@@ -2,12 +2,23 @@
 
 Notable changes to PokeQuery. Dates are grouped by release.
 
-The current Android release candidate is **0.7.7** (`versionCode 27`).
+The published Android release is **0.7.7** (`versionCode 27`), from immutable source `93bf178f942048e0fee8cbb47976b23f86ecde3f`.
 The Web/PWA version remains **0.7.3** and is versioned independently.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
+
+## Unreleased — planned Android 0.7.8 / code 28
+
+Planned values only; no version bump, tag, signed artifact or publication. See [release gates and proposed six-language notes](docs/release/V078_RELEASE_PLAN.md).
+
+### Fixed in source, not yet Google Play Android
+
+- PR #41: correct official TCG event dates, regional restrictions and actual raid/research information in the public feed and bundled fallbacks.
+- PR #42: show real bonus/retailer/redemption conditions on Event Guide cards; localize detail dialogs; wrap the German Candy Prep Home title; correct relative event-day labels.
+
+Development/CI documentation and Compose previews merged after 0.7.7 are not new runtime promises. Review candidates prepared separately, including the Knowledge copy guard, are included only if approved into the eventual release source.
 
 ## [0.7.7] — safer sharing, Search Assistant risk parity, local rating prompt
 

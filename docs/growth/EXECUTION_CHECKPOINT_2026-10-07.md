@@ -1,5 +1,11 @@
 # PokeQuery organic growth execution checkpoint
 
+> **Current reconciliation, 2026-10-08:** Genuine Google Play 0.7.7/code 27 installation is independently verified non-debuggable and App-Signing-signed. Latest asset gate is **24/30 PASS**; only six Event cells remain rejected because the corrected renderer is not in the Play binary. All approved assets and history are protected. PR #41/#42 fixes are merged in source; capture only the six Event slots after the separately authorized production update. No second phone, reinstall or repeat baseline audit is needed. IMadeThis and droidappshowcase posts already exist; do not repeat the old “not yet posted” plan. [Active status](../release/PRERELEASE_EXECUTION_2026-10-08.md) / [release and recapture gates](../release/V078_RELEASE_PLAN.md).
+
+## Archived original checkpoint — 2026-10-07
+
+The dated findings and options below are preserved as history. The original 0/30/unverified-install/alternate-device/next-post statements are superseded by the current reconciliation above; they are not execution instructions.
+
 **Reviewed:** 2026-10-07
 **Release boundary:** Android v0.7.7 / code 27 (published, immutable source `93bf178f942048e0fee8cbb47976b23f86ecde3f`); Web/PWA v0.7.3 independently versioned.
 **Scope:** store conversion, honest discovery, screenshots, and community feedback. No app SDKs, attribution, or public posting without review.

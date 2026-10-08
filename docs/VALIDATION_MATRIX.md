@@ -1,5 +1,7 @@
 # PokeQuery Validation Matrix
 
+> **2026-10-08 scope update:** PR42 visual acceptance and post-merge Android/PWA CI are complete development evidence. Current production is still 0.7.7/code 27. Do not rerun the historical Play audit or 30 captures; preserve 24 approved cells and defer six Event replacements. New narrow UI/SEO changes get their own relevant tests, visual evidence and exact-head CI. [Current status](release/PRERELEASE_EXECUTION_2026-10-08.md).
+
 Use this as a minimum-evidence matrix. Current GitHub workflows and exact-ref code/tests remain the final authority; re-read them before relying on captured workflow facts.
 
 | Change area | Minimum local/CI evidence | Additional gate |

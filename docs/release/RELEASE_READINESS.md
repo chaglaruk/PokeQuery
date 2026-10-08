@@ -1,5 +1,7 @@
 # Release Readiness Status
 
+> **Current visual reconciliation, 2026-10-08:** The later German Goals replacement passed using the actual Candy Prep detail screen. Latest store gate is **24/30 PASS**, six rejected Event images. PR #41/#42 feed/UI/date/locale fixes are merged in source, but Android Play 0.7.7 still lacks the renderer. Production provenance remains PASS. See [current execution status](PRERELEASE_EXECUTION_2026-10-08.md) and [planned 0.7.8 release](V078_RELEASE_PLAN.md); no release action is performed by this document.
+
 **Android published release:** v0.7.7  
 **versionCode:** 27  
 **Web/PWA:** v0.7.3 (independent versioning)  
@@ -106,7 +108,7 @@ On **2026-10-08**, an authorized Samsung SM-S931B was verified after a direct Go
 
 Using this verified production installation, real in-app screens were captured across EN/TR/DE/ES/FR/IT; search and risk-review flows and settings were observed. **Production provenance: PASS.**
 
-**Visual/store-assets QA is a separate gate, currently BLOCKED:** of the 30 real production screenshots, 23 passed and seven were rejected for unsupported TCG Event Guide content (six locales) and an ellipsized German Candy goal title (one locale). An additional Zorua relative-day label defect was identified. None of these findings invalidates the production binary's Play signature, but they require code/feed corrections and fresh captures before affected assets may be published.
+**Earlier visual round (2026-10-08; preserved historical finding), BLOCKED:** of the 30 real production screenshots, 23 passed and seven were rejected for unsupported TCG Event Guide content (six locales) and an ellipsized German Candy goal title (one locale). An additional Zorua relative-day label defect was identified. None of these findings invalidates the production binary's Play signature, but they require code/feed corrections and fresh captures before affected assets may be published.
 
 ## Release closure checklist
 

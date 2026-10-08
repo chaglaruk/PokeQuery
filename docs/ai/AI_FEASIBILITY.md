@@ -1,5 +1,7 @@
 # AI Feasibility Assessment
 
+> **Reconciliation added 2026-10-08; original date/findings unchanged:** This is historical evidence, not the current feature/status registry. Current code ships deterministic local Search Assistant, risk/linter protections, privacy/Settings safeguards and Android personal presets; the documented Event Guide public-feed exception supersedes older blanket zero-network assumptions. The current Knowledge reference-copy defect is handled as a new narrow review candidate. Generative/cloud AI remains unshipped and outside current boundaries. See [active pre-release status](../release/PRERELEASE_EXECUTION_2026-10-08.md) before treating an old finding as unresolved.
+
 **Owner:** PokeQuery · **Package:** `com.caglar.pokequery`
 **Status as of v0.5.2:** Research / documentation only. No AI is shipped, active, or
 networked. The offline-first, no-login, no-network, no-tracking guarantees are unchanged.
