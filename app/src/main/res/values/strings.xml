@@ -176,7 +176,7 @@
     <string name="event_group_collection_body">Costumes and special backgrounds are easy to miss during cleanup.</string>
     <string name="event_group_collection_action">Keep these catches until you have checked forms, backgrounds, shiny status, and trade plans.</string>
     <string name="event_group_bonuses_badge">4x XP\n4x Stardust</string>
-    <string name="event_group_bonuses_body">Extra free Raid Passes, no Remote Raid Pass limit, better Premier Balls, faster Party Power.</string>
+    <string name="event_group_bonuses_body">See the event-specific details and any eligibility conditions.</string>
     <string name="event_group_bonuses_action">Confirm active bonuses in Pokémon GO before making transfer decisions.</string>
     <string name="event_group_prep_title">Prep checklist</string>
     <string name="event_group_prep_badge">Tag first</string>

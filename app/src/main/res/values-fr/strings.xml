@@ -176,7 +176,7 @@
     <string name="event_group_collection_body">Les costumes et arrière-plans spéciaux passent facilement inaperçus pendant le tri.</string>
     <string name="event_group_collection_action">Vérifie formes, arrière-plans, shiny et plans d’échange avant suppression.</string>
     <string name="event_group_bonuses_badge">4x PX\n4x Poussière</string>
-    <string name="event_group_bonuses_body">Plus de Passes de Raid gratuits, pas de limite à distance, meilleures Honor Balls, Puissance d’équipe plus rapide.</string>
+    <string name="event_group_bonuses_body">Consulte les détails de l’événement et les conditions éventuelles.</string>
     <string name="event_group_bonuses_action">Confirme les bonus actifs dans Pokémon GO avant tout transfert.</string>
     <string name="event_group_prep_title">Liste de préparation</string>
     <string name="event_group_prep_badge">Marquer d’abord</string>

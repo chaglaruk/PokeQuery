@@ -809,7 +809,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         collectionBadge = "Arka Plan Kontrolü",
         collectionAction = "Formlarını, arka planlarını, farklı renkli (shiny) olma durumlarını ve takas planlarınızı kontrol etmeden hiçbirini göndermeyin.",
         bonuses = "Ek ödüller",
-        bonusesBadge = "Etkinlik Bonusları",
+        bonusesBadge = "Koşullar",
         bonusesAction = "Pokémonları transfer etmeden önce aktif bonusları Pokémon GO oyunundaki Bugün sekmesinden kontrol edin.",
         prepTitle = "Hazırlık Listesi",
         prepBadge = "Planlı Temizlik",
@@ -831,7 +831,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         collectionBadge = "Hintergrund-Check",
         collectionAction = "Formen, Hintergründe, Shiny-Status und Tauschpläne vor dem Löschen prüfen.",
         bonuses = "Boni",
-        bonusesBadge = "4x EP\n4x Sternenstaub",
+        bonusesBadge = "Bedingungen",
         bonusesAction = "Aktive Boni in Pokémon GO prüfen, bevor du Transferentscheidungen triffst.",
         prepTitle = "Vorbereitungs-Checkliste",
         prepBadge = "Erst taggen",
@@ -853,7 +853,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         collectionBadge = "Revisar fondo",
         collectionAction = "Revisa formas, fondos, shiny y planes de cambio antes de borrar.",
         bonuses = "Bonos",
-        bonusesBadge = "4x PX\n4x Polvo Estelar",
+        bonusesBadge = "Condiciones",
         bonusesAction = "Confirma los bonus activos en Pokémon GO antes de transferir.",
         prepTitle = "Lista de preparación",
         prepBadge = "Etiqueta primero",
@@ -875,7 +875,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         collectionBadge = "Vérif. arrière-plan",
         collectionAction = "Vérifie formes, arrière-plans, shiny et plans d’échange avant suppression.",
         bonuses = "Bonus",
-        bonusesBadge = "4x PX\n4x Poussière",
+        bonusesBadge = "Conditions",
         bonusesAction = "Confirme les bonus actifs dans Pokémon GO avant tout transfert.",
         prepTitle = "Liste de préparation",
         prepBadge = "Marquer d’abord",
@@ -897,7 +897,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         collectionBadge = "Controllo sfondo",
         collectionAction = "Controlla forme, sfondi, shiny e piani di scambio prima di eliminare.",
         bonuses = "Premi",
-        bonusesBadge = "4x PE\n4x Polvere",
+        bonusesBadge = "Condizioni",
         bonusesAction = "Conferma i bonus attivi in Pokémon GO prima di trasferire.",
         prepTitle = "Lista preparazione",
         prepBadge = "Tagga prima",
@@ -919,7 +919,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
         collectionBadge = "Background check",
         collectionAction = "Keep these catches until you have checked forms, backgrounds, shiny status, and trade plans.",
         bonuses = "Bonuses",
-        bonusesBadge = "4x XP\n4x Stardust",
+        bonusesBadge = "Terms",
         bonusesAction = "Confirm active bonuses in Pokémon GO before making transfer decisions.",
         prepTitle = "Prep checklist",
         prepBadge = "Tag first",
@@ -1117,8 +1117,9 @@ private fun EventDashboardContent(
             EventGroupCard(
                 title = labels.bonuses,
                 badge = labels.bonusesBadge,
-                body = stringResource(R.string.event_group_bonuses_body),
+                body = tiles.bonusesBody,
                 detailBody = tiles.bonusesBody,
+                bodyMaxLines = Int.MAX_VALUE,
                 action = labels.bonusesAction,
                 tone = AmberWarning,
                 spriteKey = if (hasFusion) "link_energy" else null,
@@ -1278,6 +1279,7 @@ private fun EventGroupCard(
     badge: String,
     body: String,
     detailBody: String = body,
+    bodyMaxLines: Int = 2,
     action: String,
     tone: Color,
     spriteKey: String?,
@@ -1310,7 +1312,7 @@ private fun EventGroupCard(
                 )
             }
             Spacer(Modifier.height(5.dp))
-            Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = bodyMaxLines, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -1461,7 +1463,7 @@ private fun EventInfoDialog(
                 Column {
                     val detailBody = cardKeyBody(content.cardKey, event, lang, localCtx)
                     val detailAction = cardKeyAction(content.cardKey, event, lang, localCtx)
-                    SectionLabel(stringResource(R.string.event_card_summary), TealPrimary)
+                    SectionLabel(eventInfoSummaryHeading(lang), TealPrimary)
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = detailBody ?: content.body,
@@ -1537,29 +1539,36 @@ private fun EventDetailsDialog(
                 }
             },
             text = {
-                Box(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(vertical = 8.dp)
-                    ) {
-                        val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
-                        if (summary.isNotBlank()) {
-                            item {
-                                Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+                // AlertDialog installs its own Android context. Restore the app language
+                // inside its content so resource-backed explanations keep that language.
+                androidx.compose.runtime.CompositionLocalProvider(
+                    LocalContext provides dialogContext,
+                    LocalConfiguration provides dialogConfig
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)) {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            contentPadding = PaddingValues(vertical = 8.dp)
+                        ) {
+                            val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
+                            if (summary.isNotBlank()) {
+                                item {
+                                    Text(summary, color = TextSecondary, fontSize = 13.sp, lineHeight = 17.sp)
+                                }
                             }
-                        }
-                        item {
-                            EventDashboardContent(
-                                event = event,
-                                sourceLabelRes = sourceLabelRes,
-                                lastChecked = lastChecked,
-                                tone = tone,
-                                clipboard = clipboard,
-                                lang = lang,
-                                onOpen = { infoDialog = it },
-                                compactForDialog = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            item {
+                                EventDashboardContent(
+                                    event = event,
+                                    sourceLabelRes = sourceLabelRes,
+                                    lastChecked = lastChecked,
+                                    tone = tone,
+                                    clipboard = clipboard,
+                                    lang = lang,
+                                    onOpen = { infoDialog = it },
+                                    compactForDialog = true,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }
@@ -1690,6 +1699,16 @@ private fun cardKeyAction(cardKey: String?, event: EventContext, lang: String, c
     }
     "prep_list" -> context.getString(R.string.event_detail_prep_list_action)
     else -> null
+}
+
+/** Explicitly follows the selected App Language, not the OS default locale. */
+internal fun eventInfoSummaryHeading(lang: String): String = when (lang) {
+    "tr" -> "Neden önemli?"
+    "de" -> "Warum das wichtig ist"
+    "es" -> "Por qué importa"
+    "fr" -> "Pourquoi c'est important"
+    "it" -> "Perché è importante"
+    else -> "Why this matters"
 }
 
 private fun whatToDoLabel(lang: String): String = when (lang) {
