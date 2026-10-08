@@ -1352,17 +1352,33 @@ private fun EventGroupCard(
         EventSprite(spriteKey, tone, Modifier.size(52.dp))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            val enlarged = LocalConfiguration.current.fontScale >= 1.3f
+            if (enlarged) {
+                // The full card width is needed for long research labels in ES/FR/DE.
+                Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(4.dp))
                 Text(
                     badge,
                     color = tone,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.12f)).padding(horizontal = 8.dp, vertical = 3.dp)
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                        .background(tone.copy(alpha = 0.12f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text(
+                        badge,
+                        color = tone,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.12f)).padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
             }
             Spacer(Modifier.height(5.dp))
             Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = bodyMaxLines, overflow = TextOverflow.Ellipsis)
