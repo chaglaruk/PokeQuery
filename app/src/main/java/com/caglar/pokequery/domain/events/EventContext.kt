@@ -623,42 +623,36 @@ private fun formatRemainingTime(diffMs: Long, prefix: Boolean, lang: String): St
     } else {
         when (lang) {
             "tr" -> when {
-                
                 days > 0 && hours > 0 -> "$days gün $hours saat sonra"
                 days > 0 -> "$days gün sonra"
                 hours > 0 -> "$hours saat sonra"
                 else -> "Bugün başlıyor"
             }
             "de" -> when {
-                
                 days > 0 && hours > 0 -> "in $days Tg. $hours Std."
                 days > 0 -> "in $days Tg."
                 hours > 0 -> "in $hours Std."
                 else -> "Beginnt heute"
             }
             "es" -> when {
-                
                 days > 0 && hours > 0 -> "en $days d. $hours h."
                 days > 0 -> "en $days d."
                 hours > 0 -> "en $hours h."
                 else -> "Empieza hoy"
             }
             "fr" -> when {
-                
                 days > 0 && hours > 0 -> "dans $days j. $hours h."
                 days > 0 -> "dans $days j."
                 hours > 0 -> "dans $hours h."
                 else -> "Commence aujourd'hui"
             }
             "it" -> when {
-                
                 days > 0 && hours > 0 -> "tra $days g. $hours o."
                 days > 0 -> "tra $days g."
                 hours > 0 -> "tra $hours o."
                 else -> "Inizia oggi"
             }
             else -> when {
-                
                 days > 0 && hours > 0 -> "in ${days}d ${hours}h"
                 days > 0 -> "in ${days}d"
                 hours > 0 -> "in ${hours}h"
