@@ -92,19 +92,21 @@ The upload-key reset completed before this release. Google Play accepted the rep
 
 Publication was confirmed on **2026-10-01**.
 
-## Post-publication physical smoke: provenance clarification (2026-10-07)
+## Post-publication physical smoke: independently verified installation (2026-10-08)
 
-On 2026-10-01, the user reported that the installed app displayed version **0.7.7** and Google Play offered **Open / Uninstall** rather than Update. Functional smoke was reported clean for state retention, Share Search, Medium-risk review/cancellation, Search Assistant `hundo` / `shiny`, Event Guide, and basic locale/layout behavior.
+The earlier 2026-10-01 functional smoke was reported as clean on a v0.7.7 installation, but signing provenance was not established then. On 2026-10-07 a separate read-only audit observed a debuggable, non-Play-signed build with matching version metadata. This was not suitable evidence for production screenshots, and was subsequently replaced with a Play installation with the user's explicit authorization.
 
-These checks **did not independently establish that the tested installed binary was Play-signed production**. VersionName alone and the Play Store's Open/Uninstall buttons do not prove app-signing provenance.
+On **2026-10-08**, an authorized Samsung SM-S931B was verified after a direct Google Play installation of PokeQuery:
+- `applicationId` `com.caglar.pokequery`, versionName `0.7.7`, versionCode `27`;
+- `DEBUGGABLE=false`;
+- installer and initiating package `com.android.vending`;
+- the installed base APK and all eight delivered split APKs passed `apksigner verify`, with the same Google Play **App Signing** SHA-256 (not the upload certificate):
 
-During the read-only growth/screenshot audit on 2026-10-07, a connected physical device reported the same package/versionCode **27** and versionName **0.7.7**, but its installed package was flagged **DEBUGGABLE**, with no installer package recorded. This build is not a qualifying Play production screenshot source. Whether the original smoke was performed on precisely the same installation was not independently verified, so do not silently equate these sessions. An absent installer field by itself is not definitive signing evidence; the DEBUGGABLE flag independently disqualifies the observed package from a non-debuggable production capture.
+`FE:9C:42:96:61:0D:1C:61:41:9E:54:7A:8E:90:10:05:72:2B:B0:76:6C:CC:40:C7:43:3E:A1:66:7F:7D:1A:2A`
 
-**Functional smoke on a reported v0.7.7 installation: PASS (user report).**
+Using this verified production installation, real in-app screens were captured across EN/TR/DE/ES/FR/IT; search and risk-review flows and settings were observed. **Production provenance: PASS.**
 
-**Independently verified Play-signed physical smoke: NOT YET VERIFIED.**
-
-The GitHub source, signed upload AAB, Google Play bundle acceptance and 2026-10-01 production publication remain independently established. The outstanding step is **only** verification of an actual Play-signed production installation, preferably on a separate device so the existing debuggable test installation and local app data are not disturbed. Verify the installed APK certificate against the **Google Play App Signing certificate** (not the upload certificate), and confirm it is not debuggable.
+**Visual/store-assets QA is a separate gate, currently BLOCKED:** of the 30 real production screenshots, 23 passed and seven were rejected for unsupported TCG Event Guide content (six locales) and an ellipsized German Candy goal title (one locale). An additional Zorua relative-day label defect was identified. None of these findings invalidates the production binary's Play signature, but they require code/feed corrections and fresh captures before affected assets may be published.
 
 ## Release closure checklist
 
@@ -120,7 +122,7 @@ The GitHub source, signed upload AAB, Google Play bundle acceptance and 2026-10-
 - [x] Delivery copy matched the Gradle artifact byte-for-byte.
 - [x] Google Play accepted versionCode 27 and the reset upload certificate.
 - [x] Production publication confirmed.
-- [ ] Play-signed production installation and physical smoke independently verified (a later connected installation was DEBUGGABLE; preserve it until a separate qualifying build can be tested).
+- [x] Genuine Play-installed, non-debuggable v0.7.7/code27 APK and all delivered splits independently verified against the current Play App Signing certificate (2026-10-08).
 - [x] Immutable `v0.7.7` tag points to exact release source SHA.
 - [x] Public release-facing version references refreshed.
 
