@@ -406,12 +406,12 @@ describe('event relative-day regression', () => {
       '2026-10-08',
       localDateOnlyMillis('2026-10-08') + 19 * 60 * 60 * 1000
     )
-    expect(remainingTimeLabel(event, clock, 'en')).toBe('in 1 days and 5 hours')
+    expect(remainingTimeLabel(event, clock, 'en')).toBe('in 1 day and 5 hours')
     expect(remainingTimeLabel(event, clock, 'tr')).toBe('1 gün 5 saat sonra')
-    expect(remainingTimeLabel(event, clock, 'de')).toBe('in 1 Tagen und 5 Stunden')
-    expect(remainingTimeLabel(event, clock, 'es')).toBe('en 1 días y 5 horas')
-    expect(remainingTimeLabel(event, clock, 'fr')).toBe('dans 1 jours et 5 heures')
-    expect(remainingTimeLabel(event, clock, 'it')).toBe('tra 1 giorni e 5 ore')
+    expect(remainingTimeLabel(event, clock, 'de')).toBe('in 1 Tag und 5 Stunden')
+    expect(remainingTimeLabel(event, clock, 'es')).toBe('en 1 día y 5 horas')
+    expect(remainingTimeLabel(event, clock, 'fr')).toBe('dans 1 jour et 5 heures')
+    expect(remainingTimeLabel(event, clock, 'it')).toBe('tra 1 giorno e 5 ore')
     const tomorrow = pinnedClock('2026-10-09', localDateOnlyMillis('2026-10-09') + 10 * 3600 * 1000)
     expect(remainingTimeLabel(event, tomorrow, 'en')).toBe('Starts tomorrow')
   })
