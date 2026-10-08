@@ -705,4 +705,14 @@
     <string name="event_chip_bonus">Ek ödül</string>
     <string name="event_suggested_for_event">Bu etkinlik için önerilen arama</string>
     <string name="knowledge_reference_only">Yalnızca açıklama amaçlıdır. Kopyalamadan önce Uzman Oluşturucu ile tam bir arama oluştur.</string>
+    <string name="risk_goal_cleanup">Güvenli Temizlik, Shiny, Efsanevi ve favori Pokémon gibi korunan grupları hariç tutar. Transfer etmeden önce her sonucu kontrol et.</string>
+    <string name="risk_goal_candy">Şeker Hazırlığı, transfer Şekeri bonusu olan etkinlikler içindir. Etkinlik dışında kullanmadan önce Pokémonları ve bonusu kontrol et.</string>
+    <string name="risk_goal_trade">Arama, arkadaşlık düzeyini veya Özel Takas sınırlarını doğrulayamaz. Her Pokémonu ve takas koşullarını oyunda kontrol et.</string>
+    <string name="risk_goal_lucky">Şanslı Takas aramasında Shiny veya Efsanevi gibi değerli Pokémonlar çıkabilir. Takastan önce her adayı incele.</string>
+    <string name="risk_goal_pvp">Bunlar IV aralıklarına ve CP değerine dayanan yaklaşık PvP adaylarıdır. Kaynak harcamadan önce gerçek PvP IV ve sıralamasını kontrol et.</string>
+    <string name="risk_goal_inspect">Bu arama inceleme içindir, temizlik için değil. Sonuçta göründüğü için bir Pokémonu transfer etme.</string>
+    <string name="risk_goal_untagged">Etiketsiz Temizlik korunan grupları hariç tutar. Düzenlemeden veya transferden önce her sonucu incele.</string>
+    <string name="risk_goal_expert">Bu aramayı sen oluşturdun. PokeQuery güvenli olduğunu garanti edemez. Kullanmadan önce bütün sonuçları kontrol et.</string>
+    <string name="risk_goal_fallback">Bu aramada değerli Pokémonlar da çıkabilir. İşlem yapmadan önce her sonucu Pokémon GO\'da kontrol et.</string>
+    <string name="risk_goal_beta">Türkçe arama terimleri beta aşamasında. Transfer veya takastan önce sonuçları Pokémon GO\'da doğrula.</string>
 </resources>
