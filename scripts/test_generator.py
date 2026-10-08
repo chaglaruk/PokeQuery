@@ -106,6 +106,10 @@ class TestEventFeedGenerator(unittest.TestCase):
             canonical_event_id("event-communityday-october-2026-zorua"),
             "event-october-communityday2026"
         )
+        self.assertEqual(
+            canonical_event_id("event-halloween-part-2-2026"),
+            "event-halloween-2026-part-2"
+        )
 
     def test_calendar_dates_win_over_news_publication_timestamp(self):
         raw = {}
@@ -128,6 +132,43 @@ class TestEventFeedGenerator(unittest.TestCase):
         self.assertEqual(event["startDate"], "2026-10-10")
         self.assertEqual(event["endDate"], "2026-10-10")
         self.assertEqual(event["kind"], "COMMUNITY_DAY")
+
+    def test_halloween_part2_calendar_dates_win_in_both_discovery_orders(self):
+        news = {
+            "id": "event-halloween-part-2-2026",
+            "kind": "GENERIC_EVENT",
+            "startDate": "2026-10-08",
+            "endDate": "2026-10-08",
+            "sourceName": "Pokémon GO Live News",
+        }
+        calendar = {
+            "id": "event-halloween-2026-part-2",
+            "kind": "GENERIC_EVENT",
+            "startDate": "2026-11-01",
+            "endDate": "2026-11-05",
+            "sourceName": "Leek Duck Events",
+        }
+        for first, second in ((news, calendar), (calendar, news)):
+            with self.subTest(first_source=first["sourceName"]):
+                raw = {}
+                put_raw_event(raw, dict(first))
+                put_raw_event(raw, dict(second))
+                self.assertEqual(len(raw), 1)
+                row = raw["event-halloween-2026-part-2"]
+                self.assertEqual((row["startDate"], row["endDate"]), ("2026-11-01", "2026-11-05"))
+
+    def test_halloween_part2_official_metadata_is_complete(self):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "docs", "event-feed", "event_metadata.json"), encoding="utf-8") as f:
+            metadata = json.load(f)
+        row = metadata["event-halloween-2026-part-2"]
+        self.assertEqual((row["startDate"], row["endDate"]), ("2026-11-01", "2026-11-05"))
+        self.assertEqual(row["sourceType"], "official")
+        self.assertEqual(row["sourceUrl"], "https://pokemongo.com/news/halloween-part-2-2026")
+        for field in ("summary", "featuredPokemon", "bonuses", "raids", "research", "eventNotes"):
+            for suffix in ("", "Tr", "De", "Es", "Fr", "It"):
+                with self.subTest(field=field, locale=suffix or "En"):
+                    self.assertTrue(row.get(field + suffix))
 
     def test_tcg_and_zorua_official_metadata_has_valid_windows(self):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
