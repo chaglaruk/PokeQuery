@@ -703,4 +703,14 @@
     <string name="event_chip_bonus">Boni</string>
     <string name="event_suggested_for_event">Vorgeschlagene Suche für dieses Event</string>
     <string name="knowledge_reference_only">Nur als Referenz. Erstelle vor dem Kopieren im Experten-Builder eine vollständige Suche.</string>
+    <string name="risk_goal_cleanup">Sicheres Aufräumen schließt unter anderem schillernde, legendäre und favorisierte Pokémon aus. Prüfe jeden Treffer vor dem Verschicken.</string>
+    <string name="risk_goal_candy">Die Bonbon-Vorbereitung ist für Events mit einem Transferbonbon-Bonus gedacht. Prüfe Pokémon und Bonus, bevor du sie außerhalb des Events nutzt.</string>
+    <string name="risk_goal_trade">Eine Suche kann weder Freundschaftsvoraussetzungen noch Limits für Spezial-Tausche prüfen. Kontrolliere Pokémon und Tauschbedingungen im Spiel.</string>
+    <string name="risk_goal_lucky">Die Glückstausch-Suche kann wertvolle Pokémon enthalten, auch schillernde und legendäre. Prüfe jeden Kandidaten vor dem Tauschen.</string>
+    <string name="risk_goal_pvp">Das sind ungefähre PvP-Kandidaten anhand von IV-Bereichen und WP. Prüfe die tatsächlichen PvP-IV und Ränge, bevor du Ressourcen investierst.</string>
+    <string name="risk_goal_inspect">Diese Suche ist zum Prüfen gedacht, nicht zum Aufräumen. Verschicke Pokémon nicht nur, weil sie hier auftauchen.</string>
+    <string name="risk_goal_untagged">Das Aufräumen unmarkierter Pokémon schließt geschützte Gruppen aus. Prüfe jeden Treffer vor dem Sortieren oder Verschicken.</string>
+    <string name="risk_goal_expert">Du hast diese Suche selbst zusammengestellt. PokeQuery kann ihre Sicherheit nicht garantieren. Prüfe alle Treffer vor der Verwendung.</string>
+    <string name="risk_goal_fallback">Diese Suche kann auch wertvolle Pokémon finden. Prüfe alle Treffer in Pokémon GO, bevor du handelst.</string>
+    <string name="risk_goal_beta">Türkische Suchbegriffe sind noch in der Beta. Prüfe die Treffer in Pokémon GO vor dem Verschicken oder Tauschen.</string>
 </resources>
