@@ -157,6 +157,21 @@ class TestEventFeedGenerator(unittest.TestCase):
                 row = raw["event-halloween-2026-part-2"]
                 self.assertEqual((row["startDate"], row["endDate"]), ("2026-11-01", "2026-11-05"))
 
+    def test_gameplay_update_is_news_not_a_timed_gameplay_event(self):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "docs", "event-feed", "event_metadata.json"), encoding="utf-8") as f:
+            metadata = json.load(f)
+        row = metadata["event-pgo-gameplay-update-oct-2026"]
+        self.assertEqual(row["eventCategory"], "ANNOUNCEMENT")
+        self.assertEqual(row["importanceTier"], "NEWS")
+        self.assertEqual(row["sourceType"], "official")
+        self.assertEqual(row["sourceUrl"], "https://pokemongo.com/news/pgo-gameplay-update-oct-2026")
+        self.assertEqual((row["startDate"], row["endDate"]), ("2026-10-08", "2026-10-08"))
+        for suffix in ("", "Tr", "De", "Es", "Fr", "It"):
+            with self.subTest(locale=suffix or "En"):
+                self.assertTrue(row.get("summary" + suffix))
+                self.assertTrue(row.get("note" + suffix))
+
     def test_halloween_part2_official_metadata_is_complete(self):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         with open(os.path.join(root, "docs", "event-feed", "event_metadata.json"), encoding="utf-8") as f:
