@@ -317,6 +317,11 @@ METADATA_ID_ALIASES = {
 
 CANONICAL_EVENT_ID_ALIASES = {
     "event-go-fest-2026-global-final-details": "event-pokemon-go-fest-2026-global",
+    # Official news index dates are PUBLICATION dates, not event start/end dates.
+    # Merge the same event across news and calendar sources before applying
+    # curated, officially verified event windows in event_metadata.json.
+    "event-tcg-30th-celebration-event": "event-pokemon-tcg-30th-celebration",
+    "event-communityday-october-2026-zorua": "event-october-communityday2026",
 }
 
 def canonical_event_id(event_id):
@@ -330,6 +335,15 @@ def prefer_event_record(existing, candidate):
     if candidate_official and not existing_official:
         return candidate
     if existing_official and not candidate_official:
+        # The official news index exposes the article's publication timestamp,
+        # not the in-game event window. For curated cross-source aliases keep
+        # the calendar's dates/kind. A verified official source URL and full
+        # event times are attached from event_metadata.json below.
+        if existing.get("id") in {
+            "event-pokemon-tcg-30th-celebration",
+            "event-october-communityday2026",
+        }:
+            return candidate
         if candidate.get("kind") != "GENERIC_EVENT":
             existing["kind"] = candidate["kind"]
         return existing
@@ -572,10 +586,10 @@ def generate_feed(fixture_mode, output_path):
             "themeKey": meta.get("themeKey", "generic_event"),
             "eventCategory": meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"]),
             "importanceTier": meta.get("importanceTier") or get_importance_tier(meta.get("eventCategory") or get_event_category(ev["title"], ev["kind"])),
-            "sourceNotes": f"Generated from {ev['sourceName']}: {ev['sourceUrl']}",
-            "sourceName": ev["sourceName"],
-            "sourceUrl": ev["sourceUrl"],
-            "sourceType": "official" if "News" in ev["sourceName"] else "third-party",
+            "sourceNotes": meta.get("sourceNotes") or f"Generated from {ev['sourceName']}: {ev['sourceUrl']}",
+            "sourceName": meta.get("sourceName") or ev["sourceName"],
+            "sourceUrl": meta.get("sourceUrl") or ev["sourceUrl"],
+            "sourceType": meta.get("sourceType") or ("official" if "News" in ev["sourceName"] else "third-party"),
             "lastUpdated": datetime.now().strftime("%Y-%m-%d"),
             "pokemon": meta.get("pokemon", []),
             "featuredPokemon": meta.get("featuredPokemon"),
