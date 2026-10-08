@@ -21,7 +21,7 @@
     "extract:i18n": "node scripts/extract-strings.mjs",
     "check:golden-corpus": "node scripts/check-golden-corpus.mjs",
     "sync:golden-corpus": "node scripts/check-golden-corpus.mjs --sync",
-    "test:e2e:smoke": "playwright test --project=chromium-mobile e2e/base-path.spec.ts e2e/events.spec.ts e2e/goal-detail.spec.ts e2e/home-nav.spec.ts e2e/pwa.spec.ts e2e/search-assistant.spec.ts e2e/settings-language.spec.ts"
+    "test:e2e:smoke": "playwright test --project=chromium-mobile e2e/base-path.spec.ts e2e/events.spec.ts e2e/goal-detail.spec.ts e2e/guides.spec.ts e2e/home-nav.spec.ts e2e/pwa.spec.ts e2e/search-assistant.spec.ts e2e/settings-language.spec.ts"
   },
   "dependencies": {
     "react": "^18.3.1",
