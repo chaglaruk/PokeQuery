@@ -2,6 +2,7 @@
 // Do not edit manually.
 
 export const es: Record<string, string> = {
+  "knowledge_reference_only": "Solo como referencia. Crea una búsqueda completa en el constructor experto antes de copiar.",
   "app_name": "PokeQuery",
   "shortcut_safe_cleanup_short": "Limpieza Segura",
   "shortcut_safe_cleanup_long": "Revisión: Limpieza Segura",

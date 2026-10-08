@@ -2,6 +2,7 @@
 // Do not edit manually.
 
 export const tr: Record<string, string> = {
+  "knowledge_reference_only": "Yalnızca açıklama amaçlıdır. Kopyalamadan önce Uzman Oluşturucu ile tam bir arama oluştur.",
   "app_name": "PokeQuery",
   "shortcut_safe_cleanup_short": "Güvenli Temizlik",
   "shortcut_safe_cleanup_long": "Güvenli Temizlik incelemesi",

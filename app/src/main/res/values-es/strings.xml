@@ -705,4 +705,5 @@
     <string name="event_choose_event">Elige evento — actualiza la guía de abajo</string>
     <string name="event_chip_bonus">Bono</string>
     <string name="event_suggested_for_event">Búsqueda sugerida para este evento</string>
+    <string name="knowledge_reference_only">Solo como referencia. Crea una búsqueda completa en el constructor experto antes de copiar.</string>
 </resources>

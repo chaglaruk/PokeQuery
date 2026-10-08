@@ -2,6 +2,7 @@
 // Do not edit manually.
 
 export const en: Record<string, string> = {
+  "knowledge_reference_only": "Reference only. Use Expert Builder to create a complete search before copying.",
   "app_name": "PokeQuery",
   "shortcut_safe_cleanup_short": "Safe Cleanup",
   "shortcut_safe_cleanup_long": "Safe Cleanup review",

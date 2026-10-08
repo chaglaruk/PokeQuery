@@ -729,4 +729,5 @@
     <string name="risk_medium_subtitle">Vérifier avant utilisation</string>
     <string name="risk_info_subtitle">Inspection uniquement</string>
     <string name="risk_high_subtitle">Vérification attentive requise</string>
+    <string name="knowledge_reference_only">À titre indicatif. Créez une recherche complète dans le générateur expert avant de copier.</string>
 </resources>
