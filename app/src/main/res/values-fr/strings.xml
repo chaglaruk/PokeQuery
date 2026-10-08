@@ -475,8 +475,8 @@
     <string name="nav_home">Accueil</string>
     <string name="nav_favorites">Favoris</string>
     <string name="nav_history">Historique</string>
-    <string name="nav_knowledge">Connaissances</string>
-    <string name="nav_settings">Paramètres</string>
+    <string name="nav_knowledge">Guide</string>
+    <string name="nav_settings">Réglages</string>
 
     <string name="home_header_desc">Chaînes de recherche plus sûres pour Pokémon GO</string>
     <string name="home_subtitle">Que voulez-vous trouver ?</string>
