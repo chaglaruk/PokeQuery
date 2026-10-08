@@ -463,7 +463,6 @@ function forwardLabel(diffMs: number, lang: string): string {
     if (hours > 0) return `tra ${hours} ${hours === 1 ? 'ora' : 'ore'}`
     return 'Inizia oggi'
   }
-  if (days === 1) return 'Starts tomorrow'
   if (days > 0 && hours > 0) return `in ${days} days and ${hours} ${hours === 1 ? 'hour' : 'hours'}`
   if (days > 0) return `in ${days} days`
   if (hours > 0) return `in ${hours} ${hours === 1 ? 'hour' : 'hours'}`
