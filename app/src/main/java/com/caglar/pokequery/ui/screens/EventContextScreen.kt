@@ -260,7 +260,7 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Canlı" else "Live",
+                                        statusLabel = eventStatusLabel("live", lang),
                                         statusColor = CyanGlow,
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 5 + idx)
@@ -282,7 +282,7 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Yakında" else "Upcoming",
+                                        statusLabel = eventStatusLabel("upcoming", lang),
                                         statusColor = AmberWarning,
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 7 + idx)
@@ -304,7 +304,7 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Rotasyon" else "Rotation",
+                                        statusLabel = eventStatusLabel("rotation", lang),
                                         statusColor = PurpleIV,
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 9 + idx)
@@ -326,8 +326,8 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Duyuru" else "News",
-                                        statusColor = TextTertiary,
+                                        statusLabel = eventStatusLabel("news", lang),
+                                        statusColor = TextSecondary,
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 11 + idx)
                                     )
@@ -349,16 +349,16 @@ fun EventContextScreen(
                                         event = event,
                                         lang = lang,
                                         statusLabel = when (event.determineCategory()) {
-                                            EventCategory.MAJOR_GAMEPLAY -> if (lang == "tr") "Büyük" else "Major"
-                                            EventCategory.LIMITED_GAMEPLAY -> if (lang == "tr") "Sınırlı" else "Limited"
-                                            EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> if (lang == "tr") "Rotasyon" else "Rotation"
-                                            else -> if (lang == "tr") "Haber" else "News"
+                                            EventCategory.MAJOR_GAMEPLAY -> eventStatusLabel("major", lang)
+                                            EventCategory.LIMITED_GAMEPLAY -> eventStatusLabel("limited", lang)
+                                            EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> eventStatusLabel("rotation", lang)
+                                            else -> eventStatusLabel("news", lang)
                                         },
                                         statusColor = when (event.determineCategory()) {
                                             EventCategory.MAJOR_GAMEPLAY -> CyanGlow
                                             EventCategory.LIMITED_GAMEPLAY -> AmberWarning
                                             EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> PurpleIV
-                                            else -> TextTertiary
+                                            else -> TextSecondary
                                         },
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 15 + idx)
@@ -381,7 +381,7 @@ fun EventContextScreen(
                 item {
                     Text(
                         text = stringResource(EventContextRepository.disclaimerRes()),
-                        color = TextTertiary,
+                        color = TextSecondary,
                         fontSize = 11.sp,
                         lineHeight = 15.sp,
                         modifier = Modifier
@@ -492,7 +492,7 @@ private fun SourceStatusLine(
         lastChecked?.let {
             Text(
                 text = stringResource(R.string.event_context_last_checked, it),
-                color = TextTertiary,
+                color = TextSecondary,
                 fontSize = 10.sp
             )
         }
@@ -601,6 +601,59 @@ private fun EventPickerPanel(
             }
         }
     }
+}
+
+/** Short status words are localized separately from dashboard section headings. */
+private fun eventStatusLabel(kind: String, lang: String): String = when (kind) {
+    "live" -> when (lang) {
+        "tr" -> "Canlı"
+        "de" -> "Aktiv"
+        "es" -> "En curso"
+        "fr" -> "En cours"
+        "it" -> "In corso"
+        else -> "Live"
+    }
+    "upcoming" -> when (lang) {
+        "tr" -> "Yakında"
+        "de" -> "Demnächst"
+        "es" -> "Próximamente"
+        "fr" -> "À venir"
+        "it" -> "In arrivo"
+        else -> "Upcoming"
+    }
+    "rotation" -> when (lang) {
+        "tr" -> "Rotasyon"
+        "de" -> "Rotation"
+        "es" -> "Rotación"
+        "fr" -> "Rotation"
+        "it" -> "Rotazione"
+        else -> "Rotation"
+    }
+    "news" -> when (lang) {
+        "tr" -> "Duyuru"
+        "de" -> "Meldung"
+        "es" -> "Noticias"
+        "fr" -> "Actualités"
+        "it" -> "Notizie"
+        else -> "News"
+    }
+    "major" -> when (lang) {
+        "tr" -> "Büyük"
+        "de" -> "Großevent"
+        "es" -> "Principal"
+        "fr" -> "Majeur"
+        "it" -> "Principale"
+        else -> "Major"
+    }
+    "limited" -> when (lang) {
+        "tr" -> "Sınırlı"
+        "de" -> "Befristet"
+        "es" -> "Limitado"
+        "fr" -> "Limité"
+        "it" -> "Limitato"
+        else -> "Limited"
+    }
+    else -> kind
 }
 
 private fun eventNotesTitle(lang: String): String = when (lang) {
@@ -725,9 +778,9 @@ private fun CompactEventCard(
                 color = TextPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 13.sp,
-                maxLines = 2,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                lineHeight = 16.sp
+                lineHeight = 17.sp
             )
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -751,7 +804,7 @@ private fun CompactEventCard(
                 if (dateText.isNotBlank()) {
                     Text(
                         text = dateText,
-                        color = TextTertiary,
+                        color = TextSecondary,
                         fontSize = 10.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -1004,7 +1057,7 @@ private fun EventDashboardContent(
             Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
             event.dateLabel(lang)?.let {
                 Spacer(Modifier.height(4.dp))
-                Text(it, color = TextTertiary, fontSize = 12.sp)
+                Text(it, color = TextSecondary, fontSize = 12.sp)
             }
 
             val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
@@ -1186,12 +1239,12 @@ private fun EventDashboardContent(
                     "it" -> "Fonte: ${sourceName ?: sourceUrl}"
                     else -> "Source: ${sourceName ?: sourceUrl}"
                 },
-                color = TextTertiary,
+                color = TextSecondary,
                 fontSize = 11.sp,
                 lineHeight = 14.sp
             )
             sourceUrl?.let {
-                Text(it, color = TextTertiary, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(it, color = TextSecondary, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
 
@@ -1226,14 +1279,14 @@ private fun EventDashboardContent(
         Spacer(Modifier.height(12.dp))
         Text(
             text = stringResource(sourceLabelRes),
-            color = TextTertiary,
+            color = TextSecondary,
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.clip(RoundedCornerShape(50)).background(CardPremium.copy(alpha = 0.7f)).padding(horizontal = 8.dp, vertical = 3.dp)
         )
         lastChecked?.let {
             Spacer(Modifier.height(4.dp))
-            Text(stringResource(R.string.event_context_last_checked, it), color = TextTertiary, fontSize = 10.sp)
+            Text(stringResource(R.string.event_context_last_checked, it), color = TextSecondary, fontSize = 10.sp)
         }
     }
 }
@@ -1534,7 +1587,7 @@ private fun EventDetailsDialog(
                     }
                     event.dateLabel(lang)?.let {
                         Spacer(Modifier.height(4.dp))
-                        Text(it, color = TextTertiary, fontSize = 12.sp)
+                        Text(it, color = TextSecondary, fontSize = 12.sp)
                     }
                 }
             },
