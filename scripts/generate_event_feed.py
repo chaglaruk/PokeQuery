@@ -322,6 +322,7 @@ CANONICAL_EVENT_ID_ALIASES = {
     # curated, officially verified event windows in event_metadata.json.
     "event-tcg-30th-celebration-event": "event-pokemon-tcg-30th-celebration",
     "event-communityday-october-2026-zorua": "event-october-communityday2026",
+    "event-halloween-part-2-2026": "event-halloween-2026-part-2",
 }
 
 def canonical_event_id(event_id):
@@ -342,6 +343,7 @@ def prefer_event_record(existing, candidate):
         if existing.get("id") in {
             "event-pokemon-tcg-30th-celebration",
             "event-october-communityday2026",
+            "event-halloween-2026-part-2",
         }:
             return candidate
         if candidate.get("kind") != "GENERIC_EVENT":
