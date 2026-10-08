@@ -334,6 +334,14 @@ def prefer_event_record(existing, candidate):
     existing_official = "News" in existing.get("sourceName", "")
     candidate_official = "News" in candidate.get("sourceName", "")
     if candidate_official and not existing_official:
+        # Calendar rows carry the event window; news-index rows carry publication dates.
+        # Official URLs and verified facts are applied via metadata at output time.
+        if existing.get("id") in {
+            "event-pokemon-tcg-30th-celebration",
+            "event-october-communityday2026",
+            "event-halloween-2026-part-2",
+        }:
+            return existing
         return candidate
     if existing_official and not candidate_official:
         # The official news index exposes the article's publication timestamp,
