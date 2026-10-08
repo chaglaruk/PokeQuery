@@ -9,7 +9,7 @@ import json
 # Ensure scripts directory is on sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from generate_event_feed import parse_date_range, get_event_id, generate_feed, validate_safety_constraints
+from generate_event_feed import parse_date_range, get_event_id, generate_feed, validate_safety_constraints, canonical_event_id, put_raw_event
 
 class TestEventFeedGenerator(unittest.TestCase):
 
@@ -96,6 +96,55 @@ class TestEventFeedGenerator(unittest.TestCase):
                 self.assertIn("lastUpdated", ev)
                 self.assertIn(ev["sourceType"], ["official", "third-party"])
                 self.assertTrue(ev["sourceUrl"].startswith("http"))
+
+    def test_known_article_ids_resolve_to_curated_event_ids(self):
+        self.assertEqual(
+            canonical_event_id("event-tcg-30th-celebration-event"),
+            "event-pokemon-tcg-30th-celebration"
+        )
+        self.assertEqual(
+            canonical_event_id("event-communityday-october-2026-zorua"),
+            "event-october-communityday2026"
+        )
+
+    def test_calendar_dates_win_over_news_publication_timestamp(self):
+        raw = {}
+        put_raw_event(raw, {
+            "id": "event-communityday-october-2026-zorua",
+            "kind": "GENERIC_EVENT",
+            "startDate": "2026-09-15",
+            "endDate": "2026-09-15",
+            "sourceName": "Pokémon GO Live News",
+        })
+        put_raw_event(raw, {
+            "id": "event-october-communityday2026",
+            "kind": "COMMUNITY_DAY",
+            "startDate": "2026-10-10",
+            "endDate": "2026-10-10",
+            "sourceName": "Leek Duck Events",
+        })
+        self.assertEqual(len(raw), 1)
+        event = raw["event-october-communityday2026"]
+        self.assertEqual(event["startDate"], "2026-10-10")
+        self.assertEqual(event["endDate"], "2026-10-10")
+        self.assertEqual(event["kind"], "COMMUNITY_DAY")
+
+    def test_tcg_and_zorua_official_metadata_has_valid_windows(self):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "docs", "event-feed", "event_metadata.json"), encoding="utf-8") as f:
+            metadata = json.load(f)
+        for key, start, end in (
+            ("event-pokemon-tcg-30th-celebration", "2026-09-27", "2026-10-20"),
+            ("event-october-communityday2026", "2026-10-10", "2026-10-10"),
+        ):
+            row = metadata[key]
+            self.assertEqual(row["startDate"], start)
+            self.assertEqual(row["endDate"], end)
+            self.assertEqual(row["sourceType"], "official")
+            self.assertTrue(row["sourceUrl"].startswith("https://pokemongo.com/news/"))
+            for suffix in ("Tr", "De", "Es", "Fr", "It"):
+                self.assertTrue(row.get("summary" + suffix))
+                self.assertTrue(row.get("bonuses" + suffix))
 
     @unittest.mock.patch('urllib.request.urlopen')
     def test_live_mode_all_sources_fail(self, mock_urlopen):
