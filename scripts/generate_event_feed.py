@@ -550,7 +550,7 @@ def generate_feed(fixture_mode, output_path):
             "titleEs": meta.get("titleEs"),
             "titleFr": meta.get("titleFr"),
             "titleIt": meta.get("titleIt"),
-            "kind": ev["kind"],
+            "kind": meta.get("kind") or ev["kind"],
             "status": status,
             "note": meta.get("note", format_default_note(start, end, "en")),
             "noteTr": meta.get("noteTr", format_default_note(start, end, "tr")),
