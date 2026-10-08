@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import com.caglar.pokequery.data.model.GeneratedString
 import com.caglar.pokequery.domain.engine.SearchTermMapper
 import com.caglar.pokequery.domain.risk.RiskExplanations
-import com.caglar.pokequery.domain.risk.RiskMessageBuilder
 import com.caglar.pokequery.theme.BackgroundDark
 import com.caglar.pokequery.theme.CardDark
 import com.caglar.pokequery.theme.CoralDanger
@@ -50,8 +49,24 @@ fun RiskWarningScreen(
     onConfirmAction: () -> Unit,
     onBack: () -> Unit
 ) {
-    val turkish = SearchTermMapper.looksTurkish(generatedString.rawSyntax)
-    val goalMessage = RiskMessageBuilder.messageFor(generatedString.goalId, turkish)
+    // Risk copy follows App Language, independently of Search String Language.
+    val goalMessageRes = when (generatedString.goalId) {
+        "safe_cleanup" -> R.string.risk_goal_cleanup
+        "candy_prep" -> R.string.risk_goal_candy
+        "trade_fodder" -> R.string.risk_goal_trade
+        "lucky_trade" -> R.string.risk_goal_lucky
+        "pvp_candidates" -> R.string.risk_goal_pvp
+        "hundo_check", "nundo_finder" -> R.string.risk_goal_inspect
+        "untagged" -> R.string.risk_goal_untagged
+        "expert" -> R.string.risk_goal_expert
+        else -> R.string.risk_goal_fallback
+    }
+    val goalMessage = stringResource(goalMessageRes) +
+        if (SearchTermMapper.looksTurkish(generatedString.rawSyntax)) {
+            "\n\n" + stringResource(R.string.risk_goal_beta)
+        } else {
+            ""
+        }
     val riskExplanation = RiskExplanations.forGoal(generatedString.goalId, generatedString.riskLevel)
 
     val riskColor = when (generatedString.riskLevel) {
