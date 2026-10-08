@@ -698,7 +698,7 @@ export const fr: Record<string, string> = {
   "event_chip_major": "Majeur",
   "event_chip_limited": "Limité",
   "event_chip_rotation": "Rotation",
-  "event_chip_news": "News",
+  "event_chip_news": "Actualités",
   "event_open_details": "Ouvrir les détails",
   "event_copy_search": "Copier la recherche",
   "event_what_to_do_label": "Que faire ?",
