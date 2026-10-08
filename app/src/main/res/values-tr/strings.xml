@@ -187,7 +187,7 @@
     <string name="event_group_collection_body">Kostümlü ve özel arka planlı Pokémonlar temizlikte gözden kaçabilir.</string>
     <string name="event_group_collection_action">Formlarını, arka planlarını, farklı renkli (shiny) olma durumlarını ve takas planlarınızı kontrol etmeden hiçbirini göndermeyin.</string>
     <string name="event_group_bonuses_badge">Etkinlik Bonusları</string>
-    <string name="event_group_bonuses_body">Ek Ücretsiz Akın Bileti, Uzak Akın Bileti limiti yok, daha etkili Premier Top ve hızlı Parti Gücü.</string>
+    <string name="event_group_bonuses_body">Etkinliğe özel ayrıntıları ve varsa katılım koşullarını kontrol edin.</string>
     <string name="event_group_bonuses_action">Pokémonları transfer etmeden önce aktif bonusları Pokémon GO oyunundaki Bugün sekmesinden kontrol edin.</string>
     <string name="event_group_prep_title">Hazırlık Listesi</string>
     <string name="event_group_prep_badge">Planlı Temizlik</string>
