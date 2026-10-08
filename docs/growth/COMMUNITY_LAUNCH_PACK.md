@@ -1,5 +1,7 @@
 # PokeQuery community launch pack
 
+> **Current reconciliation, 2026-10-08:** This remains the original 2026-09-06 planning record. Public evidence now verifies existing r/IMadeThis, r/droidappshowcase and r/pokemongodev posts; IMadeThis is not an unposted next candidate. The r/indiehackers post displays a moderator-removal notice. Private r/pokemongo/r/TheSilphRoad replies remain unverified, and a separate r/SilphRoad submission does not establish their approval. Current r/pokemongo rules include a prohibition on AI-generated content; no generated promotional draft is offered for that community. No new post/modmail is authorized by this historical pack. See [current execution status](../release/PRERELEASE_EXECUTION_2026-10-08.md); sanitized feedback sources and prioritization are in the local pre-release evidence report.
+
 Prepared: 2026-09-06
 
 > **Historical planning record (2026-09-06).** Event-specific Mega Finale references and the sample dated Reddit post are expired as of 2026-10-07; **do not copy them as current campaign material**. Four developer/builder posts were recorded as published then, but current replies and moderator approval states remain unverified. Follow [the current execution checkpoint](EXECUTION_CHECKPOINT_2026-10-07.md) before any further submission.

@@ -1,5 +1,7 @@
 # PokeQuery — Bug Report
 
+> **Reconciliation added 2026-10-08; original date/findings unchanged:** This is historical evidence, not the current feature/status registry. Current code ships deterministic local Search Assistant, risk/linter protections, privacy/Settings safeguards and Android personal presets; the documented Event Guide public-feed exception supersedes older blanket zero-network assumptions. The current Knowledge reference-copy defect is handled as a new narrow review candidate. Generative/cloud AI remains unshipped and outside current boundaries. See [active pre-release status](../release/PRERELEASE_EXECUTION_2026-10-08.md) before treating an old finding as unresolved.
+
 **Date:** 2026-06-21 · **Version audited:** 0.4.1 (versionCode 8) · **Mode:** Analysis only (no fixes applied).
 
 Severity scale: **Blocker / High / Medium / Low**. "Blocker" = must fix before any further closed-testing distribution. None found at Blocker level.

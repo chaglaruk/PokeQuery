@@ -1,3 +1,5 @@
+> **Pre-release status, 2026-10-08:** Android 0.7.7/code 27 remains published; Web 0.7.3 is independent. PR #41/#42 corrections are merged in source and await a separately authorized Android release. Growth assets are 24/30 PASS; six Event images remain rejected. See the [current execution plan](docs/release/PRERELEASE_EXECUTION_2026-10-08.md) and [0.7.8 release preparation](docs/release/V078_RELEASE_PLAN.md).
+
 <p align="center">
   <img src="docs/readme/pokequery_repo_banner.png" alt="PokeQuery - Build safer Pokémon GO search strings" width="100%" />
 </p>
