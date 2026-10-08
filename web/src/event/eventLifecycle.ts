@@ -440,31 +440,31 @@ function forwardLabel(diffMs: number, lang: string): string {
     return 'Bugün başlıyor'
   }
   if (lang === 'de') {
-    if (days > 0 && hours > 0) return `in ${days} Tagen und ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`
-    if (days > 0) return `in ${days} Tagen`
+    if (days > 0 && hours > 0) return `in ${days} ${days === 1 ? 'Tag' : 'Tagen'} und ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`
+    if (days > 0) return `in ${days} ${days === 1 ? 'Tag' : 'Tagen'}`
     if (hours > 0) return `in ${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`
     return 'Beginnt heute'
   }
   if (lang === 'es') {
-    if (days > 0 && hours > 0) return `en ${days} días y ${hours} ${hours === 1 ? 'hora' : 'horas'}`
-    if (days > 0) return `en ${days} días`
+    if (days > 0 && hours > 0) return `en ${days} ${days === 1 ? 'día' : 'días'} y ${hours} ${hours === 1 ? 'hora' : 'horas'}`
+    if (days > 0) return `en ${days} ${days === 1 ? 'día' : 'días'}`
     if (hours > 0) return `en ${hours} ${hours === 1 ? 'hora' : 'horas'}`
     return 'Empieza hoy'
   }
   if (lang === 'fr') {
-    if (days > 0 && hours > 0) return `dans ${days} jours et ${hours} ${hours === 1 ? 'heure' : 'heures'}`
-    if (days > 0) return `dans ${days} jours`
+    if (days > 0 && hours > 0) return `dans ${days} ${days === 1 ? 'jour' : 'jours'} et ${hours} ${hours === 1 ? 'heure' : 'heures'}`
+    if (days > 0) return `dans ${days} ${days === 1 ? 'jour' : 'jours'}`
     if (hours > 0) return `dans ${hours} ${hours === 1 ? 'heure' : 'heures'}`
     return "Commence aujourd'hui"
   }
   if (lang === 'it') {
-    if (days > 0 && hours > 0) return `tra ${days} giorni e ${hours} ${hours === 1 ? 'ora' : 'ore'}`
-    if (days > 0) return `tra ${days} giorni`
+    if (days > 0 && hours > 0) return `tra ${days} ${days === 1 ? 'giorno' : 'giorni'} e ${hours} ${hours === 1 ? 'ora' : 'ore'}`
+    if (days > 0) return `tra ${days} ${days === 1 ? 'giorno' : 'giorni'}`
     if (hours > 0) return `tra ${hours} ${hours === 1 ? 'ora' : 'ore'}`
     return 'Inizia oggi'
   }
-  if (days > 0 && hours > 0) return `in ${days} days and ${hours} ${hours === 1 ? 'hour' : 'hours'}`
-  if (days > 0) return `in ${days} days`
+  if (days > 0 && hours > 0) return `in ${days} ${days === 1 ? 'day' : 'days'} and ${hours} ${hours === 1 ? 'hour' : 'hours'}`
+  if (days > 0) return `in ${days} ${days === 1 ? 'day' : 'days'}`
   if (hours > 0) return `in ${hours} ${hours === 1 ? 'hour' : 'hours'}`
   return 'Starts today'
 }
