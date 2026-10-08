@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@i18n/I18nContext'
 import { copyToClipboard, type ClipboardResult } from '@ui/clipboard'
 import { AppIcon } from '@ui/components/SpriteIcon'
+import { canCopyKnowledgeToken } from '@engine/knowledgeCopyPolicy'
 
 interface KnowledgeTerm {
   id: string
@@ -62,6 +63,7 @@ export function KnowledgeScreen() {
 
   const categoryLabel = (value: string) => value === 'All' ? t('knowledge_all') : t(categoryKeys[value.toLowerCase()] ?? value)
   const copyToken = async (syntax: string) => {
+    if (!canCopyKnowledgeToken(syntax)) return
     const result = await copyToClipboard(syntax)
     setClipboard(result)
     if (result.status === 'copied') setTimeout(() => setClipboard(null), 2000)
@@ -108,7 +110,8 @@ export function KnowledgeScreen() {
                   {term.commonMistake && <p className="knowledge-caution">{t('knowledge_common_mistake', term.commonMistake)}</p>}
                   {term.knownQuirks && <p className="knowledge-caution">{t('knowledge_note', term.knownQuirks)}</p>}
                   <p>{t('knowledge_last_verified', term.lastVerified)}</p>
-                  <button type="button" className="btn btn-primary" onClick={() => copyToken(term.syntax)}><AppIcon name="copy" size={16} />{t('knowledge_copy_token')}</button>
+                  {!canCopyKnowledgeToken(term.syntax) && <p className="knowledge-caution">{t('knowledge_reference_only')}</p>}
+                  <button type="button" className="btn btn-primary" disabled={!canCopyKnowledgeToken(term.syntax)} onClick={() => copyToken(term.syntax)}><AppIcon name="copy" size={16} />{t('knowledge_copy_token')}</button>
                 </div>
               )}
             </article>

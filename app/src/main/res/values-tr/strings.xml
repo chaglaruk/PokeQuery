@@ -704,4 +704,5 @@
     <string name="event_choose_event">Etkinlik seç — aşağıdaki rehberi değiştirir</string>
     <string name="event_chip_bonus">Ek ödül</string>
     <string name="event_suggested_for_event">Bu etkinlik için önerilen arama</string>
+    <string name="knowledge_reference_only">Yalnızca açıklama amaçlıdır. Kopyalamadan önce Uzman Oluşturucu ile tam bir arama oluştur.</string>
 </resources>

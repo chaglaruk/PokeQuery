@@ -729,4 +729,5 @@
     <string name="risk_medium_subtitle">Rivedi prima di usare</string>
     <string name="risk_info_subtitle">Solo ispezione</string>
     <string name="risk_high_subtitle">Revisione attenta richiesta</string>
+    <string name="knowledge_reference_only">Solo come riferimento. Crea una ricerca completa nel generatore esperto prima di copiare.</string>
 </resources>

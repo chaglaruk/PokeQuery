@@ -757,4 +757,5 @@
     <string name="event_choose_event">Choose event — updates the guide below</string>
     <string name="event_chip_bonus">Bonus</string>
     <string name="event_suggested_for_event">Suggested search for this event</string>
+    <string name="knowledge_reference_only">Reference only. Use Expert Builder to create a complete search before copying.</string>
 </resources>

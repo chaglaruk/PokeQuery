@@ -41,6 +41,7 @@ import com.caglar.pokequery.data.repository.KnowledgeBaseRepository
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.changelog.Changelog
+import com.caglar.pokequery.domain.lint.KnowledgeCopyPolicy
 import com.caglar.pokequery.domain.locale.AppLocaleController
 import com.caglar.pokequery.domain.locale.LocalizationModel
 import com.caglar.pokequery.theme.*
@@ -149,8 +150,10 @@ fun KnowledgeBaseScreen(startExpanded: Boolean = false, onBack: () -> Unit) {
                     items(filtered, key = { it.id }) { term ->
                         var expanded by remember { mutableStateOf(startExpanded && term == filtered.firstOrNull()) }
                         KnowledgeTermRow(term, expanded, onToggle = { expanded = !expanded }) {
-                            clipboard.setText(AnnotatedString(term.syntax))
-                            Toast.makeText(context, knowledgeCopied, Toast.LENGTH_SHORT).show()
+                            if (KnowledgeCopyPolicy.canCopy(term.syntax)) {
+                                clipboard.setText(AnnotatedString(term.syntax))
+                                Toast.makeText(context, knowledgeCopied, Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }
@@ -654,7 +657,10 @@ private fun KnowledgeTermRow(term: Term, expanded: Boolean, onToggle: () -> Unit
                 }
                 Text(stringResource(R.string.knowledge_source, term.sourceUrl), color = TextSecondary, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp))
                 Text(stringResource(R.string.knowledge_last_verified, term.lastVerified), color = TextSecondary, fontSize = 11.sp)
-                OutlinedButton(onClick = onCopy, modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(12.dp)) {
+                if (!KnowledgeCopyPolicy.canCopy(term.syntax)) {
+                    Text(stringResource(R.string.knowledge_reference_only), color = AmberWarning, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                }
+                OutlinedButton(onClick = onCopy, enabled = KnowledgeCopyPolicy.canCopy(term.syntax), modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(12.dp)) {
                     Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.knowledge_copy_token))
