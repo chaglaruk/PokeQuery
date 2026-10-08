@@ -45,7 +45,7 @@
     "sourceType": "official",
     "sourceNotes": "Verified against official Pokémon GO announcement, 2026-10-08. Retail-only promotion, not global gameplay bonuses."
   },
-  "event-october-communityday2026": {
+  "\"event-october-communityday2026\"": {
     "title": "October 2026 Community Day: Zorua",
     "titleTr": "Ekim 2026 Topluluk Günü: Zorua",
     "titleDe": "Community Day im Oktober 2026: Zorua",
@@ -76,7 +76,19 @@
     "sourceName": "Pokémon GO Official News",
     "sourceUrl": "https://pokemongo.com/news/communityday-october-2026-zorua",
     "sourceType": "official",
-    "sourceNotes": "Official Pokémon GO October Community Day announcement, 2026-10-08."
+    "sourceNotes": "Official Pokémon GO October Community Day announcement, 2026-10-08.",
+    "featuredPokemon": "Zorua appears more often in the wild and can be Shiny or have a Special Background. Evolve during the event or within the featured move window for Zoroark with Sucker Punch.",
+    "featuredPokemonTr": "Vahşi doğada daha çok Zorua çıkar; Parlak veya Özel Arka Planlı olabilir. Öne çıkan hareket süresinde evrimleştirilen Zoroark, Ani Yumruk öğrenir.",
+    "featuredPokemonDe": "Zorua erscheint häufiger in der Wildnis, auch schillernd oder mit besonderem Hintergrund. Zoroark kann durch Entwicklung während des Event-Zeitraums Tiefschlag erlernen.",
+    "featuredPokemonEs": "Zorua aparecerá más a menudo en estado salvaje, también variocolor o con fondo especial. Zoroark podrá aprender Golpe Bajo al evolucionar durante el plazo indicado.",
+    "featuredPokemonFr": "Zorua apparaîtra plus souvent à l'état sauvage, parfois chromatique ou avec un fond spécial. Zoroark peut apprendre Coup Bas en évoluant pendant la période prévue.",
+    "featuredPokemonIt": "Zorua apparirà più spesso allo stato selvatico, anche cromatico o con sfondo speciale. Zoroark può imparare Sbigoattacco evolvendosi nel periodo previsto.",
+    "research": "Paid Zorua Community Day Special Research and themed Field Research are available; some reward encounters can feature Zorua with a Special Background.",
+    "researchTr": "Ücretli Zorua Topluluk Günü Özel Araştırması ve temalı Alan Araştırmaları var; bazı ödül karşılaşmalarında Özel Arka Planlı Zorua bulunabilir.",
+    "researchDe": "Kostenpflichtige Zorua-Spezialforschung und thematische Feldforschung sind verfügbar; einige Begegnungen können einen besonderen Hintergrund haben.",
+    "researchEs": "Hay investigación especial de pago e investigaciones de campo de Zorua; algunos encuentros de recompensa pueden tener un fondo especial.",
+    "researchFr": "Une Étude spéciale payante et des Études de terrain Zorua sont proposées ; certaines rencontres peuvent avoir un fond spécial.",
+    "researchIt": "Sono disponibili una ricerca speciale a pagamento e ricerche sul campo di Zorua; alcuni incontri ricompensa possono avere uno sfondo speciale."
   },
   "event-season-23-forever-forward": {
     "titleTr": "Forever Forward Sezonu"
