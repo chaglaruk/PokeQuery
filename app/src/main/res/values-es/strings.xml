@@ -706,4 +706,14 @@
     <string name="event_chip_bonus">Bono</string>
     <string name="event_suggested_for_event">Búsqueda sugerida para este evento</string>
     <string name="knowledge_reference_only">Solo como referencia. Crea una búsqueda completa en el constructor experto antes de copiar.</string>
+    <string name="risk_goal_cleanup">Limpieza segura excluye grupos protegidos, como Pokémon variocolor, legendarios y favoritos. Revisa cada resultado antes de transferir.</string>
+    <string name="risk_goal_candy">Preparar caramelos está pensado para eventos con bonus de caramelos por transferencia. Comprueba los Pokémon y el bonus antes de usarlo fuera del evento.</string>
+    <string name="risk_goal_trade">La búsqueda no puede verificar los requisitos de amistad ni los límites de intercambios especiales. Revisa los Pokémon y las condiciones en el juego.</string>
+    <string name="risk_goal_lucky">La búsqueda para intercambios con suerte puede incluir Pokémon valiosos, incluso variocolor y legendarios. Revisa cada uno antes de intercambiar.</string>
+    <string name="risk_goal_pvp">Son candidatos aproximados para PvP, según rangos de IV y PC. Consulta sus IV y clasificaciones reales antes de invertir recursos.</string>
+    <string name="risk_goal_inspect">Esta búsqueda sirve para revisar, no para limpiar. No transfieras un Pokémon solo porque aparece aquí.</string>
+    <string name="risk_goal_untagged">La limpieza de Pokémon sin etiqueta excluye grupos protegidos. Revisa cada resultado antes de organizar o transferir.</string>
+    <string name="risk_goal_expert">Has creado esta búsqueda. PokeQuery no puede garantizar que sea segura. Revisa todos los resultados antes de usarla.</string>
+    <string name="risk_goal_fallback">Esta búsqueda puede incluir Pokémon valiosos. Revisa todos los resultados en Pokémon GO antes de actuar.</string>
+    <string name="risk_goal_beta">Los términos de búsqueda en turco están en fase beta. Comprueba los resultados en Pokémon GO antes de transferir o intercambiar.</string>
 </resources>
