@@ -225,6 +225,36 @@ class TestEventFeedGenerator(unittest.TestCase):
             write({**event, "suggestedSearch": "age0"})
             self.assertFalse(validate_feed(path))
 
+    def test_discovered_news_output_omits_gameplay_defaults_and_preserves_event_dates(self):
+        # Exercise the output builder, not just the curated metadata or safety helper.
+        discovered = [
+            {"title": "Gameplay updates", "href": "/news/pgo-gameplay-update-oct-2026",
+             "parsed_dates": ("2026-10-08", "2026-10-08", 10, 2026)},
+            {"title": "Halloween Part II", "href": "/news/halloween-part-2-2026",
+             "parsed_dates": ("2026-10-07", "2026-10-07", 10, 2026)},
+        ]
+        with tempfile.TemporaryDirectory() as folder, \
+                unittest.mock.patch("generate_event_feed.urllib.request.urlopen") as fetch, \
+                unittest.mock.patch("generate_event_feed.parse_live_pokemongolive_news", return_value=discovered), \
+                unittest.mock.patch("generate_event_feed.parse_live_leekduck_events", return_value=[]):
+            fetch.return_value.__enter__.return_value.read.return_value = b"<html></html>"
+            path = os.path.join(folder, "events.json")
+            generate_feed(fixture_mode=False, output_path=path)
+            with open(path, encoding="utf-8") as output:
+                events = {event["id"]: event for event in json.load(output)["events"]}
+        news = events["event-pgo-gameplay-update-oct-2026"]
+        self.assertEqual(news["eventCategory"], "ANNOUNCEMENT")
+        self.assertEqual(news["importanceTier"], "NEWS")
+        self.assertEqual(news["publishedDate"], "2026-10-08")
+        self.assertEqual(news["suggestedSearch"], "")
+        for field in ("prep", "eventNotes"):
+            for suffix in ("", "Tr", "De", "Es", "Fr", "It"):
+                self.assertFalse(news.get(field + suffix))
+        halloween = events["event-halloween-2026-part-2"]
+        self.assertEqual((halloween["startDate"], halloween["endDate"]), ("2026-11-01", "2026-11-05"))
+        self.assertIsNone(halloween["publishedDate"])
+        self.assertIn("!traded", halloween["suggestedSearch"].split("&"))
+
     def test_halloween_part2_official_metadata_is_complete(self):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         with open(os.path.join(root, "docs", "event-feed", "event_metadata.json"), encoding="utf-8") as f:

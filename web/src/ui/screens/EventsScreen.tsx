@@ -610,6 +610,8 @@ function EventDetailDialog({
   const pokemon = event?.pokemon ?? []
   const status = event ? effectiveStatus(event, clock.todayIso()) : 'ENDED'
   const cat = event ? determineCategory(event) : ''
+  const isPublishedNews = cat === 'ANNOUNCEMENT' && Boolean(event?.publishedDate)
+  const statusText = t(isPublishedNews ? 'event_chip_news' : statusLabelKey(status))
 
   const handleCopy = useCallback(async () => {
     if (!search) return
@@ -637,7 +639,7 @@ function EventDetailDialog({
         <span className="badge" style={{ background: `${categoryChipColor(cat)}1a`, color: categoryChipColor(cat) }}>
           {t(categoryLabelKey(cat))}
         </span>
-        <span className="badge badge-beta">{t(statusLabelKey(status))}</span>
+        {!isPublishedNews && <span className="badge badge-beta">{statusText}</span>}
       </div>
 
       {dLabel && (
@@ -776,7 +778,7 @@ function EventDetailDialog({
           </p>
         )}
         <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-          <strong>{t('event_status_label', t(statusLabelKey(status)))}</strong>{sourceLabel && ` · ${sourceLabel}`}
+          <strong>{t('event_status_label', statusText)}</strong>{sourceLabel && ` · ${sourceLabel}`}
         </p>
         {lastChecked && (
           <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>

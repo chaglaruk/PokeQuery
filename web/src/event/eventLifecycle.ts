@@ -79,14 +79,14 @@ export function daysBetween(from: string, to: string | null | undefined): number
  * @param events full feed list
  * @param clock injectable clock for testing; defaults to systemClock
  */
-/** Show explicitly dated editorial news for 14 days after publication.
+/** Show explicitly dated editorial news for 14 calendar days including publication day.
  * Do not turn an expired date into a fictitious active event window.
  * Mirrors Android EventContext.isVisibleForGuide.
  */
 export function isVisibleForGuide(entry: EventFeedEntry, todayIso: string): boolean {
   if (determineCategory(entry) === 'ANNOUNCEMENT' && entry.publishedDate) {
     const elapsed = daysBetween(entry.publishedDate, todayIso)
-    return elapsed >= 0 && elapsed <= 14
+    return elapsed >= 0 && elapsed < 14
   }
   return effectiveStatus(entry, todayIso) !== 'ENDED'
 }
