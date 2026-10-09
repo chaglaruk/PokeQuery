@@ -487,9 +487,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 Spacer(Modifier.height(12.dp))
                 // v0.4.2 (Fix 7): destructive data actions require explicit confirmation.
                 var pendingDestructive by remember { mutableStateOf<DestructiveAction?>(null) }
-                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_fav), color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearFavorites }.padding(vertical = 8.dp))
-                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_hist), color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearHistory }.padding(vertical = 8.dp))
-                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_reset_all), color = CoralDanger, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ResetSettings }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_fav), color = CoralDanger, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { pendingDestructive = DestructiveAction.ClearFavorites }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_hist), color = CoralDanger, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { pendingDestructive = DestructiveAction.ClearHistory }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_reset_all), color = CoralDanger, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { pendingDestructive = DestructiveAction.ResetSettings }.padding(vertical = 8.dp))
 
                 pendingDestructive?.let { action ->
                     AlertDialog(
@@ -533,7 +533,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_feedback),
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().clickable {
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable {
                         val mailto = com.caglar.pokequery.feedback.FeedbackBuilder.buildMailtoUri(feedbackContext)
                         val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse(mailto)).apply {
                             addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
