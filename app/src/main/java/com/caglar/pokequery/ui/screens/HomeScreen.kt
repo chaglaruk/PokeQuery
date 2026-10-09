@@ -41,7 +41,7 @@ import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material3.AlertDialog
+import com.caglar.pokequery.ui.components.AppAlertDialog as AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
