@@ -267,6 +267,14 @@ export function canonicalEventKey(id: string): string {
  * Supported locale codes: en, tr, de, es, fr, it.
  */
 export function dateLabel(entry: EventFeedEntry, locale: string): string | null {
+  if (determineCategory(entry) === 'ANNOUNCEMENT' && entry.publishedDate) {
+    const date = dateLabel({ ...entry, startDate: entry.publishedDate, endDate: entry.publishedDate, publishedDate: null }, locale) ?? entry.publishedDate
+    const labels: Record<string, string> = {
+      en: 'Published', tr: 'Yayımlandı', de: 'Veröffentlicht',
+      es: 'Publicado', fr: 'Publié', it: 'Pubblicato',
+    }
+    return `${labels[locale] ?? labels.en}: ${date}`
+  }
   const start = validIsoDate(entry.startDate)
   const end = validIsoDate(entry.endDate)
   if (!start && !end) {
