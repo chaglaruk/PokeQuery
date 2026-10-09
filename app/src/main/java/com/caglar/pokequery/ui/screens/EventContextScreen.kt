@@ -593,7 +593,7 @@ private fun EventPickerPanel(
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text = event.remainingTimeLabel(lang = lang),
-                    color = tone.copy(alpha = 0.85f),
+                    color = eventTextColor(tone),
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -603,6 +603,11 @@ private fun EventPickerPanel(
         }
     }
 }
+
+// The saturated purple remains the surface/icon accent; small text uses a lighter
+// shade to retain at least 4.5:1 contrast on tinted event badges.
+private fun eventTextColor(tone: Color): Color =
+    if (tone == PurpleIV) Color(0xFFD1A0FF) else tone
 
 /** Short status words are localized separately from dashboard section headings. */
 private fun eventStatusLabel(kind: String, lang: String): String = when (kind) {
@@ -794,7 +799,7 @@ private fun CompactEventCard(
                 ) {
                     Text(
                         text = statusLabel,
-                        color = statusColor,
+                        color = eventTextColor(statusColor),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -818,7 +823,7 @@ private fun CompactEventCard(
         if (!(event.determineCategory() == EventCategory.ANNOUNCEMENT && event.publishedDate != null)) {
             Text(
                 text = event.remainingTimeLabel(lang = lang),
-                color = statusColor.copy(alpha = 0.85f),
+                color = eventTextColor(statusColor),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
@@ -1043,7 +1048,7 @@ private fun EventDashboardContent(
                         "it" -> "Apri dettagli"
                         else -> "Open details"
                     },
-                    color = tone,
+                    color = eventTextColor(tone),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -1057,7 +1062,7 @@ private fun EventDashboardContent(
                 ) {
                     Box(Modifier.size(7.dp).background(tone, CircleShape))
                     Spacer(Modifier.width(6.dp))
-                    Text(badgeLabel, color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(badgeLabel, color = eventTextColor(tone), fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                 }
                 EventThemeMark(event.themeKey, tone, Modifier.size(40.dp))
             }
@@ -1323,7 +1328,7 @@ private fun EventSpriteRow(
                         EventSprite(entry.spriteKey, tone, Modifier.size(54.dp))
                         Spacer(Modifier.height(5.dp))
                         Text(entry.localizedName(lang), color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(entry.localizedBadges(lang), color = tone, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(entry.localizedBadges(lang), color = eventTextColor(tone), fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 if (rowEntries.size == 1) {
@@ -1364,7 +1369,7 @@ private fun EventGroupCard(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     badge,
-                    color = tone,
+                    color = eventTextColor(tone),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clip(RoundedCornerShape(8.dp))
@@ -1592,7 +1597,7 @@ private fun EventDetailsDialog(
                             Text(
                                 if (event.determineCategory() == EventCategory.ANNOUNCEMENT && event.publishedDate != null)
                                     eventStatusLabel("news", lang) else event.remainingTimeLabel(lang = lang),
-                                color = tone,
+                                color = eventTextColor(tone),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.ExtraBold
                             )
