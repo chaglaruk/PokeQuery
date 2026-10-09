@@ -180,34 +180,35 @@ fun EventContextScreen(
                 verticalArrangement = Arrangement.spacedBy(density.listGap),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp)
             ) {
-                // Header: back, title, compact refresh.
+                // Give localized titles their own row when accessibility text is enlarged.
                 item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .pqStaggeredItem(visible, 0)
-                    ) {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = TextPrimary,
-                                modifier = Modifier.size(24.dp)
+                    val enlarged = LocalConfiguration.current.fontScale >= 1.3f
+                    Column(Modifier.fillMaxWidth().pqStaggeredItem(visible, 0)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = TextPrimary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Text(
+                                text = stringResource(R.string.events_title),
+                                color = TextPrimary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                modifier = Modifier.weight(1f)
                             )
+                            if (!enlarged) {
+                                CompactRefreshButton(refreshing, { refresh() })
+                            }
                         }
-                        Text(
-                            text = stringResource(R.string.events_title),
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            modifier = Modifier.weight(1f)
-                        )
-                        CompactRefreshButton(
-                            refreshing = refreshing,
-                            onRefresh = { refresh() },
-                            modifier = Modifier.pqStaggeredItem(visible, 1)
-                        )
+                        if (enlarged) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                CompactRefreshButton(refreshing, { refresh() })
+                            }
+                        }
                     }
                 }
 
@@ -418,7 +419,7 @@ private fun CompactRefreshButton(
         onClick = onRefresh,
         enabled = !refreshing,
         modifier = modifier
-            .height(38.dp),
+            .heightIn(min = 48.dp),
         shape = RoundedCornerShape(50),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         colors = ButtonDefaults.buttonColors(
@@ -1026,10 +1027,12 @@ private fun EventDashboardContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(min = 48.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { onOpenFullDetail() }
                     .padding(bottom = 4.dp),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = when (lang) {
@@ -1337,7 +1340,7 @@ private fun EventGroupCard(
     badge: String,
     body: String,
     detailBody: String = body,
-    bodyMaxLines: Int = 2,
+    bodyMaxLines: Int = Int.MAX_VALUE,
     action: String,
     tone: Color,
     spriteKey: String?,
@@ -1357,34 +1360,17 @@ private fun EventGroupCard(
         EventSprite(spriteKey, tone, Modifier.size(52.dp))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            val enlarged = LocalConfiguration.current.fontScale >= 1.3f
-            if (enlarged) {
-                // The full card width is needed for long research labels in ES/FR/DE.
-                Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    badge,
-                    color = tone,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                        .background(tone.copy(alpha = 0.12f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Text(
-                        badge,
-                        color = tone,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.12f)).padding(horizontal = 8.dp, vertical = 3.dp)
-                    )
-                }
-            }
+            Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                badge,
+                color = tone,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                    .background(tone.copy(alpha = 0.12f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
             Spacer(Modifier.height(5.dp))
             Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = bodyMaxLines, overflow = TextOverflow.Ellipsis)
         }

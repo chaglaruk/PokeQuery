@@ -295,7 +295,7 @@
     <string name="risk_medium_short">Bu sorgu işleme yakındır. Transfer veya takas yapmadan önce dikkatle inceleyin.</string>
     <string name="risk_medium_detailed">Orta riskli aramalar temizlik veya takas kararları için tasarlanmıştır. Eşleşmelerde değerli Pokémon\'lar çıkabilir. Bunlara körü körüne işlem yapmayın.</string>
     <string name="risk_medium_check1">İşlem yapmadan önce her eşleşmeyi inceleyin.</string>
-    <string name="risk_medium_check2">Asla shiny, legendary veya favori Pokémon\'ları yanlışlıkla transfer etmeyin.</string>
+    <string name="risk_medium_check2">Parlak, efsanevi veya favori Pokémonları yanlışlıkla transfer etmeyin.</string>
     <string name="risk_medium_check3">Şüpheye düştüğünüzde Pokémon\'u saklayın.</string>
     <string name="risk_high_title">Yüksek risk — önce inceleyin</string>
     <string name="risk_high_short">Geniş veya yüksek değerli bir sorgu. İşlem yapmadan önce her eşleşmeyi inceleyin.</string>

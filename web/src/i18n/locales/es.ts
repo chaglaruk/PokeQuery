@@ -295,7 +295,7 @@ export const es: Record<string, string> = {
   "risk_medium_short": "Esta consulta es para actuar. Inspecciona cuidadosamente antes de transferir o intercambiar.",
   "risk_medium_detailed": "Las cadenas de riesgo medio están pensadas para tomar decisiones de limpieza o intercambio. Pueden aparecer Pokémon valiosos en las coincidencias. No actúes a ciegas.",
   "risk_medium_check1": "Inspecciona cada coincidencia antes de actuar.",
-  "risk_medium_check2": "Nunca transfieras accidentalmente Pokémon shiny, legendary o favoritos.",
+  "risk_medium_check2": "Nunca transfieras por error Pokémon variocolor, legendarios o favoritos.",
   "risk_medium_check3": "Si tienes dudas, guarda el Pokémon.",
   "risk_high_title": "Riesgo Alto — inspeccionar primero",
   "risk_high_short": "Una consulta amplia o de alto valor. Inspecciona cada coincidencia antes de actuar.",

@@ -298,7 +298,7 @@ export const de: Record<string, string> = {
   "risk_medium_short": "Diese Abfrage ist für Aktionen gedacht. Vor dem Verschicken oder Tauschen genau prüfen.",
   "risk_medium_detailed": "Mittelschwere Strings sind für Aufräum- oder Tausch-Entscheidungen gedacht. Wertvolle Pokémon könnten in den Ergebnissen auftauchen. Handele niemals blind.",
   "risk_medium_check1": "Überprüfe jedes Ergebnis vor einer Aktion.",
-  "risk_medium_check2": "Verschicke niemals versehentlich shiny, legendary oder favorisierte Pokémon.",
+  "risk_medium_check2": "Verschicke schillernde, legendäre oder favorisierte Pokémon nicht versehentlich.",
   "risk_medium_check3": "Im Zweifelsfall das Pokémon behalten.",
   "risk_high_title": "Hohes Risiko — Erst prüfen",
   "risk_high_short": "Eine weitreichende Abfrage. Jedes Ergebnis vor dem Handeln genau überprüfen.",

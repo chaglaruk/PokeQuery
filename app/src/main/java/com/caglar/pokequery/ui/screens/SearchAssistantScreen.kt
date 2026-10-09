@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -212,7 +214,8 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String, RiskLevel) -> 
                 )
 
                 item {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    @OptIn(ExperimentalLayoutApi::class)
+                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_suggested_string), color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         explainedResult?.let { exp ->
                             val labelColor = when (exp.precision) {
@@ -264,18 +267,18 @@ fun SearchAssistantScreen(onBack: () -> Unit, onCopyRaw: (String, RiskLevel) -> 
                 }
 
                 item {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         PqPrimaryButton(
                             text = if (copyBlocked) androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.goal_detail_fix_errors) else androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_copy_btn),
                             onClick = { onCopyRaw(translatedQuery, SearchStringExplainer.explain(result.rawQuery).totalRisk) },
                             enabled = !copyBlocked,
                             leadingIcon = Icons.Default.ContentCopy,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.fillMaxWidth()
                         )
                         PqSecondaryButton(
                             text = androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.search_assistant_explain_btn),
                             onClick = { onExplain(result.rawQuery) },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }

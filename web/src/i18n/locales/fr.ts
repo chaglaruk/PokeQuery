@@ -321,7 +321,7 @@ export const fr: Record<string, string> = {
   "risk_medium_short": "Cette requête est adjacente à l'action. Vérifiez attentivement avant de transférer ou d'échanger.",
   "risk_medium_detailed": "Les chaînes à risque moyen sont conçues pour des décisions de nettoyage ou d'échange. Des Pokémon de valeur peuvent apparaître dans les correspondances. N'agissez pas à l'aveugle.",
   "risk_medium_check1": "Inspectez chaque correspondance avant d'agir.",
-  "risk_medium_check2": "Ne transférez jamais par erreur des Pokémon shiny, légendaires ou favoris.",
+  "risk_medium_check2": "Ne transférez jamais par erreur des Pokémon chromatiques, légendaires ou favoris.",
   "risk_medium_check3": "En cas de doute, conservez le Pokémon.",
   "risk_high_title": "Risque élevé - inspectez d'abord",
   "risk_high_short": "Une requête large ou de grande valeur. Inspectez chaque correspondance avant d'agir.",
