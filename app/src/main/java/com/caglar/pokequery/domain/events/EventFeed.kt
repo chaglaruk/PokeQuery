@@ -89,6 +89,7 @@ object EventFeedParser {
                 year = intField(body, "year"),
                 startDate = optionalStringField(body, "startDate"),
                 endDate = optionalStringField(body, "endDate"),
+                publishedDate = optionalStringField(body, "publishedDate"),
                 startText = optionalStringField(body, "start"),
                 endText = optionalStringField(body, "end"),
                 summaryText = stringField(body, "summary"),
