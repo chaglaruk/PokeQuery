@@ -94,6 +94,35 @@ class MonthlyContextTest {
 class EventContextTest {
 
     @Test
+    fun `feed parser accepts blank editorial query but rejects blank gameplay query`() {
+        val news = """
+            {
+              "schemaVersion": 1,
+              "lastUpdated": "2026-10-09",
+              "events": [{
+                "id": "news-quality-of-life", "title": "Gameplay update",
+                "kind": "GENERIC_EVENT", "status": "ENDED",
+                "note": "Published October 8", "summary": "Persistent gameplay improvements",
+                "month": 10, "year": 2026, "startDate": "2026-10-08",
+                "endDate": "2026-10-08", "publishedDate": "2026-10-08",
+                "prep": "", "suggestedSearch": "", "eventNotes": "",
+                "eventCategory": "ANNOUNCEMENT", "themeKey": "generic_event",
+                "sourceName": "Pokémon GO official news",
+                "sourceUrl": "https://pokemongo.com/news/pgo-gameplay-update-oct-2026"
+              }]
+            }
+        """.trimIndent()
+        val parsed = EventFeedParser.parse(news).getOrThrow()
+        assertEquals(1, parsed.events.size)
+        assertNull(parsed.events.single().suggestedSearch)
+        assertEquals("2026-10-08", parsed.events.single().publishedDate)
+        assertEquals(1, activeEvents(parsed.events, "2026-10-09").size)
+        assertTrue(EventFeedParser.parse(news.replace("ANNOUNCEMENT", "LIMITED_GAMEPLAY")).isFailure)
+        assertTrue(EventFeedParser.parse(news.replace("\"suggestedSearch\": \"\"", "\"suggestedSearch\": \"age0\"")).isFailure)
+        assertTrue(EventFeedParser.parse(news.replace("\"suggestedSearch\": \"\"", "\"suggestedSearch\": \"age0|traded\"")).isFailure)
+    }
+
+    @Test
     fun `editorial news stays visible for fourteen days without becoming an active event`() {
         val news = EventContext(
             id = "event-pgo-gameplay-update-oct-2026",
