@@ -769,7 +769,7 @@
     <string name="risk_goal_fallback">This search may include valuable Pokémon. Check every match in Pokémon GO before acting.</string>
     <string name="risk_goal_beta">Turkish search terms are in beta. Confirm the results in Pokémon GO before transferring or trading.</string>
     <string name="settings_text_size">Text size</string>
-    <string name="settings_text_size_desc">Adjust PokeQuery text for comfortable reading. Your phone's font setting still applies.</string>
+    <string name="settings_text_size_desc">Adjust PokeQuery text for comfortable reading. Your phone font settings still apply.</string>
     <string name="settings_text_size_small">Small</string>
     <string name="settings_text_size_default">Default</string>
     <string name="settings_text_size_large">Large</string>
