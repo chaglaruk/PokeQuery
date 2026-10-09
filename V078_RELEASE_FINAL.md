@@ -1,6 +1,6 @@
 # PokeQuery Android 0.7.8 release status
 
-Date: 2026-10-10  
+Date: 2026-10-10
 Decision: **RELEASE_PR_READY_FOR_REVIEW**
 
 ## Source and merge gate
@@ -58,4 +58,3 @@ Decision: **RELEASE_PR_READY_FOR_REVIEW**
 - Original dirty checkout, IDE files, unrelated worktrees, and local signing material were preserved.
 - No production rollout is allowed until PR #48 is independently merged, terminal CI is rechecked on the merged source, Play signing/version state is verified, a correctly signed AAB is built and inspected, Play draft upload is accepted, and Play-installed Pixel evidence is obtained.
 - Store visual recovery/recapture and final six-language listing review remain independent release blockers.
-
