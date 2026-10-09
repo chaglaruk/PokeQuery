@@ -38,6 +38,7 @@ import com.caglar.pokequery.R
 import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.model.Term
 import com.caglar.pokequery.data.repository.KnowledgeBaseRepository
+import com.caglar.pokequery.data.repository.AppTextScale
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.changelog.Changelog
@@ -247,6 +248,74 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                         checked = userPrefs?.firstUseSeen ?: false,
                         onCheckedChange = { scope.launch { repository.setFirstUseSeen(it) } },
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = BlueCTA)
+                    )
+                }
+            }
+        }
+
+        item {
+            PremiumPanel {
+                Text(stringResource(R.string.settings_text_size), color = TealPrimary, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.settings_text_size_desc),
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+                Spacer(Modifier.height(12.dp))
+                val selectedScale = userPrefs?.textScale ?: AppTextScale.DEFAULT
+                val choices = listOf(
+                    AppTextScale.SMALL to R.string.settings_text_size_small,
+                    AppTextScale.DEFAULT to R.string.settings_text_size_default,
+                    AppTextScale.LARGE to R.string.settings_text_size_large,
+                    AppTextScale.EXTRA_LARGE to R.string.settings_text_size_extra_large
+                )
+                val selectedRes = choices.firstOrNull { it.first == selectedScale }?.second
+                    ?: R.string.settings_text_size_default
+                var showTextSizeDialog by remember { mutableStateOf(false) }
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(CardDark)
+                        .border(1.dp, TealPrimary.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+                        .clickable { showTextSizeDialog = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(selectedRes),
+                        modifier = Modifier.weight(1f),
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = TextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                if (showTextSizeDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showTextSizeDialog = false },
+                        title = { Text(stringResource(R.string.settings_text_size)) },
+                        text = {
+                            Column {
+                                choices.forEach { (value, labelRes) ->
+                                    RadioRow(stringResource(labelRes), selectedScale == value) {
+                                        scope.launch {
+                                            repository.setSetting(UserPreferencesRepository.APP_TEXT_SCALE, value)
+                                        }
+                                        showTextSizeDialog = false
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {},
+                        containerColor = CardDark
                     )
                 }
             }
