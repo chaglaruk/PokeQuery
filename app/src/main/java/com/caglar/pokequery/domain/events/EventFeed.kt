@@ -98,14 +98,14 @@ object EventFeedParser {
                 summaryTextEs = optionalStringField(body, "summaryEs"),
                 summaryTextFr = optionalStringField(body, "summaryFr"),
                 summaryTextIt = optionalStringField(body, "summaryIt"),
-                prepText = stringField(body, "prep"),
+                prepText = optionalStringField(body, "prep"),
                 prepTextTr = optionalStringField(body, "prepTr"),
                 prepTextDe = optionalStringField(body, "prepDe"),
                 prepTextEs = optionalStringField(body, "prepEs"),
                 prepTextFr = optionalStringField(body, "prepFr"),
                 prepTextIt = optionalStringField(body, "prepIt"),
-                suggestedSearch = stringField(body, "suggestedSearch"),
-                eventNotesText = stringField(body, "eventNotes"),
+                suggestedSearch = optionalStringField(body, "suggestedSearch"),
+                eventNotesText = optionalStringField(body, "eventNotes"),
                 eventNotesTextTr = optionalStringField(body, "eventNotesTr"),
                 eventNotesTextDe = optionalStringField(body, "eventNotesDe"),
                 eventNotesTextEs = optionalStringField(body, "eventNotesEs"),
@@ -157,17 +157,20 @@ object EventFeedParser {
                 it.titleText?.isNotBlank() == true &&
                 it.noteText?.isNotBlank() == true &&
                 it.summaryText?.isNotBlank() == true &&
-                it.prepText?.isNotBlank() == true &&
-                it.suggestedSearch?.isNotBlank() == true &&
-                it.eventNotesText?.isNotBlank() == true
+                (it.determineCategory() == EventCategory.ANNOUNCEMENT ||
+                    (it.prepText?.isNotBlank() == true &&
+                     it.suggestedSearch?.isNotBlank() == true &&
+                     it.eventNotesText?.isNotBlank() == true))
         }) {
             "blank event field"
         }
         require(events.all { event ->
             val search = event.suggestedSearch.orEmpty()
             val tokens = search.split('&').map(String::trim).filter(String::isNotBlank)
-            '|' !in search && tokens.count { it.equals("!traded", ignoreCase = true) } == 1 &&
-                tokens.none { it.equals("traded", ignoreCase = true) }
+            '|' !in search &&
+                ((search.isBlank() && event.determineCategory() == EventCategory.ANNOUNCEMENT) ||
+                 (tokens.count { it.equals("!traded", ignoreCase = true) } == 1 &&
+                  tokens.none { it.equals("traded", ignoreCase = true) }))
         }) {
             "unsafe suggested search"
         }
