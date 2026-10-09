@@ -696,10 +696,11 @@ private fun localizedTimerLabel(key: String, arg: String = "", lang: String): St
  * Show editorial news for fourteen calendar days without extending any event window.
  */
 fun EventContext.isVisibleForGuide(todayIso: String = todayIsoDate()): Boolean {
-    if (effectiveStatus(todayIso) != EventStatus.ENDED) return true
-    if (determineCategory() != EventCategory.ANNOUNCEMENT) return false
-    val publication = publishedDate ?: return false
-    return daysBetween(publication, todayIso) in 0..14
+    val publication = publishedDate
+    if (determineCategory() == EventCategory.ANNOUNCEMENT && publication != null) {
+        return daysBetween(publication, todayIso) in 0..14
+    }
+    return effectiveStatus(todayIso) != EventStatus.ENDED
 }
 
 /**
