@@ -30,7 +30,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import com.caglar.pokequery.ui.components.AppAlertDialog as AlertDialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -180,34 +180,35 @@ fun EventContextScreen(
                 verticalArrangement = Arrangement.spacedBy(density.listGap),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp)
             ) {
-                // Header: back, title, compact refresh.
+                // Give localized titles their own row when accessibility text is enlarged.
                 item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .pqStaggeredItem(visible, 0)
-                    ) {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = TextPrimary,
-                                modifier = Modifier.size(24.dp)
+                    val enlarged = LocalConfiguration.current.fontScale >= 1.3f
+                    Column(Modifier.fillMaxWidth().pqStaggeredItem(visible, 0)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = TextPrimary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Text(
+                                text = stringResource(R.string.events_title),
+                                color = TextPrimary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                modifier = Modifier.weight(1f)
                             )
+                            if (!enlarged) {
+                                CompactRefreshButton(refreshing, { refresh() })
+                            }
                         }
-                        Text(
-                            text = stringResource(R.string.events_title),
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            modifier = Modifier.weight(1f)
-                        )
-                        CompactRefreshButton(
-                            refreshing = refreshing,
-                            onRefresh = { refresh() },
-                            modifier = Modifier.pqStaggeredItem(visible, 1)
-                        )
+                        if (enlarged) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                CompactRefreshButton(refreshing, { refresh() })
+                            }
+                        }
                     }
                 }
 
@@ -260,7 +261,7 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Canlı" else "Live",
+                                        statusLabel = eventStatusLabel("live", lang),
                                         statusColor = CyanGlow,
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 5 + idx)
@@ -282,7 +283,7 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Yakında" else "Upcoming",
+                                        statusLabel = eventStatusLabel("upcoming", lang),
                                         statusColor = AmberWarning,
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 7 + idx)
@@ -304,7 +305,7 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Rotasyon" else "Rotation",
+                                        statusLabel = eventStatusLabel("rotation", lang),
                                         statusColor = PurpleIV,
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 9 + idx)
@@ -326,8 +327,8 @@ fun EventContextScreen(
                                     CompactEventCard(
                                         event = event,
                                         lang = lang,
-                                        statusLabel = if (lang == "tr") "Duyuru" else "News",
-                                        statusColor = TextTertiary,
+                                        statusLabel = eventStatusLabel("news", lang),
+                                        statusColor = TextSecondary,
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 11 + idx)
                                     )
@@ -349,16 +350,16 @@ fun EventContextScreen(
                                         event = event,
                                         lang = lang,
                                         statusLabel = when (event.determineCategory()) {
-                                            EventCategory.MAJOR_GAMEPLAY -> if (lang == "tr") "Büyük" else "Major"
-                                            EventCategory.LIMITED_GAMEPLAY -> if (lang == "tr") "Sınırlı" else "Limited"
-                                            EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> if (lang == "tr") "Rotasyon" else "Rotation"
-                                            else -> if (lang == "tr") "Haber" else "News"
+                                            EventCategory.MAJOR_GAMEPLAY -> eventStatusLabel("major", lang)
+                                            EventCategory.LIMITED_GAMEPLAY -> eventStatusLabel("limited", lang)
+                                            EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> eventStatusLabel("rotation", lang)
+                                            else -> eventStatusLabel("news", lang)
                                         },
                                         statusColor = when (event.determineCategory()) {
                                             EventCategory.MAJOR_GAMEPLAY -> CyanGlow
                                             EventCategory.LIMITED_GAMEPLAY -> AmberWarning
                                             EventCategory.ROUTINE_ROTATION, EventCategory.RAID_ROTATION, EventCategory.SEASON_GBL -> PurpleIV
-                                            else -> TextTertiary
+                                            else -> TextSecondary
                                         },
                                         onClick = { clickedEventDetail = event },
                                         modifier = Modifier.pqStaggeredItem(visible, 15 + idx)
@@ -381,7 +382,7 @@ fun EventContextScreen(
                 item {
                     Text(
                         text = stringResource(EventContextRepository.disclaimerRes()),
-                        color = TextTertiary,
+                        color = TextSecondary,
                         fontSize = 11.sp,
                         lineHeight = 15.sp,
                         modifier = Modifier
@@ -418,7 +419,7 @@ private fun CompactRefreshButton(
         onClick = onRefresh,
         enabled = !refreshing,
         modifier = modifier
-            .height(38.dp),
+            .heightIn(min = 48.dp),
         shape = RoundedCornerShape(50),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
         colors = ButtonDefaults.buttonColors(
@@ -492,7 +493,7 @@ private fun SourceStatusLine(
         lastChecked?.let {
             Text(
                 text = stringResource(R.string.event_context_last_checked, it),
-                color = TextTertiary,
+                color = TextSecondary,
                 fontSize = 10.sp
             )
         }
@@ -592,7 +593,7 @@ private fun EventPickerPanel(
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text = event.remainingTimeLabel(lang = lang),
-                    color = tone.copy(alpha = 0.85f),
+                    color = eventTextColor(tone),
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -601,6 +602,64 @@ private fun EventPickerPanel(
             }
         }
     }
+}
+
+// The saturated purple remains the surface/icon accent; small text uses a lighter
+// shade to retain at least 4.5:1 contrast on tinted event badges.
+private fun eventTextColor(tone: Color): Color =
+    if (tone == PurpleIV) Color(0xFFD1A0FF) else tone
+
+/** Short status words are localized separately from dashboard section headings. */
+private fun eventStatusLabel(kind: String, lang: String): String = when (kind) {
+    "live" -> when (lang) {
+        "tr" -> "Canlı"
+        "de" -> "Aktiv"
+        "es" -> "En curso"
+        "fr" -> "En cours"
+        "it" -> "In corso"
+        else -> "Live"
+    }
+    "upcoming" -> when (lang) {
+        "tr" -> "Yakında"
+        "de" -> "Demnächst"
+        "es" -> "Próximamente"
+        "fr" -> "À venir"
+        "it" -> "In arrivo"
+        else -> "Upcoming"
+    }
+    "rotation" -> when (lang) {
+        "tr" -> "Rotasyon"
+        "de" -> "Rotation"
+        "es" -> "Rotación"
+        "fr" -> "Rotation"
+        "it" -> "Rotazione"
+        else -> "Rotation"
+    }
+    "news" -> when (lang) {
+        "tr" -> "Duyuru"
+        "de" -> "Meldung"
+        "es" -> "Noticias"
+        "fr" -> "Actualités"
+        "it" -> "Notizie"
+        else -> "News"
+    }
+    "major" -> when (lang) {
+        "tr" -> "Büyük"
+        "de" -> "Großevent"
+        "es" -> "Principal"
+        "fr" -> "Majeur"
+        "it" -> "Principale"
+        else -> "Major"
+    }
+    "limited" -> when (lang) {
+        "tr" -> "Sınırlı"
+        "de" -> "Befristet"
+        "es" -> "Limitado"
+        "fr" -> "Limité"
+        "it" -> "Limitato"
+        else -> "Limited"
+    }
+    else -> kind
 }
 
 private fun eventNotesTitle(lang: String): String = when (lang) {
@@ -725,9 +784,8 @@ private fun CompactEventCard(
                 color = TextPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 13.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                lineHeight = 16.sp
+                maxLines = Int.MAX_VALUE,
+                lineHeight = 17.sp
             )
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -740,7 +798,7 @@ private fun CompactEventCard(
                 ) {
                     Text(
                         text = statusLabel,
-                        color = statusColor,
+                        color = eventTextColor(statusColor),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -751,23 +809,25 @@ private fun CompactEventCard(
                 if (dateText.isNotBlank()) {
                     Text(
                         text = dateText,
-                        color = TextTertiary,
+                        color = TextSecondary,
                         fontSize = 10.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        lineHeight = 13.sp,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
         }
         Spacer(Modifier.width(8.dp))
-        // Time remaining label
-        Text(
-            text = event.remainingTimeLabel(lang = lang),
-            color = statusColor.copy(alpha = 0.85f),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1
-        )
+        // Publication-dated news has no fictional event countdown.
+        if (!(event.determineCategory() == EventCategory.ANNOUNCEMENT && event.publishedDate != null)) {
+            Text(
+                text = event.remainingTimeLabel(lang = lang),
+                color = eventTextColor(statusColor),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -945,8 +1005,11 @@ private fun EventDashboardContent(
     val labels = eventDashboardLabels(lang)
     val shape = RoundedCornerShape(20.dp)
     val effectiveStatus = event.effectiveStatus()
-    val timerLabel = event.remainingTimeLabel(lang = lang)
-    val badgeLabel = timerLabel
+    val badgeLabel = if (event.determineCategory() == EventCategory.ANNOUNCEMENT && event.publishedDate != null) {
+        eventStatusLabel("news", lang)
+    } else {
+        event.remainingTimeLabel(lang = lang)
+    }
     val search = event.suggestedSearch.orEmpty()
     val featuredAction = labels.featuredAction
     val tiles = event.detailTileVisibility(lang)
@@ -968,10 +1031,12 @@ private fun EventDashboardContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .heightIn(min = 48.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { onOpenFullDetail() }
                     .padding(bottom = 4.dp),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = when (lang) {
@@ -982,7 +1047,7 @@ private fun EventDashboardContent(
                         "it" -> "Apri dettagli"
                         else -> "Open details"
                     },
-                    color = tone,
+                    color = eventTextColor(tone),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -996,7 +1061,7 @@ private fun EventDashboardContent(
                 ) {
                     Box(Modifier.size(7.dp).background(tone, CircleShape))
                     Spacer(Modifier.width(6.dp))
-                    Text(badgeLabel, color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(badgeLabel, color = eventTextColor(tone), fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                 }
                 EventThemeMark(event.themeKey, tone, Modifier.size(40.dp))
             }
@@ -1004,7 +1069,7 @@ private fun EventDashboardContent(
             Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 19.sp, lineHeight = 23.sp)
             event.dateLabel(lang)?.let {
                 Spacer(Modifier.height(4.dp))
-                Text(it, color = TextTertiary, fontSize = 12.sp)
+                Text(it, color = TextSecondary, fontSize = 12.sp)
             }
 
             val summary = usefulEventFact(event.localizedSummary(lang)).orEmpty()
@@ -1186,12 +1251,12 @@ private fun EventDashboardContent(
                     "it" -> "Fonte: ${sourceName ?: sourceUrl}"
                     else -> "Source: ${sourceName ?: sourceUrl}"
                 },
-                color = TextTertiary,
+                color = TextSecondary,
                 fontSize = 11.sp,
                 lineHeight = 14.sp
             )
             sourceUrl?.let {
-                Text(it, color = TextTertiary, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(it, color = TextSecondary, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
 
@@ -1226,14 +1291,14 @@ private fun EventDashboardContent(
         Spacer(Modifier.height(12.dp))
         Text(
             text = stringResource(sourceLabelRes),
-            color = TextTertiary,
+            color = TextSecondary,
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.clip(RoundedCornerShape(50)).background(CardPremium.copy(alpha = 0.7f)).padding(horizontal = 8.dp, vertical = 3.dp)
         )
         lastChecked?.let {
             Spacer(Modifier.height(4.dp))
-            Text(stringResource(R.string.event_context_last_checked, it), color = TextTertiary, fontSize = 10.sp)
+            Text(stringResource(R.string.event_context_last_checked, it), color = TextSecondary, fontSize = 10.sp)
         }
     }
 }
@@ -1262,7 +1327,7 @@ private fun EventSpriteRow(
                         EventSprite(entry.spriteKey, tone, Modifier.size(54.dp))
                         Spacer(Modifier.height(5.dp))
                         Text(entry.localizedName(lang), color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(entry.localizedBadges(lang), color = tone, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(entry.localizedBadges(lang), color = eventTextColor(tone), fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 if (rowEntries.size == 1) {
@@ -1279,41 +1344,42 @@ private fun EventGroupCard(
     badge: String,
     body: String,
     detailBody: String = body,
-    bodyMaxLines: Int = 2,
+    bodyMaxLines: Int = Int.MAX_VALUE,
     action: String,
     tone: Color,
     spriteKey: String?,
     onOpen: (EventDialogContent) -> Unit,
     cardKey: String? = null
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(CardPremium.copy(alpha = 0.86f))
             .border(1.dp, tone.copy(alpha = 0.24f), RoundedCornerShape(16.dp))
             .clickable { onOpen(EventDialogContent(title, badge, detailBody, action, spriteKey, cardKey)) }
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(12.dp)
     ) {
-        EventSprite(spriteKey, tone, Modifier.size(52.dp))
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            EventSprite(spriteKey, tone, Modifier.size(52.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(4.dp))
                 Text(
                     badge,
-                    color = tone,
+                    color = eventTextColor(tone),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.12f)).padding(horizontal = 8.dp, vertical = 3.dp)
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                        .background(tone.copy(alpha = 0.12f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
-            Spacer(Modifier.height(5.dp))
-            Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = bodyMaxLines, overflow = TextOverflow.Ellipsis)
         }
+        // Long localized words also need the full width inside the narrower detail dialog.
+        Spacer(Modifier.height(5.dp))
+        Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = bodyMaxLines, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -1527,14 +1593,20 @@ private fun EventDetailsDialog(
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                            Text(event.remainingTimeLabel(lang = lang), color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(
+                                if (event.determineCategory() == EventCategory.ANNOUNCEMENT && event.publishedDate != null)
+                                    eventStatusLabel("news", lang) else event.remainingTimeLabel(lang = lang),
+                                color = eventTextColor(tone),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
                         }
                         Spacer(Modifier.width(12.dp))
                         Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.weight(1f))
                     }
                     event.dateLabel(lang)?.let {
                         Spacer(Modifier.height(4.dp))
-                        Text(it, color = TextTertiary, fontSize = 12.sp)
+                        Text(it, color = TextSecondary, fontSize = 12.sp)
                     }
                 }
             },

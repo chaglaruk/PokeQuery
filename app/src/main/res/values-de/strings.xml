@@ -295,7 +295,7 @@
     <string name="risk_medium_short">Diese Abfrage ist für Aktionen gedacht. Vor dem Verschicken oder Tauschen genau prüfen.</string>
     <string name="risk_medium_detailed">Mittelschwere Strings sind für Aufräum- oder Tausch-Entscheidungen gedacht. Wertvolle Pokémon könnten in den Ergebnissen auftauchen. Handele niemals blind.</string>
     <string name="risk_medium_check1">Überprüfe jedes Ergebnis vor einer Aktion.</string>
-    <string name="risk_medium_check2">Verschicke niemals versehentlich shiny, legendary oder favorisierte Pokémon.</string>
+    <string name="risk_medium_check2">Verschicke schillernde, legendäre oder favorisierte Pokémon nicht versehentlich.</string>
     <string name="risk_medium_check3">Im Zweifelsfall das Pokémon behalten.</string>
     <string name="risk_high_title">Hohes Risiko — Erst prüfen</string>
     <string name="risk_high_short">Eine weitreichende Abfrage. Jedes Ergebnis vor dem Handeln genau überprüfen.</string>
@@ -355,7 +355,7 @@
     <string name="nav_favorites">Favoriten</string>
     <string name="nav_history">Verlauf</string>
     <string name="nav_knowledge">Wissen</string>
-    <string name="nav_settings">Einstellungen</string>
+    <string name="nav_settings">Optionen</string>
     <string name="home_header_desc">Sicherere Suchstrings für Pokémon GO</string>
     <string name="home_subtitle">Was möchtest du finden?</string>
     <string name="home_subtitle_secondary">Wähle ein Ziel und wir erstellen einen sicheren Suchstring dafür.</string>
@@ -703,4 +703,20 @@
     <string name="event_chip_bonus">Boni</string>
     <string name="event_suggested_for_event">Vorgeschlagene Suche für dieses Event</string>
     <string name="knowledge_reference_only">Nur als Referenz. Erstelle vor dem Kopieren im Experten-Builder eine vollständige Suche.</string>
+    <string name="risk_goal_cleanup">Sicheres Aufräumen schließt unter anderem schillernde, legendäre und favorisierte Pokémon aus. Prüfe jeden Treffer vor dem Verschicken.</string>
+    <string name="risk_goal_candy">Die Bonbon-Vorbereitung ist für Events mit einem Transferbonbon-Bonus gedacht. Prüfe Pokémon und Bonus, bevor du sie außerhalb des Events nutzt.</string>
+    <string name="risk_goal_trade">Eine Suche kann weder Freundschaftsvoraussetzungen noch Limits für Spezial-Tausche prüfen. Kontrolliere Pokémon und Tauschbedingungen im Spiel.</string>
+    <string name="risk_goal_lucky">Die Glückstausch-Suche kann wertvolle Pokémon enthalten, auch schillernde und legendäre. Prüfe jeden Kandidaten vor dem Tauschen.</string>
+    <string name="risk_goal_pvp">Das sind ungefähre PvP-Kandidaten anhand von IV-Bereichen und WP. Prüfe die tatsächlichen PvP-IV und Ränge, bevor du Ressourcen investierst.</string>
+    <string name="risk_goal_inspect">Diese Suche ist zum Prüfen gedacht, nicht zum Aufräumen. Verschicke Pokémon nicht nur, weil sie hier auftauchen.</string>
+    <string name="risk_goal_untagged">Das Aufräumen unmarkierter Pokémon schließt geschützte Gruppen aus. Prüfe jeden Treffer vor dem Sortieren oder Verschicken.</string>
+    <string name="risk_goal_expert">Du hast diese Suche selbst zusammengestellt. PokeQuery kann ihre Sicherheit nicht garantieren. Prüfe alle Treffer vor der Verwendung.</string>
+    <string name="risk_goal_fallback">Diese Suche kann auch wertvolle Pokémon finden. Prüfe alle Treffer in Pokémon GO, bevor du handelst.</string>
+    <string name="risk_goal_beta">Türkische Suchbegriffe sind noch in der Beta. Prüfe die Treffer in Pokémon GO vor dem Verschicken oder Tauschen.</string>
+    <string name="settings_text_size">Schriftgröße</string>
+    <string name="settings_text_size_desc">Passe die Textgröße in PokeQuery an. Die Schriftgröße des Geräts bleibt wirksam.</string>
+    <string name="settings_text_size_small">Klein</string>
+    <string name="settings_text_size_default">Standard</string>
+    <string name="settings_text_size_large">Groß</string>
+    <string name="settings_text_size_extra_large">Sehr groß</string>
 </resources>

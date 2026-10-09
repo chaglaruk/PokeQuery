@@ -758,4 +758,20 @@
     <string name="event_chip_bonus">Bonus</string>
     <string name="event_suggested_for_event">Suggested search for this event</string>
     <string name="knowledge_reference_only">Reference only. Use Expert Builder to create a complete search before copying.</string>
+    <string name="risk_goal_cleanup">Safe Cleanup excludes categories such as Shiny, Legendary and favorited Pokémon. Check every match before transferring.</string>
+    <string name="risk_goal_candy">Candy Prep is for transfer-candy events. Outside the event, wait until you have checked the Pokémon and the bonus.</string>
+    <string name="risk_goal_trade">A search cannot confirm friendship requirements or Special Trade limits. Check every Pokémon and trade conditions in the game.</string>
+    <string name="risk_goal_lucky">Lucky Trade searches can show valuable Pokémon, including Shiny and Legendary ones. Check each candidate before trading.</string>
+    <string name="risk_goal_pvp">These are approximate PvP candidates based on IV ranges and CP. Check actual PvP IVs and ranks before investing.</string>
+    <string name="risk_goal_inspect">This search is for inspection, not cleanup. Do not transfer Pokémon just because they appear here.</string>
+    <string name="risk_goal_untagged">Untagged Cleanup excludes protected categories. Inspect every match before organizing or transferring.</string>
+    <string name="risk_goal_expert">You assembled this search. PokeQuery cannot guarantee it is safe. Check all results before using it.</string>
+    <string name="risk_goal_fallback">This search may include valuable Pokémon. Check every match in Pokémon GO before acting.</string>
+    <string name="risk_goal_beta">Turkish search terms are in beta. Confirm the results in Pokémon GO before transferring or trading.</string>
+    <string name="settings_text_size">Text size</string>
+    <string name="settings_text_size_desc">Adjust PokeQuery text for comfortable reading. Your phone font settings still apply.</string>
+    <string name="settings_text_size_small">Small</string>
+    <string name="settings_text_size_default">Default</string>
+    <string name="settings_text_size_large">Large</string>
+    <string name="settings_text_size_extra_large">Extra large</string>
 </resources>

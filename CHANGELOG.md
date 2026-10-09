@@ -17,6 +17,11 @@ Planned values only; no version bump, tag, signed artifact or publication. See [
 
 - PR #41: correct official TCG event dates, regional restrictions and actual raid/research information in the public feed and bundled fallbacks.
 - PR #42: show real bonus/retailer/redemption conditions on Event Guide cards; localize detail dialogs; wrap the German Candy Prep Home title; correct relative event-day labels.
+- PR #43–#46: guard Knowledge Base reference-template copying, preserve localized token verification limits, and distinguish Halloween event dates from GO Pass dates in feed generation.
+- PR #47 (pending independent merge): improve Copy button wrapping, contrast, goal-specific risk copy and large-text layouts; separate announcement publication dates from event windows and omit gameplay searches for editorial news.
+- PR #47 (pending independent merge): add four locally saved text sizes that combine with the system font scale; keep navigation icons aligned with accessible names on every tab and minimum 48 dp Settings option targets.
+
+Updated proposed notes for all six languages are in [V078_WHATS_NEW_DRAFT.md](docs/release/V078_WHATS_NEW_DRAFT.md). They describe unreleased source and must not be presented as a published version.
 
 Development/CI documentation and Compose previews merged after 0.7.7 are not new runtime promises. Review candidates prepared separately, including the Knowledge copy guard, are included only if approved into the eventual release source.
 

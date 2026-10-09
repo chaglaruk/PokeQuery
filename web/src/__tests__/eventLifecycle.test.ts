@@ -99,6 +99,29 @@ describe('daysBetween', () => {
 })
 
 describe('activeEvents', () => {
+
+  it('keeps publication-dated news visible for 14 days without reviving gameplay events', () => {
+    const news = makeEntry({
+      id: 'event-pgo-gameplay-update-oct-2026',
+      eventCategory: 'ANNOUNCEMENT',
+      startDate: '2026-10-08',
+      endDate: '2026-10-08',
+      publishedDate: '2026-10-08',
+      status: 'ENDED',
+      suggestedSearch: '',
+    })
+    expect(effectiveStatus(news, '2026-10-09')).toBe('ENDED')
+    expect(dateLabel(news, 'en')?.startsWith('Published:')).toBe(true)
+    expect(dateLabel(news, 'tr')?.startsWith('Yayımlandı:')).toBe(true)
+    expect(activeEvents([news], pinnedClock('2026-10-09')).map(e => e.id)).toEqual([news.id])
+    expect(groupEvents([news], pinnedClock('2026-10-09')).news.map(e => e.id)).toEqual([news.id])
+    expect(activeEvents([news], pinnedClock('2026-10-07'))).toHaveLength(0)
+    expect(activeEvents([news], pinnedClock('2026-10-08'))).toHaveLength(1)
+    expect(activeEvents([news], pinnedClock('2026-10-21'))).toHaveLength(1)
+    expect(activeEvents([news], pinnedClock('2026-10-22'))).toHaveLength(0)
+    expect(activeEvents([{ ...news, eventCategory: 'LIMITED_GAMEPLAY' }], pinnedClock('2026-10-09'))).toHaveLength(0)
+    expect(activeEvents([{ ...news, publishedDate: null }], pinnedClock('2026-10-09'))).toHaveLength(0)
+  })
   it('filters out events that have ended based on their date window', () => {
     const events = [
       makeEntry({ id: 'past', startDate: '2026-06-01', endDate: '2026-06-10', status: 'CURRENT' }),

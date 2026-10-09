@@ -16,7 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.lifecycle.lifecycleScope
+import com.caglar.pokequery.data.repository.AppTextScale
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.events.EventFeedLoader
@@ -76,11 +79,17 @@ class MainActivity : ComponentActivity() {
             // This value updates when Android changes the device language while the process stays
             // alive, which keeps System Default truly live without LocaleManager recreation.
             val baseConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
+            val systemDensity = LocalDensity.current
+            val textScaleMultiplier = AppTextScale.multiplier(userPrefs!!.textScale)
+            // Compose's LocalDensity and Android's localized Configuration must agree on sp.
+            // Multiply, rather than replace, the user's Android accessibility font scale.
+            val effectiveFontScale = systemDensity.fontScale * textScaleMultiplier
             val deviceLocale = baseConfiguration.locales[0]
             val deviceLocaleTag = deviceLocale.toLanguageTag()
             val locale = AppLocaleController.localeFor(appLanguage, deviceLocale)
             val configuration = android.content.res.Configuration(baseConfiguration)
             configuration.setLocale(locale)
+            configuration.fontScale = effectiveFontScale
             val localizedContext = context.createConfigurationContext(configuration)
 
             LaunchedEffect(appLanguage, deviceLocaleTag) {
@@ -89,7 +98,8 @@ class MainActivity : ComponentActivity() {
 
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.ui.platform.LocalContext provides localizedContext,
-                androidx.compose.ui.platform.LocalConfiguration provides configuration
+                androidx.compose.ui.platform.LocalConfiguration provides configuration,
+                LocalDensity provides Density(systemDensity.density, effectiveFontScale)
             ) {
                 PokeQueryTheme {
                     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

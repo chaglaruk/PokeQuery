@@ -157,6 +157,104 @@ class TestEventFeedGenerator(unittest.TestCase):
                 row = raw["event-halloween-2026-part-2"]
                 self.assertEqual((row["startDate"], row["endDate"]), ("2026-11-01", "2026-11-05"))
 
+    def test_generator_allows_blank_news_search_but_never_unprotected_gameplay(self):
+        announcement = {
+            "id": "event-pgo-gameplay-update-oct-2026",
+            "eventCategory": "ANNOUNCEMENT",
+            "suggestedSearch": "",
+        }
+        validate_safety_constraints(announcement)
+        with self.assertRaises(ValueError):
+            validate_safety_constraints({**announcement, "eventCategory": "LIMITED_GAMEPLAY"})
+        with self.assertRaises(ValueError):
+            validate_safety_constraints({**announcement, "suggestedSearch": "age0"})
+        with self.assertRaises(ValueError):
+            validate_safety_constraints({**announcement, "suggestedSearch": "age0|traded"})
+        validate_safety_constraints({**announcement, "suggestedSearch": "age0&!traded"})
+
+    def test_gameplay_update_is_news_not_a_timed_gameplay_event(self):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "docs", "event-feed", "event_metadata.json"), encoding="utf-8") as f:
+            metadata = json.load(f)
+        row = metadata["event-pgo-gameplay-update-oct-2026"]
+        self.assertEqual(row["eventCategory"], "ANNOUNCEMENT")
+        self.assertEqual(row["importanceTier"], "NEWS")
+        self.assertEqual(row["sourceType"], "official")
+        self.assertEqual(row["sourceUrl"], "https://pokemongo.com/news/pgo-gameplay-update-oct-2026")
+        self.assertEqual((row["startDate"], row["endDate"]), ("2026-10-08", "2026-10-08"))
+        self.assertEqual(row["publishedDate"], "2026-10-08")
+        for suffix in ("", "Tr", "De", "Es", "Fr", "It"):
+            with self.subTest(locale=suffix or "En"):
+                self.assertTrue(row.get("summary" + suffix))
+                self.assertTrue(row.get("note" + suffix))
+
+    def test_editorial_news_may_have_no_inventory_search(self):
+        from validate_event_feed import validate_feed
+        event = {
+            "id": "event-test-news-only",
+            "title": "Gameplay updates",
+            "status": "ENDED",
+            "eventCategory": "ANNOUNCEMENT",
+            "importanceTier": "NEWS",
+            "note": "Published October 8; no event window.",
+            "summary": "Quality-of-life changes in Pokémon GO.",
+            "prep": "",
+            "suggestedSearch": "",
+            "eventNotes": "",
+            "sourceName": "Pokémon GO official news",
+            "sourceUrl": "https://pokemongo.com/news/pgo-gameplay-update-oct-2026",
+            "sourceType": "official",
+            "themeKey": "generic_event",
+            "lastUpdated": "2026-10-08",
+            "publishedDate": "2026-10-08",
+            "startDate": "2026-10-08",
+            "endDate": "2026-10-08",
+            "pokemon": []
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "feed.json")
+            def write(row):
+                with open(path, "w", encoding="utf-8") as out:
+                    json.dump({"schemaVersion": 1, "lastUpdated": "2026-10-08", "events": [row]}, out)
+            write(event)
+            self.assertTrue(validate_feed(path))
+            for category in ("MAJOR_GAMEPLAY", "LIMITED_GAMEPLAY"):
+                with self.subTest(category=category):
+                    write({**event, "eventCategory": category})
+                    self.assertFalse(validate_feed(path))
+            write({**event, "suggestedSearch": "age0"})
+            self.assertFalse(validate_feed(path))
+
+    def test_discovered_news_output_omits_gameplay_defaults_and_preserves_event_dates(self):
+        # Exercise the output builder, not just the curated metadata or safety helper.
+        discovered = [
+            {"title": "Gameplay updates", "href": "/news/pgo-gameplay-update-oct-2026",
+             "parsed_dates": ("2026-10-08", "2026-10-08", 10, 2026)},
+            {"title": "Halloween Part II", "href": "/news/halloween-part-2-2026",
+             "parsed_dates": ("2026-10-07", "2026-10-07", 10, 2026)},
+        ]
+        with tempfile.TemporaryDirectory() as folder, \
+                unittest.mock.patch("generate_event_feed.urllib.request.urlopen") as fetch, \
+                unittest.mock.patch("generate_event_feed.parse_live_pokemongolive_news", return_value=discovered), \
+                unittest.mock.patch("generate_event_feed.parse_live_leekduck_events", return_value=[]):
+            fetch.return_value.__enter__.return_value.read.return_value = b"<html></html>"
+            path = os.path.join(folder, "events.json")
+            generate_feed(fixture_mode=False, output_path=path)
+            with open(path, encoding="utf-8") as output:
+                events = {event["id"]: event for event in json.load(output)["events"]}
+        news = events["event-pgo-gameplay-update-oct-2026"]
+        self.assertEqual(news["eventCategory"], "ANNOUNCEMENT")
+        self.assertEqual(news["importanceTier"], "NEWS")
+        self.assertEqual(news["publishedDate"], "2026-10-08")
+        self.assertEqual(news["suggestedSearch"], "")
+        for field in ("prep", "eventNotes"):
+            for suffix in ("", "Tr", "De", "Es", "Fr", "It"):
+                self.assertFalse(news.get(field + suffix))
+        halloween = events["event-halloween-2026-part-2"]
+        self.assertEqual((halloween["startDate"], halloween["endDate"]), ("2026-11-01", "2026-11-05"))
+        self.assertIsNone(halloween["publishedDate"])
+        self.assertIn("!traded", halloween["suggestedSearch"].split("&"))
+
     def test_halloween_part2_official_metadata_is_complete(self):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         with open(os.path.join(root, "docs", "event-feed", "event_metadata.json"), encoding="utf-8") as f:

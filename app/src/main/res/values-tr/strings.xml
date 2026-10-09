@@ -295,7 +295,7 @@
     <string name="risk_medium_short">Bu sorgu işleme yakındır. Transfer veya takas yapmadan önce dikkatle inceleyin.</string>
     <string name="risk_medium_detailed">Orta riskli aramalar temizlik veya takas kararları için tasarlanmıştır. Eşleşmelerde değerli Pokémon\'lar çıkabilir. Bunlara körü körüne işlem yapmayın.</string>
     <string name="risk_medium_check1">İşlem yapmadan önce her eşleşmeyi inceleyin.</string>
-    <string name="risk_medium_check2">Asla shiny, legendary veya favori Pokémon\'ları yanlışlıkla transfer etmeyin.</string>
+    <string name="risk_medium_check2">Parlak, efsanevi veya favori Pokémonları yanlışlıkla transfer etmeyin.</string>
     <string name="risk_medium_check3">Şüpheye düştüğünüzde Pokémon\'u saklayın.</string>
     <string name="risk_high_title">Yüksek risk — önce inceleyin</string>
     <string name="risk_high_short">Geniş veya yüksek değerli bir sorgu. İşlem yapmadan önce her eşleşmeyi inceleyin.</string>
@@ -354,7 +354,7 @@
     <string name="nav_home">Ana Sayfa</string>
     <string name="nav_favorites">Favoriler</string>
     <string name="nav_history">Geçmiş</string>
-    <string name="nav_knowledge">Bilgi Bankası</string>
+    <string name="nav_knowledge">Bilgi</string>
     <string name="nav_settings">Ayarlar</string>
     <string name="home_header_desc">Pokémon GO için daha güvenli arama metinleri</string>
     <string name="home_subtitle">Ne bulmak istiyorsun?</string>
@@ -705,4 +705,20 @@
     <string name="event_chip_bonus">Ek ödül</string>
     <string name="event_suggested_for_event">Bu etkinlik için önerilen arama</string>
     <string name="knowledge_reference_only">Yalnızca açıklama amaçlıdır. Kopyalamadan önce Uzman Oluşturucu ile tam bir arama oluştur.</string>
+    <string name="risk_goal_cleanup">Güvenli Temizlik, Shiny, Efsanevi ve favori Pokémon gibi korunan grupları hariç tutar. Transfer etmeden önce her sonucu kontrol et.</string>
+    <string name="risk_goal_candy">Şeker Hazırlığı, transfer Şekeri bonusu olan etkinlikler içindir. Etkinlik dışında kullanmadan önce Pokémonları ve bonusu kontrol et.</string>
+    <string name="risk_goal_trade">Arama, arkadaşlık düzeyini veya Özel Takas sınırlarını doğrulayamaz. Her Pokémonu ve takas koşullarını oyunda kontrol et.</string>
+    <string name="risk_goal_lucky">Şanslı Takas aramasında Shiny veya Efsanevi gibi değerli Pokémonlar çıkabilir. Takastan önce her adayı incele.</string>
+    <string name="risk_goal_pvp">Bunlar IV aralıklarına ve CP değerine dayanan yaklaşık PvP adaylarıdır. Kaynak harcamadan önce gerçek PvP IV ve sıralamasını kontrol et.</string>
+    <string name="risk_goal_inspect">Bu arama inceleme içindir, temizlik için değil. Sonuçta göründüğü için bir Pokémonu transfer etme.</string>
+    <string name="risk_goal_untagged">Etiketsiz Temizlik korunan grupları hariç tutar. Düzenlemeden veya transferden önce her sonucu incele.</string>
+    <string name="risk_goal_expert">Bu aramayı sen oluşturdun. PokeQuery güvenli olduğunu garanti edemez. Kullanmadan önce bütün sonuçları kontrol et.</string>
+    <string name="risk_goal_fallback">Bu aramada değerli Pokémonlar da çıkabilir. İşlem yapmadan önce her sonucu Pokémon GO\'da kontrol et.</string>
+    <string name="risk_goal_beta">Türkçe arama terimleri beta aşamasında. Transfer veya takastan önce sonuçları Pokémon GO\'da doğrula.</string>
+    <string name="settings_text_size">Yazı boyutu</string>
+    <string name="settings_text_size_desc">PokeQuery yazılarını rahat okuyacağın boyuta getir. Telefonun yazı boyutu ayarı da geçerlidir.</string>
+    <string name="settings_text_size_small">Küçük</string>
+    <string name="settings_text_size_default">Varsayılan</string>
+    <string name="settings_text_size_large">Büyük</string>
+    <string name="settings_text_size_extra_large">Çok büyük</string>
 </resources>

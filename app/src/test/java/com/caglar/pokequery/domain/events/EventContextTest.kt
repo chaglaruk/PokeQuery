@@ -94,6 +94,64 @@ class MonthlyContextTest {
 class EventContextTest {
 
     @Test
+    fun `feed parser accepts blank editorial query but rejects blank gameplay query`() {
+        val news = """
+            {
+              "schemaVersion": 1,
+              "lastUpdated": "2026-10-09",
+              "events": [{
+                "id": "news-quality-of-life", "title": "Gameplay update",
+                "kind": "GENERIC_EVENT", "status": "ENDED",
+                "note": "Published October 8", "summary": "Persistent gameplay improvements",
+                "month": 10, "year": 2026, "startDate": "2026-10-08",
+                "endDate": "2026-10-08", "publishedDate": "2026-10-08",
+                "prep": "", "suggestedSearch": "", "eventNotes": "",
+                "eventCategory": "ANNOUNCEMENT", "themeKey": "generic_event",
+                "sourceName": "Pokémon GO official news",
+                "sourceUrl": "https://pokemongo.com/news/pgo-gameplay-update-oct-2026"
+              }]
+            }
+        """.trimIndent()
+        val parsed = EventFeedParser.parse(news).getOrThrow()
+        assertEquals(1, parsed.events.size)
+        assertNull(parsed.events.single().suggestedSearch)
+        assertEquals("2026-10-08", parsed.events.single().publishedDate)
+        assertEquals(1, activeEvents(parsed.events, "2026-10-09").size)
+        assertTrue(EventFeedParser.parse(news.replace("ANNOUNCEMENT", "LIMITED_GAMEPLAY")).isFailure)
+        assertTrue(EventFeedParser.parse(news.replace("\"suggestedSearch\": \"\"", "\"suggestedSearch\": \"age0\"")).isFailure)
+        assertTrue(EventFeedParser.parse(news.replace("\"suggestedSearch\": \"\"", "\"suggestedSearch\": \"age0|traded\"")).isFailure)
+    }
+
+    @Test
+    fun `editorial news stays visible for fourteen days without becoming an active event`() {
+        val news = EventContext(
+            id = "event-pgo-gameplay-update-oct-2026",
+            titleText = "Gameplay improvements",
+            contextType = EventContextType.GENERIC_EVENT,
+            eventCategory = EventCategory.ANNOUNCEMENT,
+            status = EventStatus.ENDED,
+            startDate = "2026-10-08",
+            endDate = "2026-10-08",
+            publishedDate = "2026-10-08",
+            summaryText = "Permanent gameplay improvements",
+            suggestedSearch = ""
+        )
+        assertEquals(EventStatus.ENDED, news.effectiveStatus("2026-10-09"))
+        assertTrue(news.dateLabel("en").orEmpty().startsWith("Published:"))
+        assertTrue(news.dateLabel("tr").orEmpty().startsWith("Yayımlandı:"))
+        assertTrue(news.isVisibleForGuide("2026-10-09"))
+        assertEquals(1, activeEvents(listOf(news), "2026-10-09").size)
+        assertEquals(1, groupEvents(listOf(news), "2026-10-09").news.size)
+        assertFalse(news.isVisibleForGuide("2026-10-07"))
+        assertTrue(news.isVisibleForGuide("2026-10-08"))
+        assertTrue(news.isVisibleForGuide("2026-10-21"))
+        assertFalse(news.isVisibleForGuide("2026-10-22"))
+        val endedGameplay = news.copy(id = "event-gameplay", eventCategory = EventCategory.LIMITED_GAMEPLAY)
+        assertFalse(endedGameplay.isVisibleForGuide("2026-10-09"))
+        assertFalse(news.copy(publishedDate = null).isVisibleForGuide("2026-10-09"))
+    }
+
+    @Test
     fun `event repository ships at least one note and a clear offline disclaimer`() {
         assertTrue("expected at least one bundled event note", EventContextRepository.all().isNotEmpty())
         // Offline/manual honesty contract: the disclaimer resource must always be the manual one.

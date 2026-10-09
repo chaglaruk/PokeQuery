@@ -337,7 +337,7 @@
     <string name="risk_medium_short">Cette requête est adjacente à l\'action. Vérifiez attentivement avant de transférer ou d\'échanger.</string>
     <string name="risk_medium_detailed">Les chaînes à risque moyen sont conçues pour des décisions de nettoyage ou d\'échange. Des Pokémon de valeur peuvent apparaître dans les correspondances. N\'agissez pas à l\'aveugle.</string>
     <string name="risk_medium_check1">Inspectez chaque correspondance avant d\'agir.</string>
-    <string name="risk_medium_check2">Ne transférez jamais par erreur des Pokémon shiny, légendaires ou favoris.</string>
+    <string name="risk_medium_check2">Ne transférez jamais par erreur des Pokémon chromatiques, légendaires ou favoris.</string>
     <string name="risk_medium_check3">En cas de doute, conservez le Pokémon.</string>
 
     <string name="risk_high_title">Risque élevé - inspectez d\'abord</string>
@@ -475,8 +475,8 @@
     <string name="nav_home">Accueil</string>
     <string name="nav_favorites">Favoris</string>
     <string name="nav_history">Historique</string>
-    <string name="nav_knowledge">Connaissances</string>
-    <string name="nav_settings">Paramètres</string>
+    <string name="nav_knowledge">Guide</string>
+    <string name="nav_settings">Réglages</string>
 
     <string name="home_header_desc">Chaînes de recherche plus sûres pour Pokémon GO</string>
     <string name="home_subtitle">Que voulez-vous trouver ?</string>
@@ -730,4 +730,20 @@
     <string name="risk_info_subtitle">Inspection uniquement</string>
     <string name="risk_high_subtitle">Vérification attentive requise</string>
     <string name="knowledge_reference_only">À titre indicatif. Créez une recherche complète dans le générateur expert avant de copier.</string>
+    <string name="risk_goal_cleanup">Le nettoyage sécurisé exclut notamment les Pokémon chromatiques, légendaires et favoris. Vérifie chaque résultat avant de transférer.</string>
+    <string name="risk_goal_candy">La préparation de Bonbons est prévue pour les événements offrant un bonus au transfert. Vérifie les Pokémon et le bonus avant de l’utiliser en dehors de l’événement.</string>
+    <string name="risk_goal_trade">Une recherche ne peut pas vérifier les conditions d’amitié ni les limites des échanges spéciaux. Vérifie les Pokémon et les règles dans le jeu.</string>
+    <string name="risk_goal_lucky">Une recherche pour échange chanceux peut inclure des Pokémon précieux, chromatiques ou légendaires. Vérifie chaque candidat avant tout échange.</string>
+    <string name="risk_goal_pvp">Ce sont des candidats PvP approximatifs fondés sur les IV et les PC. Vérifie leurs IV et classements réels avant d’investir des ressources.</string>
+    <string name="risk_goal_inspect">Cette recherche sert à examiner les Pokémon, pas à faire du tri. Ne transfère pas un Pokémon simplement parce qu’il apparaît ici.</string>
+    <string name="risk_goal_untagged">Le tri des Pokémon sans étiquette exclut les catégories protégées. Examine chaque résultat avant de ranger ou transférer.</string>
+    <string name="risk_goal_expert">Tu as créé cette recherche. PokeQuery ne peut pas garantir sa sécurité. Vérifie tous les résultats avant de l’utiliser.</string>
+    <string name="risk_goal_fallback">Cette recherche peut inclure des Pokémon précieux. Vérifie tous les résultats dans Pokémon GO avant d’agir.</string>
+    <string name="risk_goal_beta">Les termes de recherche turcs sont en version bêta. Vérifie les résultats dans Pokémon GO avant de transférer ou échanger.</string>
+    <string name="settings_text_size">Taille du texte</string>
+    <string name="settings_text_size_desc">Ajustez la taille du texte dans PokeQuery pour mieux lire. Le réglage du téléphone reste pris en compte.</string>
+    <string name="settings_text_size_small">Petit</string>
+    <string name="settings_text_size_default">Par défaut</string>
+    <string name="settings_text_size_large">Grand</string>
+    <string name="settings_text_size_extra_large">Très grand</string>
 </resources>

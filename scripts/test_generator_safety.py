@@ -13,6 +13,7 @@ from generate_event_feed import (
     generate_feed,
     put_raw_event,
     resolve_event_metadata,
+    validate_safety_constraints,
 )
 
 
@@ -70,7 +71,9 @@ class TestGeneratorSafety(unittest.TestCase):
         for ev in events:
             search = ev.get("suggestedSearch", "")
             self.assertNotIn("|", search)
-            self.assertEqual(1, search.split("&").count("!traded"))
+            # Editorial announcements may have no inventory action. Every actual
+            # query, including an optional news query, still needs !traded exactly once.
+            validate_safety_constraints(ev)
             for value in ev.values():
                 if isinstance(value, str):
                     self.assertNotIn("|", value, f"pipe found in event {ev.get('id')}")
@@ -88,6 +91,16 @@ class TestGeneratorSafety(unittest.TestCase):
         )
         self.assertEqual(resolved.get("featuredPokemon"), "Mewtwo")
         self.assertIn("event-pokemon-go-fest-2026-global", METADATA_ID_ALIASES)
+
+    def test_blank_query_exception_is_limited_to_editorial_announcements(self):
+        news = {"id": "editorial", "eventCategory": "ANNOUNCEMENT", "suggestedSearch": ""}
+        validate_safety_constraints(news)
+        for category in ("MAJOR_GAMEPLAY", "LIMITED_GAMEPLAY", "RAID_ROTATION", "NEWS_PROMO"):
+            with self.subTest(category=category), self.assertRaises(ValueError):
+                validate_safety_constraints({**news, "eventCategory": category})
+        with self.assertRaises(ValueError):
+            validate_safety_constraints({**news, "suggestedSearch": "age0"})
+        validate_safety_constraints({**news, "suggestedSearch": "age0&!traded"})
 
     def test_go_fest_metadata_does_not_broad_match_news_titles(self):
         metadata = {

@@ -32,6 +32,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         // GAME_LANGUAGE controls the generated Pokémon GO search strings only. They are
         // independent — choosing a Turkish UI must NOT force Turkish search strings.
         val APP_LANGUAGE = stringPreferencesKey("app_language")
+        // Local UI readability setting; search language and search syntax stay independent.
+        val APP_TEXT_SCALE = stringPreferencesKey("app_text_scale")
         // v0.6.1: local-only personal presets and cleaning journal entries. LOCAL ONLY — never
         // synced, never uploaded, never account-bound. Stored via the codecs in UserContentCodec.
         val PERSONAL_PRESETS = stringSetPreferencesKey("personal_presets_v1")
@@ -54,6 +56,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             safetyStyle = preferences[SAFETY_STYLE] ?: "Conservative",
             gameLanguage = preferences[GAME_LANGUAGE] ?: "Auto",
             appLanguage = preferences[APP_LANGUAGE] ?: "System Default",
+            textScale = preferences[APP_TEXT_SCALE] ?: AppTextScale.DEFAULT,
             clipboardDetectionEnabled = preferences[CLIPBOARD_DETECTION_ENABLED] ?: true,
             limitationsExpandedByDefault = preferences[LIMITATIONS_EXPANDED_BY_DEFAULT] ?: false,
             eventGuideRefreshOnOpen = preferences[EVENT_GUIDE_REFRESH_ON_OPEN] ?: true,
@@ -239,6 +242,7 @@ data class UserPreferences(
     val safetyStyle: String = "Conservative",
     val gameLanguage: String = "Auto",
     val appLanguage: String = "System Default",
+    val textScale: String = AppTextScale.DEFAULT,
     val clipboardDetectionEnabled: Boolean = true,
     val limitationsExpandedByDefault: Boolean = false,
     val eventGuideRefreshOnOpen: Boolean = true,
@@ -250,6 +254,22 @@ data class UserPreferences(
     val personalPresets: List<PersonalPreset> = emptyList(),
     val journal: List<CleaningJournalEntry> = emptyList()
 )
+
+/** Relative to the Android system font scale; never changes search language or syntax. */
+object AppTextScale {
+    const val SMALL = "Small"
+    const val DEFAULT = "Default"
+    const val LARGE = "Large"
+    const val EXTRA_LARGE = "Extra Large"
+    val OPTIONS = listOf(SMALL, DEFAULT, LARGE, EXTRA_LARGE)
+
+    fun multiplier(value: String): Float = when (value) {
+        SMALL -> 0.90f
+        LARGE -> 1.15f
+        EXTRA_LARGE -> 1.30f
+        else -> 1.00f
+    }
+}
 
 object SavedTemplateCodec {
     fun encode(template: SavedTemplate): String = listOf(

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
+import com.caglar.pokequery.ui.components.AppAlertDialog as AlertDialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import com.caglar.pokequery.R
 import com.caglar.pokequery.data.model.SavedTemplate
 import com.caglar.pokequery.data.model.Term
 import com.caglar.pokequery.data.repository.KnowledgeBaseRepository
+import com.caglar.pokequery.data.repository.AppTextScale
 import com.caglar.pokequery.data.repository.UserPreferencesRepository
 import com.caglar.pokequery.data.repository.dataStore
 import com.caglar.pokequery.domain.changelog.Changelog
@@ -253,6 +255,74 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
         }
 
         item {
+            PremiumPanel {
+                Text(stringResource(R.string.settings_text_size), color = TealPrimary, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.settings_text_size_desc),
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+                Spacer(Modifier.height(12.dp))
+                val selectedScale = userPrefs?.textScale ?: AppTextScale.DEFAULT
+                val choices = listOf(
+                    AppTextScale.SMALL to R.string.settings_text_size_small,
+                    AppTextScale.DEFAULT to R.string.settings_text_size_default,
+                    AppTextScale.LARGE to R.string.settings_text_size_large,
+                    AppTextScale.EXTRA_LARGE to R.string.settings_text_size_extra_large
+                )
+                val selectedRes = choices.firstOrNull { it.first == selectedScale }?.second
+                    ?: R.string.settings_text_size_default
+                var showTextSizeDialog by remember { mutableStateOf(false) }
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(CardDark)
+                        .border(1.dp, TealPrimary.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+                        .clickable { showTextSizeDialog = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(selectedRes),
+                        modifier = Modifier.weight(1f),
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = TextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                if (showTextSizeDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showTextSizeDialog = false },
+                        title = { Text(stringResource(R.string.settings_text_size)) },
+                        text = {
+                            Column {
+                                choices.forEach { (value, labelRes) ->
+                                    RadioRow(stringResource(labelRes), selectedScale == value) {
+                                        scope.launch {
+                                            repository.setSetting(UserPreferencesRepository.APP_TEXT_SCALE, value)
+                                        }
+                                        showTextSizeDialog = false
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {},
+                        containerColor = CardDark
+                    )
+                }
+            }
+        }
+
+        item {
             PremiumPanel(borderColor = TealPrimary) {
                 Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_search_language), color = TealPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
@@ -454,13 +524,13 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_changelog_label),
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
                 )
                 Text(
                     androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_privacy_policy),
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().clickable {
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable {
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.caglar.pokequery.privacy.PrivacyPolicyConfig.URL))
                         runCatching {
                             context.startActivity(intent)
@@ -487,9 +557,9 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                 Spacer(Modifier.height(12.dp))
                 // v0.4.2 (Fix 7): destructive data actions require explicit confirmation.
                 var pendingDestructive by remember { mutableStateOf<DestructiveAction?>(null) }
-                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_fav), color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearFavorites }.padding(vertical = 8.dp))
-                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_hist), color = CoralDanger, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ClearHistory }.padding(vertical = 8.dp))
-                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_reset_all), color = CoralDanger, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().clickable { pendingDestructive = DestructiveAction.ResetSettings }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_fav), color = CoralDanger, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { pendingDestructive = DestructiveAction.ClearFavorites }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_clear_hist), color = CoralDanger, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { pendingDestructive = DestructiveAction.ClearHistory }.padding(vertical = 8.dp))
+                Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_reset_all), color = CoralDanger, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { pendingDestructive = DestructiveAction.ResetSettings }.padding(vertical = 8.dp))
 
                 pendingDestructive?.let { action ->
                     AlertDialog(
@@ -533,7 +603,7 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_feedback),
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().clickable {
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable {
                         val mailto = com.caglar.pokequery.feedback.FeedbackBuilder.buildMailtoUri(feedbackContext)
                         val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse(mailto)).apply {
                             addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -897,7 +967,7 @@ private fun EmptyState(title: String, subtitle: String) {
 @Composable
 private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick).padding(vertical = 10.dp, horizontal = 4.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp)).clickable(onClick = onClick).padding(vertical = 10.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = TealPrimary, unselectedColor = TextSecondary))

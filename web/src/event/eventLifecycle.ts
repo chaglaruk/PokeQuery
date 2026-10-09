@@ -79,10 +79,22 @@ export function daysBetween(from: string, to: string | null | undefined): number
  * @param events full feed list
  * @param clock injectable clock for testing; defaults to systemClock
  */
+/** Show explicitly dated editorial news for 14 calendar days including publication day.
+ * Do not turn an expired date into a fictitious active event window.
+ * Mirrors Android EventContext.isVisibleForGuide.
+ */
+export function isVisibleForGuide(entry: EventFeedEntry, todayIso: string): boolean {
+  if (determineCategory(entry) === 'ANNOUNCEMENT' && entry.publishedDate) {
+    const elapsed = daysBetween(entry.publishedDate, todayIso)
+    return elapsed >= 0 && elapsed < 14
+  }
+  return effectiveStatus(entry, todayIso) !== 'ENDED'
+}
+
 export function activeEvents(events: EventFeedEntry[], clock: Clock = systemClock): EventFeedEntry[] {
   const today = clock.todayIso()
   return events
-    .filter(e => effectiveStatus(e, today) !== 'ENDED')
+    .filter(e => isVisibleForGuide(e, today))
     .sort((a, b) => {
       const sa = effectiveStatus(a, today) === 'CURRENT' ? 0 : 1
       const sb = effectiveStatus(b, today) === 'CURRENT' ? 0 : 1
@@ -196,7 +208,7 @@ export function selectMainEvent(events: EventFeedEntry[], todayIso: string): Eve
 export function groupEvents(events: EventFeedEntry[], clock: Clock = systemClock): EventSections {
   const today = clock.todayIso()
   const active = events
-    .filter(e => effectiveStatus(e, today) !== 'ENDED')
+    .filter(e => isVisibleForGuide(e, today))
     // deduplicate by canonical event key (Android: canonicalEventKey)
     .filter((e, idx, arr) => arr.findIndex(x => canonicalEventKey(x.id) === canonicalEventKey(e.id)) === idx)
   const featured = selectMainEvent(active, today)
@@ -255,6 +267,14 @@ export function canonicalEventKey(id: string): string {
  * Supported locale codes: en, tr, de, es, fr, it.
  */
 export function dateLabel(entry: EventFeedEntry, locale: string): string | null {
+  if (determineCategory(entry) === 'ANNOUNCEMENT' && entry.publishedDate) {
+    const date = dateLabel({ ...entry, startDate: entry.publishedDate, endDate: entry.publishedDate, publishedDate: null }, locale) ?? entry.publishedDate
+    const labels: Record<string, string> = {
+      en: 'Published', tr: 'Yayımlandı', de: 'Veröffentlicht',
+      es: 'Publicado', fr: 'Publié', it: 'Pubblicato',
+    }
+    return `${labels[locale] ?? labels.en}: ${date}`
+  }
   const start = validIsoDate(entry.startDate)
   const end = validIsoDate(entry.endDate)
   if (!start && !end) {

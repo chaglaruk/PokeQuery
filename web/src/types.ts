@@ -96,6 +96,7 @@ export interface EventFeedEntry {
   year?: number | null
   startDate?: string | null
   endDate?: string | null
+  publishedDate?: string | null
   start?: string | null
   end?: string | null
   summary: string

@@ -311,7 +311,6 @@ export function EventsScreen() {
         <>
           <div className="section-title">{t('event_section_news')}</div>
           {sections.news.map(event => {
-            const status = effectiveStatus(event, clock.todayIso())
             return (
               <CompactEventCard
                 key={`news-${event.id}`}
@@ -319,7 +318,7 @@ export function EventsScreen() {
                 section="news"
                 clock={clock}
                 locale={locale}
-                statusLabel={t(statusLabelKey(status))}
+                statusLabel={t("event_chip_news")}
                 statusColor="var(--text-dim)"
                 onClick={() => setOpenEvent(event)}
               />
@@ -404,7 +403,8 @@ function EventMainCard({
   const localized = useLocalizedEvent(event, locale)
   const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
   const tone = themeTone(event.themeKey)
-  const timerLabel = remainingTimeLabel(event, clock, locale)
+  const timerLabel = determineCategory(event) === "ANNOUNCEMENT" && event.publishedDate
+    ? t("event_chip_news") : remainingTimeLabel(event, clock, locale)
   const dLabel = dateLabel(event, locale)
   const search = event.suggestedSearch ?? ''
   const pokemon = event.pokemon ?? []
@@ -546,7 +546,8 @@ function CompactEventCard({
   statusColor: string
   onClick: () => void
 }) {
-  const timer = remainingTimeLabel(event, clock, locale)
+  const isPublishedNews = determineCategory(event) === "ANNOUNCEMENT" && Boolean(event.publishedDate)
+  const timer = isPublishedNews ? "" : remainingTimeLabel(event, clock, locale)
   const dLabel = dateLabel(event, locale)
 
   return (
@@ -569,9 +570,9 @@ function CompactEventCard({
             {dLabel && <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{dLabel}</span>}
           </div>
         </div>
-        <span style={{ fontSize: '10px', fontWeight: 700, color: statusColor, opacity: 0.85, whiteSpace: 'nowrap' }}>
+        {timer && <span style={{ fontSize: '10px', fontWeight: 700, color: statusColor, opacity: 0.85, whiteSpace: 'nowrap' }}>
           {timer}
-        </span>
+        </span>}
       </div>
     </div>
   )
@@ -602,12 +603,15 @@ function EventDetailDialog({
   const localized = useLocalizedEvent(event, locale)
   const [clipboard, setClipboard] = useState<ClipboardResult | null>(null)
   const tone = themeTone(event?.themeKey ?? '')
-  const timerLabel = event ? remainingTimeLabel(event, clock, locale) : ''
+  const timerLabel = event ? (determineCategory(event) === "ANNOUNCEMENT" && event.publishedDate
+    ? t("event_chip_news") : remainingTimeLabel(event, clock, locale)) : ''
   const dLabel = event ? dateLabel(event, locale) : ''
   const search = event?.suggestedSearch ?? ''
   const pokemon = event?.pokemon ?? []
   const status = event ? effectiveStatus(event, clock.todayIso()) : 'ENDED'
   const cat = event ? determineCategory(event) : ''
+  const isPublishedNews = cat === 'ANNOUNCEMENT' && Boolean(event?.publishedDate)
+  const statusText = t(isPublishedNews ? 'event_chip_news' : statusLabelKey(status))
 
   const handleCopy = useCallback(async () => {
     if (!search) return
@@ -635,7 +639,7 @@ function EventDetailDialog({
         <span className="badge" style={{ background: `${categoryChipColor(cat)}1a`, color: categoryChipColor(cat) }}>
           {t(categoryLabelKey(cat))}
         </span>
-        <span className="badge badge-beta">{t(statusLabelKey(status))}</span>
+        {!isPublishedNews && <span className="badge badge-beta">{statusText}</span>}
       </div>
 
       {dLabel && (
@@ -774,7 +778,7 @@ function EventDetailDialog({
           </p>
         )}
         <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-          <strong>{t('event_status_label', t(statusLabelKey(status)))}</strong>{sourceLabel && ` · ${sourceLabel}`}
+          <strong>{t('event_status_label', statusText)}</strong>{sourceLabel && ` · ${sourceLabel}`}
         </p>
         {lastChecked && (
           <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
