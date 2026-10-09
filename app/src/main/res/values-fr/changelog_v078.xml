@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v078_subtitle">Version • Guide des événements et accessibilité</string>
+    <string name="what_changed_v078_b1">• Les cartes affichent les bonus vérifiés et les conditions de magasin, d’achat, de code, de date et de région.</string>
+    <string name="what_changed_v078_b2">• Copier, partager, les avertissements de risque, la navigation et les grandes tailles sont plus clairs.</string>
+    <string name="what_changed_v078_b3">• Les modèles de référence ne peuvent pas être copiés comme recherches complètes.</string>
+    <string name="what_changed_v078_safety1">Les recherches générées n’utilisent jamais | ; les actions dans Pokémon GO restent manuelles.</string>
+    <string name="what_changed_v078_safety2">Les copies et partages à risque moyen ou élevé doivent toujours être vérifiés avant l’action.</string>
+    <string name="what_changed_v078_safety3">Aucun compte, suivi, analytique, publicité ou accès à un compte Pokémon GO n’a été ajouté.</string>
+    <string name="what_changed_v078_tester1">Ouvrez le guide dans chaque langue et vérifiez dates, bonus, conditions et mode hors connexion.</string>
+    <string name="what_changed_v078_tester2">Testez le grand texte et les quatre tailles locales; vérifiez navigation, Copier, Partager et Risque.</string>
+    <string name="what_changed_v078_tester3">Essayez de copier un modèle de référence; il ne doit pas devenir une recherche complète.</string>
+</resources>

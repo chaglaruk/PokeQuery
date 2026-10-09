@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v078_subtitle">Sürüm • Etkinlik Rehberi ve erişilebilirlik</string>
+    <string name="what_changed_v078_b1">• Etkinlik kartları doğrulanmış bonusları, mağaza, satın alma, kod kullanımı, tarih ve bölge koşullarını gösterir.</string>
+    <string name="what_changed_v078_b2">• Kopyala, Paylaş, risk uyarıları, alt menü ve büyük yazı düzenleri daha anlaşılır.</string>
+    <string name="what_changed_v078_b3">• Bilgi Bankası referans şablonları tamamlanmış arama olarak kopyalanamaz.</string>
+    <string name="what_changed_v078_safety1">Üretilen aramalarda | operatörü hiç kullanılmaz; Pokémon GO işlemleri manuel kalır.</string>
+    <string name="what_changed_v078_safety2">Orta ve yüksek riskli kopyalama/paylaşma akışları, panoyu değiştirmeden veya paylaşmadan önce inceleme ister.</string>
+    <string name="what_changed_v078_safety3">Giriş, izleme, analiz, reklam veya Pokémon GO hesabı erişimi eklenmedi.</string>
+    <string name="what_changed_v078_tester1">Her uygulama dilinde Etkinlik Rehberi\'ni açıp tarihleri, bonusları, koşulları ve çevrimdışı yedeği kontrol edin.</string>
+    <string name="what_changed_v078_tester2">Büyük yazıyı ve dört yerel yazı boyutunu deneyin; alt menü, Kopyala, Paylaş ve Risk Uyarısı\'nı kontrol edin.</string>
+    <string name="what_changed_v078_tester3">Bilgi Bankası referans şablonunu kopyalamayı deneyin; tamamlanmış aramaya dönüşmemelidir.</string>
+</resources>

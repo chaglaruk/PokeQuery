@@ -1,10 +1,10 @@
-# Android v0.7.8 preparation — 2026-10-08
+# Android v0.7.8 release gates — 2026-10-10
 
-READY BUT NOT PUBLISHED. Intended later values: versionName **0.7.8**, versionCode **28**. They are not set in source. Current Android is 0.7.7/code 27; Web/PWA remains independently versioned at 0.7.3. This document authorizes no merge, tag, signing, upload or production replacement.
+SOURCE PREPARED, NOT PUBLISHED. Release source candidate: versionName **0.7.8**, versionCode **28**, based on merged master `005a81a9effa8c56720b34dd334d9c9753de1784`. Current production remains Android 0.7.7/code 27; Web/PWA remains independently versioned at 0.7.3. This document authorizes no tag, signing, upload or production replacement.
 
 ## Source and changes
 
-Published Android source: `93bf178f942048e0fee8cbb47976b23f86ecde3f`, the peeled `v0.7.7` tag. Fetched master for this preparation: `cd9778b663c777cb98c6c196f8d87a5314fd696d`. Moving master is not the Android release source.
+Published Android source: `93bf178f942048e0fee8cbb47976b23f86ecde3f`, the peeled `v0.7.7` tag. Release preparation source: `005a81a9effa8c56720b34dd334d9c9753de1784`. Feed-only commits may move master after this source; use the exact reviewed SHA for release work.
 
 Merged after the immutable release:
 
@@ -74,7 +74,7 @@ Conditional addition: I modelli di riferimento non si possono più copiare come 
 
 1. Review and explicitly authorize the relevant PR merges. Fetch again, list all commits since the immutable 0.7.7 source and confirm the intended changes; do not use today's moving master blindly. Feed-only bot commits may advance it.
 2. Create a clean isolated release checkout at the selected SHA. Verify origin is chaglaruk/PokeQuery, exact HEAD, clean status and immutable 0.7.7 ancestry. Record the resolved SHA, reviewed PRs and source diff.
-3. In a dedicated authorized release change, set only planned Android versionName 0.7.8/versionCode 28, update bundled What's New in six locales and CHANGELOG to the actual release date. Web stays 0.7.3 unless separately gated. Re-review the release change and obtain terminal CI at the final source, including any post-review changes.
+3. In this dedicated release change, set only Android versionName 0.7.8/versionCode 28, update bundled What's New in six locales and CHANGELOG to the actual release source. Web stays 0.7.3 unless separately gated. Re-review the release change and obtain terminal CI at the final source, including any post-review changes.
 4. Run Android unit tests, lint and debug assembly; engine corpus byte identity; canonical/both fallback equality; generator safety, feed validation and runtime-asset checks. Preserve mandatory protection/risk/count policy and no pipe in generated output. If a Web engine is changed, run golden corpus, typecheck, lint, unit tests, production build and relevant mobile/routing/offline Playwright gates as well.
 5. Validate Home, two language controls, Search Assistant, goal generation, Risk Warning, Copy/Share, local favorites/history/presets, Knowledge Base and Event Guide. Confirm medium/high-risk flows cannot replace clipboard or open sharing before review. Check EN/TR/DE/ES/FR/IT, German Candy Prep wrapping and Zorua day labels against the actual device date.
 6. Test Event Guide both online refresh and offline bundled fallback. Today's PR42 visual evidence covers the corrected bundled fallback in a separate QA package; it does not replace release-source validation or a Play-production capture gate. Do not silently use an old cached feed.

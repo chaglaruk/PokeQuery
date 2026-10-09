@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v078_subtitle">Release • Event Guide and accessibility</string>
+    <string name="what_changed_v078_b1">• Event cards show verified bonuses, retailer, purchase, redemption, date, and regional conditions.</string>
+    <string name="what_changed_v078_b2">• Copy, Share, risk warnings, navigation, and large-text layouts are clearer.</string>
+    <string name="what_changed_v078_b3">• Knowledge Base reference templates cannot be copied as complete searches.</string>
+    <string name="what_changed_v078_safety1">Generated searches never use the | operator; Pokémon GO actions remain manual.</string>
+    <string name="what_changed_v078_safety2">Medium- and high-risk copy/share flows still require review before clipboard replacement or sharing.</string>
+    <string name="what_changed_v078_safety3">No login, tracking, analytics, ads, or Pokémon GO account access were added.</string>
+    <string name="what_changed_v078_tester1">Open Event Guide in each app language and check dates, bonuses, conditions, and offline fallback.</string>
+    <string name="what_changed_v078_tester2">Try large text and all four local text sizes; check navigation, Copy, Share, and Risk Warning.</string>
+    <string name="what_changed_v078_tester3">Try copying a Knowledge Base reference template; it must not become a complete search.</string>
+</resources>

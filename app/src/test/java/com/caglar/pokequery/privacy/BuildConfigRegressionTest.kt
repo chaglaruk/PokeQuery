@@ -26,8 +26,8 @@ class BuildConfigRegressionTest {
     @Test
     fun `version name is accessible and current`() {
         assertTrue("Version name should be non-empty", AppVersion.versionName.isNotBlank())
-        assertEquals("0.7.7", AppVersion.versionName)
-        assertEquals(27, AppVersion.versionCode)
+        assertEquals("0.7.8", AppVersion.versionName)
+        assertEquals(28, AppVersion.versionCode)
     }
 
     @Test

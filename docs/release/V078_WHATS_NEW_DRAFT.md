@@ -1,6 +1,6 @@
-# Proposed Android 0.7.8 notes
+# Android 0.7.8 — What's New
 
-Draft only. Android source remains 0.7.7 / code 27, Web/PWA remains 0.7.3. PR #47 still requires independent merge review. These notes replace the older proposal once the exact release source includes PR #47; publish only with the actual 0.7.8 release. No signing, version bump or upload is performed by this document.
+Source candidate: merged master `005a81a9effa8c56720b34dd334d9c9753de1784`, Android `0.7.8` / code `28`. Web/PWA remains `0.7.3`. These notes must match the final Play listing; signing, upload, and rollout remain separately gated.
 
 ## EN
 

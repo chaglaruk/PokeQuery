@@ -1,6 +1,6 @@
 # Final Play listing drafts — 2026-10-08
 
-READY FOR REVIEW. Prepared for a separately authorized Android publication; no live fields changed. Android remains 0.7.7/code 27. Descriptions refer to shipped workflows, not automatic game actions or cloud AI. Event information and localized tokens retain limitations.
+READY FOR REVIEW. Prepared for a separately authorized Android 0.7.8/code 28 publication; no live fields changed. Source candidate is merged master `005a81a9effa8c56720b34dd334d9c9753de1784`. Descriptions refer to shipped workflows, not automatic game actions or cloud AI. Event information and localized tokens retain limitations.
 
 Limits: title 30, short description 80, full description 4,000 characters. Counts include spaces, punctuation and full-description newlines. Source: [Google Play app setup](https://support.google.com/googleplay/android-developer/answer/9859152).
 

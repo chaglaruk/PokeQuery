@@ -2,28 +2,21 @@
 
 Notable changes to PokeQuery. Dates are grouped by release.
 
-The published Android release is **0.7.7** (`versionCode 27`), from immutable source `93bf178f942048e0fee8cbb47976b23f86ecde3f`.
+The Android release candidate is **0.7.8** (`versionCode 28`), based on merged source `005a81a9effa8c56720b34dd334d9c9753de1784`.
 The Web/PWA version remains **0.7.3** and is versioned independently.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## Unreleased — planned Android 0.7.8 / code 28
+## [0.7.8] — Event Guide, accessibility, and safer review
 
-Planned values only; no version bump, tag, signed artifact or publication. See [release gates and proposed six-language notes](docs/release/V078_RELEASE_PLAN.md).
+- Event Guide cards now show verified bonuses, retailer, purchase, redemption, date, and regional conditions, with localized detail views and synchronized offline fallbacks.
+- Copy, Share, Risk Warning, navigation, and large-text layouts are clearer while generated searches remain local and pipe-free.
+- Knowledge Base reference templates cannot be copied as complete searches.
+- Four local text-size choices combine with the system font scale, while accessible navigation names and minimum touch targets are preserved.
 
-### Fixed in source, not yet Google Play Android
-
-- PR #41: correct official TCG event dates, regional restrictions and actual raid/research information in the public feed and bundled fallbacks.
-- PR #42: show real bonus/retailer/redemption conditions on Event Guide cards; localize detail dialogs; wrap the German Candy Prep Home title; correct relative event-day labels.
-- PR #43–#46: guard Knowledge Base reference-template copying, preserve localized token verification limits, and distinguish Halloween event dates from GO Pass dates in feed generation.
-- PR #47 (pending independent merge): improve Copy button wrapping, contrast, goal-specific risk copy and large-text layouts; separate announcement publication dates from event windows and omit gameplay searches for editorial news.
-- PR #47 (pending independent merge): add four locally saved text sizes that combine with the system font scale; keep navigation icons aligned with accessible names on every tab and minimum 48 dp Settings option targets.
-
-Updated proposed notes for all six languages are in [V078_WHATS_NEW_DRAFT.md](docs/release/V078_WHATS_NEW_DRAFT.md). They describe unreleased source and must not be presented as a published version.
-
-Development/CI documentation and Compose previews merged after 0.7.7 are not new runtime promises. Review candidates prepared separately, including the Knowledge copy guard, are included only if approved into the eventual release source.
+Six-language release notes are in [V078_WHATS_NEW_DRAFT.md](docs/release/V078_WHATS_NEW_DRAFT.md). They describe this source candidate; Play publication remains separately gated.
 
 ## [0.7.7] — safer sharing, Search Assistant risk parity, local rating prompt
 
@@ -48,7 +41,7 @@ Development/CI documentation and Compose previews merged after 0.7.7 are not new
 - Final PWA growth head passed typecheck, lint, unit tests, production build, Chromium/WebKit Playwright E2E and mobile visual QA.
 - Physical Android validation covered low/Info Share, Medium-risk Share gating, Search Assistant `hundo -> 4*`, Medium-risk `shiny` clipboard protection, localized German `schillernd` copy, and EN/TR/DE/ES/FR/IT visual checks.
 - Release-branch locale regression coverage requires the dedicated v0.7.7 Changelog key set in EN/TR/DE/ES/FR/IT and rejects stale v0.6.6 keys in those new resource files.
-- The v0.7.7 release branch is based on exact merged master SHA `fb00bcdbeee1d8694684835375af89a6aece0221`; release-branch CI and signed-AAB verification are separate gates.
+- The v0.7.8 release branch is based on exact merged master SHA `005a81a9effa8c56720b34dd334d9c9753de1784`; release-branch CI and signed-AAB verification are separate gates.
 
 ---
 
