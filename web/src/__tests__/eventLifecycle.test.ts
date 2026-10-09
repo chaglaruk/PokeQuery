@@ -111,6 +111,8 @@ describe('activeEvents', () => {
       suggestedSearch: '',
     })
     expect(effectiveStatus(news, '2026-10-09')).toBe('ENDED')
+    expect(dateLabel(news, 'en')?.startsWith('Published:')).toBe(true)
+    expect(dateLabel(news, 'tr')?.startsWith('Yayımlandı:')).toBe(true)
     expect(activeEvents([news], pinnedClock('2026-10-09')).map(e => e.id)).toEqual([news.id])
     expect(groupEvents([news], pinnedClock('2026-10-09')).news.map(e => e.id)).toEqual([news.id])
     expect(activeEvents([news], pinnedClock('2026-10-07'))).toHaveLength(0)
