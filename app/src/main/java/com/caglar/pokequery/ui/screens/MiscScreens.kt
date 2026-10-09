@@ -454,13 +454,13 @@ fun SettingsScreen(onBack: () -> Unit, onOpenChangelog: () -> Unit = {}) {
                     androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_changelog_label),
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onOpenChangelog).padding(vertical = 8.dp)
                 )
                 Text(
                     androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.settings_privacy_policy),
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth().clickable {
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable {
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.caglar.pokequery.privacy.PrivacyPolicyConfig.URL))
                         runCatching {
                             context.startActivity(intent)
