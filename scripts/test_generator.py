@@ -157,6 +157,21 @@ class TestEventFeedGenerator(unittest.TestCase):
                 row = raw["event-halloween-2026-part-2"]
                 self.assertEqual((row["startDate"], row["endDate"]), ("2026-11-01", "2026-11-05"))
 
+    def test_generator_allows_blank_news_search_but_never_unprotected_gameplay(self):
+        announcement = {
+            "id": "event-pgo-gameplay-update-oct-2026",
+            "eventCategory": "ANNOUNCEMENT",
+            "suggestedSearch": "",
+        }
+        validate_safety_constraints(announcement)
+        with self.assertRaises(ValueError):
+            validate_safety_constraints({**announcement, "eventCategory": "LIMITED_GAMEPLAY"})
+        with self.assertRaises(ValueError):
+            validate_safety_constraints({**announcement, "suggestedSearch": "age0"})
+        with self.assertRaises(ValueError):
+            validate_safety_constraints({**announcement, "suggestedSearch": "age0|traded"})
+        validate_safety_constraints({**announcement, "suggestedSearch": "age0&!traded"})
+
     def test_gameplay_update_is_news_not_a_timed_gameplay_event(self):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         with open(os.path.join(root, "docs", "event-feed", "event_metadata.json"), encoding="utf-8") as f:
