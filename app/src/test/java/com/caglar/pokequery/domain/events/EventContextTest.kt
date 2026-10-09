@@ -94,6 +94,32 @@ class MonthlyContextTest {
 class EventContextTest {
 
     @Test
+    fun `editorial news stays visible for fourteen days without becoming an active event`() {
+        val news = EventContext(
+            id = "event-pgo-gameplay-update-oct-2026",
+            titleText = "Gameplay improvements",
+            contextType = EventContextType.GENERIC_EVENT,
+            eventCategory = EventCategory.ANNOUNCEMENT,
+            status = EventStatus.ENDED,
+            startDate = "2026-10-08",
+            endDate = "2026-10-08",
+            publishedDate = "2026-10-08",
+            summaryText = "Permanent gameplay improvements",
+            suggestedSearch = ""
+        )
+        assertEquals(EventStatus.ENDED, news.effectiveStatus("2026-10-09"))
+        assertTrue(news.isVisibleForGuide("2026-10-09"))
+        assertEquals(1, activeEvents(listOf(news), "2026-10-09").size)
+        assertEquals(1, groupEvents(listOf(news), "2026-10-09").news.size)
+        assertFalse(news.isVisibleForGuide("2026-10-07"))
+        assertTrue(news.isVisibleForGuide("2026-10-22"))
+        assertFalse(news.isVisibleForGuide("2026-10-23"))
+        val endedGameplay = news.copy(id = "event-gameplay", eventCategory = EventCategory.LIMITED_GAMEPLAY)
+        assertFalse(endedGameplay.isVisibleForGuide("2026-10-09"))
+        assertFalse(news.copy(publishedDate = null).isVisibleForGuide("2026-10-09"))
+    }
+
+    @Test
     fun `event repository ships at least one note and a clear offline disclaimer`() {
         assertTrue("expected at least one bundled event note", EventContextRepository.all().isNotEmpty())
         // Offline/manual honesty contract: the disclaimer resource must always be the manual one.
