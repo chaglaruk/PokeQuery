@@ -444,6 +444,19 @@ fun EventPokemonEntry.localizedBadges(lang: String = Locale.getDefault().languag
     localized(badges, badgesTr, badgesDe, badgesEs, badgesFr, badgesIt, lang)
 
 fun EventContext.dateLabel(lang: String = Locale.getDefault().language): String? {
+    if (determineCategory() == EventCategory.ANNOUNCEMENT && !publishedDate.isNullOrBlank()) {
+        val date = copy(startDate = publishedDate, endDate = publishedDate, publishedDate = null).dateLabel(lang)
+            ?: publishedDate
+        val label = when (lang) {
+            "tr" -> "Yayımlandı"
+            "de" -> "Veröffentlicht"
+            "es" -> "Publicado"
+            "fr" -> "Publié"
+            "it" -> "Pubblicato"
+            else -> "Published"
+        }
+        return "$label: $date"
+    }
     val start = startDate?.takeIf { it.isNotBlank() }
     val end = endDate?.takeIf { it.isNotBlank() }
     if (start == null && end == null) return null
