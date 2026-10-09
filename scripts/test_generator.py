@@ -167,10 +167,48 @@ class TestEventFeedGenerator(unittest.TestCase):
         self.assertEqual(row["sourceType"], "official")
         self.assertEqual(row["sourceUrl"], "https://pokemongo.com/news/pgo-gameplay-update-oct-2026")
         self.assertEqual((row["startDate"], row["endDate"]), ("2026-10-08", "2026-10-08"))
+        self.assertEqual(row["publishedDate"], "2026-10-08")
         for suffix in ("", "Tr", "De", "Es", "Fr", "It"):
             with self.subTest(locale=suffix or "En"):
                 self.assertTrue(row.get("summary" + suffix))
                 self.assertTrue(row.get("note" + suffix))
+
+    def test_editorial_news_may_have_no_inventory_search(self):
+        from validate_event_feed import validate_feed
+        event = {
+            "id": "event-test-news-only",
+            "title": "Gameplay updates",
+            "status": "ENDED",
+            "eventCategory": "ANNOUNCEMENT",
+            "importanceTier": "NEWS",
+            "note": "Published October 8; no event window.",
+            "summary": "Quality-of-life changes in Pokémon GO.",
+            "prep": "",
+            "suggestedSearch": "",
+            "eventNotes": "",
+            "sourceName": "Pokémon GO official news",
+            "sourceUrl": "https://pokemongo.com/news/pgo-gameplay-update-oct-2026",
+            "sourceType": "official",
+            "themeKey": "generic_event",
+            "lastUpdated": "2026-10-08",
+            "publishedDate": "2026-10-08",
+            "startDate": "2026-10-08",
+            "endDate": "2026-10-08",
+            "pokemon": []
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "feed.json")
+            def write(row):
+                with open(path, "w", encoding="utf-8") as out:
+                    json.dump({"schemaVersion": 1, "lastUpdated": "2026-10-08", "events": [row]}, out)
+            write(event)
+            self.assertTrue(validate_feed(path))
+            for category in ("MAJOR_GAMEPLAY", "LIMITED_GAMEPLAY"):
+                with self.subTest(category=category):
+                    write({**event, "eventCategory": category})
+                    self.assertFalse(validate_feed(path))
+            write({**event, "suggestedSearch": "age0"})
+            self.assertFalse(validate_feed(path))
 
     def test_halloween_part2_official_metadata_is_complete(self):
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
