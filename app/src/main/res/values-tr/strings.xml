@@ -715,4 +715,10 @@
     <string name="risk_goal_expert">Bu aramayı sen oluşturdun. PokeQuery güvenli olduğunu garanti edemez. Kullanmadan önce bütün sonuçları kontrol et.</string>
     <string name="risk_goal_fallback">Bu aramada değerli Pokémonlar da çıkabilir. İşlem yapmadan önce her sonucu Pokémon GO\'da kontrol et.</string>
     <string name="risk_goal_beta">Türkçe arama terimleri beta aşamasında. Transfer veya takastan önce sonuçları Pokémon GO\'da doğrula.</string>
+    <string name="settings_text_size">Yazı boyutu</string>
+    <string name="settings_text_size_desc">PokeQuery yazılarını rahat okuyacağın boyuta getir. Telefonun yazı boyutu ayarı da geçerlidir.</string>
+    <string name="settings_text_size_small">Küçük</string>
+    <string name="settings_text_size_default">Varsayılan</string>
+    <string name="settings_text_size_large">Büyük</string>
+    <string name="settings_text_size_extra_large">Çok büyük</string>
 </resources>
