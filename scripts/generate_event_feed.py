@@ -574,6 +574,7 @@ def generate_feed(fixture_mode, output_path):
             "year": int(start.split("-")[0]) if isinstance(start, str) and len(start) >= 4 else ev["year"],
             "startDate": start,
             "endDate": end,
+            "publishedDate": meta.get("publishedDate"),
             "start": meta.get("start", start),
             "end": meta.get("end", end),
             "summary": meta.get("summary", "Verify details in-game before acting."),
