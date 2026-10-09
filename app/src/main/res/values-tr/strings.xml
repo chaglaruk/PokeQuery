@@ -354,7 +354,7 @@
     <string name="nav_home">Ana Sayfa</string>
     <string name="nav_favorites">Favoriler</string>
     <string name="nav_history">Geçmiş</string>
-    <string name="nav_knowledge">Bilgi Bankası</string>
+    <string name="nav_knowledge">Bilgi</string>
     <string name="nav_settings">Ayarlar</string>
     <string name="home_header_desc">Pokémon GO için daha güvenli arama metinleri</string>
     <string name="home_subtitle">Ne bulmak istiyorsun?</string>
