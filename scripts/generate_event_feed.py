@@ -180,7 +180,10 @@ def validate_safety_constraints(event):
     if "|" in search:
         raise ValueError(f"Event {event['id']} has invalid suggestedSearch containing '|': {search}")
     tokens = [token.strip().lower() for token in search.split("&") if token.strip()]
-    if tokens.count("!traded") != 1 or "traded" in tokens:
+    editorial_without_search = (
+        event.get("eventCategory") == "ANNOUNCEMENT" and not search.strip()
+    )
+    if not editorial_without_search and (tokens.count("!traded") != 1 or "traded" in tokens):
         raise ValueError(f"Event {event['id']} must contain exactly one !traded exclusion: {search}")
     
     # Check for Turkish banned words
