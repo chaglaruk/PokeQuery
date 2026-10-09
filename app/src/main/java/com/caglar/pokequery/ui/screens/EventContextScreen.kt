@@ -813,14 +813,16 @@ private fun CompactEventCard(
             }
         }
         Spacer(Modifier.width(8.dp))
-        // Time remaining label
-        Text(
-            text = event.remainingTimeLabel(lang = lang),
-            color = statusColor.copy(alpha = 0.85f),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1
-        )
+        // Publication-dated news has no fictional event countdown.
+        if (!(event.determineCategory() == EventCategory.ANNOUNCEMENT && event.publishedDate != null)) {
+            Text(
+                text = event.remainingTimeLabel(lang = lang),
+                color = statusColor.copy(alpha = 0.85f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -998,8 +1000,11 @@ private fun EventDashboardContent(
     val labels = eventDashboardLabels(lang)
     val shape = RoundedCornerShape(20.dp)
     val effectiveStatus = event.effectiveStatus()
-    val timerLabel = event.remainingTimeLabel(lang = lang)
-    val badgeLabel = timerLabel
+    val badgeLabel = if (event.determineCategory() == EventCategory.ANNOUNCEMENT && event.publishedDate != null) {
+        eventStatusLabel("news", lang)
+    } else {
+        event.remainingTimeLabel(lang = lang)
+    }
     val search = event.suggestedSearch.orEmpty()
     val featuredAction = labels.featuredAction
     val tiles = event.detailTileVisibility(lang)
@@ -1596,7 +1601,13 @@ private fun EventDetailsDialog(
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.clip(RoundedCornerShape(50)).background(tone.copy(alpha = 0.18f)).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                            Text(event.remainingTimeLabel(lang = lang), color = tone, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(
+                                if (event.determineCategory() == EventCategory.ANNOUNCEMENT && event.publishedDate != null)
+                                    eventStatusLabel("news", lang) else event.remainingTimeLabel(lang = lang),
+                                color = tone,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
                         }
                         Spacer(Modifier.width(12.dp))
                         Text(event.localizedTitle(lang), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.weight(1f))
