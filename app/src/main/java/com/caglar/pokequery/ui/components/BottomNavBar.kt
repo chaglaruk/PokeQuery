@@ -18,6 +18,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,19 +54,21 @@ fun BottomNavBar(
     NavigationBar(containerColor = BottomNavBackground, contentColor = Color.White) {
         tabs.forEach { tab ->
             val selected = currentRoute == tab.route
+            val label = androidx.compose.ui.res.stringResource(tab.labelRes)
             NavigationBarItem(
+                modifier = Modifier.semantics { contentDescription = label },
                 selected = selected,
                 onClick = { onNavigate(tab.route) },
                 icon = {
                     Icon(
                         tab.icon,
-                        contentDescription = androidx.compose.ui.res.stringResource(tab.labelRes),
+                        contentDescription = null,
                         modifier = Modifier.size(26.dp)
                     )
                 },
                 label = {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(tab.labelRes),
+                        text = label,
                         // Keep identical label space for all tabs so the selected icon never jumps.
                         modifier = Modifier.alpha(if (selected) 1f else 0f),
                         fontSize = labelSize,
