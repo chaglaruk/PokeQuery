@@ -713,4 +713,10 @@
     <string name="risk_goal_expert">Du hast diese Suche selbst zusammengestellt. PokeQuery kann ihre Sicherheit nicht garantieren. Prüfe alle Treffer vor der Verwendung.</string>
     <string name="risk_goal_fallback">Diese Suche kann auch wertvolle Pokémon finden. Prüfe alle Treffer in Pokémon GO, bevor du handelst.</string>
     <string name="risk_goal_beta">Türkische Suchbegriffe sind noch in der Beta. Prüfe die Treffer in Pokémon GO vor dem Verschicken oder Tauschen.</string>
+    <string name="settings_text_size">Schriftgröße</string>
+    <string name="settings_text_size_desc">Passe die Textgröße in PokeQuery an. Die Schriftgröße des Geräts bleibt wirksam.</string>
+    <string name="settings_text_size_small">Klein</string>
+    <string name="settings_text_size_default">Standard</string>
+    <string name="settings_text_size_large">Groß</string>
+    <string name="settings_text_size_extra_large">Sehr groß</string>
 </resources>
