@@ -14,6 +14,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -64,6 +65,8 @@ fun BottomNavBar(
                 label = {
                     Text(
                         text = androidx.compose.ui.res.stringResource(tab.labelRes),
+                        // Keep identical label space for all tabs so the selected icon never jumps.
+                        modifier = Modifier.alpha(if (selected) 1f else 0f),
                         fontSize = labelSize,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                         maxLines = 1,
@@ -71,7 +74,8 @@ fun BottomNavBar(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                alwaysShowLabel = !compactLabels,
+                // Reserve the label slot for every item; only the selected label is visible.
+                alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = TealPrimary,
                     unselectedIconColor = TextSecondary,
