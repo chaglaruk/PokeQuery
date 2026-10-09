@@ -84,10 +84,11 @@ export function daysBetween(from: string, to: string | null | undefined): number
  * Mirrors Android EventContext.isVisibleForGuide.
  */
 export function isVisibleForGuide(entry: EventFeedEntry, todayIso: string): boolean {
-  if (effectiveStatus(entry, todayIso) !== 'ENDED') return true
-  if (determineCategory(entry) !== 'ANNOUNCEMENT' || !entry.publishedDate) return false
-  const elapsed = daysBetween(entry.publishedDate, todayIso)
-  return elapsed >= 0 && elapsed <= 14
+  if (determineCategory(entry) === 'ANNOUNCEMENT' && entry.publishedDate) {
+    const elapsed = daysBetween(entry.publishedDate, todayIso)
+    return elapsed >= 0 && elapsed <= 14
+  }
+  return effectiveStatus(entry, todayIso) !== 'ENDED
 }
 
 export function activeEvents(events: EventFeedEntry[], clock: Clock = systemClock): EventFeedEntry[] {
