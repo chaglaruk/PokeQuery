@@ -88,7 +88,7 @@ export function isVisibleForGuide(entry: EventFeedEntry, todayIso: string): bool
     const elapsed = daysBetween(entry.publishedDate, todayIso)
     return elapsed >= 0 && elapsed <= 14
   }
-  return effectiveStatus(entry, todayIso) !== 'ENDED
+  return effectiveStatus(entry, todayIso) !== 'ENDED'
 }
 
 export function activeEvents(events: EventFeedEntry[], clock: Clock = systemClock): EventFeedEntry[] {
