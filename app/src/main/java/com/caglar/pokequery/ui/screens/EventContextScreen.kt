@@ -784,8 +784,7 @@ private fun CompactEventCard(
                 color = TextPrimary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 13.sp,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
+                maxLines = Int.MAX_VALUE,
                 lineHeight = 17.sp
             )
             Spacer(Modifier.height(2.dp))
@@ -812,8 +811,8 @@ private fun CompactEventCard(
                         text = dateText,
                         color = TextSecondary,
                         fontSize = 10.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        lineHeight = 13.sp,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
