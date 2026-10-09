@@ -137,6 +137,8 @@ class EventContextTest {
             suggestedSearch = ""
         )
         assertEquals(EventStatus.ENDED, news.effectiveStatus("2026-10-09"))
+        assertTrue(news.dateLabel("en").orEmpty().startsWith("Published:"))
+        assertTrue(news.dateLabel("tr").orEmpty().startsWith("Yayımlandı:"))
         assertTrue(news.isVisibleForGuide("2026-10-09"))
         assertEquals(1, activeEvents(listOf(news), "2026-10-09").size)
         assertEquals(1, groupEvents(listOf(news), "2026-10-09").news.size)
