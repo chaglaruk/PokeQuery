@@ -716,4 +716,10 @@
     <string name="risk_goal_expert">Has creado esta búsqueda. PokeQuery no puede garantizar que sea segura. Revisa todos los resultados antes de usarla.</string>
     <string name="risk_goal_fallback">Esta búsqueda puede incluir Pokémon valiosos. Revisa todos los resultados en Pokémon GO antes de actuar.</string>
     <string name="risk_goal_beta">Los términos de búsqueda en turco están en fase beta. Comprueba los resultados en Pokémon GO antes de transferir o intercambiar.</string>
+    <string name="settings_text_size">Tamaño del texto</string>
+    <string name="settings_text_size_desc">Ajusta el texto de PokeQuery para leerlo cómodamente. También se respeta el tamaño elegido en el teléfono.</string>
+    <string name="settings_text_size_small">Pequeño</string>
+    <string name="settings_text_size_default">Predeterminado</string>
+    <string name="settings_text_size_large">Grande</string>
+    <string name="settings_text_size_extra_large">Muy grande</string>
 </resources>
