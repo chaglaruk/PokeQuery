@@ -79,10 +79,21 @@ export function daysBetween(from: string, to: string | null | undefined): number
  * @param events full feed list
  * @param clock injectable clock for testing; defaults to systemClock
  */
+/** Show explicitly dated editorial news for 14 days after publication.
+ * Do not turn an expired date into a fictitious active event window.
+ * Mirrors Android EventContext.isVisibleForGuide.
+ */
+export function isVisibleForGuide(entry: EventFeedEntry, todayIso: string): boolean {
+  if (effectiveStatus(entry, todayIso) !== 'ENDED') return true
+  if (determineCategory(entry) !== 'ANNOUNCEMENT' || !entry.publishedDate) return false
+  const elapsed = daysBetween(entry.publishedDate, todayIso)
+  return elapsed >= 0 && elapsed <= 14
+}
+
 export function activeEvents(events: EventFeedEntry[], clock: Clock = systemClock): EventFeedEntry[] {
   const today = clock.todayIso()
   return events
-    .filter(e => effectiveStatus(e, today) !== 'ENDED')
+    .filter(e => isVisibleForGuide(e, today))
     .sort((a, b) => {
       const sa = effectiveStatus(a, today) === 'CURRENT' ? 0 : 1
       const sb = effectiveStatus(b, today) === 'CURRENT' ? 0 : 1
@@ -196,7 +207,7 @@ export function selectMainEvent(events: EventFeedEntry[], todayIso: string): Eve
 export function groupEvents(events: EventFeedEntry[], clock: Clock = systemClock): EventSections {
   const today = clock.todayIso()
   const active = events
-    .filter(e => effectiveStatus(e, today) !== 'ENDED')
+    .filter(e => isVisibleForGuide(e, today))
     // deduplicate by canonical event key (Android: canonicalEventKey)
     .filter((e, idx, arr) => arr.findIndex(x => canonicalEventKey(x.id) === canonicalEventKey(e.id)) === idx)
   const featured = selectMainEvent(active, today)
