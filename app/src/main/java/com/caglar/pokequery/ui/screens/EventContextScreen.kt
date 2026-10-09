@@ -1347,33 +1347,35 @@ private fun EventGroupCard(
     onOpen: (EventDialogContent) -> Unit,
     cardKey: String? = null
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(CardPremium.copy(alpha = 0.86f))
             .border(1.dp, tone.copy(alpha = 0.24f), RoundedCornerShape(16.dp))
             .clickable { onOpen(EventDialogContent(title, badge, detailBody, action, spriteKey, cardKey)) }
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(12.dp)
     ) {
-        EventSprite(spriteKey, tone, Modifier.size(52.dp))
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                badge,
-                color = tone,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                    .background(tone.copy(alpha = 0.12f))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-            Spacer(Modifier.height(5.dp))
-            Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = bodyMaxLines, overflow = TextOverflow.Ellipsis)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            EventSprite(spriteKey, tone, Modifier.size(52.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    badge,
+                    color = tone,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                        .background(tone.copy(alpha = 0.12f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
         }
+        // Long localized words also need the full width inside the narrower detail dialog.
+        Spacer(Modifier.height(5.dp))
+        Text(body, color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, maxLines = bodyMaxLines, overflow = TextOverflow.Ellipsis)
     }
 }
 
