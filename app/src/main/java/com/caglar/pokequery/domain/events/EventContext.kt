@@ -27,6 +27,7 @@ data class EventContext(
     val year: Int? = null,
     val startDate: String? = null,
     val endDate: String? = null,
+    val publishedDate: String? = null,
     val startText: String? = null,
     val endText: String? = null,
     val summaryText: String? = null,
@@ -245,7 +246,7 @@ data class EventSections(
 
 fun groupEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): EventSections {
     val active = events
-        .filter { it.effectiveStatus(todayIso) != EventStatus.ENDED }
+        .filter { it.isVisibleForGuide(todayIso) }
         .distinctByCanonicalEvent()
     val featured = selectMainEvent(active, todayIso)
     val rest = active.filter { it.id != featured?.id }
@@ -690,11 +691,22 @@ private fun localizedTimerLabel(key: String, arg: String = "", lang: String): St
     else -> arg
 }
 
+/** An announcement is news, not an active gameplay event.
+ * The publication date is separate from the in-game event dates.
+ * Show editorial news for fourteen calendar days without extending any event window.
+ */
+fun EventContext.isVisibleForGuide(todayIso: String = todayIsoDate()): Boolean {
+    if (effectiveStatus(todayIso) != EventStatus.ENDED) return true
+    if (determineCategory() != EventCategory.ANNOUNCEMENT) return false
+    val publication = publishedDate ?: return false
+    return daysBetween(publication, todayIso) in 0..14
+}
+
 /**
  * Filters out events that have ended based on their date window. Pure function.
  */
 fun activeEvents(events: List<EventContext>, todayIso: String = todayIsoDate()): List<EventContext> =
-    events.filter { it.effectiveStatus(todayIso) != EventStatus.ENDED }
+    events.filter { it.isVisibleForGuide(todayIso) }
         .sortedWith(compareBy<EventContext> {
             if (it.effectiveStatus(todayIso) == EventStatus.CURRENT) 0 else 1
         }.thenBy {
