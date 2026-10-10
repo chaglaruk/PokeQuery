@@ -1,15 +1,15 @@
 # PokeQuery Android 0.7.8 release status
 
 Date: 2026-10-10
-Decision: **RELEASE_PR_READY_FOR_REVIEW**
+Decision: **SOURCE PREPARATION — REVIEW IN PROGRESS**. Initial technical checks passed, but final post-review source/CI and independent merge must be checked afresh.
 
 ## Source and merge gate
 
 - Verified merged master: `005a81a9effa8c56720b34dd334d9c9753de1784` (PR #47, merged).
 - Release preparation branch: `release/v0.7.8`.
-- Release preparation commit: `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`.
+- Initial Android version-bump commit: `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e` (this **includes** the 0.7.8/code28 change; `005a81a9...` is its 0.7.7/code27 baseline).
 - Release PR: https://github.com/chaglaruk/PokeQuery/pull/48
-- PR #48 is open, exact head is `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`, merge state CLEAN, and it has not been merged by this task.
+- PR #48 is open for independent review. Its head may advance for review fixes: fetch the current PR HEAD and exact-head CI immediately before merge, rather than using an earlier report SHA as the release source.
 - Verified immutable Android v0.7.7 source: `93bf178f942048e0fee8cbb47976b23f86ecde3f` (`v0.7.7`, code 27).
 - Web/PWA remains independently versioned at 0.7.3.
 
@@ -20,8 +20,8 @@ Decision: **RELEASE_PR_READY_FOR_REVIEW**
 - `AppVersion`, the app Changelog, six localized Changelog resource sets, release notes, and listing preparation docs now describe the actual 0.7.8 source candidate.
 - Android unit tests and debug assembly passed locally.
 - Android release bundle configuration passed locally without signing credentials; this produced an unsigned local AAB only.
-- GitHub Android CI run [38006484206](https://github.com/chaglaruk/PokeQuery/actions/runs/38006484206) passed all unit, lint, debug build, golden corpus, Event fallback, generator safety, feed, and runtime asset jobs at the exact PR head.
-- GitHub documentation validation run [38006484346](https://github.com/chaglaruk/PokeQuery/actions/runs/38006484346) passed.
+- GitHub Android CI run [38006484206](https://github.com/chaglaruk/PokeQuery/actions/runs/38006484206) passed all unit, lint, debug build, golden corpus, Event fallback, generator safety, feed, and runtime asset jobs at **initial version-bump commit** `d6f0268f...`. Later commits require their own exact-head CI.
+- GitHub documentation validation run [38006484346](https://github.com/chaglaruk/PokeQuery/actions/runs/38006484346) passed at the initial version-bump commit; newer commits require revalidation.
 - CodeRabbit status on PR #48 is SUCCESS.
 - Local golden corpus and canonical/Android/Web Event fallback SHA-256 parity passed.
 - Local generator safety, enrichment, feed validation, and runtime asset checks passed.
@@ -52,6 +52,12 @@ Decision: **RELEASE_PR_READY_FOR_REVIEW**
 - Six Event images remain rejected/pending.
 - Current status: **24/30 previous evidence only; 30/30 new release QA NOT DONE**.
 - The required 30-cell recapture plan remains: EN/TR/DE/ES/FR/IT, real release UI, current truthful Event Guide data, 1080x1920 RGB PNG output, source provenance, SHA-256 manifest, ZIP integrity, and complete QA before any production rollout.
+
+## Post-review corrections
+
+- Independent review identified five P2 issues: baseline SHA mislabeled as 0.7.8 source, v0.7.7 history provenance overwritten, stale release-plan status, archived 0.7.7 locale copy falling back to English, and missing PR #43–#47 scope in release plan.
+- The release branch now preserves `what_changed_v077_*` translations for archived 0.7.7 Changelog entries and tests that the archived resources remain in all six locales. Release documentation distinguishes the **0.7.7 baseline**, **first version-bump SHA**, and **final merged release SHA** instead of hardcoding a moving candidate HEAD.
+- These fixes require new final-head CI and independent verification before merge. Do not mark review comments resolved until their exact corrective changes have been inspected.
 
 ## Protection and remaining blockers
 
