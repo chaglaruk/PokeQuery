@@ -2,14 +2,14 @@
 
 Notable changes to PokeQuery. Dates are grouped by release.
 
-The Android release candidate is **0.7.8** (`versionCode 28`), based on merged source `005a81a9effa8c56720b34dd334d9c9753de1784`.
+The published Android version remains **0.7.7** (`versionCode 27`), from immutable source `93bf178f942048e0fee8cbb47976b23f86ecde3f`. The **0.7.8/code28 release candidate** is on `release/v0.7.8`; its version bump began at `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`, based on merged PR #47 source `005a81a9effa8c56720b34dd334d9c9753de1784`. Pin the final merged release SHA before signing.
 The Web/PWA version remains **0.7.3** and is versioned independently.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
-## [0.7.8] — Event Guide, accessibility, and safer review
+## [0.7.8] — Event Guide, accessibility, and safer review (release candidate; not yet published)
 
 - Event Guide cards now show verified bonuses, retailer, purchase, redemption, date, and regional conditions, with localized detail views and synchronized offline fallbacks.
 - Copy, Share, Risk Warning, navigation, and large-text layouts are clearer while generated searches remain local and pipe-free.
@@ -41,7 +41,7 @@ Six-language release notes are in [V078_WHATS_NEW_DRAFT.md](docs/release/V078_WH
 - Final PWA growth head passed typecheck, lint, unit tests, production build, Chromium/WebKit Playwright E2E and mobile visual QA.
 - Physical Android validation covered low/Info Share, Medium-risk Share gating, Search Assistant `hundo -> 4*`, Medium-risk `shiny` clipboard protection, localized German `schillernd` copy, and EN/TR/DE/ES/FR/IT visual checks.
 - Release-branch locale regression coverage requires the dedicated v0.7.7 Changelog key set in EN/TR/DE/ES/FR/IT and rejects stale v0.6.6 keys in those new resource files.
-- The v0.7.8 release branch is based on exact merged master SHA `005a81a9effa8c56720b34dd334d9c9753de1784`; release-branch CI and signed-AAB verification are separate gates.
+- The v0.7.7 release branch was based on exact merged master SHA `fb00bcdbeee1d8694684835375af89a6aece0221`; v0.7.7 release-branch CI and signed-AAB verification were separate release gates.
 
 ---
 
