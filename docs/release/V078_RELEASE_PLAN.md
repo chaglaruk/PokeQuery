@@ -1,10 +1,10 @@
 # Android v0.7.8 release gates — 2026-10-10
 
-SOURCE PREPARED, NOT PUBLISHED. Release source candidate: versionName **0.7.8**, versionCode **28**, based on merged master `005a81a9effa8c56720b34dd334d9c9753de1784`. Current production remains Android 0.7.7/code 27; Web/PWA remains independently versioned at 0.7.3. This document authorizes no tag, signing, upload or production replacement.
+SOURCE PREPARED, NOT PUBLISHED. Android **0.7.8/code28** is on the release branch `release/v0.7.8` (initial version bump commit `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`). Its **pre-release baseline** is merged master `005a81a9effa8c56720b34dd334d9c9753de1784` (still 0.7.7/code27). Production remains Android 0.7.7/code27; Web/PWA is independently versioned at 0.7.3. Use the final reviewed and merged release commit, not the baseline, for signing. No publication or release signing has occurred.
 
 ## Source and changes
 
-Published Android source: `93bf178f942048e0fee8cbb47976b23f86ecde3f`, the peeled `v0.7.7` tag. Release preparation source: `005a81a9effa8c56720b34dd334d9c9753de1784`. Feed-only commits may move master after this source; use the exact reviewed SHA for release work.
+Published Android source: `93bf178f942048e0fee8cbb47976b23f86ecde3f`, the peeled `v0.7.7` tag. The **0.7.8 baseline** is `005a81a9effa8c56720b34dd334d9c9753de1784`, and the **first 0.7.8 version-bump source** is `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`. Later release-branch corrections may advance the head. Recheck and pin the exact merged release SHA and CI before building any distributable artifact.
 
 Merged after the immutable release:
 
@@ -14,61 +14,18 @@ Merged after the immutable release:
 - PR #37: growth/roadmap documentation; no public experiment was started by this preparation.
 - PR #41: official-source TCG event feed correction; synchronized canonical, Android and Web fallbacks.
 - PR #42: truthful Event Guide bonus cards and complete TCG conditions, localized detail dialogs, German Candy Prep title wrapping and correct relative-day labels. The source is merged; Play 0.7.7 does not contain the new rendering.
+- PR #43: Knowledge Base reference copying guard; released query output never includes unverified reference placeholders or pipes.
+- PR #44: Web/PWA SEO and mobile navigation improvements; Android/Web release versions remain separate.
+- PR #45: pre-release documentation and six-language Play listing preparation, not Android runtime functionality.
+- PR #46: verified Halloween Part II vs GO Pass source-date/feed classification corrections.
+- PR #47: Event Guide editorial-news classification and timing, localized status, copy/risk/readability fixes, four local text sizes, equal bottom-nav icon alignment and accessible Settings targets.
 - Scheduled feed-only changes are public event data updates, not Android releases.
 
-The new Knowledge Base copy guard is a separate review candidate. Include its release-note sentence only if its PR is reviewed, explicitly authorized for merge, and included in the final release source. The SEO and documentation PRs do not change Android version metadata.
+The Knowledge Base guard **is included** in the selected release baseline. Do not describe it as conditional. Web/SEO changes do not imply an Android or Web version bump on their own.
 
-## Proposed What's New — six locales
+## Final six-language What's New drafts
 
-Use these as short release notes and Play What's New drafts. All are under 500 characters including newlines; publication must match the final approved source. Existing protections do not imply guaranteed safe transfer. A native-speaker review is recommended for DE/ES/FR/IT.
-
-### EN
-
-• Event Guide shows actual bonuses and retailer, purchase and redemption conditions on event cards.
-• Event details follow the app language. German Candy Prep titles and relative event-day labels display correctly.
-• Searches remain local, with manual review before any action in Pokémon GO.
-
-Conditional addition: Knowledge Base reference templates can no longer be copied as complete searches.
-
-### TR
-
-• Etkinlik Rehberi, gerçek bonusları ve mağaza, satın alma ve kod kullanımı koşullarını etkinlik kartlarında gösterir.
-• Etkinlik ayrıntıları uygulama dilini izler. Almanca Şeker Hazırlığı başlığı ve etkinliğe kalan gün etiketleri düzeltildi.
-• Aramalar yerel kalır; Pokémon GO'da işlem yapmadan önce sonuçları kendin incelersin.
-
-Conditional addition: Bilgi Bankası'ndaki açıklama şablonları artık tamamlanmış arama olarak kopyalanamaz.
-
-### DE
-
-• Der Event-Guide zeigt tatsächliche Boni sowie Händler-, Kauf- und Einlösebedingungen direkt auf den Event-Karten.
-• Event-Details folgen der App-Sprache. Deutsche Titel zur Bonbon-Planung und relative Tagesangaben werden korrekt angezeigt.
-• Suchen bleiben lokal. Prüfe die Ergebnisse vor jeder Aktion in Pokémon GO selbst.
-
-Conditional addition: Referenzvorlagen der Wissensdatenbank lassen sich nicht mehr als vollständige Suchen kopieren.
-
-### ES
-
-• La guía muestra los bonus reales y las condiciones de tiendas, compra y canje en las tarjetas de eventos.
-• Los detalles siguen el idioma de la app. Se corrigen los títulos alemanes de preparación de caramelos y las etiquetas de días relativos.
-• Las búsquedas siguen siendo locales. Revisa los resultados antes de actuar en Pokémon GO.
-
-Conditional addition: Las plantillas de referencia ya no se pueden copiar como búsquedas completas.
-
-### FR
-
-• Le guide affiche les bonus réels et les conditions liées aux magasins, achats et codes sur les cartes d’événements.
-• Les détails suivent la langue de l’app. Les titres allemands de préparation des Bonbons et les indications de jours relatifs sont corrigés.
-• Les recherches restent locales. Vérifiez les résultats avant toute action dans Pokémon GO.
-
-Conditional addition: Les modèles de référence ne peuvent plus être copiés comme recherches complètes.
-
-### IT
-
-• La guida mostra i bonus reali e le condizioni dei negozi, degli acquisti e dei codici sulle schede degli eventi.
-• I dettagli seguono la lingua dell’app. Sono corretti i titoli tedeschi della preparazione delle caramelle e le etichette dei giorni relativi.
-• Le ricerche restano locali. Controlla i risultati prima di agire in Pokémon GO.
-
-Conditional addition: I modelli di riferimento non si possono più copiare come ricerche complete.
+Use [the dedicated 0.7.8 release-note draft](V078_WHATS_NEW_DRAFT.md) for EN/TR/DE/ES/FR/IT; this older proposal was superseded after PRs #43–#47 merged. The complete release note now includes Knowledge Base copy guards, optional text sizing and editorial Event Guide date handling. The publisher must confirm final Play Console locale previews. Never claim automatic Pokémon GO actions or guaranteed transfer safety.
 
 ## Exact release gates — perform only after separate authorization
 
@@ -98,15 +55,15 @@ Verify the [official Pokémon GO announcement](https://pokemongo.com/news/tcg-30
 
 ## Final six-screenshot recapture sequence
 
-1. Snapshot the existing growth manifest/hashes first. Verify all **24 PASS** assets plus their raw PNG/XML/JSON companions; do not rename, recompress, restyle or overwrite them. Keep all six rejected Event captures and rejection evidence in history.
+1. Search only bounded known evidence/backups and existing Play Console listing images for the previously approved 24 assets. Their local approved bytes/manifest were **not recovered as of 2026-10-10**; do not claim hash verification. If recovered, verify against the original manifest; otherwise recapture and review all 30 cells. Retain rejection history for the six former Event examples.
 2. Require the exact future Play-installed build/signature gate above. A debug or .visualqa capture never counts as a production store replacement.
 3. Assess the event at the actual intended publication date. Before 20 October, TCG may be truthful if still active, with US and purchase conditions readable. Its separate code window to 31 October is not evidence that the whole event remains active. After the event expires or when publication would immediately outlive the example, use a fresh officially sourced current event or a genuinely evergreen Event Guide workflow. Do not edit dates in pixels or fabricate an active event.
 4. Open Event Guide, use normal Refresh, verify feed/cache/source/date/region/bonuses, then choose EN/TR/DE/ES/FR/IT via App Language. Check language on summary, card conditions and detail heading. Keep Search String Language independent.
 5. Capture exactly one new raw real Event screen per language, with full source evidence. If necessary keep supporting raw detail captures for QA; never cover warnings or hide contradictory content to fit the primary picture.
 6. Compose only these six slots as 1080×1920 RGB/no-alpha PNGs with appropriate localized promotional headlines. Fit device UI proportionally. No Pokémon artwork, fictional capability, retouched UI text or generated query containing a pipe.
-7. Inspect date/source/conditions, clipping, text density, headline fit, contrast, risk warnings and localization. Rebuild all six contact sheets with the **same 24 approved PNG bytes** plus six new Event PNGs.
-8. Update RESULT.md, qa-results.json, capture/asset manifests and growth ZIP. Verify every final hash, all archive members and CRC integrity. Report GROWTH ASSET GATE: PASS only when all 30 final cells pass. Until then preserve **24/30 PASS, six rejected**.
+7. Inspect date/source/conditions, clipping, text density, headline fit, contrast, risk warnings and localization. Rebuild all six language contact sheets using verified restored images if available; otherwise include all 30 newly recaptured and reviewed cells. Never substitute unverified bytes for the lost 24 approved originals.
+8. Update RESULT.md, qa-results.json, capture/asset manifests and growth ZIP. Verify every final hash, all archive members and CRC integrity. Report GROWTH ASSET GATE: PASS only when all 30 final cells pass. Until then report **historical 24/30 evidence only, zero locally reverified originals, six formerly rejected Event slots**.
 
 ## Remaining gates before publication
 
-Explicit PR merge/release/signing/upload/publishing authorization; final version/source/CI and AAB gates; large-font/release-device regression; a genuine Play 0.7.8 installation; six fresh production Event captures and complete 30-cell QA; final publisher/native-language listing review. These are deliberately pending. No Android/Web version was bumped and no signed release was built during preparation.
+The 0.7.8/code28 Android **source version bump has been prepared on the release branch**, while Web/PWA remains 0.7.3. Still pending: independent release-PR merge and final source/CI pin, authorised signing, bundletool/certificate validation, Play Console draft acceptance, release-device and genuine Play-installed evidence, recovery or recapture and review of all 30 store cells, and final publisher/native-language listing review. A signed release AAB and production rollout have **not** been completed.
