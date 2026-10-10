@@ -654,6 +654,9 @@ fun ChangelogScreen(onBack: () -> Unit) {
                         Text("v${entry.versionName} (${entry.versionCode})", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                         if (entry.isCurrent) {
                             Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_subtitle), color = TextSecondary, fontSize = 12.sp)
+                        } else if (entry.versionName == "0.7.7") {
+                            // Retain localized historical copy after 0.7.8 becomes current.
+                            Text(stringResource(R.string.what_changed_v077_subtitle), color = TextSecondary, fontSize = 12.sp)
                         } else {
                             Text("${entry.releaseLabel} \u2022 ${entry.title}", color = TextSecondary, fontSize = 12.sp)
                         }
@@ -667,6 +670,14 @@ fun ChangelogScreen(onBack: () -> Unit) {
                     Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_b1), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
                     Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_b2), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
                     Text(androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_b3), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                } else if (entry.versionName == "0.7.7") {
+                    listOf(
+                        R.string.what_changed_v077_b1,
+                        R.string.what_changed_v077_b2,
+                        R.string.what_changed_v077_b3
+                    ).forEach { resource ->
+                        Text(stringResource(resource), color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                    }
                 } else {
                     entry.highlights.forEach { Text("\u2022 $it", color = TextPrimary, fontSize = 13.sp, lineHeight = 18.sp) }
                 }
@@ -677,6 +688,10 @@ fun ChangelogScreen(onBack: () -> Unit) {
                         androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_safety1),
                         androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_safety2),
                         androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_safety3)
+                    ) else if (entry.versionName == "0.7.7") listOf(
+                        stringResource(R.string.what_changed_v077_safety1),
+                        stringResource(R.string.what_changed_v077_safety2),
+                        stringResource(R.string.what_changed_v077_safety3)
                     ) else entry.safetyNotes
                     safetyNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
                 }
@@ -687,6 +702,10 @@ fun ChangelogScreen(onBack: () -> Unit) {
                         androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_tester1),
                         androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_tester2),
                         androidx.compose.ui.res.stringResource(com.caglar.pokequery.R.string.what_changed_v078_tester3)
+                    ) else if (entry.versionName == "0.7.7") listOf(
+                        stringResource(R.string.what_changed_v077_tester1),
+                        stringResource(R.string.what_changed_v077_tester2),
+                        stringResource(R.string.what_changed_v077_tester3)
                     ) else entry.testerNotes
                     testerNotes.forEach { Text("\u2022 $it", color = TextSecondary, fontSize = 12.sp, lineHeight = 16.sp) }
                 }
