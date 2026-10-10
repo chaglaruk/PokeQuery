@@ -50,5 +50,5 @@ for locale in locales:
     assert section, f'{locale}: empty release notes'
     assert len(section) <= 500, f'{locale}: notes exceed 500 characters'
     assert '|' not in section, f'{locale}: generated-search pipe should not appear in store notes'
-    assert any(term in section.lower() for term in ['knowledge', 'bilgi bankası', 'wissensdatenbank', 'referencia', 'référence', 'riferimento']), f'{locale}: included knowledge copy guard omitted from notes'
+    assert any(term in section.lower() for term in ['knowledge', 'bilgi bankası', 'wissensdatenbank', 'referenzvorlagen', 'referencia', 'référence', 'riferimento']), f'{locale}: included knowledge copy guard omitted from notes'
 print(f'PASS: {len(FILES)} documents, {links} local links, six listing limits/counts and six current release-note limits.')
