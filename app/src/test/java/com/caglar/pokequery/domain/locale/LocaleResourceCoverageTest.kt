@@ -151,6 +151,27 @@ class LocaleResourceCoverageTest {
     }
 
     @Test
+    fun `archived v077 changelog translations remain available in all six locales`() {
+        val keys077 = setOf(
+            "what_changed_v077_subtitle",
+            "what_changed_v077_b1",
+            "what_changed_v077_b2",
+            "what_changed_v077_b3",
+            "what_changed_v077_safety1",
+            "what_changed_v077_safety2",
+            "what_changed_v077_safety3",
+            "what_changed_v077_tester1",
+            "what_changed_v077_tester2",
+            "what_changed_v077_tester3"
+        )
+        listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
+            val path = "src/main/res/$dir/changelog_v077.xml"
+            assertTrue("$dir missing archived v0.7.7 changelog", File(path).isFile)
+            assertEquals("$dir archived v0.7.7 resource keys", keys077, keys(path))
+        }
+    }
+
+    @Test
     fun `knowledge tier risk accepts string tier value`() {
         listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
             val text = File("src/main/res/$dir/strings.xml").readText(Charsets.UTF_8)
