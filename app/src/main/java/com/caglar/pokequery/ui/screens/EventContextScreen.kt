@@ -1683,7 +1683,7 @@ private fun PrepChecklist(items: List<String>) {
                 Spacer(Modifier.width(10.dp))
                 Text(
                     text = label,
-                    color = if (checked[index]) TextTertiary else TextPrimary,
+                    color = if (checked[index]) TextSecondary else TextPrimary,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
                     textDecoration = if (checked[index]) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
