@@ -831,7 +831,7 @@ private fun CompactEventCard(
     }
 }
 
-private data class EventDashboardLabels(
+internal data class EventDashboardLabels(
     val featuredPokemon: String,
     val featuredBadge: String,
     val featuredAction: String,
@@ -854,10 +854,10 @@ private data class EventDashboardLabels(
     val copySearch: String
 )
 
-private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lang) {
+internal fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lang) {
     "tr" -> EventDashboardLabels(
         featuredPokemon = "Öne Çıkan Pokémon",
-        featuredBadge = "Nadir ve Kostümlü",
+        featuredBadge = "Yakalamaları incele",
         featuredAction = "Nadir, farklı renkli, kostümlü veya özel arka planlı yakalamalarınızı temizlik öncesi etiketleyerek koruyun.",
         raids = "Akın hedefleri",
         raidsBadge = "Akın Hazırlığı",
@@ -879,7 +879,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
     )
     "de" -> EventDashboardLabels(
         featuredPokemon = "Im Rampenlicht",
-        featuredBadge = "Shiny + Kostüm",
+        featuredBadge = "Fänge prüfen",
         featuredAction = "Seltene, schillernde, kostümierte und Hintergrund-Fänge vor dem Aufräumen taggen.",
         raids = "Raid-Ziele",
         raidsBadge = "Raid-Vorbereitung",
@@ -901,7 +901,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
     )
     "es" -> EventDashboardLabels(
         featuredPokemon = "Pokémon destacado",
-        featuredBadge = "Shiny + disfraz",
+        featuredBadge = "Revisar capturas",
         featuredAction = "Etiqueta capturas raras, shiny, con disfraz o con fondo antes de limpiar.",
         raids = "Objetivos de raid",
         raidsBadge = "Preparar incursiones",
@@ -923,7 +923,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
     )
     "fr" -> EventDashboardLabels(
         featuredPokemon = "Pokémon en vedette",
-        featuredBadge = "Shiny + costume",
+        featuredBadge = "Vérifier les captures",
         featuredAction = "Marque les captures rares, shiny, costumées ou avec arrière-plan avant le tri.",
         raids = "Cibles de raid",
         raidsBadge = "Prépa raids",
@@ -945,7 +945,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
     )
     "it" -> EventDashboardLabels(
         featuredPokemon = "Pokémon in evidenza",
-        featuredBadge = "Shiny + costume",
+        featuredBadge = "Controlla le catture",
         featuredAction = "Tagga catture rare, shiny, in costume o con sfondo prima della pulizia.",
         raids = "Obiettivi raid",
         raidsBadge = "Preparazione raid",
@@ -967,7 +967,7 @@ private fun eventDashboardLabels(lang: String): EventDashboardLabels = when (lan
     )
     else -> EventDashboardLabels(
         featuredPokemon = "Featured Pokémon",
-        featuredBadge = "Shiny + costume",
+        featuredBadge = "Review catches",
         featuredAction = "Tag rare, shiny, costume, and background catches before cleanup.",
         raids = "Raid targets",
         raidsBadge = "Raid prep",
