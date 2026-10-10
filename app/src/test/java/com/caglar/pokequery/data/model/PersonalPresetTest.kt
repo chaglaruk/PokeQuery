@@ -82,6 +82,6 @@ class AppVersionReferenceTest {
     @Test
     fun `app version is the v0_7_8 release`() {
         assertEquals("0.7.8", AppVersion.versionName)
-        assertEquals(28, AppVersion.versionCode)
+        assertEquals(29, AppVersion.versionCode)
     }
 }

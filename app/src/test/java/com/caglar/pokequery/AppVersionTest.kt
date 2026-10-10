@@ -15,7 +15,7 @@ class AppVersionTest {
     @Test
     fun `display version matches the v0-dot-7-dot-8 release`() {
         assertEquals("0.7.8", AppVersion.versionName)
-        assertEquals(28, AppVersion.versionCode)
+        assertEquals(29, AppVersion.versionCode)
     }
 
     @Test

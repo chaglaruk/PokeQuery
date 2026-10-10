@@ -14,7 +14,7 @@ android {
         applicationId = "com.caglar.pokequery"
         minSdk = 24
         targetSdk = 36
-        versionCode = 28
+        versionCode = 29
         versionName = "0.7.8"
     }
 

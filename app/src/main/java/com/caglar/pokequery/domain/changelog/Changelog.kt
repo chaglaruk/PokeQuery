@@ -15,7 +15,7 @@ object Changelog {
     val entries = listOf(
         ChangelogEntry(
             versionName = "0.7.8",
-            versionCode = 28,
+            versionCode = 29,
             releaseLabel = "Release",
             title = "Event Guide & Accessibility",
             highlights = listOf(
