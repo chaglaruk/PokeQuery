@@ -2,7 +2,7 @@
 
 Notable changes to PokeQuery. Dates are grouped by release.
 
-The published Android version remains **0.7.7** (`versionCode 27`), from immutable source `93bf178f942048e0fee8cbb47976b23f86ecde3f`. The **0.7.8/code28 release candidate** is on `release/v0.7.8`; its version bump began at `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`, based on merged PR #47 source `005a81a9effa8c56720b34dd334d9c9753de1784`. Pin the final merged release SHA before signing.
+Android production remains **0.7.7/code27**, immutable release source `93bf178f942048e0fee8cbb47976b23f86ecde3f`. The signed **0.7.8/code28** artifact from `57b4f8d8d50630af6632ef5730f20978c18ba948` is an **unpublished Play Console draft**. After Event Guide correctness/accessibility PR #49 merged at `64ba28687efe5fdd9a8bf71af2f625f949e91b6b`, the revised **0.7.8/code29** candidate is prepared on `release/v0.7.8-code29`. Pin its final reviewed merge SHA before signing or replacing the draft.
 The Web/PWA version remains **0.7.3** and is versioned independently.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
@@ -10,6 +10,8 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/).
 ---
 
 ## [0.7.8] — Event Guide, accessibility, and safer review (release candidate; not yet published)
+
+- The code29 revision removes generic Shiny/costume claims from Event Guide Featured badges in six languages and improves checked-checklist text contrast.
 
 - Event Guide cards now show verified bonuses, retailer, purchase, redemption, date, and regional conditions, with localized detail views and synchronized offline fallbacks.
 - Copy, Share, Risk Warning, navigation, and large-text layouts are clearer while generated searches remain local and pipe-free.
