@@ -1,6 +1,6 @@
 # Android 0.7.8 — What's New
 
-Source candidate: merged master `005a81a9effa8c56720b34dd334d9c9753de1784`, Android `0.7.8` / code `28`. Web/PWA remains `0.7.3`. These notes must match the final Play listing; signing, upload, and rollout remain separately gated.
+Android 0.7.8/code28 release candidate is on `release/v0.7.8`; its initial version-bump commit is `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`. Merged master `005a81a9effa8c56720b34dd334d9c9753de1784` is only the **pre-release baseline** (0.7.7/code27). Pin the final merged 0.7.8 SHA before signing. Web/PWA remains 0.7.3. These notes require final Play locale review; signing, upload and rollout remain separately gated.
 
 ## EN
 
