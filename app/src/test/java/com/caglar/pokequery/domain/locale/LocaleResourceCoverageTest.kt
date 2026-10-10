@@ -129,8 +129,30 @@ class LocaleResourceCoverageTest {
     }
 
     @Test
-    fun `v077 changelog resources exist in all supported locales`() {
+    fun `v078 changelog resources exist in all supported locales`() {
         val changelogKeys = setOf(
+            "what_changed_v078_subtitle",
+            "what_changed_v078_b1",
+            "what_changed_v078_b2",
+            "what_changed_v078_b3",
+            "what_changed_v078_safety1",
+            "what_changed_v078_safety2",
+            "what_changed_v078_safety3",
+            "what_changed_v078_tester1",
+            "what_changed_v078_tester2",
+            "what_changed_v078_tester3"
+        )
+        listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
+            val path = "src/main/res/$dir/changelog_v078.xml"
+            assertTrue("$dir missing v0.7.8 changelog resource file", File(path).isFile)
+            assertEquals("$dir v0.7.8 changelog keys", changelogKeys, keys(path))
+            assertFalse("$dir v0.7.8 changelog file must not retain stale v0.6.6 keys", File(path).readText(Charsets.UTF_8).contains("what_changed_v066_"))
+        }
+    }
+
+    @Test
+    fun `archived v077 changelog translations remain available in all six locales`() {
+        val keys077 = setOf(
             "what_changed_v077_subtitle",
             "what_changed_v077_b1",
             "what_changed_v077_b2",
@@ -144,9 +166,8 @@ class LocaleResourceCoverageTest {
         )
         listOf("values", "values-tr", "values-de", "values-es", "values-fr", "values-it").forEach { dir ->
             val path = "src/main/res/$dir/changelog_v077.xml"
-            assertTrue("$dir missing v0.7.7 changelog resource file", File(path).isFile)
-            assertEquals("$dir v0.7.7 changelog keys", changelogKeys, keys(path))
-            assertFalse("$dir v0.7.7 changelog file must not retain stale v0.6.6 keys", File(path).readText(Charsets.UTF_8).contains("what_changed_v066_"))
+            assertTrue("$dir missing archived v0.7.7 changelog", File(path).isFile)
+            assertEquals("$dir archived v0.7.7 resource keys", keys077, keys(path))
         }
     }
 

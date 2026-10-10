@@ -36,9 +36,19 @@ for locale in locales:
         assert len(text) <= limit, f'{locale}: {label} exceeds {limit}'
         assert '|' not in text, f'{locale}: unexpected pipe in listing copy'
 
+# The release plan is an operational gate; the dedicated draft is the sole
+# source for current six-language Play What's New copy.
 plan = (ROOT / 'docs/release/V078_RELEASE_PLAN.md').read_text(encoding='utf-8')
+assert '[the dedicated 0.7.8 release-note draft](V078_WHATS_NEW_DRAFT.md)' in plan, 'Release plan must link to current notes'
+assert 'Conditional addition:' not in plan, 'Stale conditional release notes still present'
+
+draft = (ROOT / 'docs/release/V078_WHATS_NEW_DRAFT.md').read_text(encoding='utf-8')
 for locale in locales:
-    section = plan.split(f'### {locale}\n\n', 1)[1].split('\n##', 1)[0]
-    notes, addition = section.split('\n\nConditional addition: ', 1)
-    assert len(notes + '\n' + addition.strip()) <= 500, f'{locale}: combined proposed notes exceed 500'
-print(f'PASS: {len(FILES)} documents, {links} local links, six listing limits/counts and six release-note limits.')
+    delimiter = f'## {locale}\n\n'
+    assert draft.count(delimiter) == 1, f'{locale}: release notes missing or duplicated'
+    section = draft.split(delimiter, 1)[1].split('\n## ', 1)[0].strip()
+    assert section, f'{locale}: empty release notes'
+    assert len(section) <= 500, f'{locale}: notes exceed 500 characters'
+    assert '|' not in section, f'{locale}: generated-search pipe should not appear in store notes'
+    assert any(term in section.lower() for term in ['knowledge', 'bilgi bankası', 'wissensdatenbank', 'referenzvorlagen', 'referencia', 'référence', 'riferimento']), f'{locale}: included knowledge copy guard omitted from notes'
+print(f'PASS: {len(FILES)} documents, {links} local links, six listing limits/counts and six current release-note limits.')

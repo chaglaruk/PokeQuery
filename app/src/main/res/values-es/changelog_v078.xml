@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v078_subtitle">Versión • Guía de eventos y accesibilidad</string>
+    <string name="what_changed_v078_b1">• Las tarjetas muestran bonus verificados y condiciones de tienda, compra, canje, fecha y región.</string>
+    <string name="what_changed_v078_b2">• Copiar, compartir, avisos de riesgo, navegación y texto grande son más claros.</string>
+    <string name="what_changed_v078_b3">• Las plantillas de referencia no se pueden copiar como búsquedas completas.</string>
+    <string name="what_changed_v078_safety1">Las búsquedas generadas nunca usan |; las acciones en Pokémon GO siguen siendo manuales.</string>
+    <string name="what_changed_v078_safety2">Las copias y los envíos de riesgo medio o alto requieren revisión antes de continuar.</string>
+    <string name="what_changed_v078_safety3">No se añadieron inicio de sesión, seguimiento, analítica, anuncios ni acceso a cuentas.</string>
+    <string name="what_changed_v078_tester1">Abre la guía en cada idioma y comprueba fechas, bonus, condiciones y el modo sin conexión.</string>
+    <string name="what_changed_v078_tester2">Prueba texto grande y los cuatro tamaños locales; comprueba navegación, Copiar, Compartir y Riesgo.</string>
+    <string name="what_changed_v078_tester3">Intenta copiar una plantilla de referencia; no debe convertirse en una búsqueda completa.</string>
+</resources>

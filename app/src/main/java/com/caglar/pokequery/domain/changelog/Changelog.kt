@@ -14,6 +14,29 @@ data class ChangelogEntry(
 object Changelog {
     val entries = listOf(
         ChangelogEntry(
+            versionName = "0.7.8",
+            versionCode = 28,
+            releaseLabel = "Release",
+            title = "Event Guide & Accessibility",
+            highlights = listOf(
+                "Event Guide cards now show verified event bonuses, retailer, purchase, redemption, date, and regional conditions, with localized detail views",
+                "Copy, Share, Risk Warning, navigation, and large-text layouts are clearer while generated searches remain local and pipe-free",
+                "Knowledge Base reference templates are protected from being copied as complete searches"
+            ),
+            safetyNotes = listOf(
+                "PokeQuery-generated search strings never emit the | operator and Pokémon GO actions remain manual",
+                "Medium- and high-risk copy/share flows still require review before clipboard replacement or sharing",
+                "No login, tracking, analytics, ads, or Pokémon GO account access were added"
+            ),
+            testerNotes = listOf(
+                "Open Event Guide in each supported app language and verify dates, bonuses, retailer conditions, and offline fallback",
+                "Try large text and the four local text-size options; confirm navigation, Copy, Share, and Risk Warning remain readable",
+                "Try copying a Knowledge Base reference template and confirm it cannot become a complete search",
+                "Switch App Language and Search String Language independently; confirm localized UI does not change canonical risk behavior"
+            ),
+            isCurrent = true
+        ),
+        ChangelogEntry(
             versionName = "0.7.7",
             versionCode = 27,
             releaseLabel = "Release",
@@ -34,7 +57,7 @@ object Changelog {
                 "In Search Assistant, verify hundo -> 4* copies directly while shiny requires review before replacing the clipboard",
                 "Switch UI and Search String languages independently and verify Share/rating copy remains localized without changing canonical risk behavior"
             ),
-            isCurrent = true
+            isCurrent = false
         ),
         ChangelogEntry(
             versionName = "0.7.6",

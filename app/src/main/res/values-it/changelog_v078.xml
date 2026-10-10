@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v078_subtitle">Versione • Guida agli eventi e accessibilità</string>
+    <string name="what_changed_v078_b1">• Le schede mostrano bonus verificati e condizioni di negozio, acquisto, riscatto, data e regione.</string>
+    <string name="what_changed_v078_b2">• Copia, condividi, avvisi di rischio, navigazione e testo grande sono più chiari.</string>
+    <string name="what_changed_v078_b3">• I modelli di riferimento non possono essere copiati come ricerche complete.</string>
+    <string name="what_changed_v078_safety1">Le ricerche generate non usano mai |; le azioni in Pokémon GO restano manuali.</string>
+    <string name="what_changed_v078_safety2">Le copie e condivisioni a rischio medio o alto richiedono ancora una verifica prima dell’azione.</string>
+    <string name="what_changed_v078_safety3">Non sono stati aggiunti accesso, tracciamento, analisi, annunci o accesso agli account Pokémon GO.</string>
+    <string name="what_changed_v078_tester1">Apri la guida in ogni lingua e controlla date, bonus, condizioni e fallback offline.</string>
+    <string name="what_changed_v078_tester2">Prova il testo grande e tutte le quattro dimensioni locali; controlla navigazione, Copia, Condividi e Rischio.</string>
+    <string name="what_changed_v078_tester3">Prova a copiare un modello di riferimento; non deve diventare una ricerca completa.</string>
+</resources>

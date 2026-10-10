@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="what_changed_v078_subtitle">Release • Event-Guide und Barrierefreiheit</string>
+    <string name="what_changed_v078_b1">• Event-Karten zeigen geprüfte Boni sowie Händler-, Kauf-, Einlöse-, Datums- und Regionsbedingungen.</string>
+    <string name="what_changed_v078_b2">• Kopieren, Teilen, Risikohinweise, Navigation und große Textgrößen sind klarer.</string>
+    <string name="what_changed_v078_b3">• Referenzvorlagen der Wissensdatenbank lassen sich nicht als vollständige Suchen kopieren.</string>
+    <string name="what_changed_v078_safety1">Erstellte Suchen verwenden nie den Operator |; Pokémon-GO-Aktionen bleiben manuell.</string>
+    <string name="what_changed_v078_safety2">Kopieren und Teilen mit mittlerem oder hohem Risiko erfordern weiterhin eine Prüfung.</string>
+    <string name="what_changed_v078_safety3">Kein Login, Tracking, keine Analyse, Werbung oder Pokémon-GO-Kontoverbindung wurde hinzugefügt.</string>
+    <string name="what_changed_v078_tester1">Öffne den Event-Guide in jeder App-Sprache und prüfe Daten, Boni, Bedingungen und Offline-Fallback.</string>
+    <string name="what_changed_v078_tester2">Teste große Schrift und alle vier lokalen Textgrößen; prüfe Navigation, Kopieren, Teilen und Risikohinweis.</string>
+    <string name="what_changed_v078_tester3">Versuche eine Wissensdatenbank-Referenzvorlage zu kopieren; sie darf keine vollständige Suche werden.</string>
+</resources>
