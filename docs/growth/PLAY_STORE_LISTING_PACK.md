@@ -1,6 +1,6 @@
 # Final Play listing drafts — 2026-10-08
 
-READY FOR REVIEW. Prepared for a separately authorized Android 0.7.8/code 28 publication; no live fields changed. Source candidate is merged master `005a81a9effa8c56720b34dd334d9c9753de1784`. Descriptions refer to shipped workflows, not automatic game actions or cloud AI. Event information and localized tokens retain limitations.
+READY FOR REVIEW. Prepared for separately authorised Android 0.7.8/code28 publication; no live fields changed. The candidate is on `release/v0.7.8` (first version bump `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`); merged master `005a81a9effa8c56720b34dd334d9c9753de1784` is only the 0.7.7/code27 **pre-release baseline**. Pin final release-merge SHA before signing. Descriptions refer to manual workflows, not automatic game actions or cloud AI. Event information and localized tokens retain limitations.
 
 Limits: title 30, short description 80, full description 4,000 characters. Counts include spaces, punctuation and full-description newlines. Source: [Google Play app setup](https://support.google.com/googleplay/android-developer/answer/9859152).
 
