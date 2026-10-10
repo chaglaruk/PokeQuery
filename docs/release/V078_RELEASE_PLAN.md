@@ -1,10 +1,10 @@
 # Android v0.7.8 release gates — 2026-10-10
 
-SOURCE PREPARED, NOT PUBLISHED. Android **0.7.8/code28** is on the release branch `release/v0.7.8` (initial version bump commit `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`). Its **pre-release baseline** is merged master `005a81a9effa8c56720b34dd334d9c9753de1784` (still 0.7.7/code27). Production remains Android 0.7.7/code27; Web/PWA is independently versioned at 0.7.3. Use the final reviewed and merged release commit, not the baseline, for signing. No publication or release signing has occurred.
+**CODE29 REVISION PREPARED, NOT PUBLISHED.** Signed 0.7.8/code28 was accepted into a Play Console production **draft**, but no review submission or rollout occurred. Event Guide correctness/accessibility PR #49 merged at `64ba28687efe5fdd9a8bf71af2f625f949e91b6b`; the replacement Android **0.7.8/code29** candidate is on `release/v0.7.8-code29`. Published Android is still **0.7.7/code27**; Web/PWA remains **0.7.3**. Final source/CI, signing, Console version-code availability and draft replacement are separate gates.
 
 ## Source and changes
 
-Published Android source: `93bf178f942048e0fee8cbb47976b23f86ecde3f`, the peeled `v0.7.7` tag. The **0.7.8 baseline** is `005a81a9effa8c56720b34dd334d9c9753de1784`, and the **first 0.7.8 version-bump source** is `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`. Later release-branch corrections may advance the head. Recheck and pin the exact merged release SHA and CI before building any distributable artifact.
+Published Android source: `93bf178f942048e0fee8cbb47976b23f86ecde3f` (peeled `v0.7.7`). The first 0.7.8/code28 version-bump source was `d6f0268fbe6a7e560b0161a1c6d01a1b87aac38e`; the **signed code28 draft** was built from `57b4f8d8d50630af6632ef5730f20978c18ba948`. The **code29 replacement baseline** is merged PR #49 SHA `64ba28687efe5fdd9a8bf71af2f625f949e91b6b`. Pin the final reviewed/merged code29 SHA (not the moving master) before signing.
 
 Merged after the immutable release:
 
@@ -19,28 +19,29 @@ Merged after the immutable release:
 - PR #45: pre-release documentation and six-language Play listing preparation, not Android runtime functionality.
 - PR #46: verified Halloween Part II vs GO Pass source-date/feed classification corrections.
 - PR #47: Event Guide editorial-news classification and timing, localized status, copy/risk/readability fixes, four local text sizes, equal bottom-nav icon alignment and accessible Settings targets.
+- PR #49: localized neutral Featured badges remove event-independent costume claims; checked Event Guide checklist text has higher contrast.
 - Scheduled feed-only changes are public event data updates, not Android releases.
 
 The Knowledge Base guard **is included** in the selected release baseline. Do not describe it as conditional. Web/SEO changes do not imply an Android or Web version bump on their own.
 
 ## Final six-language What's New drafts
 
-Use [the dedicated 0.7.8 release-note draft](V078_WHATS_NEW_DRAFT.md) for EN/TR/DE/ES/FR/IT; this older proposal was superseded after PRs #43–#47 merged. The complete release note now includes Knowledge Base copy guards, optional text sizing and editorial Event Guide date handling. The publisher must confirm final Play Console locale previews. Never claim automatic Pokémon GO actions or guaranteed transfer safety.
+Use [the dedicated 0.7.8 release-note draft](V078_WHATS_NEW_DRAFT.md) for EN/TR/DE/ES/FR/IT; the initial proposal was superseded after PRs #43–#49 merged. The complete release note now includes Knowledge Base copy guards, optional text sizing and editorial Event Guide date handling. The publisher must confirm final Play Console locale previews. Never claim automatic Pokémon GO actions or guaranteed transfer safety.
 
 ## Exact release gates — perform only after separate authorization
 
 1. Review and explicitly authorize the relevant PR merges. Fetch again, list all commits since the immutable 0.7.7 source and confirm the intended changes; do not use today's moving master blindly. Feed-only bot commits may advance it.
 2. Create a clean isolated release checkout at the selected SHA. Verify origin is chaglaruk/PokeQuery, exact HEAD, clean status and immutable 0.7.7 ancestry. Record the resolved SHA, reviewed PRs and source diff.
-3. In this dedicated release change, set only Android versionName 0.7.8/versionCode 28, update bundled What's New in six locales and CHANGELOG to the actual release source. Web stays 0.7.3 unless separately gated. Re-review the release change and obtain terminal CI at the final source, including any post-review changes.
+3. In the new reviewed release PR, keep Android versionName **0.7.8** and increase versionCode from saved-draft 28 to **29**. Confirm that Play Console accepts 29. Use the updated six-language What's New draft and CHANGELOG; Web stays independently **0.7.3**. Require terminal CI at the final source.
 4. Run Android unit tests, lint and debug assembly; engine corpus byte identity; canonical/both fallback equality; generator safety, feed validation and runtime-asset checks. Preserve mandatory protection/risk/count policy and no pipe in generated output. If a Web engine is changed, run golden corpus, typecheck, lint, unit tests, production build and relevant mobile/routing/offline Playwright gates as well.
 5. Validate Home, two language controls, Search Assistant, goal generation, Risk Warning, Copy/Share, local favorites/history/presets, Knowledge Base and Event Guide. Confirm medium/high-risk flows cannot replace clipboard or open sharing before review. Check EN/TR/DE/ES/FR/IT, German Candy Prep wrapping and Zorua day labels against the actual device date.
 6. Test Event Guide both online refresh and offline bundled fallback. Today's PR42 visual evidence covers the corrected bundled fallback in a separate QA package; it does not replace release-source validation or a Play-production capture gate. Do not silently use an old cached feed.
 7. Repeat small-device/large-font review on affected screens at normal and enlarged font scales. Record widths/scales and any remaining clipping rather than treating the previous Samsung profile as all accessibility coverage.
-8. Generate a signed **release AAB only after signing is separately authorized**. No debug package suffix may remain. Inspect AAB manifest using bundletool: package com.caglar.pokequery, versionName 0.7.8, code 28, non-debuggable, documented INTERNET exception and allowBackup=false. Verify AAB signature with jarsigner/keytool against the approved upload certificate. The upload certificate is for upload, not installed-APK acceptance. Record SHA-256, size, exact build/source/tool versions and delivery-copy hash equality without logging secrets.
+8. Generate a signed **release AAB only after signing is separately authorized**. No debug package suffix may remain. Inspect AAB manifest using bundletool: package com.caglar.pokequery, versionName 0.7.8, **code 29**, non-debuggable, documented INTERNET exception and allowBackup=false. Verify AAB signature with jarsigner/keytool against the approved upload certificate. The upload certificate is for upload, not installed-APK acceptance. Record SHA-256, size, exact build/source/tool versions and delivery-copy hash equality without logging secrets.
 9. Create/tag the release only under explicit permission. Any release tag must resolve to the verified final source SHA; never retarget v0.7.7. Recheck CI terminal success at that exact source.
-10. Upload/publish only under an explicit Google Play gate. Confirm code 28 is accepted and the intended track/countries/rollout/notes/listing fields are reviewed. Do not assume a successful upload means production is live. Preserve credentials/keystores outside evidence and Git.
+10. Upload/publish only under an explicit Google Play gate. Confirm code **29** is available and accepted, and that the already saved **code28** draft is superseded safely in the same production track without touching the current live 0.7.7 release; review intended track/countries/notes/listing fields. Do not assume a successful upload means production is live. Preserve credentials/keystores outside evidence and Git.
 11. Once genuinely available in Google Play, update the existing production installation normally, preserving user data unless a new explicit instruction permits otherwise. No uninstall/clear-data instruction is implied by this plan.
-12. Verify the installed **base APK and every split APK**: correct package, versionName 0.7.8, versionCode 28, DEBUGGABLE=false, Play installer; run apksigner verify and require Google Play App Signing SHA-256:
+12. Verify the installed **base APK and every split APK**: correct package, versionName 0.7.8, versionCode **29**, DEBUGGABLE=false, Play installer; run apksigner verify and require Google Play App Signing SHA-256:
 
    `FE:9C:42:96:61:0D:1C:61:41:9E:54:7A:8E:90:10:05:72:2B:B0:76:6C:CC:40:C7:43:3E:A1:66:7F:7D:1A:2A`
 
@@ -53,7 +54,7 @@ For the TCG 30th Celebration example, distinguish event dates **27 September–2
 
 Verify the [official Pokémon GO announcement](https://pokemongo.com/news/tcg-30th-celebration-event) again at release/capture time. Feed generation and the Android binary are different delivery mechanisms: corrected feed data alone cannot repair the 0.7.7 bonus rendering.
 
-## Final six-screenshot recapture sequence
+## Conditional store screenshot correction (only if the current Play listing is inaccurate)
 
 1. Search only bounded known evidence/backups and existing Play Console listing images for the previously approved 24 assets. Their local approved bytes/manifest were **not recovered as of 2026-10-10**; do not claim hash verification. If recovered, verify against the original manifest; otherwise recapture and review all 30 cells. Retain rejection history for the six former Event examples.
 2. Require the exact future Play-installed build/signature gate above. A debug or .visualqa capture never counts as a production store replacement.
@@ -66,4 +67,4 @@ Verify the [official Pokémon GO announcement](https://pokemongo.com/news/tcg-30
 
 ## Remaining gates before publication
 
-The 0.7.8/code28 Android **source version bump has been prepared on the release branch**, while Web/PWA remains 0.7.3. Still pending: independent release-PR merge and final source/CI pin, authorised signing, bundletool/certificate validation, Play Console draft acceptance, release-device and genuine Play-installed evidence, recovery or recapture and review of all 30 store cells, and final publisher/native-language listing review. A signed release AAB and production rollout have **not** been completed.
+The **signed 0.7.8/code28** AAB and existing draft are already verified by previous device-agent evidence, but were **not published**. The **0.7.8/code29** replacement source is being reviewed. Remaining: independent release-PR merge and exact-head CI; repeat signed build/bundletool/certificate checks for **code29**; verify its new Play Console draft and native-language listing/policy fields; perform release-behavior offline cache/fallback test plus targeted Event Guide badge/contrast physical QA; verify current live Play listing visuals and update **only if genuinely inaccurate**. Lost local screenshot archives alone do not require recapturing the whole 30-cell pack. No rollout or tag without an explicit final publication gate.
